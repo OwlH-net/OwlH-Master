@@ -77,6 +77,18 @@ func Suricata (n string) (data []byte, err error) {
     return data,err
 }
 
+func Zeek (n string) (data []byte, err error) {
+    logs.Info("Zeek status Node - %s",n)
+    data,err = node.Zeek(n)
+    return data,err
+}
+
+func Wazuh (n string) (data []byte, err error) {
+    logs.Info("Wazuh status Node - %s",n)
+    data,err = node.Wazuh(n)
+    return data,err
+}
+
 func DeleteNode (n string) (err error) {
     logs.Info("Models - delete Node -> name -> %s", n)
     err = node.DeleteNode(n)

@@ -7,7 +7,12 @@ import (
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
+    //"owlhmaster/models"
+    //"owlhmaster/ruleset"
+    //"fmt"
+    //"io/ioutil"
 )
+
 
 func main() {
 
@@ -33,3 +38,6 @@ func main() {
 
     beego.Run()
 }
+
+
+

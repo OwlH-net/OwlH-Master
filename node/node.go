@@ -387,3 +387,47 @@ func Suricata (n string) (data []byte, err error) {
     }
     return data,nil
 }
+
+func Zeek (n string) (data []byte, err error) {
+    logs.Info("Node Zeek -> IN")
+    logs.Info("Zeek - UID -> %s", n)
+
+    ip, err := getNodeIPbyUID(n)
+    if err != nil {
+        logs.Info("Zeek - IP Error -> %s", err.Error())
+        return nil,err
+    }
+    port, err := getNodePortbyUID(n)
+    if err != nil {
+        logs.Info("Zeek - PORT Error -> %s", err.Error())
+        return nil,err
+    }    
+    logs.Info("Zeek - vamos a por el zeek -> %s, %s", ip, port)
+    data, err = nodeclient.Zeek(ip,port)
+    if err != nil {
+        return nil,err
+    }
+    return data,nil
+}
+
+func Wazuh (n string) (data []byte, err error) {
+    logs.Info("Node wazuh -> IN")
+    logs.Info("Wazuh - UID -> %s", n)
+
+    ip, err := getNodeIPbyUID(n)
+    if err != nil {
+        logs.Info("Wazuh - IP Error -> %s", err.Error())
+        return nil,err
+    }
+    port, err := getNodePortbyUID(n)
+    if err != nil {
+        logs.Info("Wazuh - PORT Error -> %s", err.Error())
+        return nil,err
+    }    
+    logs.Info("Wazuh - vamos a por el wazuh -> %s, %s", ip, port)
+    data, err = nodeclient.Wazuh(ip,port)
+    if err != nil {
+        return nil,err
+    }
+    return data,nil
+}

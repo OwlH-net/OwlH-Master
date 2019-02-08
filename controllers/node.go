@@ -136,6 +136,51 @@ func (n *NodeController) GetSuricata() {
     n.ServeJSON()
 }
 
+// @Title Get Zeek
+// @Description Get Zeek status from Node
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /zeek/:nid [get]
+// @router /:nid/zeek [get]
+func (n *NodeController) GetZeek() { 
+    logs.Info("GET Zeek -> In")
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
+    if nid != "" {
+        data,err := models.Zeek(nid)
+        var anode map[string]string
+        json.Unmarshal(data, &anode)
+        n.Data["json"] = anode
+        if err != nil {
+            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+        }
+    }
+    logs.Info("GET Zeek -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}
+
+// @Title Get Wazuh
+// @Description Get wazuh status from Node
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /wazuh/:nid [get]
+// @router /:nid/wazuh [get]
+func (n *NodeController) GetWazuh() { 
+    logs.Info("GET Wazuh -> In")
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
+    if nid != "" {
+        data,err := models.Wazuh(nid)
+        var anode map[string]string
+        json.Unmarshal(data, &anode)
+        n.Data["json"] = anode
+        if err != nil {
+            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+        }
+    }
+    logs.Info("GET Wazuh -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}
 
 // @Title Get All Nodes
 // @Description Get full list of nodes

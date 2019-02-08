@@ -35,7 +35,12 @@ func init() {
 				&controllers.NodeController{},
 			),
 		),
-
+		beego.NSNamespace("/ruleset",
+			beego.NSInclude(
+				&controllers.RulesetController{},
+			),
+		),
+		
 	)
 	beego.AddNamespace(ns)
 }
