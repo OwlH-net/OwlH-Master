@@ -10,6 +10,26 @@ import(
     //"strconv"
 )
 
+func ReadSID(sid string)( sidLine map[string]string ,err error){
+
+    data, err := os.Open("/etc/owlh/ruleset/owlh.rules")
+    if err != nil {
+        fmt.Println("File reading error", err)
+        return 
+    }
+    
+    var validID = regexp.MustCompile(`sid:`+sid+`;`)
+    scanner := bufio.NewScanner(data)
+    for scanner.Scan(){
+        if validID.MatchString(scanner.Text()){
+            sidLine := make(map[string]string)
+            sidLine["raw"] = scanner.Text()
+            return sidLine,err
+        }    
+    }
+    return nil,err
+}
+
 func Read()(rules map[string]map[string]string, err error) {
 //leer fichero V
 //dar formato a las reglas (json)
@@ -53,7 +73,5 @@ func Read()(rules map[string]map[string]string, err error) {
 
         }
     }
-
     return rules,err
-
 }

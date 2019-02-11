@@ -11,3 +11,9 @@ func GetRules () (rules map[string]map[string]string, err error) {
     rules,err = ruleset.Read()
     return rules,err
 }
+
+func GetRuleSID (sid string) (rules map[string]string, err error) {
+    logs.Info("MODEL===Lectura de línea según SID")
+    rules,err = ruleset.ReadSID(sid)
+    return rules,err
+}

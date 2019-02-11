@@ -22,3 +22,16 @@ func (n *RulesetController) GetRules(){
 	n.Data["json"] = mstatus
 	n.ServeJSON()
 }
+
+// @Title GetRuleSID
+// @Description Get Ruleset by SID
+// @Success 200 {object} models.Ruleset
+// @Failure 403 SID not exist
+// @router /rule/:sid [get]
+// @router /:sid/rule [get]
+func (n *RulesetController) GetRuleSID(){ 
+	sid := n.GetString(":sid")
+	mstatus, _ := models.GetRuleSID(sid)
+	n.Data["json"] = mstatus
+	n.ServeJSON()
+}
