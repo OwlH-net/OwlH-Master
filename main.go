@@ -8,7 +8,7 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     //"owlhmaster/models"
-    //"owlhmaster/ruleset"
+    //"owlhmaster/utils"
     //"fmt"
     //"io/ioutil"
 )
@@ -17,6 +17,7 @@ import (
 func main() {
 
     ndb.Conn()
+    ndb.RConn()
     err := ndb.Get_master()
 
     if err != nil {
@@ -38,6 +39,7 @@ func main() {
 
     beego.Run()
 }
+
 
 
 

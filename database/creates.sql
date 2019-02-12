@@ -30,3 +30,10 @@ CREATE TABLE nodes (
  node_param text NOT NULL,
  node_value text NOT NULL
 );
+
+CREATE TABLE ruleset (
+ ruleset_id integer PRIMARY KEY AUTOINCREMENT,
+ ruleset_uniqueid text NOT NULL,
+ ruleset_param text NOT NULL,
+ ruleset_value text NOT NULL
+);
