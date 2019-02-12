@@ -71,25 +71,31 @@ func PingNode (n string) (err error) {
     return err
 }
 
-func Suricata (n string) (data []byte, err error) {
+func Suricata(n string) (data []byte, err error) {
     logs.Info("Suricata status Node - %s",n)
     data,err = node.Suricata(n)
     return data,err
 }
 
-func Zeek (n string) (data []byte, err error) {
+func SuricataBPF(n string) (data string, err error) {
+    logs.Info("Suricata BPF Node - %s",n)
+    data,err = node.SuricataBPF(n)
+    return data,err
+}
+
+func Zeek(n string) (data []byte, err error) {
     logs.Info("Zeek status Node - %s",n)
     data,err = node.Zeek(n)
     return data,err
 }
 
-func Wazuh (n string) (data []byte, err error) {
+func Wazuh(n string) (data []byte, err error) {
     logs.Info("Wazuh status Node - %s",n)
     data,err = node.Wazuh(n)
     return data,err
 }
 
-func DeleteNode (n string) (err error) {
+func DeleteNode(n string) (err error) {
     logs.Info("Models - delete Node -> name -> %s", n)
     err = node.DeleteNode(n)
     return err

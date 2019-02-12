@@ -136,6 +136,31 @@ func (n *NodeController) GetSuricata() {
     n.ServeJSON()
 }
 
+
+// @Title Get Suricata BPF
+// @Description Get Suricata BPF from node
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /suricata/:nid/bpf [get]
+// @router /:nid/suricata/bpf [get]
+// @router /bpf/:nid [get]
+func (n *NodeController) GetSuricataBPF() { 
+    logs.Info("GET SuricataBPF -> In")
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
+    if nid != "" {
+        data,err := models.SuricataBPF(nid)
+        n.Data["json"] = map[string]string{"bpf": data}
+        if err != nil {
+            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+        }
+    }
+    logs.Info("GET SuricataBPF -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}
+
+
+
 // @Title Get Zeek
 // @Description Get Zeek status from Node
 // @Success 200 {object} models.Node
