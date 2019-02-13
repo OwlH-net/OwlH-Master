@@ -149,13 +149,39 @@ func (n *NodeController) GetSuricataBPF() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
     if nid != "" {
-        data,err := models.SuricataBPF(nid)
+        data,err := models.GetSuricataBPF(nid)
         n.Data["json"] = map[string]string{"bpf": data}
         if err != nil {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
     logs.Info("GET SuricataBPF -> OUT -> %s", n.Data["json"])
+    n.ServeJSON()
+}
+
+
+// @Title Put Suricata BPF
+// @Description Put Suricata BPF from web to node
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /suricata/:nid/bpf [put]
+// @router /:nid/suricata/bpf [put]
+// @router /bpf/:nid [put]
+func (n *NodeController) PutSuricataBPF() { 
+    logs.Info("PUT SuricataBPF -> In")
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    //err := models.AddNode(anode)
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
+    if nid != "" {
+        data,err := models.PutSuricataBPF(anode)
+        n.Data["json"] = map[string]string{"bpf": data}
+        if err != nil {
+            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+        }
+    }
+    logs.Info("PUT SuricataBPF -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 

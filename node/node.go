@@ -366,28 +366,6 @@ func NodePing (n string) (err error) {
     return nil
 }
 
-func Suricata (n string) (data []byte, err error) {
-    logs.Info("Node suricata -> IN")
-    logs.Info("Suricata - UID -> %s", n)
-
-    ip, err := getNodeIPbyUID(n)
-    if err != nil {
-        logs.Info("Suricata - IP Error -> %s", err.Error())
-        return nil,err
-    }
-    port, err := getNodePortbyUID(n)
-    if err != nil {
-        logs.Info("Suricata - PORT Error -> %s", err.Error())
-        return nil,err
-    }    
-    logs.Info("Suricata - vamos a por el suricata -> %s, %s", ip, port)
-    data, err = nodeclient.Suricata(ip,port)
-    if err != nil {
-        return nil,err
-    }
-    return data,nil
-}
-
 func Zeek (n string) (data []byte, err error) {
     logs.Info("Node Zeek -> IN")
     logs.Info("Zeek - UID -> %s", n)
@@ -430,33 +408,4 @@ func Wazuh (n string) (data []byte, err error) {
         return nil,err
     }
     return data,nil
-}
-
-func SuricataBPF(n string)(bpf string, err error) {
-    if ndb.Db == nil {
-        logs.Error("suricataBPF -- Can't acces to database")
-        return "", errors.New("suricataBPF -- Can't acces to database")
-    }
-    var res string
-    sql := "select node_value from nodes where node_uniqueid = \""+n+"\" and node_param = \"bpf\";"
-    logs.Info("BPF Suricata query sql %s",sql)
-    rows, err := ndb.Db.Query(sql)
-    
-    if err != nil {
-        logs.Info("BPF Suricata query error %s",err.Error())
-        return "", err
-    }
-    defer rows.Close()
-    if rows.Next() {
-        err = rows.Scan(&res)
-        logs.Info("BPF Suricata there are rows")
-        if  err != nil {
-            logs.Info("BPF Suricata scan error %s",err.Error())
-            return "", err
-        }
-        logs.Info("BPF Suricata res: "+res)
-        return res, err
-    }
-    return "", errors.New("suricataBPF -- There is no defined BPF")
-    //select node_value from nodes where node_uniqueid like '%que-rico%' and node_param = "ip";
 }

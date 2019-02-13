@@ -77,9 +77,15 @@ func Suricata(n string) (data []byte, err error) {
     return data,err
 }
 
-func SuricataBPF(n string) (data string, err error) {
-    logs.Info("Suricata BPF Node - %s",n)
-    data,err = node.SuricataBPF(n)
+func GetSuricataBPF(n string) (data string, err error) {
+    logs.Info("Get Suricata BPF Node - %s",n)
+    data,err = node.GetSuricataBPF(n)
+    return data,err
+}
+
+func PutSuricataBPF(n map[string]string) (data string, err error) {
+    logs.Info("Put Suricata BPF Node - %s",n)
+    data,err = node.PutSuricataBPF(n)
     return data,err
 }
 
@@ -100,4 +106,3 @@ func DeleteNode(n string) (err error) {
     err = node.DeleteNode(n)
     return err
 }
-

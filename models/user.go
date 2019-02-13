@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 	"time"
-	"owlhmaster/nodeclient"
+	//"owlhmaster/nodeclient"
 )
 
 var (
@@ -46,7 +46,7 @@ func GetUser(uid string) (u *User, err error) {
 }
 
 func GetAllUsers() map[string]*User {
-	nodeclient.Dale()
+	//nodeclient.Dale()
 	return UserList
 }
 
