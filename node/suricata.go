@@ -7,10 +7,15 @@ import (
 //    "fmt"
 //   "time"
 //    _ "github.com/mattn/go-sqlite3"
+    "crypto/tls"
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
+    "encoding/json"
     // "regexp"
+    "io/ioutil"
+    "net/http"
+    "bytes"
 )
 
 func Suricata (n string) (data []byte, err error) {
@@ -73,6 +78,43 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     jsonbpf := n["bpf"]
     bpftext := "bpf"
 
+    ////////////////////////
+    ////////////////////////
+    ////////////////////////
+    ipnid,portnid,err := GetSuricataIpPort(jsonnid)
+    logs.Info("||||||||"+ipnid+"||||||||"+portnid)
+    
+    //crear map con nid y bpf
+    values := make(map[string]string)
+    values["nid"] = jsonnid
+    values["bpf"] = jsonbpf
+
+    //pasar json al cliente (MIRAR COMO SE HACE)
+    valuesJSON,err := json.Marshal(values)
+
+    url := "https://"+ipnid+":"+portnid+"/node/suricata/bpf"
+    logs.Info("\n"+url+"\n")
+    req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    client := &http.Client{Transport: tr}
+    resp, err := client.Do(req)
+
+    logs.Info("Request newBuffer(JSON) -------> ",req.Body)
+    logs.Info("Resp cliente Do (request) -------->",resp.Body)
+
+    if err != nil {
+        return "",err
+    }
+    defer resp.Body.Close()
+    
+    logs.Info("response Status:", resp.Status)
+    logs.Info("response Headers:", resp.Header)
+    body, _ := ioutil.ReadAll(resp.Body)
+    logs.Info("response Body:", string(body))
+    ////////////////////////
+    ////////////////////////
+    ////////////////////////
+
     sql := "select node_value from nodes where node_uniqueid = \""+jsonnid+"\" and node_param = \"bpf\";"
     logs.Info("Put BPF Suricata query sql %s",sql)
     rows, err := ndb.Db.Query(sql)
@@ -86,37 +128,19 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     if rows.Next() {
         rows.Close()
         logs.Info("Put BPF Suricata res UPDATE")
-        //sql = "update nodes set node_value = '"+jsonbpf+"' where node_uniqueid = '"+jsonnid+"' and node_param = 'bpf';"
-        //_, err := ndb.Db.Query(sql)
         updtbpf, err := ndb.Db.Prepare("update nodes set node_value = ? where node_uniqueid = ? and node_param = ?;")
-        //ndb.Db.Exec("PRAGMA journal_mode=WAL;")
-        //updtbpf, err := ndb.Db.Prepare("delete from nodes where node_uniqueid = ? and node_param = ?;")
+
         if (err != nil){
             logs.Info("Put BPF Suricata prepare UPDATE -- "+err.Error())
             return "", err
         }
         _, err = updtbpf.Exec(&jsonbpf, &jsonnid, bpftext)  
         defer updtbpf.Close()      
-        //logs.Info("PUT BPF UPDATE -- "+updtbpf)
-        // if (err != nil){
-        //     logs.Info("Put BPF Suricata res DELETE -- "+err.Error())
-        //     return "", err
-        // }
-        // indtbpf, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values (?,?,?);")
-        // logs.Info("PUT BPF INSERT -- "+updtbpf)
-        // _, err = indtbpf.Exec(&jsonnid, bpftext, &jsonbpf)  
-        // defer updtbpf.Close()
-        // if (err != nil){
-        //     return "", err
-        // }
-        // return "SuccessInsert", err
+
         return "SuccessUpdate", err
     }else{
         logs.Info("Put BPF Suricata res INSERT")
-        //sql = "insert into nodes (node_uniqueid, node_param, node_value) values ('"+jsonnid+"', 'bpf', '"+jsonbpf+"');"
-        //_, err := ndb.Db.Query(sql)
         indtbpf, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values (?,?,?);")
-        //logs.Info("PUT BPF INSERT -- "+updtbpf)
         _, err = indtbpf.Exec(&jsonnid, bpftext, &jsonbpf)  
         defer indtbpf.Close()
         if (err != nil){
@@ -125,5 +149,38 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
         return "SuccessInsert", err
     }
     return "Error", errors.New("Put SuricataBPF -- There is no defined BPF")
-    //select node_value from nodes where node_uniqueid like '%que-rico%' and node_param = "ip";
 }
+
+func GetSuricataIpPort(jsonnid string)(ip string, port string, err error){ //(ipReturn string, portReturn string,  err error ) {
+    if ndb.Db == nil {
+        logs.Error("GetSuricataIpPort -- Can't acces to database")
+        return "","", errors.New("GetSuricataIpPort -- Can't acces to database")
+    }
+
+    var res1 string
+    var res2 string
+
+    sqlIP := "select node_value from nodes where node_uniqueid = \""+jsonnid+"\" and node_param = \"ip\";"
+    rowIP, err := ndb.Db.Query(sqlIP)
+    sqlPORT := "select node_value from nodes where node_uniqueid = \""+jsonnid+"\" and node_param = \"port\";"
+    rowPORT, err := ndb.Db.Query(sqlPORT)
+    
+    defer rowIP.Close()
+    defer rowPORT.Close()
+    if rowIP.Next() {
+        err = rowIP.Scan(&res1)
+        if  err != nil {
+            logs.Info("---NO IP FOR THIS NID---"+err.Error())
+            return "","",err
+        }
+    }
+    if rowPORT.Next() {
+        err = rowPORT.Scan(&res2)
+        if  err != nil {
+            logs.Info("---NO PORT FOR THIS NID---"+err.Error())
+            return "","",err
+        }
+    }
+    return res1,res2,err
+}
+
