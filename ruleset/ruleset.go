@@ -166,7 +166,7 @@ func GetAllRulesets() (rulesets *map[string]map[string]string, err error) {
             logs.Error("ruleset/GetAllRulesets -- Query return error: %s", err.Error())
             return nil, err
         }
-        logs.Info ("uniqid: %s, param: %s, value: %s", uniqid,param,value)
+        //logs.Info("uniqid: %s, param: %s, value: %s", uniqid,param,value)
         if allrulesets[uniqid] == nil { allrulesets[uniqid] = map[string]string{}}
         allrulesets[uniqid][param]=value
     } 
@@ -200,4 +200,53 @@ func GetRulesetRules(nid string)(r map[string]map[string]string, err error){
     path,err := GetRulesetPath(nid) //obtener path ruleset
     rules,err = Read(path) //obtener rules del ruleset a traves del path del parametro
     return rules, err
+}
+
+func SetRuleSelected(n map[string]string) (err error) {
+    node_uniqueid_ruleset := n["nid"]
+    ruleset_uniqueid := n["rule_uid"]
+
+    if ndb.Rdb == nil {
+        logs.Error("SetRuleSelected -- Can't access to database")
+        return errors.New("SetRuleSelected -- Can't access to database")
+    }
+    //rows, err := ndb.Rdb.Query("SELECT ruleset_uniqueid, node_uniqueid FROM ruleset_node WHERE ruleset_uniqueid=$1 and node_uniqueid=$2;",ruleset_uniqueid,node_uniqueid_ruleset)
+    sqlQuery := "SELECT * FROM ruleset_node WHERE node_uniqueid = \""+node_uniqueid_ruleset+"\";"
+    logs.Info("SQL Query : "+sqlQuery)
+    rows, err := ndb.Rdb.Query(sqlQuery)
+    if err != nil {
+        logs.Info("Put SetRuleSelecteda query error %s",err.Error())
+        return err
+    }
+
+    defer rows.Close()
+    if rows.Next() {
+        rows.Close()
+        logs.Info("ruleset/SetRuleSelected UPDATE")
+        updateRulesetNode, err := ndb.Rdb.Prepare("update ruleset_node set ruleset_uniqueid = ? where node_uniqueid = ?;")
+        _, err = updateRulesetNode.Exec(&ruleset_uniqueid, &node_uniqueid_ruleset)               
+        defer updateRulesetNode.Close()
+
+        if (err != nil){
+            logs.Info("SetRuleSelected UPDATE Error -- "+err.Error())
+            return err
+        }
+        logs.Info("RETURN NILL UPDATE")
+        return nil
+
+    } else {
+        //rows.Close()
+        logs.Info("ruleset/SetRuleSelected INSERT")
+        insertRulesetNode, err := ndb.Rdb.Prepare("insert into ruleset_node (ruleset_uniqueid, node_uniqueid) values (?,?);")
+        _, err = insertRulesetNode.Exec(&ruleset_uniqueid, &node_uniqueid_ruleset)  
+        defer insertRulesetNode.Close()
+
+        if (err != nil){
+            logs.Info("error insertRulesetNode en ruleset/rulesets--> "+err.Error())
+            return err
+        }
+
+        return nil 
+    }
+    return err
 }

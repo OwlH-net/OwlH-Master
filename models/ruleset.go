@@ -35,3 +35,10 @@ func GetRulesetRules(nid string)(rulesets map[string]map[string]string, err erro
     rulesets,err = ruleset.GetRulesetRules(nid)
     return rulesets,err
 }
+
+func SetRuleSelected(n map[string]string)(err error){
+    logs.Info("model/ruleset -- SetRuleSelected ENTRADA")
+    err = ruleset.SetRuleSelected(n)
+    logs.Info("model/ruleset -- SetRuleSelected SALIDA")
+    return err
+}

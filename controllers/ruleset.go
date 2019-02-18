@@ -82,3 +82,23 @@ func (n *RulesetController) GetRulesetRules() {
 	}
     n.ServeJSON()
 }
+
+// @Title SetRuleSelected
+// @Description Get rules from specific ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /set [put]
+func (n *RulesetController) SetRuleSelected() { 
+    logs.Info("ROUTER SetRuleSelected --> iNSIDE")
+    var ruleSelected map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &ruleSelected)
+    err := models.SetRuleSelected(ruleSelected)
+    logs.Info("vOLVIENDO")
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("RulesetSelected -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+

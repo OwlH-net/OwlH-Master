@@ -37,3 +37,9 @@ CREATE TABLE ruleset (
  ruleset_param text NOT NULL,
  ruleset_value text NOT NULL
 );
+
+CREATE TABLE ruleset_node (
+    ruleset_id integer PRIMARY KEY AUTOINCREMENT,
+    ruleset_uniqueid text NOT NULL,
+    node_uniqueid text NOT NULL
+ );
