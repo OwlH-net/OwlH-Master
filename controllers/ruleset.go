@@ -84,7 +84,7 @@ func (n *RulesetController) GetRulesetRules() {
 }
 
 // @Title SetRuleSelected
-// @Description Get rules from specific ruleset
+// @Description Set rules from specific ruleset
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /set [put]
@@ -93,7 +93,6 @@ func (n *RulesetController) SetRuleSelected() {
     var ruleSelected map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &ruleSelected)
     err := models.SetRuleSelected(ruleSelected)
-    logs.Info("vOLVIENDO")
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Info("RulesetSelected -> error: %s", err.Error())
@@ -102,3 +101,55 @@ func (n *RulesetController) SetRuleSelected() {
     n.ServeJSON()
 }
 
+// @Title GetRuleSelected
+// @Description Get rule uid from associated node
+// @Success 200 {object} models.ruleset
+// @router /get/:uuid [get]
+// @router /:uuid/get [get]
+func (n *RulesetController) GetRuleSelected() { 
+	uuid := n.GetString(":uuid")
+	rulesets, err := models.GetRuleSelected(uuid)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else{
+		n.Data["json"] = rulesets
+    }
+    logs.Info("GetRuleSelected: "+rulesets)
+    n.ServeJSON()
+}
+
+// @Title GetRuleName
+// @Description Get rule name from uid rule
+// @Success 200 {object} models.ruleset
+// @router /get/name/:uuid [get]
+// @router /:uuid/get/name [get]
+// @router /get/:uuid/name [get]
+func (n *RulesetController) GetRuleName() { 
+	uuid := n.GetString(":uuid")
+	name, err := models.GetRuleName(uuid)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else{
+		n.Data["json"] = name
+    }
+    logs.Info("GetRuleName: "+name)
+    n.ServeJSON()
+}
+
+// @Title SetClonedRuleset
+// @Description Create a copy of selected ruleset with a new custom name 
+// @Success 200 {object} models.ruleset
+// @router /clone [put]
+func (n *RulesetController) SetClonedRuleset() { 
+    logs.Info("Entrando a SetClonedRuleset")
+    var clonedMap map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &clonedMap)
+    err := models.SetClonedRuleset(clonedMap)
+    logs.Info("Saliendo a SetClonedRuleset")
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("SetClonedRuleset -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

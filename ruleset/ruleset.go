@@ -7,6 +7,7 @@ import(
     "bufio" //read line by line the doc
     "regexp"
     "os"
+    "os/exec"
     //"strconv"
     "owlhmaster/utils"
     "owlhmaster/database"
@@ -249,4 +250,104 @@ func SetRuleSelected(n map[string]string) (err error) {
         return nil 
     }
     return err
+}
+
+
+func GetRuleSelected(nid string)(ruleset string, err error){
+    logs.Debug("PROBNADO -> GetRuleSelected: "+nid)
+    var ruleSelected string
+    if ndb.Rdb != nil {
+        row := ndb.Rdb.QueryRow("SELECT ruleset_uniqueid FROM ruleset_node WHERE node_uniqueid = \""+nid+"\";")
+        err = row.Scan(&ruleSelected)
+        if err == sql.ErrNoRows{
+            logs.Warn("GetRuleName -> no encuentro nada")
+            return "", err
+        }
+        if err != nil {
+            logs.Warn("GetRuleName -> no hemos leido bien los campos")
+            return "", err
+        }
+        return ruleSelected, nil
+    }else {
+        logs.Info("GetRuleSelected -> no hay base de datos")
+        return "", err
+    }
+}
+
+func GetRuleName(nid string)(ruleset string, err error){
+    logs.Debug("PREUBAS -> GetRuleName: "+nid)
+    var nameRule string
+    if ndb.Rdb != nil {
+        row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid = \""+nid+"\" and ruleset_param = \"name\";")
+        err = row.Scan(&nameRule)
+        if err == sql.ErrNoRows{
+            logs.Warn("GetRuleName -> no encuentro nada")
+            return "", err
+        }
+        if err != nil {
+            logs.Warn("GetRuleName -> no hemos leido bien los campos")
+            return "", err
+        }
+        return nameRule, nil
+    }else {
+        logs.Info("GetRuleName -> no hay base de datos")
+        return "", err
+    }
+}
+
+func SetClonedRuleset(ruleCloned map[string]string)(err error){
+    if ndb.Rdb == nil {
+        logs.Error("rulesetExists -- Can't access to database")
+        return errors.New("rulesetExists -- Can't access to database")
+    }
+    clonedRuleset := ruleCloned["cloned"]
+    newRuleset := ruleCloned["new"]
+    clonedPath := ruleCloned["path"]
+    path := "/etc/owlh/ruleset/"
+    pathNewRule := path+newRuleset+".rules"
+    pathOldRule := path+clonedRuleset
+    newUUID := utils.Generate()
+
+    logs.Info("SetClonedRuleset: PATH: "+clonedPath+" Clone: "+clonedRuleset+" new "+newRuleset+" New UUID --> "+newUUID)
+
+    rows, err := ndb.Rdb.Query("SELECT * FROM ruleset WHERE ruleset_uniqueid = \""+newUUID+"\";")
+    defer rows.Close()
+    if !rows.Next(){
+        logs.Warn("No existe el UUID. Seguimos!: "+pathOldRule+" - "+pathNewRule)
+
+        cpCmd := exec.Command("cp", clonedPath, pathNewRule)
+        err = cpCmd.Run()
+        if err != nil{
+            logs.Info ("SetClonedRuleset --> Error exec cmd command")
+            return err
+        }
+        logs.Warn("Copia del fichero hecha--> "+pathNewRule)
+    
+        logs.Info("ruleset/SetClonedRuleset INSERT name")
+        insertCloneName, err := ndb.Rdb.Prepare("insert into ruleset (ruleset_uniqueid, ruleset_param, ruleset_value) values (?,?,?);")
+        _, err = insertCloneName.Exec(&newUUID, "name", &newRuleset)  
+        defer insertCloneName.Close()
+        if (err != nil){
+            logs.Info("error insertCloneName name en ruleset/rulesets--> "+err.Error())
+            return err
+        }
+        logs.Info("ruleset/SetClonedRuleset INSERT name Completado!")
+        logs.Info("ruleset/SetClonedRuleset INSERT path")
+        insertCloneValue, err := ndb.Rdb.Prepare("insert into ruleset (ruleset_uniqueid, ruleset_param, ruleset_value) values (?,?,?);")
+        _, err = insertCloneValue.Exec(&newUUID, "path", &pathNewRule)
+        defer insertCloneValue.Close()
+        if (err != nil){
+            logs.Info("error insertCloneValue name en ruleset/rulesets--> "+err.Error())
+            return err
+        }
+        logs.Info("ruleset/SetClonedRuleset INSERT path Completado!")
+
+        return nil
+    }
+    if err != nil {
+        logs.Warn("SetClonedRuleset -> no hemos leido bien los campos")
+        return err
+    }
+
+    return nil   
 }

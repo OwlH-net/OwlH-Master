@@ -39,6 +39,23 @@ func GetRulesetRules(nid string)(rulesets map[string]map[string]string, err erro
 func SetRuleSelected(n map[string]string)(err error){
     logs.Info("model/ruleset -- SetRuleSelected ENTRADA")
     err = ruleset.SetRuleSelected(n)
-    logs.Info("model/ruleset -- SetRuleSelected SALIDA")
+    return err
+}
+
+func GetRuleSelected(nidSelected string)(rulesetReturn string, err error){
+    logs.Info("model/ruleset -- GetRuleSelected ENTRADA")
+    rulesetReturn, err = ruleset.GetRuleSelected(nidSelected)
+    return rulesetReturn, err
+}
+
+func GetRuleName(nidRule string)(rulesetReturn string, err error){
+    logs.Info("model/ruleset -- GetRuleName ENTRADA")
+    rulesetReturn, err = ruleset.GetRuleName(nidRule)
+    return rulesetReturn, err
+}
+
+func SetClonedRuleset(ruleCloned map[string]string)(err error){
+    logs.Info("model/ruleset -- SetClonedRuleset")
+    err = ruleset.SetClonedRuleset(ruleCloned)
     return err
 }
