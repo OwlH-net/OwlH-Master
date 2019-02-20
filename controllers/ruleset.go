@@ -27,11 +27,14 @@ func (n *RulesetController) GetRules(){
 // @Description Get Ruleset by SID
 // @Success 200 {object} models.Ruleset
 // @Failure 403 SID not exist
-// @router /rule/:sid [get]
-// @router /:sid/rule [get]
+// @router /rule/:sid/:uuid [get]
 func (n *RulesetController) GetRuleSID(){ 
-	sid := n.GetString(":sid")
-	mstatus, _ := models.GetRuleSID(sid)
+    sid := n.GetString(":sid")
+    uuid := n.GetString(":uuid")
+    ruleSidPath := make(map[string]string)
+    ruleSidPath["sid"] = sid
+    ruleSidPath["uuid"] = uuid
+    mstatus, _ := models.GetRuleSID(ruleSidPath)
 	n.Data["json"] = mstatus
 	n.ServeJSON()
 }
@@ -149,6 +152,63 @@ func (n *RulesetController) SetClonedRuleset() {
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Info("SetClonedRuleset -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SetRulesetAction
+// @Description Set rules from specific ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /action [put]
+func (n *RulesetController) SetRulesetAction() { 
+    logs.Info("Entrando a SetRulesetAction")
+    var ruleAction map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &ruleAction)
+    err := models.SetRulesetAction(ruleAction)
+    logs.Info("Saliendo a SetRulesetAction")
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetRuleNote
+// @Description Set note for specific rule
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /getnote/:uuid/:sid [get]
+func (n *RulesetController) GetRuleNote() { 
+    logs.Info("Entrando a GetRuleNote")
+    sid := n.GetString(":sid")
+    uuid := n.GetString(":uuid")
+    ruleGetNote := make(map[string]string)
+    ruleGetNote["sid"] = sid
+    ruleGetNote["uuid"] = uuid
+    note,err := models.GetRuleNote(ruleGetNote)
+    logs.Info("Saliendo a GetRuleNote")
+    n.Data["json"] = note
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SetRuleNote
+// @Description Set note for specific rule
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /note [put]
+func (n *RulesetController) SetRuleNote() { 
+    logs.Info("Entrando a SetRuleNote")
+    var ruleAction map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &ruleAction)
+    err := models.SetRuleNote(ruleAction)
+    logs.Info("Saliendo a SetRuleNote")
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()

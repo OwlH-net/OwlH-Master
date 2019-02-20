@@ -43,3 +43,11 @@ CREATE TABLE ruleset_node (
     ruleset_uniqueid text NOT NULL,
     node_uniqueid text NOT NULL
  );
+
+ CREATE TABLE rule_note (
+    ruleset_id integer PRIMARY KEY AUTOINCREMENT,
+    ruleset_uniqueid text NOT NULL,
+    rule_sid text NOT NULL,
+    note_date text NOT NULL,
+    ruleNote text NOT NULL
+ );

@@ -13,17 +13,30 @@ import(
     "owlhmaster/database"
     "errors"
     "database/sql"
+    "strings"
+    "time"
+    "strconv"
 )
 
-func ReadSID(sid string)( sidLine map[string]string ,err error){
+func ReadSID(sid map[string]string)( sidLine map[string]string ,err error){
 
-    data, err := os.Open("/etc/owlh/ruleset/owlh.rules")
+    sidMap := sid["sid"]
+    uuidMap := sid["uuid"]
+
+    logs.Info("SID: "+sidMap+" UID: "+uuidMap)
+
+    path, err := GetRulesetPath(uuidMap)
+    logs.Info("PATH DEL FICHERO PHP: "+path)
+
+    //data, err := os.Open("/etc/owlh/ruleset/owlh.rules")
+    data, err := os.Open(path)
     if err != nil {
         fmt.Println("File reading error", err)
         return 
     }
     
-    var validID = regexp.MustCompile(`sid:`+sid+`;`)
+    //var validID = regexp.MustCompile(`sid:`+sid+`;`)
+    var validID = regexp.MustCompile(`sid:`+sidMap+`;`)
     scanner := bufio.NewScanner(data)
     for scanner.Scan(){
         if validID.MatchString(scanner.Text()){
@@ -36,14 +49,10 @@ func ReadSID(sid string)( sidLine map[string]string ,err error){
 }
 
 func Read(path string)(rules map[string]map[string]string, err error) {
-//leer fichero V
-//dar formato a las reglas (json)
-//enviar datos a ruleset.html para mostrarlos por pantalla
-
-    //var rules map[string]string
+    //leer fichero V
+    //dar formato a las reglas (json)
+    //enviar datos a ruleset.html para mostrarlos por pantalla
     logs.Info ("Buscando el fichero desde ruleset/ruleset.go")
-    //data, err := ioutil.ReadFile("/etc/owlh/ruleset/owlh.rules")
-    //data, err := os.Open("/etc/owlh/ruleset/owlh.rules")
     data, err := os.Open(path)
     
     if err != nil {
@@ -174,15 +183,15 @@ func GetAllRulesets() (rulesets *map[string]map[string]string, err error) {
     return &allrulesets, nil
 }
 
-func GetRulesetPath(nid string) (n string, err error) {
-    logs.Info("DB RULESET -> Get path"+nid)
+func GetRulesetPath(uuid string) (n string, err error) {
+    logs.Info("DB RULESET -> Get path"+uuid)
     var path string
     if ndb.Rdb != nil {
-        row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid=$1 and ruleset_param=\"path\";",nid)
+        row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid=$1 and ruleset_param=\"path\";",uuid)
         err = row.Scan(&path)
         if err == sql.ErrNoRows {
-            logs.Warn("DB RULESET -> No encuentro na, ese id %s parece no existir",nid)
-            return "", errors.New("DB RULESET -> No encuentro na, ese id "+nid+" parece no existir")
+            logs.Warn("DB RULESET -> No encuentro na, ese id %s parece no existir",uuid)
+            return "", errors.New("DB RULESET -> No encuentro na, ese id "+uuid+" parece no existir")
         }
         if err != nil {
             logs.Warn("DB RULESET -> no hemos leido bien los campos de scan")
@@ -236,7 +245,6 @@ func SetRuleSelected(n map[string]string) (err error) {
         return nil
 
     } else {
-        //rows.Close()
         logs.Info("ruleset/SetRuleSelected INSERT")
         insertRulesetNode, err := ndb.Rdb.Prepare("insert into ruleset_node (ruleset_uniqueid, node_uniqueid) values (?,?);")
         _, err = insertRulesetNode.Exec(&ruleset_uniqueid, &node_uniqueid_ruleset)  
@@ -302,6 +310,9 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     }
     clonedRuleset := ruleCloned["cloned"]
     newRuleset := ruleCloned["new"]
+
+    newRuleset = strings.Replace(newRuleset, " ", "_", -1)
+
     clonedPath := ruleCloned["path"]
     path := "/etc/owlh/ruleset/"
     pathNewRule := path+newRuleset+".rules"
@@ -350,4 +361,94 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     }
 
     return nil   
+}
+
+func SetRulesetAction(ruleAction map[string]string)(err error){
+    sid := ruleAction["sid"]
+    uuid := ruleAction["uuid"]
+    action := ruleAction["action"]
+
+    path, err := GetRulesetPath(uuid)
+    logs.Info("Path del uuid para el Action: "+path)
+
+    if (action == "Enable"){
+        cmd := "sed -i '/sid:"+sid+"/s/^#//' "+path+""
+        _, err := exec.Command("bash", "-c", cmd).Output()
+        if err == nil {
+            return nil
+        }
+
+    }else{
+        cmd := "sed -i '/sid:"+sid+"/s/^/#/' "+path+""
+        _, err := exec.Command("bash", "-c", cmd).Output()
+        if err == nil {
+            return nil
+        }
+    }
+    return err
+}
+
+func SetRuleNote(ruleNote map[string]string)(err error){
+    if ndb.Rdb == nil {
+        logs.Error("SetRuleNote -- Can't access to database")
+        return errors.New("SetRuleNote -- Can't access to database")
+    }    
+    sid := ruleNote["sid"]
+    uuid := ruleNote["uuid"]
+    note := ruleNote["note"]
+    t := time.Now()
+    noteTime := strconv.FormatInt(t.Unix(), 10)
+
+    sqlQuery := "SELECT * FROM rule_note WHERE ruleset_uniqueid = \""+uuid+"\" and rule_sid = \""+sid+"\";"
+    rows, err := ndb.Rdb.Query(sqlQuery)
+    if err != nil {
+        logs.Info("Put SetRuleNote query error %s",err.Error())
+        return err
+    }
+    defer rows.Close()
+    if rows.Next() {
+        rows.Close()
+        logs.Info("ruleset/SetRuleNote UPDATE - "+sid+" "+uuid+" "+noteTime+" "+note)
+        updateNote, err := ndb.Rdb.Prepare("update rule_note set ruleNote = ?, note_date = ? where ruleset_uniqueid = ? and rule_sid = ? ;")
+        _, err = updateNote.Exec(&note, &noteTime, &uuid, &sid)               
+        defer updateNote.Close()
+
+        if (err != nil){
+            logs.Info("SetRuleNote UPDATE Error -- "+err.Error())
+            return err
+        }
+        logs.Info("updateNote RETURN NILL UPDATE")
+        return nil
+
+    } else {
+        logs.Info("ruleset/SetRuleNote INSERT")
+        insertNote, err := ndb.Rdb.Prepare("insert into rule_note (ruleset_uniqueid, rule_sid, note_date, ruleNote) values (?,?,?,?);")
+        _, err = insertNote.Exec(&uuid, &sid, &noteTime, &note)  
+        defer insertNote.Close()
+
+        if (err != nil){
+            logs.Info("error insertRulesetNode en ruleset/rulesets--> "+err.Error())
+            return err
+        }
+        logs.Info("insertNote RETURN NILL UPDATE")
+        return nil 
+    }
+    return err
+}
+
+func GetRuleNote(ruleGetNote map[string]string)(note string, err error){
+    sidMap := ruleGetNote["sid"]
+    uuidMap := ruleGetNote["uuid"]
+    var noteText string
+    if ndb.Rdb == nil {
+        logs.Error("GetRuleNote -- Can't access to database")
+        return "", errors.New("GetRuleNote -- Can't access to database")
+    } 
+    row := ndb.Rdb.QueryRow("SELECT ruleNote FROM rule_note WHERE ruleset_uniqueid=\""+uuidMap+"\" and rule_sid=\""+sidMap+"\";")
+    err = row.Scan(&noteText)
+    if err != nil {
+        logs.Warn("DB GetNote -> no hemos leido bien los campos de scan")
+        return "", errors.New("DB GetNote -> no hemos leido bien los campos de scan")
+    }
+    return noteText, nil
 }

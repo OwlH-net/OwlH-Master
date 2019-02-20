@@ -18,7 +18,7 @@ import (
     "bytes"
 )
 
-func Suricata (n string) (data []byte, err error) {
+func Suricata(n string) (data []byte, err error) {
     logs.Info("Node suricata -> IN")
     logs.Info("Suricata - UID -> %s", n)
 
@@ -78,9 +78,6 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     jsonbpf := n["bpf"]
     bpftext := "bpf"
 
-    ////////////////////////
-    ////////////////////////
-    ////////////////////////
     ipnid,portnid,err := GetSuricataIpPort(jsonnid)
     logs.Info("||||||||"+ipnid+"||||||||"+portnid)
     
@@ -111,9 +108,6 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
     logs.Info("response Body:", string(body))
-    ////////////////////////
-    ////////////////////////
-    ////////////////////////
 
     sql := "select node_value from nodes where node_uniqueid = \""+jsonnid+"\" and node_param = \"bpf\";"
     logs.Info("Put BPF Suricata query sql %s",sql)

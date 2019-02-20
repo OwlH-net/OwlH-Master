@@ -12,9 +12,9 @@ func GetRules()(rules map[string]map[string]string, err error) {
     return rules,err
 }
 
-func GetRuleSID(sid string) (rules map[string]string, err error) {
+func GetRuleSID(ruleSidPath map[string]string) (rules map[string]string, err error) {
     logs.Info("MODEL===Lectura de línea según SID")
-    rules,err = ruleset.ReadSID(sid)
+    rules,err = ruleset.ReadSID(ruleSidPath)
     return rules,err
 }
 
@@ -58,4 +58,22 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     logs.Info("model/ruleset -- SetClonedRuleset")
     err = ruleset.SetClonedRuleset(ruleCloned)
     return err
+}
+
+func SetRulesetAction(ruleAction map[string]string)(err error){
+    logs.Info("model/ruleset -- SetRulesetAction")
+    err = ruleset.SetRulesetAction(ruleAction)
+    return err
+}
+
+func SetRuleNote(ruleNote map[string]string)(err error){
+    logs.Info("model/ruleset -- SetRuleNote")
+    err = ruleset.SetRuleNote(ruleNote)
+    return err
+}
+
+func GetRuleNote(ruleGetNote map[string]string)(note string, err error){
+    logs.Info("model/ruleset -- GetRuleNote")
+    note,err = ruleset.GetRuleNote(ruleGetNote)
+    return note,err
 }
