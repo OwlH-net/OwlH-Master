@@ -106,3 +106,9 @@ func DeleteNode(n string) (err error) {
     err = node.DeleteNode(n)
     return err
 }
+
+func SetRuleset(nid string) (err error) {
+    logs.Info("Models - SetRuleset Node -> name -> %s", nid)
+    err = node.SetRuleset(nid)
+    return err
+}

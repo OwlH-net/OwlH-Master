@@ -4,13 +4,21 @@ import (
     "github.com/astaxie/beego/logs"
     "strings"
 //    "database/sql"
-//    "fmt"
+    "fmt"
 //   "time"
 //    _ "github.com/mattn/go-sqlite3"
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
+    "owlhmaster/ruleset"
     "regexp"
+    // "io/ioutil"
+    // "bufio"
+    "os"
+    //"io"
+    "net/http"
+    // "net/url"
+    // "strconv"
 )
 
 func findNode (s string) (id string, err error) {
@@ -408,4 +416,40 @@ func Wazuh (n string) (data []byte, err error) {
         return nil,err
     }
     return data,nil
+}
+
+//Set ruleset file from Master to Node
+func SetRuleset(nid string) (err error) {
+    logs.Info("SetRuleset node -->"+nid)
+    
+    url := "https://192.168.14.15:50002/node/suricata/retrieve"
+    rulesetID, err := ruleset.GetRuleSelected(nid)
+    if err != nil {
+        logs.Notice("SetRuleset node ERROR GetRuleSelected: ")
+        return err
+    }
+    path, err := ruleset.GetRulesetPath(rulesetID)
+    logs.Info("Path del fichero leido para enviar a node: "+path)
+    if err != nil {
+        logs.Notice("SetRuleset node ERROR GetRulesetPath: ")
+        return err
+    }
+    
+    //read file and put into content var
+    data, err := os.Open(path)
+    if err != nil {
+        logs.Notice("SetRuleset ioutil.ReadFile ERROR: ")
+        return err
+    }
+
+    //make post code
+    client := &http.Client{}
+    r, _ := http.NewRequest("POST", url, data)
+    resp, _ := client.Do(r)
+    fmt.Println(resp.Status)
+
+    defer data.Close()
+    
+    //resp, err := http.Post(url, "image/jpeg", &buf)
+    return nil
 }

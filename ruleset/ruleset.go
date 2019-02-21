@@ -204,11 +204,17 @@ func GetRulesetPath(uuid string) (n string, err error) {
     }
 }
 
-func GetRulesetRules(nid string)(r map[string]map[string]string, err error){
-    logs.Info("DB RULESET -> GetRulesetRules"+nid)
+func GetRulesetRules(uuid string)(r map[string]map[string]string, err error){
+    logs.Info("DB RULESET -> GetRulesetRules"+uuid)
     rules := make(map[string]map[string]string)
-    path,err := GetRulesetPath(nid) //obtener path ruleset
+    path,err := GetRulesetPath(uuid) //obtener path ruleset
     rules,err = Read(path) //obtener rules del ruleset a traves del path del parametro
+    for rule, _ := range rules{
+        retrieveNote := make(map[string]string)
+        retrieveNote["uuid"] = uuid
+        retrieveNote["sid"] = rule
+        rules[rule]["note"], _ = GetRuleNote(retrieveNote)
+    }
     return rules, err
 }
 
@@ -233,7 +239,7 @@ func SetRuleSelected(n map[string]string) (err error) {
     if rows.Next() {
         rows.Close()
         logs.Info("ruleset/SetRuleSelected UPDATE")
-        updateRulesetNode, err := ndb.Rdb.Prepare("update ruleset_node set ruleset_uniqueid = ? where node_uniqueid = ?;")
+        updateRulesetNode, err := ndb.Rdb.Prepare("update  set ruleset_uniqueid = ? where node_uniqueid = ?;")
         _, err = updateRulesetNode.Exec(&ruleset_uniqueid, &node_uniqueid_ruleset)               
         defer updateRulesetNode.Close()
 
@@ -447,7 +453,7 @@ func GetRuleNote(ruleGetNote map[string]string)(note string, err error){
     row := ndb.Rdb.QueryRow("SELECT ruleNote FROM rule_note WHERE ruleset_uniqueid=\""+uuidMap+"\" and rule_sid=\""+sidMap+"\";")
     err = row.Scan(&noteText)
     if err != nil {
-        logs.Warn("DB GetNote -> no hemos leido bien los campos de scan")
+        //logs.Warn("DB GetNote -> no hemos leido bien los campos de scan")
         return "", errors.New("DB GetNote -> no hemos leido bien los campos de scan")
     }
     return noteText, nil

@@ -265,3 +265,17 @@ func (n *NodeController) DeleteNode() {
     }
     n.ServeJSON()
 }
+
+// @Title SetRuleset
+// @Description Set Ruleset file to node
+// @Success 200 {object} models.Node
+// @router /ruleset/set/:nid [get]
+func (n *NodeController) SetRuleset() { 
+    nid := n.GetString(":nid")
+    err := models.SetRuleset(nid)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
