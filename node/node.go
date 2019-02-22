@@ -4,21 +4,25 @@ import (
     "github.com/astaxie/beego/logs"
     "strings"
 //    "database/sql"
-    "fmt"
+    // "fmt"
 //   "time"
 //    _ "github.com/mattn/go-sqlite3"
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
     "owlhmaster/ruleset"
+    "owlhmaster/utils"
     "regexp"
-    // "io/ioutil"
+    "io/ioutil"
     // "bufio"
-    "os"
+    // "os"
     //"io"
     "net/http"
     // "net/url"
     // "strconv"
+    "crypto/tls"
+    "bytes"
+    "encoding/json"
 )
 
 func findNode (s string) (id string, err error) {
@@ -240,20 +244,16 @@ func nodeKeyInsert(nkey string, key string, value string) (err error) {
     return nil
 }
 
-func AddNode (n map[string]string) (err error) {
+func AddNode(n map[string]string) (err error) {
     logs.Info("ADD NODE -> IN")
-    var nodeKey string
+    nodeKey := utils.Generate()
     if _, ok := n["name"]; !ok {
         return errors.New("name está vacio")
     }
     if _, ok := n["ip"]; !ok {
         return errors.New("ip está vacio")
     }
-    if _, ok := n["id"]; !ok {
-        nodeKey = strings.Replace(n["name"], " ", "-",0)+"-"+strings.Replace(n["ip"], ".", "-",0)
-    } else {
-        nodeKey = n["id"]
-    }
+
     if err := nodeExists(nodeKey); err != nil {
         return err
     }
@@ -434,22 +434,26 @@ func SetRuleset(nid string) (err error) {
         logs.Notice("SetRuleset node ERROR GetRulesetPath: ")
         return err
     }
-    
-    //read file and put into content var
-    data, err := os.Open(path)
+
+    data, err := ioutil.ReadFile(path)
+    //logs.Info("Leido el data"+ string(data))
     if err != nil {
         logs.Notice("SetRuleset ioutil.ReadFile ERROR: ")
         return err
     }
 
-    //make post code
-    client := &http.Client{}
-    r, _ := http.NewRequest("POST", url, data)
-    resp, _ := client.Do(r)
-    fmt.Println(resp.Status)
+    //crear map para insertar el ruleset
+    values := make(map[string][]byte)
+    values["data"] = data
 
-    defer data.Close()
-    
-    //resp, err := http.Post(url, "image/jpeg", &buf)
+    //pasar json al nodo con el ruleset
+    valuesJSON,err := json.Marshal(values)
+    req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    client := &http.Client{Transport: tr}
+    resp, err := client.Do(req)
+
+    defer resp.Body.Close()
+
     return nil
 }

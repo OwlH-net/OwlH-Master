@@ -267,7 +267,7 @@ func (n *NodeController) DeleteNode() {
 }
 
 // @Title SetRuleset
-// @Description Set Ruleset file to node
+// @Description Send Ruleset file to node
 // @Success 200 {object} models.Node
 // @router /ruleset/set/:nid [get]
 func (n *NodeController) SetRuleset() { 

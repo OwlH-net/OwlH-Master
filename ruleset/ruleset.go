@@ -239,12 +239,16 @@ func SetRuleSelected(n map[string]string) (err error) {
     if rows.Next() {
         rows.Close()
         logs.Info("ruleset/SetRuleSelected UPDATE")
-        updateRulesetNode, err := ndb.Rdb.Prepare("update  set ruleset_uniqueid = ? where node_uniqueid = ?;")
+        updateRulesetNode, err := ndb.Rdb.Prepare("update ruleset_node set ruleset_uniqueid = ? where node_uniqueid = ?;")
+        if (err != nil){
+            logs.Error("SetRuleSelected UPDATE prepare error -- "+err.Error())
+            return err
+        }
         _, err = updateRulesetNode.Exec(&ruleset_uniqueid, &node_uniqueid_ruleset)               
         defer updateRulesetNode.Close()
 
         if (err != nil){
-            logs.Info("SetRuleSelected UPDATE Error -- "+err.Error())
+            logs.Error("SetRuleSelected UPDATE Error -- "+err.Error())
             return err
         }
         logs.Info("RETURN NILL UPDATE")
