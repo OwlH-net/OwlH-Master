@@ -536,8 +536,10 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
     logs.Info("GetNodeFile response Status:", resp.Status)
     logs.Info("GetNodeFile response Headers:", resp.Header)
     responseData, err := ioutil.ReadAll(resp.Body)
-    //logs.Info("GetNodeFile response Body:", string(body))
-    rData["data"] = string(responseData)
+    logs.Info("GetNodeFile response Body:", responseData)
+    rData["fileContent"] = string(responseData)
+    rData["fileName"] = string(responseData)
+    rData["uuid"] = loadFile["uuid"]
 
     return rData,err
 }
