@@ -112,3 +112,15 @@ func SetRuleset(nid string) (err error) {
     err = node.SetRuleset(nid)
     return err
 }
+
+func GetNodeFile(n map[string]string) (data map[string]string, err error) {
+    logs.Info("GetNodeFile status Node")
+    data,err = node.GetNodeFile(n)
+    return data,err
+}
+
+func SetNodeFile(n map[string]string) (err error) {
+    logs.Info("SetNodeFile status Node")
+    err = node.SetNodeFile(n)
+    return err
+}
