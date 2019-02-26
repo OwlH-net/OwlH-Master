@@ -281,23 +281,17 @@ func (n *NodeController) SetRuleset() {
 }
 
 // @Title GetNodeFile
-// @Description Get specific node file from node with webpage data
+// @Description Get specific file from node and send to webpage 
 // @Success 200 {object} models.Node
 // @router /loadfile/:uuid/:fileName [get]
 func (n *NodeController) GetNodeFile() { 
     logs.Info("Dentro de GetNodeFile")
     anode := make(map[string]string)
-    // uuid := n.GetString(":uuid")
-    // file := n.GetString(":fileName")
-    logs.Info("UUID y FILE")
     anode["uuid"] = n.GetString(":uuid")
     anode["file"] = n.GetString(":fileName")
-    logs.Info("ASSIGN")
-
 
     logs.Error("JSON DESDE GET "+anode["uuid"]+"  ++++++++"+anode["file"]);
     returnData,err := models.GetNodeFile(anode)
-
     logs.Error(returnData);
 
     n.Data["json"] = returnData
@@ -310,15 +304,31 @@ func (n *NodeController) GetNodeFile() {
 // @Title SetNodeFile
 // @Description Set changed data on webpage to specific file in node.
 // @Success 200 {object} models.Node
-// @router /savefile/:uuid/:fileName [get]
+// @router /savefile [put]
 func (n *NodeController) SetNodeFile() { 
     logs.Info("Dentro de SetNodeFile")
     anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-
+    logs.Warn(anode["uuid"])
     err := models.SetNodeFile(anode)
 
     n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetAllFiles
+// @Description Send Ruleset file to node
+// @Success 200 {object} models.Node
+// @router /getAllFiles/:uuid [get]
+func (n *NodeController) GetAllFiles() { 
+    uuid := n.GetString(":uuid")
+    data, err := models.GetAllFiles(uuid)
+    logs.Info("Vuelto getAllFiles")
+    n.Data["json"] = data
+    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

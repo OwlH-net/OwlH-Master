@@ -124,3 +124,9 @@ func SetNodeFile(n map[string]string) (err error) {
     err = node.SetNodeFile(n)
     return err
 }
+
+func GetAllFiles(n string) (data map[string]string, err error) {
+    logs.Info("GetAllFiles status Node")
+    data,err = node.GetAllFiles(n)
+    return data,err
+}

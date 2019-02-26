@@ -461,14 +461,11 @@ func SetRuleset(nid string) (err error) {
 //Get specific file from node files
 func GetNodeFile(loadFile map[string]string) (data map[string]string, err error) {
     logs.Info("GetNodeFile node")
-    values := make(map[string]string)
     rData := make(map[string]string)
-    //var voidArray []byte
     var voidArray map[string]string
     var portData string
     var ipData string
 
-    
     //Take IP from specific uuid
 	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+loadFile["uuid"]+"';"
 	// logs.Info("Datos SQL IP --> "+sqlIP)
@@ -497,49 +494,31 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 		}
 	}
     logs.Info("Datos PORT --> "+portData)
-    values["file"] = loadFile["file"]
-
-
-    // //Node URL
-    // url := "https://"+ipData+":"+portData+"/node/file/send/"+values["file"]
-    // //Send JSON with data to node
-    // valuesJSON,err := json.Marshal(values)
-    // req, err := http.NewRequest("GET", url, false)
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
-
-    // defer resp.Body.Close()
-    // responseData, err := ioutil.ReadAll(resp.Body)
-    // //response es un mapa
-
-    // // logs.Info("RESP BODY --__-->"+resp.Body)
-    // logs.Info("RESP URL --__-->"+url)
-    // logs.Info("RESP BODY --__-->"+string(responseData))
-
-
-    
-
-
 
     tr := &http.Transport{
         TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
     }
-    url := "https://"+ipData+":"+portData+"/node/file/send/"+values["file"]
+    url := "https://"+ipData+":"+portData+"/node/file/"+loadFile["file"]
     req, err := http.NewRequest("GET", url, nil)
     client := &http.Client{Transport: tr}
     resp, err := client.Do(req)
     if err != nil {
         return rData, err
     }
+
     defer resp.Body.Close()
+
     logs.Info("GetNodeFile response Status:", resp.Status)
     logs.Info("GetNodeFile response Headers:", resp.Header)
     responseData, err := ioutil.ReadAll(resp.Body)
     logs.Info("GetNodeFile response Body:", responseData)
-    rData["fileContent"] = string(responseData)
-    rData["fileName"] = string(responseData)
-    rData["uuid"] = loadFile["uuid"]
+    //rData["fileContent"] = string(responseData)
+
+    json.Unmarshal(responseData, &rData)
+    logs.Info(rData)
+
+    // rData["fileName"] = loadFile["file"]
+    rData["nodeUUID"] = loadFile["uuid"]
 
     return rData,err
 }
@@ -547,13 +526,12 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 
 //Get specific file from node files
 func SetNodeFile(loadFile map[string]string) (err error) {
-    logs.Info("SetNodeFile node")
-    values := make(map[string]string)
-    //rData := make(map[string]string)
+    logs.Info("SetNodeFile node "+loadFile["uuid"])
+    // values := make(map[string]string)
+
     var portData string
     var ipData string
 
-    
     //Take IP from specific uuid
 	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+loadFile["uuid"]+"';"
 	logs.Info("SetNodeFile Datos SQL IP --> "+sqlIP)
@@ -583,12 +561,11 @@ func SetNodeFile(loadFile map[string]string) (err error) {
 		}
 	}
 	logs.Info("SetNodeFileDatos PORT --> "+portData)
-	values["file"] = loadFile["file"]
 
     //Node URL
-    url := "https://"+ipData+":"+portData+"/node/file/save"
+    url := "https://"+ipData+":"+portData+"/node/file"
     //save JSON with data to node
-    valuesJSON,err := json.Marshal(values)
+    valuesJSON,err := json.Marshal(loadFile)
     req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
     tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
     client := &http.Client{Transport: tr}
@@ -604,3 +581,64 @@ func SetNodeFile(loadFile map[string]string) (err error) {
 }
 
 
+func GetAllFiles(uuid string) (data map[string]string, err error) {
+    var portData string
+    var ipData string
+    rData := make(map[string]string)
+
+    //Take IP from specific uuid
+	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+uuid+"';"
+	logs.Info("GetAllFiles Datos SQL IP --> "+sqlIP)
+	ip, err := ndb.Db.Query(sqlIP)
+	if err != nil {
+		logs.Error("GetAllFiles Error al ejecutar la query UUID: %s", err.Error())
+		return rData, err
+	}
+	defer ip.Close()
+	if ip.Next() {
+		ip.Scan(&ipData)
+	}
+	logs.Info("GetAllFiles Datos IP --> "+ipData)
+
+	//Take PORT from specific uuid
+	sqlPORT := "select node_value from nodes where node_param = 'port' and node_uniqueid = '"+uuid+"';"
+	logs.Info("GetAllFiles Datos SQL PORT --> "+sqlPORT)
+	port, err := ndb.Db.Query(sqlPORT)
+	if err != nil {
+		logs.Error("GetAllFiles Error al ejecutar la query UUID: %s", err.Error())
+		return rData,err
+	}
+	defer port.Close()
+	if port.Next() {
+		if err = port.Scan(&portData); err != nil {
+			return rData,err
+		}
+	}
+	logs.Info("GetAllFiles PORT --> "+portData)
+    //Node URL
+    url := "https://"+ipData+":"+portData+"/node/file"
+
+    //request
+    req, err := http.NewRequest("GET", url, nil)
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    client := &http.Client{Transport: tr}
+    resp, err := client.Do(req)
+    if err != nil {
+        return rData, err
+    }
+
+    defer resp.Body.Close()
+
+    logs.Info("GetNodeFile response Status:", resp.Status)
+    logs.Info("GetNodeFile response Headers:", resp.Header)
+    responseData, err := ioutil.ReadAll(resp.Body)
+    logs.Info("GetNodeFile response Body:", responseData)
+
+    json.Unmarshal(responseData, &rData)
+    logs.Info("rData node/node.go en MASTER")
+    logs.Info(rData)
+    rData["nodeUUID"] = uuid
+
+    return rData,err
+
+}
