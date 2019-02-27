@@ -151,8 +151,8 @@ func GetSuricataIpPort(jsonnid string)(ip string, port string, err error){ //(ip
         return "","", errors.New("GetSuricataIpPort -- Can't acces to database")
     }
 
-    var res1 string
-    var res2 string
+    var ipObtained string
+    var portObtained string
 
     sqlIP := "select node_value from nodes where node_uniqueid = \""+jsonnid+"\" and node_param = \"ip\";"
     rowIP, err := ndb.Db.Query(sqlIP)
@@ -162,19 +162,19 @@ func GetSuricataIpPort(jsonnid string)(ip string, port string, err error){ //(ip
     defer rowIP.Close()
     defer rowPORT.Close()
     if rowIP.Next() {
-        err = rowIP.Scan(&res1)
+        err = rowIP.Scan(&ipObtained)
         if  err != nil {
             logs.Info("---NO IP FOR THIS NID---"+err.Error())
             return "","",err
         }
     }
     if rowPORT.Next() {
-        err = rowPORT.Scan(&res2)
+        err = rowPORT.Scan(&portObtained)
         if  err != nil {
             logs.Info("---NO PORT FOR THIS NID---"+err.Error())
             return "","",err
         }
     }
-    return res1,res2,err
+    return ipObtained,portObtained,err
 }
 

@@ -1,7 +1,7 @@
 package utils
 
 import (
-//     "github.com/astaxie/beego/logs"
+    "github.com/astaxie/beego/logs"
 //     "strings"
 // //    "database/sql"
 //     // "fmt"
@@ -23,37 +23,31 @@ import (
 //     "crypto/tls"
 //     "bytes"
 //     "encoding/json"
+	"owlhmaster/database"
+	"errors"
+	// "database/sql"
 )
 
-func obtainPortIp()()  {
-	// //Take IP from specific uuid
-	// sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+loadFile["uuid"]+"';"
-	// logs.Info("Datos SQL IP --> "+sqlIP)
-	// ip, err := ndb.Db.Query(sqlIP)
-	// if err != nil {
-	// 	logs.Error("Error al ejecutar la query UUID: %s", err.Error())
-	// 	return voidArray, err
-	// }
-	// defer ip.Close()
-	// if ip.Next() {
-	// 	ip.Scan(&ipData)
-	// }
-	// logs.Info("Datos IP --> "+ipData)
+func ObtainPortIp(uuid string)(ip string, port string, err error)  {
+	if ndb.Db == nil {
+		logs.Warn("obtainPortIp -> Error conexión DB")
+		return "","",errors.New("DB NODE obtainPortIp -> Conexión a DB fallida: " + err.Error())
+	}
+	
+	var ipNode string
+	var portNode string
+	row1 := ndb.Db.QueryRow("SELECT node_value FROM nodes WHERE node_uniqueid = \""+uuid+"\" and node_param = \"ip\";")
+	err = row1.Scan(&ipNode)
+	if err != nil {
+		logs.Error("DB NODE obtainPortIp ipNode -> La Query no ha funcionado bien: %s", err.Error())
+		return "","",errors.New("DB NODE -> La Query no ha funcionado bien: " + err.Error())
+	}
+	row2 := ndb.Db.QueryRow("SELECT node_value FROM nodes WHERE node_uniqueid = \""+uuid+"\" and node_param = \"port\";")
+    err = row2.Scan(&portNode)
+	if err != nil {
+		logs.Error("DB NODE obtainPortIp portNode -> La Query no ha funcionado bien: %s", err.Error())
+		return "","",errors.New("DB NODE obtainPortIp portNod -> La Query no ha funcionado bien: " + err.Error())
+	}
 
-	// //Take PORT from specific uuid
-	// sqlPORT := "select node_value from nodes where node_param = 'port' and node_uniqueid = '"+loadFile["uuid"]+"';"
-	// logs.Info("Datos SQL PORT --> "+sqlPORT)
-	// port, err := ndb.Db.Query(sqlPORT)
-	// if err != nil {
-	// 	logs.Error("Error al ejecutar la query UUID: %s", err.Error())
-	// 	return voidArray, err
-	// }
-	// defer port.Close()
-	// if port.Next() {
-	// 	if err = port.Scan(&portData); err != nil {
-	// 		return voidArray, err
-	// 	}
-	// }
-	// logs.Info("Datos PORT --> "+portData)
-	// values["file"] = loadFile["file"]
+	return ipNode, portNode, nil
 }

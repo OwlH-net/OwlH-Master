@@ -30,6 +30,11 @@ func init() {
 				&controllers.RulesetController{},
 			),
 		),
+		beego.NSNamespace("/stap",
+			beego.NSInclude(
+				&controllers.StapController{},
+			),
+		),
 		
 	)
 	beego.AddNamespace(ns)
