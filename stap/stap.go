@@ -1,7 +1,7 @@
 package stap
 
 import(
-    //"io/ioutil"
+    "io/ioutil"
     // "fmt"
 	"github.com/astaxie/beego/logs"
 	"bytes"
@@ -23,18 +23,12 @@ import(
     // "strconv"
 )
 
-
 func AddServer(data map[string]string)(err error) {
 	
 	logs.Info("stap/stap.go stap AddServer()")
-
 	uuid := data["uuid"]
 	ipuuid,portuuid,err := utils.ObtainPortIp(uuid)
-
-	logs.Info(ipuuid+"  *  *  *  "+portuuid)
-
 	url := "https://"+ipuuid+":"+portuuid+"/node/stap/"
-
 	valuesJSON,err := json.Marshal(data)
 
     req, err := http.NewRequest("POST", url, bytes.NewBuffer(valuesJSON))
@@ -43,12 +37,35 @@ func AddServer(data map[string]string)(err error) {
     resp, err := client.Do(req)
 
     logs.Info("Request newBuffer(JSON) -------> ",req.Body)
-
     if err != nil {
         return err
 	}
-	
     defer resp.Body.Close()
-
     return nil
+}
+
+
+func GetAllServers(nodeuuid string)(data map[string]map[string]string, err error){
+    rData := make(map[string]map[string]string)
+    logs.Info("stap/stap.go stap GetAllServers()")
+    ipuuid,portuuid,err := utils.ObtainPortIp(nodeuuid)
+    url := "https://"+ipuuid+":"+portuuid+"/node/stap/"
+
+    req, err := http.NewRequest("GET", url, nil)
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    client := &http.Client{Transport: tr}
+    resp, err := client.Do(req)
+
+    logs.Info("GetAllServers Request -------> ",req.Body)
+    if err != nil {
+        return nil,err
+	}
+    defer resp.Body.Close()
+    responseData, _ := ioutil.ReadAll(resp.Body)
+
+    json.Unmarshal(responseData, &rData)
+    logs.Info(rData)
+
+
+    return rData,nil
 }

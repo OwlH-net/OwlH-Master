@@ -2,30 +2,8 @@ package utils
 
 import (
     "github.com/astaxie/beego/logs"
-//     "strings"
-// //    "database/sql"
-//     // "fmt"
-// //   "time"
-// //    _ "github.com/mattn/go-sqlite3"
-//     "owlhmaster/database"
-//     "errors"
-//     "owlhmaster/nodeclient"
-//     "owlhmaster/ruleset"
-//     "owlhmaster/utils"
-//     "regexp"
-//     "io/ioutil"
-//     // "bufio"
-//     // "os"
-//     //"io"
-//     "net/http"
-//     // "net/url"
-//     // "strconv"
-//     "crypto/tls"
-//     "bytes"
-//     "encoding/json"
 	"owlhmaster/database"
 	"errors"
-	// "database/sql"
 )
 
 func ObtainPortIp(uuid string)(ip string, port string, err error)  {

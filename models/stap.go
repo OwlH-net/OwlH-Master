@@ -10,3 +10,9 @@ func AddServer(data map[string]string)(err error) {
     err = stap.AddServer(data)
     return err
 }
+
+func GetAllServers(nodeuuid string)(data map[string]map[string]string, err error) {
+    logs.Info("MODEL===GetAllServers stap")
+    data,err = stap.GetAllServers(nodeuuid)
+    return data,err
+}

@@ -3,10 +3,6 @@ package node
 import (
     "github.com/astaxie/beego/logs"
     "strings"
-//    "database/sql"
-    // "fmt"
-//   "time"
-//    _ "github.com/mattn/go-sqlite3"
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
@@ -14,12 +10,7 @@ import (
     "owlhmaster/utils"
     "regexp"
     "io/ioutil"
-    // "bufio"
-    // "os"
-    //"io"
     "net/http"
-    // "net/url"
-    // "strconv"
     "crypto/tls"
     "bytes"
     "encoding/json"
@@ -337,7 +328,7 @@ func GetAllNodes() (nodes *map[string]map[string]string, err error) {
     }
     for rows.Next() {
         if err = rows.Scan(&uniqid, &param, &value); err != nil {
-            logs.Error("no hemos podido leer del resultado de la query: %s", err.Error())
+            logs.Error("No hemos podido leer del resultado de la query: %s", err.Error())
             return nil, err
         }
         logs.Info ("uniqid: %s, param: %s, value: %s", uniqid,param,value)

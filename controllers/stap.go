@@ -31,3 +31,27 @@ func (n *StapController) AddServer(){
     }
     n.ServeJSON()
 }
+
+// @Title GetAllServers
+// @Description Get all servers
+// @Success 200 {object} models.stap
+// @router /:uuid [get]
+func (n *StapController) GetAllServers() {
+	uuid := n.GetString(":uuid") 
+	logs.Info("Dentro de stap GetAllServers()")
+	servers, err := models.GetAllServers(uuid)
+	n.Data["json"] = servers
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+	
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////
+	for k,_ := range servers{
+		logs.Info("GetAllServers: "+string(k))	
+	}
+	/////////////////////////////////////////////////
+	/////////////////////////////////////////////////	
+
+    n.ServeJSON()
+}
