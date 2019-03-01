@@ -16,3 +16,9 @@ func GetAllServers(nodeuuid string)(data map[string]map[string]string, err error
     data,err = stap.GetAllServers(nodeuuid)
     return data,err
 }
+
+func GetServer(uuid string, serveruuid string)(data map[string]map[string]string, err error) {
+    logs.Info("MODEL===GetServer stap")
+    data,err = stap.GetServer(uuid, serveruuid)
+    return data,err
+}

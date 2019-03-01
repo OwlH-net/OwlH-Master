@@ -44,14 +44,23 @@ func (n *StapController) GetAllServers() {
 	if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-	
-	/////////////////////////////////////////////////
-	/////////////////////////////////////////////////
-	for k,_ := range servers{
-		logs.Info("GetAllServers: "+string(k))	
-	}
-	/////////////////////////////////////////////////
-	/////////////////////////////////////////////////	
 
+    n.ServeJSON()
+}
+
+
+// @Title GetServer
+// @Description Get a server
+// @Success 200 {object} models.stap
+// @router /server/:uuid/:serveruuid [get]
+func (n *StapController) GetServer() {
+	uuid := n.GetString(":uuid") 
+	serveruuid := n.GetString(":serveruuid")
+	logs.Info("Dentro de stap GetAllServers()")
+	server, err := models.GetServer(uuid,serveruuid)
+	n.Data["json"] = server
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }

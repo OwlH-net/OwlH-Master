@@ -66,6 +66,29 @@ func GetAllServers(nodeuuid string)(data map[string]map[string]string, err error
     json.Unmarshal(responseData, &rData)
     logs.Info(rData)
 
+    return rData,nil
+}
+
+func GetServer(uuid string, serveruuid string)(data map[string]map[string]string, err error){
+    rData := make(map[string]map[string]string)
+    logs.Info("stap/stap.go stap GetServer()")
+    ipuuid,portuuid,err := utils.ObtainPortIp(uuid)
+    url := "https://"+ipuuid+":"+portuuid+"/node/stap/server/"+serveruuid
+
+    req, err := http.NewRequest("GET", url, nil)
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    client := &http.Client{Transport: tr}
+    resp, err := client.Do(req)
+
+    logs.Info("GetServer Request -------> ",req.Body)
+    if err != nil {
+        return nil,err
+	}
+    defer resp.Body.Close()
+    responseData, _ := ioutil.ReadAll(resp.Body)
+
+    json.Unmarshal(responseData, &rData)
+    logs.Info(rData)
 
     return rData,nil
 }
