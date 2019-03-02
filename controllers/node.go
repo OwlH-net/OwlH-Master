@@ -113,7 +113,6 @@ func (n *NodeController) GetPong() {
 // @router /suricata/:nid [get]
 // @router /:nid/suricata [get]
 func (n *NodeController) GetSuricata() { 
-    logs.Info("GET Suricata -> In")
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
     if nid != "" {
@@ -122,10 +121,10 @@ func (n *NodeController) GetSuricata() {
         json.Unmarshal(data, &anode)
         n.Data["json"] = anode
         if err != nil {
+			logs.Error("Can't get Suricata status" + err.Error())
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("GET Suricata -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -138,33 +137,30 @@ func (n *NodeController) GetSuricata() {
 // @router /:nid/suricata/bpf [get]
 // @router /bpf/:nid [get]
 func (n *NodeController) GetSuricataBPF() { 
-    logs.Info("GET SuricataBPF -> In")
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
     if nid != "" {
         data,err := models.GetSuricataBPF(nid)
         n.Data["json"] = map[string]string{"bpf": data}
         if err != nil {
+			logs.Error("Can't get Suricata status" + err.Error())
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("GET SuricataBPF -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
 
-// @Title Put Suricata BPF
-// @Description Put Suricata BPF from web to node
+// @Title Set BPF to Node
+// @Description Set BPF to node
 // @Success 200 {object} models.Node
 // @Failure 403 :nid is empty
 // @router /suricata/:nid/bpf [put]
 // @router /:nid/suricata/bpf [put]
 // @router /bpf/:nid [put]
 func (n *NodeController) PutSuricataBPF() { 
-    logs.Info("PUT SuricataBPF -> In")
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    //err := models.AddNode(anode)
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
     if nid != "" {
@@ -174,7 +170,6 @@ func (n *NodeController) PutSuricataBPF() {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("PUT SuricataBPF -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -187,7 +182,6 @@ func (n *NodeController) PutSuricataBPF() {
 // @router /zeek/:nid [get]
 // @router /:nid/zeek [get]
 func (n *NodeController) GetZeek() { 
-    logs.Info("GET Zeek -> In")
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
     if nid != "" {
@@ -199,7 +193,6 @@ func (n *NodeController) GetZeek() {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("GET Zeek -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -210,7 +203,6 @@ func (n *NodeController) GetZeek() {
 // @router /wazuh/:nid [get]
 // @router /:nid/wazuh [get]
 func (n *NodeController) GetWazuh() { 
-    logs.Info("GET Wazuh -> In")
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
     if nid != "" {
@@ -222,7 +214,6 @@ func (n *NodeController) GetWazuh() {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("GET Wazuh -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -232,10 +223,10 @@ func (n *NodeController) GetWazuh() {
 // @router / [get]
 func (n *NodeController) GetAllNodes() { 
     nodes, err := models.GetAllNodes()
+    n.Data["json"] = nodes
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-    n.Data["json"] = nodes
     n.ServeJSON()
 }
 
@@ -247,7 +238,6 @@ func (n *NodeController) GetAllNodes() {
 // @router /:nid [delete]
 func (n *NodeController) DeleteNode() { 
     nid := n.Ctx.Input.Param(":nid")
-    logs.Info("NODE DELETE -> node id: %s", nid)
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
         err := models.DeleteNode(nid)
