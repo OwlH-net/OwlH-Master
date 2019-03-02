@@ -1,6 +1,5 @@
 package aboutme
 
-// copy with Bro and Snort
 
 import (
     "github.com/astaxie/beego/logs"
@@ -23,8 +22,8 @@ var (
 func AboutMe() (plist map[string]*string, err error) {
     paramList = make(map[string]*string)
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return nil, errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("Can't Access Database")
+        return nil, errors.New("Can't Access Database")
     }
     rows, err := ndb.Db.Query("SELECT * FROM aboutme;")
     if err != nil {
