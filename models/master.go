@@ -36,7 +36,6 @@ func GetMaster() (master map[string]*string, err error) {
 }
 
 func UpdateMaster(m map[string]string) (err error) {
-    logs.Info("Entrando en UpdateMaster")
     for key, value := range m {
         err = aboutme.UpdateMe(key, value)
     }

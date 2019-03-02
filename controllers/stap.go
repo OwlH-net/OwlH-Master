@@ -18,7 +18,6 @@ type StapController struct {
 // @Failure 403 ruleset is empty
 // @router / [post]
 func (n *StapController) AddServer(){ 
-	logs.Info("Dentro de stap AddServer()")
 	var newServer map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &newServer)
 
@@ -26,7 +25,6 @@ func (n *StapController) AddServer(){
 	n.Data["json"] = map[string]string{"ack": "true"}
 
 	if err != nil {
-        logs.Info("RulesetSelected -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -38,13 +36,11 @@ func (n *StapController) AddServer(){
 // @router /:uuid [get]
 func (n *StapController) GetAllServers() {
 	uuid := n.GetString(":uuid") 
-	logs.Info("Dentro de stap GetAllServers()")
 	servers, err := models.GetAllServers(uuid)
 	n.Data["json"] = servers
 	if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-
     n.ServeJSON()
 }
 
@@ -56,7 +52,6 @@ func (n *StapController) GetAllServers() {
 func (n *StapController) GetServer() {
 	uuid := n.GetString(":uuid") 
 	serveruuid := n.GetString(":serveruuid")
-	logs.Info("Dentro de stap GetAllServers()")
 	server, err := models.GetServer(uuid,serveruuid)
 	n.Data["json"] = server
 	if err != nil {

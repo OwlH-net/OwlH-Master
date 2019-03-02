@@ -24,42 +24,40 @@ func AddNode(node Node) (err error){
     if Db != nil {
         stmt, err := Db.Prepare("INSERT INTO node(node_name, node_ip, node_port, node_type, node_UUID) values(?,?,?,?,?)")
         if err != nil {
-            logs.Error("DB NODE -> Error en el prepare, se ha perdido la conn a bd? ")
-            return errors.New("DB NODE -> Error en el prepare, se ha perdido la conn a bd?")
+            logs.Error("DB NODE -> Db.Prepare failure. ")
+            return errors.New("DB NODE -> Db.Prepare failure")
         }
         //Validate fields!!!
         res, err := stmt.Exec(node.NName, node.NIp, node.NPort, node.NType, node.NUUID )
         logs.Info("DB -> info", res)
         if err != nil {
-            logs.Error("DB NODE -> La Query no ha funcionado bien: %s", err.Error())
-            return errors.New("DB NODE -> La Query no ha funcionado bien: " + err.Error())
+            logs.Error("DB NODE -> There was a problem with Query: %s", err.Error())
+            return errors.New("DB NODE -> There was a problem with Query: " + err.Error())
         }
         return nil
     } else {
-        logs.Error("DB NODE -> No tenemos acceso a la base de datos")
-        return errors.New("DB NODE -> No tenemos acceso a la base de datos")
+        logs.Error("DB NODE -> No access to database")
+        return errors.New("DB NODE -> No access to database")
     }
 }
 
 func GetNode(nid string) (n *Node, err error) {
-    logs.Info("DB -> Get Node")
     var node Node
     if Db != nil {
-//        rows, err := Db.Query("SELECT * FROM master WHERE master_id=1;")
         row := Db.QueryRow("SELECT * FROM node WHERE node_id=%s;",nid)
         logs.Info ("DB -> Row %s", row)
         err = row.Scan(&node.NId, &node.NName, &node.NIp, &node.NPort, &node.NType, &node.NUUID)
         if err == sql.ErrNoRows {
-            logs.Warn("DB NODE -> No encuentro na, ese id %s parece no existir",nid)
-            return nil, errors.New("DB NODE -> No encuentro na, ese id "+nid+" parece no existir")
+            logs.Warn("DB NODE -> There is no answer, node id %s doesn't exist",nid)
+            return nil, errors.New("DB NODE -> There is no answer, node id "+nid+" doesn't exist")
         }
         if err != nil {
-            logs.Warn("DB NODE -> no hemos leido bien los campos de scan")
-            return nil, errors.New("DB NODE -> no hemos leido bien los campos de scan")
+            logs.Warn("DB NODE -> row.Scan error -> %s", err.Error())
+            return nil, errors.New("DB NODE -> row.Scan error -> " + err.Error())
         }
         return &node, nil
     } else {
-        logs.Info("DB NODE -> no hay base de datos")
-        return nil, errors.New("DB NODE -> no hay base de datos")
+        logs.Info("DB NODE -> No access to database")
+        return nil, errors.New("DB NODE -> no access to database")
     }
 }

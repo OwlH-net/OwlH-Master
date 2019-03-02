@@ -18,8 +18,8 @@ import (
 
 func findNode(s string) (id string, err error) {
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return "", errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("Find Node -> no access to database")
+        return "", errors.New("Find Node -> no access to database")
     }
     ip, _ := regexp.Compile(`\d+\.\d+\.\d+\.\d+`)
     uuid, _ := regexp.Compile(`\w{8}-\w{4}-\w{4}-\w{4}-\w{12}`)
@@ -29,6 +29,7 @@ func findNode(s string) (id string, err error) {
     } else if uuid.MatchString(s) {
         sql = "SELECT node_uniqueid FROM nodes where node_param = 'UUID' and node_value='"+s+"';"
     }
+	// Else needed to stop if s is none
     rows, err := ndb.Db.Query(sql)
     if err != nil {
         logs.Error(err.Error())
@@ -46,8 +47,8 @@ func findNode(s string) (id string, err error) {
 func DeleteNode(nodeid string)(err error) {
     logs.Info("NODE Delete -> IN")
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("No access to database")
+        return errors.New("No access to database")
     }
     stmt, err := ndb.Db.Prepare("delete from nodes where node_uniqueid = ?")
     if err != nil {
@@ -64,8 +65,8 @@ func DeleteNode(nodeid string)(err error) {
 
 func getNodeIPbyUID (nk string) (ip string, err error) {
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return "", errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("getNodeIPbyUID -> No access to database")
+        return "", errors.New("getNodeIPbyUID -> No access to database")
     }
     sql := "SELECT node_value FROM nodes where node_param = 'ip' and node_uniqueid='"+nk+"';"
     logs.Info("GetNodeIP -> SQL -> %s", sql)
@@ -88,8 +89,8 @@ func getNodeConf (nodeKey string)(conf map[string]string, err error) {
     var value string
 
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return nil, errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("getNodeConf -> No access to database")
+        return nil, errors.New("getNodeConf -> No access to database")
     }
     
     sql := "SELECT node_param, node_value FROM nodes where node_uniqueid='"+nodeKey+"';"
@@ -105,7 +106,7 @@ func getNodeConf (nodeKey string)(conf map[string]string, err error) {
     defer rows.Close()
     for rows.Next() {
         if err = rows.Scan(&param, &value); err != nil {
-            logs.Info (" Error en el scan -> %s",err.Error())
+            logs.Info (" Error rows.Scan -> %s",err.Error())
             continue
         }
         conf[param]=value
@@ -115,8 +116,8 @@ func getNodeConf (nodeKey string)(conf map[string]string, err error) {
 
 func getNodePortbyUID (nk string) (port string, err error) {
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return "", errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("getNodePortbyUID -> no access to database")
+        return "", errors.New("getNodePortbyUID -> no access to database")
     }
     sql := "SELECT node_value FROM nodes where node_param = 'port' and node_uniqueid='"+nk+"';"
     rows, err := ndb.Db.Query(sql)
@@ -137,19 +138,19 @@ func getAllNodesIp () (ips map[string]string, err error) {
     var uid string
     var ip string
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return ips, errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("getAllNodesIp -> no access to database")
+        return ips, errors.New("getAllNodesIp -> no access to database")
     }
     sql := "SELECT node_uniqueid, node_value FROM nodes where node_param = 'ip';"
     rows, err := ndb.Db.Query(sql)
     if err != nil {
-        logs.Error("Error al ejecutar la query %s -> %s", sql, err.Error())
+        logs.Error("Error ndb.Db.Query %s -> %s", sql, err.Error())
         return ips, err
     }
     defer rows.Close()
     for rows.Next() {
         if err = rows.Scan(&uid, &ip); err != nil {
-            logs.Info (" Error en el scan -> %s",err.Error())
+            logs.Info (" Error -> rows.Scan -> %s",err.Error())
         }
         ips[uid]=ip
     }
@@ -158,8 +159,8 @@ func getAllNodesIp () (ips map[string]string, err error) {
 
 func nodeKeyExists (nodekey string, key string) (id int, err error) {
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return 0, errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("no access to database")
+        return 0, errors.New("no access to database")
     }
     sql := "SELECT node_id FROM nodes where node_uniqueid = '"+nodekey+"' and node_param = '"+key+"';"
     rows, err := ndb.Db.Query(sql)
@@ -178,8 +179,8 @@ func nodeKeyExists (nodekey string, key string) (id int, err error) {
 
 func nodeExists (nodeid string) (err error) {
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("no access to database")
+        return errors.New("no access to database")
     }
     sql := "SELECT * FROM nodes where node_uniqueid = '"+nodeid+"';"
     rows, err := ndb.Db.Query(sql)
@@ -198,8 +199,8 @@ func nodeExists (nodeid string) (err error) {
 func nodeKeyUpdate(id int, nkey string, key string, value string) (err error) {
     logs.Info("NODE Key Insert -> IN")
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("no access to database")
+        return errors.New("no access to database")
     }
     logs.Info("nkey: %s, key: %s, value: %s", nkey, key, value)
     stmt, err := ndb.Db.Prepare("update nodes set node_param = ?, node_value = ? where node_id = ? and node_uniqueid = ?")
@@ -218,8 +219,8 @@ func nodeKeyUpdate(id int, nkey string, key string, value string) (err error) {
 func nodeKeyInsert(nkey string, key string, value string) (err error) {
     logs.Info("NODE Insert -> IN")
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("no access to database")
+        return errors.New("no access to database")
     }
     logs.Info("nkey: %s, key: %s, value: %s", nkey, key, value)
     stmt, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values(?,?,?)")
@@ -239,10 +240,10 @@ func AddNode(n map[string]string) (err error) {
     logs.Info("ADD NODE -> IN")
     nodeKey := utils.Generate()
     if _, ok := n["name"]; !ok {
-        return errors.New("name está vacio")
+        return errors.New("name empty")
     }
     if _, ok := n["ip"]; !ok {
-        return errors.New("ip está vacio")
+        return errors.New("ip empty")
     }
 
     if err := nodeExists(nodeKey); err != nil {
@@ -291,8 +292,8 @@ func UpdateNode (n map[string]string) (err error) {
 
 func getNodeIpbyName(n string)(ip string, err error) {
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return "", errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("no access to database")
+        return "", errors.New("no access to database")
     }
     sql := "select node_value from nodes where node_uniqueid like '%"+n+"%' and node_param = 'ip';"
     rows, err := ndb.Db.Query(sql)
@@ -317,13 +318,13 @@ func GetAllNodes() (nodes *map[string]map[string]string, err error) {
     var param string
     var value string
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return nil, errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("no access to database")
+        return nil, errors.New("no access to database")
     }
     sql := "select node_uniqueid, node_param, node_value from nodes;"
     rows, err := ndb.Db.Query(sql)
     if err != nil {
-        logs.Error("Error al ejecutar la query: %s", err.Error())
+        logs.Error("ndb.Db.Query Error : %s", err.Error())
         return nil, err
     }
     for rows.Next() {
@@ -413,6 +414,7 @@ func Wazuh (n string) (data []byte, err error) {
 func SetRuleset(nid string) (err error) {
     logs.Info("SetRuleset node -->"+nid)
     
+    // use nid to extract ip and port.
     url := "https://192.168.14.15:50002/node/suricata/retrieve"
     rulesetID, err := ruleset.GetRuleSelected(nid)
     if err != nil {
@@ -420,7 +422,6 @@ func SetRuleset(nid string) (err error) {
         return err
     }
     path, err := ruleset.GetRulesetPath(rulesetID)
-    logs.Info("Path del fichero leido para enviar a node: "+path)
     if err != nil {
         logs.Notice("SetRuleset node ERROR GetRulesetPath: ")
         return err
@@ -462,20 +463,19 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 	// logs.Info("Datos SQL IP --> "+sqlIP)
 	ip, err := ndb.Db.Query(sqlIP)
 	if err != nil {
-		logs.Error("Error al ejecutar la query UUID: %s", err.Error())
+		logs.Error("ndb.Db.Query Error  UUID: %s", err.Error())
 		return voidArray, err
 	}
 	defer ip.Close()
 	if ip.Next() {
 		ip.Scan(&ipData)
 	}
-	logs.Info("Datos IP --> "+ipData)
 
 	//Take PORT from specific uuid
 	sqlPORT := "select node_value from nodes where node_param = 'port' and node_uniqueid = '"+loadFile["uuid"]+"';"
 	port, err := ndb.Db.Query(sqlPORT)
 	if err != nil {
-		logs.Error("Error al ejecutar la query UUID: %s", err.Error())
+		logs.Error("ndb.Db.Query Error  UUID: %s", err.Error())
 		return voidArray, err
 	}
 	defer port.Close()
@@ -484,7 +484,6 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 			return voidArray, err
 		}
 	}
-    logs.Info("Datos PORT --> "+portData)
 
     tr := &http.Transport{
         TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
@@ -525,24 +524,21 @@ func SetNodeFile(loadFile map[string]string) (err error) {
 
     //Take IP from specific uuid
 	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+loadFile["uuid"]+"';"
-	logs.Info("SetNodeFile Datos SQL IP --> "+sqlIP)
 	ip, err := ndb.Db.Query(sqlIP)
 	if err != nil {
-		logs.Error("SetNodeFile Error al ejecutar la query UUID: %s", err.Error())
+		logs.Error("SetNodeFile ndb.Db.Query Error  UUID: %s", err.Error())
 		return err
 	}
 	defer ip.Close()
 	if ip.Next() {
 		ip.Scan(&ipData)
 	}
-	logs.Info("SetNodeFile Datos IP --> "+ipData)
 
 	//Take PORT from specific uuid
 	sqlPORT := "select node_value from nodes where node_param = 'port' and node_uniqueid = '"+loadFile["uuid"]+"';"
-	logs.Info("SetNodeFile Datos SQL PORT --> "+sqlPORT)
 	port, err := ndb.Db.Query(sqlPORT)
 	if err != nil {
-		logs.Error("SetNodeFile Error al ejecutar la query UUID: %s", err.Error())
+		logs.Error("SetNodeFile ndb.Db.Query Error  UUID: %s", err.Error())
 		return err
 	}
 	defer port.Close()
@@ -551,7 +547,6 @@ func SetNodeFile(loadFile map[string]string) (err error) {
 			return err
 		}
 	}
-	logs.Info("SetNodeFileDatos PORT --> "+portData)
 
     //Node URL
     url := "https://"+ipData+":"+portData+"/node/file"
@@ -579,24 +574,21 @@ func GetAllFiles(uuid string) (data map[string]string, err error) {
 
     //Take IP from specific uuid
 	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+uuid+"';"
-	logs.Info("GetAllFiles Datos SQL IP --> "+sqlIP)
 	ip, err := ndb.Db.Query(sqlIP)
 	if err != nil {
-		logs.Error("GetAllFiles Error al ejecutar la query UUID: %s", err.Error())
+		logs.Error("GetAllFiles ndb.Db.Query Error  UUID: %s", err.Error())
 		return rData, err
 	}
 	defer ip.Close()
 	if ip.Next() {
 		ip.Scan(&ipData)
 	}
-	logs.Info("GetAllFiles Datos IP --> "+ipData)
 
 	//Take PORT from specific uuid
 	sqlPORT := "select node_value from nodes where node_param = 'port' and node_uniqueid = '"+uuid+"';"
-	logs.Info("GetAllFiles Datos SQL PORT --> "+sqlPORT)
 	port, err := ndb.Db.Query(sqlPORT)
 	if err != nil {
-		logs.Error("GetAllFiles Error al ejecutar la query UUID: %s", err.Error())
+		logs.Error("GetAllFiles ndb.Db.Query Error  UUID: %s", err.Error())
 		return rData,err
 	}
 	defer port.Close()
