@@ -28,8 +28,7 @@ func findNode(s string) (id string, err error) {
         sql = "SELECT node_uniqueid FROM nodes where node_param = 'ip' and node_value='"+s+"';"
     } else if uuid.MatchString(s) {
         sql = "SELECT node_uniqueid FROM nodes where node_param = 'UUID' and node_value='"+s+"';"
-    }
-	// Else needed to stop if s is none
+    } 
     rows, err := ndb.Db.Query(sql)
     if err != nil {
         logs.Error(err.Error())
@@ -190,7 +189,7 @@ func nodeExists (nodeid string) (err error) {
     }
     defer rows.Close()
     if rows.Next() {
-        return errors.New("ya existe el node buscado")
+        return errors.New("Node Exists " + nodeid)
     } else {
         return nil
     }
@@ -264,10 +263,10 @@ func UpdateNode (n map[string]string) (err error) {
     var nodeKey string
 
     if _, ok := n["name"]; !ok {
-        return errors.New("name está vacio")
+        return errors.New("name is empty")
     }
     if _, ok := n["ip"]; !ok {
-        return errors.New("ip está vacio")
+        return errors.New("ip is empty")
     }
     if _, ok := n["id"]; !ok {
         nodeKey = strings.Replace(n["name"], " ", "-",0)+"-"+strings.Replace(n["ip"], ".", "-",0)
@@ -275,7 +274,7 @@ func UpdateNode (n map[string]string) (err error) {
         nodeKey = n["id"]
     }
     if err := nodeExists(nodeKey); err == nil {
-        return errors.New("El nodo no existe. Hay que crearlo antes")
+        return errors.New("Node desn't exist, must be created")
     }
     for key, value := range n {
         if id, _ := nodeKeyExists(nodeKey, key); id != 0 {
@@ -307,8 +306,7 @@ func getNodeIpbyName(n string)(ip string, err error) {
             return ip, err
         }
     }
-    return "", errors.New("no hay IP asociada al nombre")
-    //select node_value from nodes where node_uniqueid like '%que-rico%' and node_param = "ip";
+    return "", errors.New("There is no IP for given node name")
 }
 
 func GetAllNodes() (nodes *map[string]map[string]string, err error) {
@@ -329,25 +327,18 @@ func GetAllNodes() (nodes *map[string]map[string]string, err error) {
     }
     for rows.Next() {
         if err = rows.Scan(&uniqid, &param, &value); err != nil {
-            logs.Error("No hemos podido leer del resultado de la query: %s", err.Error())
+            logs.Error("GetAllNodes rows.Scan: %s", err.Error())
             return nil, err
         }
         logs.Info ("uniqid: %s, param: %s, value: %s", uniqid,param,value)
         if allnodes[uniqid] == nil { allnodes[uniqid] = map[string]string{}}
         allnodes[uniqid][param]=value
-        logs.Info ("GET all nodes -> vamos a por otro")
     } 
     return &allnodes, nil
 }
 
 func NodePing (n string) (err error) {
     logs.Info("Node PING -> IN")
-    logs.Info("Ping - UID -> %s", n)
-//    uid, err := findNode(n)
-//    if err != nil {
-//        logs.Info("Ping - UID Error -> %s", err.Error())
-//        return err
-//    }
     ip, err := getNodeIPbyUID(n)
     if err != nil {
         logs.Info("Ping - IP Error -> %s", err.Error())
@@ -358,7 +349,6 @@ func NodePing (n string) (err error) {
         logs.Info("Ping - PORT Error -> %s", err.Error())
         return err
     }    
-    logs.Info("Ping - vamos a por el ping -> %s, %s", ip, port)
     err = nodeclient.PingNode(ip,port)
     if err != nil {
         return err
@@ -367,7 +357,6 @@ func NodePing (n string) (err error) {
 }
 
 func Zeek (n string) (data []byte, err error) {
-    logs.Info("Node Zeek -> IN")
     logs.Info("Zeek - UID -> %s", n)
 
     ip, err := getNodeIPbyUID(n)
@@ -380,7 +369,6 @@ func Zeek (n string) (data []byte, err error) {
         logs.Info("Zeek - PORT Error -> %s", err.Error())
         return nil,err
     }    
-    logs.Info("Zeek - vamos a por el zeek -> %s, %s", ip, port)
     data, err = nodeclient.Zeek(ip,port)
     if err != nil {
         return nil,err
@@ -390,7 +378,6 @@ func Zeek (n string) (data []byte, err error) {
 
 func Wazuh (n string) (data []byte, err error) {
     logs.Info("Node wazuh -> IN")
-    logs.Info("Wazuh - UID -> %s", n)
 
     ip, err := getNodeIPbyUID(n)
     if err != nil {
@@ -402,7 +389,6 @@ func Wazuh (n string) (data []byte, err error) {
         logs.Info("Wazuh - PORT Error -> %s", err.Error())
         return nil,err
     }    
-    logs.Info("Wazuh - vamos a por el wazuh -> %s, %s", ip, port)
     data, err = nodeclient.Wazuh(ip,port)
     if err != nil {
         return nil,err
@@ -411,12 +397,39 @@ func Wazuh (n string) (data []byte, err error) {
 }
 
 //Set ruleset file from Master to Node
-func SetRuleset(nid string) (err error) {
+func SetRuleset(uuid string) (err error) {
     logs.Info("SetRuleset node -->"+nid)
+    var portData string
+    var ipData string
     
-    // use nid to extract ip and port.
-    url := "https://192.168.14.15:50002/node/suricata/retrieve"
-    rulesetID, err := ruleset.GetRuleSelected(nid)
+    
+    //Take IP from specific uuid
+	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+uuid+"';"
+	ip, err := ndb.Db.Query(sqlIP)
+	if err != nil {
+		logs.Error("GetAllFiles ndb.Db.Query Error  UUID: %s", err.Error())
+		return rData, err
+	}
+	defer ip.Close()
+	if ip.Next() {
+		ip.Scan(&ipData)
+	}
+
+	//Take PORT from specific uuid
+	sqlPORT := "select node_value from nodes where node_param = 'port' and node_uniqueid = '"+uuid+"';"
+	port, err := ndb.Db.Query(sqlPORT)
+	if err != nil {
+		logs.Error("SetRuleset ndb.Db.Query Error  UUID: %s", err.Error())
+		return rData,err
+	}
+	defer port.Close()
+	if port.Next() {
+		if err = port.Scan(&portData); err != nil {
+			return rData,err
+		}
+	}
+    
+    rulesetID, err := ruleset.GetRuleSelected(uuid)
     if err != nil {
         logs.Notice("SetRuleset node ERROR GetRuleSelected: ")
         return err
@@ -439,6 +452,8 @@ func SetRuleset(nid string) (err error) {
     values["data"] = data
 
     //pasar json al nodo con el ruleset
+    url := "https://"+ipData+":"+portData+"/node/suricata/retrieve
+
     valuesJSON,err := json.Marshal(values)
     req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
     tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
@@ -498,16 +513,12 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 
     defer resp.Body.Close()
 
-    logs.Info("GetNodeFile response Status:", resp.Status)
-    logs.Info("GetNodeFile response Headers:", resp.Header)
     responseData, err := ioutil.ReadAll(resp.Body)
     logs.Info("GetNodeFile response Body:", responseData)
-    //rData["fileContent"] = string(responseData)
 
     json.Unmarshal(responseData, &rData)
     logs.Info(rData)
 
-    // rData["fileName"] = loadFile["file"]
     rData["nodeUUID"] = loadFile["uuid"]
 
     return rData,err
@@ -517,12 +528,10 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 //Get specific file from node files
 func SetNodeFile(loadFile map[string]string) (err error) {
     logs.Info("SetNodeFile node "+loadFile["uuid"])
-    // values := make(map[string]string)
 
     var portData string
     var ipData string
 
-    //Take IP from specific uuid
 	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+loadFile["uuid"]+"';"
 	ip, err := ndb.Db.Query(sqlIP)
 	if err != nil {
@@ -618,7 +627,6 @@ func GetAllFiles(uuid string) (data map[string]string, err error) {
     logs.Info("GetNodeFile response Body:", responseData)
 
     json.Unmarshal(responseData, &rData)
-    logs.Info("rData node/node.go en MASTER")
     logs.Info(rData)
     rData["nodeUUID"] = uuid
 
