@@ -23,12 +23,11 @@ func (n *NodeController) GetNode() {
     nid := n.GetString(":nid")
     if nid != "" {
         nn, err := models.GetNode(nid)
-        logs.Info ("Node Details ->  %s", nn)
         if err != nil {
+	        logs.Info("NODE -> Get Node Detail -> error: %s", err.Error())
             n.Data["json"] = err.Error()
         } else {
             n.Data["json"] = nn
-            logs.Info ("Node Details after node ->  %s", n)
         }
     }
     n.ServeJSON()
@@ -40,7 +39,6 @@ func (n *NodeController) GetNode() {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *NodeController) CreateNode() {
-    logs.Info("NODE CREATE -> In")
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.AddNode(anode)
@@ -62,10 +60,11 @@ func (n *NodeController) CreateNode() {
 func (n *NodeController) DeployNode() {
     logs.Info("NODE DEPLOY -> In")
     nid := n.GetString(":nid")
-    if nid == "" {
-        logs.Info("NODE DEPLOY -> error")
-    }
     n.Data["json"] = map[string]string{"nid": nid, "state":"Success"}
+    if nid == "" {
+    	n.Data["json"] = map[string]string{"nid": "", "state":"Failure"}
+        logs.Info("NODE DEPLOY -> error -> No Node ID")
+    }
     n.ServeJSON()
 }
 
@@ -76,12 +75,8 @@ func (n *NodeController) DeployNode() {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *NodeController) UpdateNode() {
-    logs.Info("NODE Update -> In")
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    for key, value := range anode {
-        logs.Info("Key: %s, Value: %s", key, value)
-    }
     err := models.UpdateNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -99,7 +94,6 @@ func (n *NodeController) UpdateNode() {
 // @router /ping/:nid [get]
 // @router /:nid/ping [get]
 func (n *NodeController) GetPong() { 
-    logs.Info("GET PONG -> In")
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
@@ -109,7 +103,6 @@ func (n *NodeController) GetPong() {
             n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("GET PING -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 

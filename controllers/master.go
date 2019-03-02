@@ -32,11 +32,11 @@ func (m *MasterController) Get() {
     logs.Info ("Master controller -> GET")
     mm, err := models.GetMaster()
     if err != nil {
-        logs.Info ("Master Controller -> Get -> Error %s", err)
+        logs.Info ("Master Controller -> Get -> Error %s", err.Error())
     }
-    logs.Info ("Master id es %s", mm)
+    logs.Info ("Master id -> %s", mm)
     m.Data["json"] = mm
-    logs.Info ("Master Detail es %s", m)
+    logs.Info ("Master Detail ->  %s", m)
     m.ServeJSON()
 }
 
