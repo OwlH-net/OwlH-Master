@@ -18,7 +18,7 @@ import (
     "bytes"
 )
 
-func Suricata(n string) (data []byte, err error) {
+func Suricata(n string) (data map[string]bool, err error) {
     logs.Info("Node suricata -> IN")
     logs.Info("Suricata - UID -> %s", n)
 
@@ -79,7 +79,6 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     bpftext := "bpf"
 
     ipnid,portnid,err := GetSuricataIpPort(jsonnid)
-    logs.Info("||||||||"+ipnid+"||||||||"+portnid)
     
     //crear map con nid y bpf
     values := make(map[string]string)
@@ -178,3 +177,49 @@ func GetSuricataIpPort(jsonnid string)(ip string, port string, err error){ //(ip
     return ipObtained,portObtained,err
 }
 
+func RunSuricata(uuid string)(data string, err error){
+    if ndb.Db == nil {
+        logs.Error("PutSuricataBPF -- Can't acces to database")
+        return "", errors.New("PutSuricataBPF -- Can't acces to database")
+    }
+    
+    ipnid,portnid,err := GetSuricataIpPort(uuid)
+    
+    url := "https://"+ipnid+":"+portnid+"/node/suricata/RunSuricata"
+    req, err := http.NewRequest("PUT", url, nil)
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    client := &http.Client{Transport: tr}
+    resp, err := client.Do(req)
+
+    if err != nil {
+        return "",err
+    }
+    defer resp.Body.Close()
+
+    body, _ := ioutil.ReadAll(resp.Body)
+    logs.Info("RunSuricata function "+string(body))
+    return string(body),nil
+}
+
+func StopSuricata(uuid string)(data string, err error){
+    if ndb.Db == nil {
+        logs.Error("PutSuricataBPF -- Can't acces to database")
+        return "", errors.New("PutSuricataBPF -- Can't acces to database")
+    }
+
+    ipnid,portnid,err := GetSuricataIpPort(uuid)
+
+    url := "https://"+ipnid+":"+portnid+"/node/suricata/StopSuricata"
+    req, err := http.NewRequest("PUT", url, nil)
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    client := &http.Client{Transport: tr}
+    resp, err := client.Do(req)
+
+    if err != nil {
+        return "",err
+    }
+    defer resp.Body.Close()
+
+    body, _ := ioutil.ReadAll(resp.Body)
+    return string(body),nil
+}

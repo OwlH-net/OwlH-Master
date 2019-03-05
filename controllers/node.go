@@ -122,15 +122,17 @@ func (n *NodeController) GetPong() {
 func (n *NodeController) GetSuricata() { 
     logs.Info("GET Suricata -> In")
     nid := n.GetString(":nid")
-    n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
-    if nid != "" {
-        data,err := models.Suricata(nid)
-        var anode map[string]string
-        json.Unmarshal(data, &anode)
-        n.Data["json"] = anode
-        if err != nil {
-            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
-        }
+    data,err := models.Suricata(nid)
+
+    // data["path"]=false
+    // data["bin"]=true
+    // data["running"]=false
+
+    logs.Warn(data)
+
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
     }
     logs.Info("GET Suricata -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
@@ -327,6 +329,39 @@ func (n *NodeController) GetAllFiles() {
     uuid := n.GetString(":uuid")
     data, err := models.GetAllFiles(uuid)
     logs.Info("Vuelto getAllFiles")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title RunSuricata
+// @Description Run suricata server
+// @Success 200 {object} models.Node
+// @router /RunSuricata/:uuid [put]
+func (n *NodeController) RunSuricata() { 
+    logs.Info("Inside RunSuricata")
+    uuid := n.GetString(":uuid")
+    data, err := models.RunSuricata(uuid)
+    logs.Info("Back RunSuricata")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopSuricata
+// @Description Stop suricata server
+// @Success 200 {object} models.Node
+// @router /StopSuricata/:uuid [put]
+func (n *NodeController) StopSuricata() { 
+    uuid := n.GetString(":uuid")
+    data, err := models.StopSuricata(uuid)
+    logs.Info("Back StopSuricata")
     n.Data["json"] = data
     logs.Info(data)
     if err != nil {

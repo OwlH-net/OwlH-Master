@@ -71,7 +71,7 @@ func PingNode (n string) (err error) {
     return err
 }
 
-func Suricata(n string) (data []byte, err error) {
+func Suricata(n string) (data map[string]bool, err error) {
     logs.Info("Suricata status Node - %s",n)
     data,err = node.Suricata(n)
     return data,err
@@ -128,5 +128,17 @@ func SetNodeFile(n map[string]string) (err error) {
 func GetAllFiles(n string) (data map[string]string, err error) {
     logs.Info("GetAllFiles status Node")
     data,err = node.GetAllFiles(n)
+    return data,err
+}
+
+func RunSuricata(uuid string) (data string, err error) {
+    logs.Info("RunSuricata status Node")
+    data,err = node.RunSuricata(uuid)
+    return data,err
+}
+
+func StopSuricata(uuid string) (data string, err error) {
+    logs.Info("StopSuricata status Node")
+    data,err = node.StopSuricata(uuid)
     return data,err
 }
