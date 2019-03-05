@@ -23,12 +23,11 @@ func (n *NodeController) GetNode() {
     nid := n.GetString(":nid")
     if nid != "" {
         nn, err := models.GetNode(nid)
-        logs.Info ("Node Details ->  %s", nn)
         if err != nil {
+	        logs.Info("NODE -> Get Node Detail -> error: %s", err.Error())
             n.Data["json"] = err.Error()
         } else {
             n.Data["json"] = nn
-            logs.Info ("Node Details after node ->  %s", n)
         }
     }
     n.ServeJSON()
@@ -40,7 +39,6 @@ func (n *NodeController) GetNode() {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *NodeController) CreateNode() {
-    logs.Info("NODE CREATE -> In")
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.AddNode(anode)
@@ -62,10 +60,11 @@ func (n *NodeController) CreateNode() {
 func (n *NodeController) DeployNode() {
     logs.Info("NODE DEPLOY -> In")
     nid := n.GetString(":nid")
-    if nid == "" {
-        logs.Info("NODE DEPLOY -> error")
-    }
     n.Data["json"] = map[string]string{"nid": nid, "state":"Success"}
+    if nid == "" {
+    	n.Data["json"] = map[string]string{"nid": "", "state":"Failure"}
+        logs.Info("NODE DEPLOY -> error -> No Node ID")
+    }
     n.ServeJSON()
 }
 
@@ -76,12 +75,8 @@ func (n *NodeController) DeployNode() {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *NodeController) UpdateNode() {
-    logs.Info("NODE Update -> In")
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    for key, value := range anode {
-        logs.Info("Key: %s, Value: %s", key, value)
-    }
     err := models.UpdateNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -99,7 +94,6 @@ func (n *NodeController) UpdateNode() {
 // @router /ping/:nid [get]
 // @router /:nid/ping [get]
 func (n *NodeController) GetPong() { 
-    logs.Info("GET PONG -> In")
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
@@ -109,7 +103,6 @@ func (n *NodeController) GetPong() {
             n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("GET PING -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -120,7 +113,6 @@ func (n *NodeController) GetPong() {
 // @router /suricata/:nid [get]
 // @router /:nid/suricata [get]
 func (n *NodeController) GetSuricata() { 
-    logs.Info("GET Suricata -> In")
     nid := n.GetString(":nid")
     data,err := models.Suricata(nid)
 
@@ -134,7 +126,6 @@ func (n *NodeController) GetSuricata() {
     if err != nil {
         n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
     }
-    logs.Info("GET Suricata -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -147,33 +138,30 @@ func (n *NodeController) GetSuricata() {
 // @router /:nid/suricata/bpf [get]
 // @router /bpf/:nid [get]
 func (n *NodeController) GetSuricataBPF() { 
-    logs.Info("GET SuricataBPF -> In")
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
     if nid != "" {
         data,err := models.GetSuricataBPF(nid)
         n.Data["json"] = map[string]string{"bpf": data}
         if err != nil {
+			logs.Error("Can't get Suricata status" + err.Error())
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("GET SuricataBPF -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
 
-// @Title Put Suricata BPF
-// @Description Put Suricata BPF from web to node
+// @Title Set BPF to Node
+// @Description Set BPF to node
 // @Success 200 {object} models.Node
 // @Failure 403 :nid is empty
 // @router /suricata/:nid/bpf [put]
 // @router /:nid/suricata/bpf [put]
 // @router /bpf/:nid [put]
 func (n *NodeController) PutSuricataBPF() { 
-    logs.Info("PUT SuricataBPF -> In")
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    //err := models.AddNode(anode)
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
     if nid != "" {
@@ -183,7 +171,6 @@ func (n *NodeController) PutSuricataBPF() {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("PUT SuricataBPF -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -196,7 +183,6 @@ func (n *NodeController) PutSuricataBPF() {
 // @router /zeek/:nid [get]
 // @router /:nid/zeek [get]
 func (n *NodeController) GetZeek() { 
-    logs.Info("GET Zeek -> In")
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
     if nid != "" {
@@ -208,7 +194,6 @@ func (n *NodeController) GetZeek() {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("GET Zeek -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -219,7 +204,6 @@ func (n *NodeController) GetZeek() {
 // @router /wazuh/:nid [get]
 // @router /:nid/wazuh [get]
 func (n *NodeController) GetWazuh() { 
-    logs.Info("GET Wazuh -> In")
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
     if nid != "" {
@@ -231,7 +215,6 @@ func (n *NodeController) GetWazuh() {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
     }
-    logs.Info("GET Wazuh -> OUT -> %s", n.Data["json"])
     n.ServeJSON()
 }
 
@@ -241,10 +224,10 @@ func (n *NodeController) GetWazuh() {
 // @router / [get]
 func (n *NodeController) GetAllNodes() { 
     nodes, err := models.GetAllNodes()
+    n.Data["json"] = nodes
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-    n.Data["json"] = nodes
     n.ServeJSON()
 }
 
@@ -256,7 +239,6 @@ func (n *NodeController) GetAllNodes() {
 // @router /:nid [delete]
 func (n *NodeController) DeleteNode() { 
     nid := n.Ctx.Input.Param(":nid")
-    logs.Info("NODE DELETE -> node id: %s", nid)
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
         err := models.DeleteNode(nid)

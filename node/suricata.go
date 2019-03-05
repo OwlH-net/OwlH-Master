@@ -2,17 +2,17 @@ package node
 
 import (
     "github.com/astaxie/beego/logs"
-    // "strings"
+// 	  "strings"
 //    "database/sql"
 //    "fmt"
-//   "time"
+//    "time"
 //    _ "github.com/mattn/go-sqlite3"
     "crypto/tls"
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
     "encoding/json"
-    // "regexp"
+//    "regexp"
     "io/ioutil"
     "net/http"
     "bytes"
@@ -20,7 +20,6 @@ import (
 
 func Suricata(n string) (data map[string]bool, err error) {
     logs.Info("Node suricata -> IN")
-    logs.Info("Suricata - UID -> %s", n)
 
     ip, err := getNodeIPbyUID(n)
     if err != nil {
@@ -160,17 +159,18 @@ func GetSuricataIpPort(jsonnid string)(ip string, port string, err error){ //(ip
     
     defer rowIP.Close()
     defer rowPORT.Close()
+    
     if rowIP.Next() {
         err = rowIP.Scan(&ipObtained)
         if  err != nil {
-            logs.Info("---NO IP FOR THIS NID---"+err.Error())
+            logs.Info("--- NO IP FOR THIS NID ---"+err.Error())
             return "","",err
         }
     }
     if rowPORT.Next() {
         err = rowPORT.Scan(&portObtained)
         if  err != nil {
-            logs.Info("---NO PORT FOR THIS NID---"+err.Error())
+            logs.Info("--- NO PORT FOR THIS NID ---"+err.Error())
             return "","",err
         }
     }

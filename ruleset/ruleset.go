@@ -26,16 +26,13 @@ func ReadSID(sid map[string]string)( sidLine map[string]string ,err error){
     logs.Info("SID: "+sidMap+" UID: "+uuidMap)
 
     path, err := GetRulesetPath(uuidMap)
-    logs.Info("PATH DEL FICHERO PHP: "+path)
 
-    //data, err := os.Open("/etc/owlh/ruleset/owlh.rules")
     data, err := os.Open(path)
     if err != nil {
         fmt.Println("File reading error", err)
         return 
     }
     
-    //var validID = regexp.MustCompile(`sid:`+sid+`;`)
     var validID = regexp.MustCompile(`sid:`+sidMap+`;`)
     scanner := bufio.NewScanner(data)
     for scanner.Scan(){
@@ -49,10 +46,7 @@ func ReadSID(sid map[string]string)( sidLine map[string]string ,err error){
 }
 
 func Read(path string)(rules map[string]map[string]string, err error) {
-    //leer fichero V
-    //dar formato a las reglas (json)
-    //enviar datos a ruleset.html para mostrarlos por pantalla
-    logs.Info ("Buscando el fichero desde ruleset/ruleset.go")
+
     data, err := os.Open(path)
     
     if err != nil {
@@ -190,25 +184,25 @@ func GetRulesetPath(uuid string) (n string, err error) {
         row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid=$1 and ruleset_param=\"path\";",uuid)
         err = row.Scan(&path)
         if err == sql.ErrNoRows {
-            logs.Warn("DB RULESET -> No encuentro na, ese id %s parece no existir",uuid)
-            return "", errors.New("DB RULESET -> No encuentro na, ese id "+uuid+" parece no existir")
+            logs.Warn("DB RULESET -> There is no ruleset with id %s",uuid)
+            return "", errors.New("DB RULESET -> There is no ruleset with id "+uuid)
         }
         if err != nil {
-            logs.Warn("DB RULESET -> no hemos leido bien los campos de scan")
-            return "", errors.New("DB RULESET -> no hemos leido bien los campos de scan")
+            logs.Warn("DB RULESET -> rows.Scan Error -> %s", err.Error())
+            return "", errors.New("DB RULESET -> -> rows.Scan Error -> " + err.Error())
         }
         return path, nil
     } else {
-        logs.Info("DB RULESET -> no hay base de datos")
-        return "", errors.New("DB RULESET -> no hay base de datos")
+        logs.Info("DB RULESET -> No access to database")
+        return "", errors.New("DB RULESET -> No access to database")
     }
 }
 
 func GetRulesetRules(uuid string)(r map[string]map[string]string, err error){
     logs.Info("DB RULESET -> GetRulesetRules"+uuid)
     rules := make(map[string]map[string]string)
-    path,err := GetRulesetPath(uuid) //obtener path ruleset
-    rules,err = Read(path) //obtener rules del ruleset a traves del path del parametro
+    path,err := GetRulesetPath(uuid) 
+    rules,err = Read(path) 
     for rule, _ := range rules{
         retrieveNote := make(map[string]string)
         retrieveNote["uuid"] = uuid
@@ -272,22 +266,21 @@ func SetRuleSelected(n map[string]string) (err error) {
 
 
 func GetRuleSelected(nid string)(ruleset string, err error){
-    logs.Debug("PROBNADO -> GetRuleSelected: "+nid)
     var ruleSelected string
     if ndb.Rdb != nil {
         row := ndb.Rdb.QueryRow("SELECT ruleset_uniqueid FROM ruleset_node WHERE node_uniqueid = \""+nid+"\";")
         err = row.Scan(&ruleSelected)
         if err == sql.ErrNoRows{
-            logs.Warn("GetRuleName -> no encuentro nada")
+            logs.Warn("GetRuleName -> There is no ruleset with thie UUID %s", nid)
             return "", err
         }
         if err != nil {
-            logs.Warn("GetRuleName -> no hemos leido bien los campos")
+            logs.Warn("GetRuleName -> row.Scan error %s", err.Error())
             return "", err
         }
         return ruleSelected, nil
     }else {
-        logs.Info("GetRuleSelected -> no hay base de datos")
+        logs.Info("GetRuleSelected -> No access to database")
         return "", err
     }
 }
@@ -299,16 +292,16 @@ func GetRuleName(nid string)(ruleset string, err error){
         row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid = \""+nid+"\" and ruleset_param = \"name\";")
         err = row.Scan(&nameRule)
         if err == sql.ErrNoRows{
-            logs.Warn("GetRuleName -> no encuentro nada")
+            logs.Warn("GetRuleName -> param or param doesn't exists")
             return "", err
         }
         if err != nil {
-            logs.Warn("GetRuleName -> no hemos leido bien los campos")
+            logs.Warn("GetRuleName -> row.Scan error %s", err.Error())
             return "", err
         }
         return nameRule, nil
     }else {
-        logs.Info("GetRuleName -> no hay base de datos")
+        logs.Info("GetRuleName -> no access to database")
         return "", err
     }
 }
@@ -324,6 +317,7 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     newRuleset = strings.Replace(newRuleset, " ", "_", -1)
 
     clonedPath := ruleCloned["path"]
+    // Path must be setup in main.conf file. 
     path := "/etc/owlh/ruleset/"
     pathNewRule := path+newRuleset+".rules"
     pathOldRule := path+clonedRuleset
@@ -334,7 +328,6 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     rows, err := ndb.Rdb.Query("SELECT * FROM ruleset WHERE ruleset_uniqueid = \""+newUUID+"\";")
     defer rows.Close()
     if !rows.Next(){
-        logs.Warn("No existe el UUID. Seguimos!: "+pathOldRule+" - "+pathNewRule)
 
         cpCmd := exec.Command("cp", clonedPath, pathNewRule)
         err = cpCmd.Run()
@@ -342,31 +335,28 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
             logs.Info ("SetClonedRuleset --> Error exec cmd command")
             return err
         }
-        logs.Warn("Copia del fichero hecha--> "+pathNewRule)
     
-        logs.Info("ruleset/SetClonedRuleset INSERT name")
         insertCloneName, err := ndb.Rdb.Prepare("insert into ruleset (ruleset_uniqueid, ruleset_param, ruleset_value) values (?,?,?);")
         _, err = insertCloneName.Exec(&newUUID, "name", &newRuleset)  
         defer insertCloneName.Close()
         if (err != nil){
-            logs.Info("error insertCloneName name en ruleset/rulesets--> "+err.Error())
+            logs.Info("error insertCloneName name ruleset/rulesets--> "+err.Error())
             return err
         }
-        logs.Info("ruleset/SetClonedRuleset INSERT name Completado!")
-        logs.Info("ruleset/SetClonedRuleset INSERT path")
+        logs.Info("ruleset/SetClonedRuleset INSERT name done")
         insertCloneValue, err := ndb.Rdb.Prepare("insert into ruleset (ruleset_uniqueid, ruleset_param, ruleset_value) values (?,?,?);")
         _, err = insertCloneValue.Exec(&newUUID, "path", &pathNewRule)
         defer insertCloneValue.Close()
         if (err != nil){
-            logs.Info("error insertCloneValue name en ruleset/rulesets--> "+err.Error())
+            logs.Info("error insertCloneValue name  ruleset/rulesets--> "+err.Error())
             return err
         }
-        logs.Info("ruleset/SetClonedRuleset INSERT path Completado!")
+        logs.Info("ruleset/SetClonedRuleset INSERT path done")
 
         return nil
     }
     if err != nil {
-        logs.Warn("SetClonedRuleset -> no hemos leido bien los campos")
+        logs.Warn("SetClonedRuleset -> rows.Scan %s", err.Error())
         return err
     }
 
@@ -437,7 +427,7 @@ func SetRuleNote(ruleNote map[string]string)(err error){
         defer insertNote.Close()
 
         if (err != nil){
-            logs.Info("error insertRulesetNode en ruleset/rulesets--> "+err.Error())
+            logs.Info("error insertRulesetNode ruleset/rulesets--> "+err.Error())
             return err
         }
         logs.Info("insertNote RETURN NILL UPDATE")
@@ -458,7 +448,7 @@ func GetRuleNote(ruleGetNote map[string]string)(note string, err error){
     err = row.Scan(&noteText)
     if err != nil {
         //logs.Warn("DB GetNote -> no hemos leido bien los campos de scan")
-        return "", errors.New("DB GetNote -> no hemos leido bien los campos de scan")
+        return "", errors.New("DB GetNote -> row.Scan error")
     }
     return noteText, nil
 }

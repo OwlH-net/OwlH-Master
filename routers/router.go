@@ -9,7 +9,6 @@ package routers
 
 import (
 	"owlhmaster/controllers"
-
 	"github.com/astaxie/beego"
 )
 

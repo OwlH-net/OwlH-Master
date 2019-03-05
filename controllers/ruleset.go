@@ -92,6 +92,7 @@ func (n *RulesetController) GetRulesetRules() {
 // @Failure 403 Connection Failure
 // @router /set [put]
 func (n *RulesetController) SetRuleSelected() { 
+	// change /SET for / - put method is enough describing action
     logs.Info("ROUTER SetRuleSelected --> iNSIDE")
     var ruleSelected map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &ruleSelected)
@@ -144,11 +145,9 @@ func (n *RulesetController) GetRuleName() {
 // @Success 200 {object} models.ruleset
 // @router /clone [put]
 func (n *RulesetController) SetClonedRuleset() { 
-    logs.Info("Entrando a SetClonedRuleset")
     var clonedMap map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &clonedMap)
     err := models.SetClonedRuleset(clonedMap)
-    logs.Info("Saliendo a SetClonedRuleset")
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Info("SetClonedRuleset -> error: %s", err.Error())
@@ -163,11 +162,9 @@ func (n *RulesetController) SetClonedRuleset() {
 // @Failure 403 Connection Failure
 // @router /action [put]
 func (n *RulesetController) SetRulesetAction() { 
-    logs.Info("Entrando a SetRulesetAction")
     var ruleAction map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &ruleAction)
     err := models.SetRulesetAction(ruleAction)
-    logs.Info("Saliendo a SetRulesetAction")
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -181,14 +178,12 @@ func (n *RulesetController) SetRulesetAction() {
 // @Failure 403 Connection Failure
 // @router /getnote/:uuid/:sid [get]
 func (n *RulesetController) GetRuleNote() { 
-    logs.Info("Entrando a GetRuleNote")
     sid := n.GetString(":sid")
     uuid := n.GetString(":uuid")
     ruleGetNote := make(map[string]string)
     ruleGetNote["sid"] = sid
     ruleGetNote["uuid"] = uuid
     note,err := models.GetRuleNote(ruleGetNote)
-    logs.Info("Saliendo a GetRuleNote")
     n.Data["json"] = note
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -202,11 +197,9 @@ func (n *RulesetController) GetRuleNote() {
 // @Failure 403 Connection Failure
 // @router /note [put]
 func (n *RulesetController) SetRuleNote() { 
-    logs.Info("Entrando a SetRuleNote")
     var ruleAction map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &ruleAction)
     err := models.SetRuleNote(ruleAction)
-    logs.Info("Saliendo a SetRuleNote")
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
