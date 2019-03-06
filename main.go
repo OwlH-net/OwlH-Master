@@ -2,7 +2,7 @@ package main
 
 import (
 
-    "github.com/astaxie/beego/logs"
+    // "github.com/astaxie/beego/logs"
     _ "owlhmaster/routers"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"

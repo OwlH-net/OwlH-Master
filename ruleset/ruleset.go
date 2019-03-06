@@ -320,7 +320,7 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     // Path must be setup in main.conf file. 
     path := "/etc/owlh/ruleset/"
     pathNewRule := path+newRuleset+".rules"
-    pathOldRule := path+clonedRuleset
+    //pathOldRule := path+clonedRuleset
     newUUID := utils.Generate()
 
     logs.Info("SetClonedRuleset: PATH: "+clonedPath+" Clone: "+clonedRuleset+" new "+newRuleset+" New UUID --> "+newUUID)

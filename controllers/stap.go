@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	//"strconv"
 	"github.com/astaxie/beego"
-    "github.com/astaxie/beego/logs"
+    // "github.com/astaxie/beego/logs"
 )
 
 type StapController struct {
@@ -56,6 +56,25 @@ func (n *StapController) GetServer() {
 	n.Data["json"] = server
 	if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title Get Stap
+// @Description Get Stap status from Node
+// @Success 200 {object} models.stap
+// @Failure 403 :nid is empty
+// @router /Stap/:nid [get]
+// @router /:nid/Stap [get]
+func (n *StapController) GetStap() { 
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
+    if nid != "" {
+        data,err := models.Stap(nid)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }

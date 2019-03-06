@@ -21,6 +21,11 @@ import(
     // "strings"
     // "time"
     // "strconv"
+   _ "github.com/mattn/go-sqlite3"
+    "owlhmaster/database"
+    "errors"
+    "owlhmaster/nodeclient"
+    "owlhmaster/utils"
 )
 
 func AddServer(data map[string]string)(err error) {
@@ -91,4 +96,86 @@ func GetServer(uuid string, serveruuid string)(data map[string]map[string]string
     logs.Info(rData)
 
     return rData,nil
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+func Stap(n string) (data map[string]bool, err error) {
+    logs.Info("Node Stap -> IN")
+
+    ip,port,err := utils.ObtainPortIp(n)
+    if err != nil {
+        logs.Info("Stap - get IP and PORT Error -> %s", err.Error())
+        return nil,err
+    }    
+    logs.Info("Stap IP and PORT -> %s, %s", ip, port)
+    data, err = nodeclient.Stap(ip,port)
+    if err != nil {
+        return nil,err
+    }
+    return data,nil
+}
+
+func RunStap(uuid string)(data string, err error){
+    if ndb.Db == nil {
+        logs.Error("RunStap -- Can't acces to database")
+        return "", errors.New("RunStap -- Can't acces to database")
+    }
+    
+    // ipnid,portnid,err := GetSuricataIpPort(uuid)
+    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+    
+    url := "https://"+ipnid+":"+portnid+"/node/stap/RunStap"
+    req, err := http.NewRequest("PUT", url, nil)
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    client := &http.Client{Transport: tr}
+    resp, err := client.Do(req)
+
+    if err != nil {
+        return "",err
+    }
+    defer resp.Body.Close()
+
+    body, _ := ioutil.ReadAll(resp.Body)
+    logs.Info("RunStap function "+string(body))
+    return string(body),nil
+}
+
+func StopStap(uuid string)(data string, err error){
+    if ndb.Db == nil {
+        logs.Error("StopStap -- Can't acces to database")
+        return "", errors.New("StopStap -- Can't acces to database")
+    }
+
+    // ipnid,portnid,err := GetSuricataIpPort(uuid)
+    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+
+    url := "https://"+ipnid+":"+portnid+"/node/stap/StopStap"
+    req, err := http.NewRequest("PUT", url, nil)
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    client := &http.Client{Transport: tr}
+    resp, err := client.Do(req)
+
+    if err != nil {
+        return "",err
+    }
+    defer resp.Body.Close()
+
+    body, _ := ioutil.ReadAll(resp.Body)
+    return string(body),nil
 }

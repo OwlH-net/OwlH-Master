@@ -14,24 +14,24 @@ type NodeController struct {
 
 
 
-// @Title GetNode
-// @Description Get Node detail
-// @Success 200 {object} models.Node
-// @Failure 403 :nid is empty
-// @router /:nid [get]
-func (n *NodeController) GetNode() { 
-    nid := n.GetString(":nid")
-    if nid != "" {
-        nn, err := models.GetNode(nid)
-        if err != nil {
-	        logs.Info("NODE -> Get Node Detail -> error: %s", err.Error())
-            n.Data["json"] = err.Error()
-        } else {
-            n.Data["json"] = nn
-        }
-    }
-    n.ServeJSON()
-}
+// // @Title GetNode
+// // @Description Get Node detail
+// // @Success 200 {object} models.Node
+// // @Failure 403 :nid is empty
+// // @router /:nid [get]
+// func (n *NodeController) GetNode() { 
+//     nid := n.GetString(":nid")
+//     if nid != "" {
+//         nn, err := models.GetNode(nid)
+//         if err != nil {
+// 	        logs.Info("NODE -> Get Node Detail -> error: %s", err.Error())
+//             n.Data["json"] = err.Error()
+//         } else {
+//             n.Data["json"] = nn
+//         }
+//     }
+//     n.ServeJSON()
+// }
 
 // @Title CreateNode
 // @Description Create Node
@@ -129,6 +129,45 @@ func (n *NodeController) GetSuricata() {
     n.ServeJSON()
 }
 
+// @Title Get Zeek
+// @Description Get Zeek status from Node
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /zeek/:nid [get]
+// @router /:nid/zeek [get]
+func (n *NodeController) GetZeek() { 
+    nid := n.GetString(":nid")
+    data,err := models.Zeek(nid)
+    // var anode map[string]string
+    // json.Unmarshal(data, &anode)
+    // n.Data["json"] = anode
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title Get Wazuh
+// @Description Get wazuh status from Node
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /wazuh/:nid [get]
+// @router /:nid/wazuh [get]
+func (n *NodeController) GetWazuh() { 
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
+    if nid != "" {
+        data,err := models.Wazuh(nid)
+        // var anode map[string]string
+        // json.Unmarshal(data, &anode)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
 
 // @Title Get Suricata BPF
 // @Description Get Suricata BPF from node
@@ -167,50 +206,6 @@ func (n *NodeController) PutSuricataBPF() {
     if nid != "" {
         data,err := models.PutSuricataBPF(anode)
         n.Data["json"] = map[string]string{"bpf": data}
-        if err != nil {
-            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
-        }
-    }
-    n.ServeJSON()
-}
-
-
-
-// @Title Get Zeek
-// @Description Get Zeek status from Node
-// @Success 200 {object} models.Node
-// @Failure 403 :nid is empty
-// @router /zeek/:nid [get]
-// @router /:nid/zeek [get]
-func (n *NodeController) GetZeek() { 
-    nid := n.GetString(":nid")
-    n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
-    if nid != "" {
-        data,err := models.Zeek(nid)
-        var anode map[string]string
-        json.Unmarshal(data, &anode)
-        n.Data["json"] = anode
-        if err != nil {
-            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
-        }
-    }
-    n.ServeJSON()
-}
-
-// @Title Get Wazuh
-// @Description Get wazuh status from Node
-// @Success 200 {object} models.Node
-// @Failure 403 :nid is empty
-// @router /wazuh/:nid [get]
-// @router /:nid/wazuh [get]
-func (n *NodeController) GetWazuh() { 
-    nid := n.GetString(":nid")
-    n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
-    if nid != "" {
-        data,err := models.Wazuh(nid)
-        var anode map[string]string
-        json.Unmarshal(data, &anode)
-        n.Data["json"] = anode
         if err != nil {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
@@ -344,6 +339,72 @@ func (n *NodeController) StopSuricata() {
     uuid := n.GetString(":uuid")
     data, err := models.StopSuricata(uuid)
     logs.Info("Back StopSuricata")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title RunZeek
+// @Description Run zeek server
+// @Success 200 {object} models.Node
+// @router /RunZeek/:uuid [put]
+func (n *NodeController) RunZeek() { 
+    logs.Info("Inside RunZeek")
+    uuid := n.GetString(":uuid")
+    data, err := models.RunZeek(uuid)
+    logs.Info("Back RunZeek")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopZeek
+// @Description Stop zeek server
+// @Success 200 {object} models.Node
+// @router /StopZeek/:uuid [put]
+func (n *NodeController) StopZeek() { 
+    uuid := n.GetString(":uuid")
+    data, err := models.StopZeek(uuid)
+    logs.Info("Back StopZeek")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title RunWazuh
+// @Description Run wazuh server
+// @Success 200 {object} models.Node
+// @router /RunWazuh/:uuid [put]
+func (n *NodeController) RunWazuh() { 
+    logs.Info("Inside RunWazuh")
+    uuid := n.GetString(":uuid")
+    data, err := models.RunWazuh(uuid)
+    logs.Info("Back RunWazuh")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopWazuh
+// @Description Stop wazuh server
+// @Success 200 {object} models.Node
+// @router /StopWazuh/:uuid [put]
+func (n *NodeController) StopWazuh() { 
+    uuid := n.GetString(":uuid")
+    data, err := models.StopWazuh(uuid)
+    logs.Info("Back StopWazuh")
     n.Data["json"] = data
     logs.Info(data)
     if err != nil {

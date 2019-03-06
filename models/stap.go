@@ -1,7 +1,7 @@
 package models 
 
 import (
-    "github.com/astaxie/beego/logs"
+    // "github.com/astaxie/beego/logs"
     "owlhmaster/stap"
 )
 
@@ -17,5 +17,10 @@ func GetAllServers(nodeuuid string)(data map[string]map[string]string, err error
 
 func GetServer(uuid string, serveruuid string)(data map[string]map[string]string, err error) {
     data,err = stap.GetServer(uuid, serveruuid)
+    return data,err
+}
+
+func Stap(n string) (data  map[string]bool, err error) {
+    data,err = stap.Stap(n)
     return data,err
 }
