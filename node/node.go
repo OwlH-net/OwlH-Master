@@ -8,6 +8,7 @@ import (
     "owlhmaster/nodeclient"
     "owlhmaster/ruleset"
     "owlhmaster/utils"
+    "owlhmaster/stap"
     "regexp"
     "io/ioutil"
     "net/http"
@@ -230,6 +231,12 @@ func nodeKeyInsert(nkey string, key string, value string) (err error) {
     _, err = stmt.Exec(&nkey, &key, &value)
     if err != nil {
         logs.Error("Execute -> %s", err.Error())
+        return err
+    }
+    logs.Info("nkey from node.go to stap.go-->"+nkey)
+    _,err = stap.Stap(nkey)
+    if err != nil {
+        logs.Error("Error creating node stap status from nodeKeyInsert at node.go -> %s", err.Error())
         return err
     }
     return nil

@@ -119,7 +119,8 @@ func (n *NodeController) GetSuricata() {
     // data["path"]=false
     // data["bin"]=true
     // data["running"]=false
-
+    
+    logs.Warn("GetSuricata")
     logs.Warn(data)
 
     n.Data["json"] = data
@@ -138,6 +139,9 @@ func (n *NodeController) GetSuricata() {
 func (n *NodeController) GetZeek() { 
     nid := n.GetString(":nid")
     data,err := models.Zeek(nid)
+
+    logs.Warn("GetZeek")
+    logs.Warn(data)
     // var anode map[string]string
     // json.Unmarshal(data, &anode)
     // n.Data["json"] = anode
@@ -157,14 +161,14 @@ func (n *NodeController) GetZeek() {
 func (n *NodeController) GetWazuh() { 
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
-    if nid != "" {
-        data,err := models.Wazuh(nid)
-        // var anode map[string]string
-        // json.Unmarshal(data, &anode)
-        n.Data["json"] = data
-        if err != nil {
-            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
-        }
+    data,err := models.Wazuh(nid)
+    // var anode map[string]string
+    // json.Unmarshal(data, &anode)
+    logs.Warn("GetWazuh")
+    logs.Warn(data)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
     }
     n.ServeJSON()
 }

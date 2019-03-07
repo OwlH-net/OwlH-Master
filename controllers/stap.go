@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	//"strconv"
 	"github.com/astaxie/beego"
-    // "github.com/astaxie/beego/logs"
+    "github.com/astaxie/beego/logs"
 )
 
 type StapController struct {
@@ -64,17 +64,99 @@ func (n *StapController) GetServer() {
 // @Description Get Stap status from Node
 // @Success 200 {object} models.stap
 // @Failure 403 :nid is empty
-// @router /Stap/:nid [get]
-// @router /:nid/Stap [get]
+// @router /stap/:nid [get]
+// @router /:nid/stap [get]
 func (n *StapController) GetStap() { 
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
-    if nid != "" {
-        data,err := models.Stap(nid)
-        n.Data["json"] = data
-        if err != nil {
-            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
-        }
+    data,err := models.Stap(nid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title RunStap
+// @Description Run Stap on node
+// @Success 200 {object} models.stap
+// @router /RunStap/:uuid [put]
+func (n *StapController) RunStap() { 
+    logs.Info("Inside RunStap")
+    uuid := n.GetString(":uuid")
+    data, err := models.RunStap(uuid)
+    logs.Info("Back RunStap")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopStap
+// @Description Stop Stap on node
+// @Success 200 {object} models.stap
+// @router /StopStap/:uuid [put]
+func (n *StapController) StopStap() { 
+    uuid := n.GetString(":uuid")
+    data, err := models.StopStap(uuid)
+    logs.Info("Back StopStap")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title RunStapServer
+// @Description Run Stap server
+// @Success 200 {object} models.stap
+// @router /RunStapServer/:uuid/:server [put]
+func (n *StapController) RunStapServer() { 
+    uuid := n.GetString(":uuid")
+    server := n.GetString(":server")
+    logs.Info("Inside RunStapServer --> "+uuid+" -- "+server)
+    data, err := models.RunStapServer(uuid,server)
+    logs.Info("Back RunStapServer")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopStapServer
+// @Description Stop Stap server
+// @Success 200 {object} models.stap
+// @router /StopStapServer/:uuid/:server [put]
+func (n *StapController) StopStapServer() { 
+    uuid := n.GetString(":uuid")
+    server := n.GetString(":server")
+    data, err := models.StopStapServer(uuid,server)
+    logs.Info("Back StopStapServer")
+    n.Data["json"] = data
+    logs.Info(data)
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title PingServerStap
+// @Description Get Pong from specific stap server
+// @Success 200 {object} models.stap
+// @Failure 403 :nid is empty
+// @router /ping/:nid/:server [get]
+func (n *StapController) PingServerStap() { 
+    nid := n.GetString(":nid")
+    server := n.GetString(":server")
+    data,err := models.PingServerStap(nid,server)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
     }
     n.ServeJSON()
 }

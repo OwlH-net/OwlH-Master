@@ -112,12 +112,12 @@ func Wazuh(ip string, port string) (data map[string]bool, err error ) {
     return data,nil
 }
 
-func Stap(ip string, port string) (data map[string]bool, err error ) {
+func Stap(ip string, port string, uuid string) (data map[string]bool, err error ) {
     logs.Info("NodeClient Stap status -> %s, %s", ip, port)
     tr := &http.Transport{
         TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
     }
-    url := "https://"+ip+":"+port+"/node/stap/ping"
+    url := "https://"+ip+":"+port+"/node/stap/ping/"+uuid
     req, err := http.NewRequest("GET", url, nil)
     client := &http.Client{Transport: tr}
     resp, err := client.Do(req)
