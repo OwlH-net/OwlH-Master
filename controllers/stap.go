@@ -149,7 +149,7 @@ func (n *StapController) StopStapServer() {
 // @Description Get Pong from specific stap server
 // @Success 200 {object} models.stap
 // @Failure 403 :nid is empty
-// @router /ping/:nid/:server [get]
+// @router /PingStapServer/:nid/:server [get]
 func (n *StapController) PingServerStap() { 
     nid := n.GetString(":nid")
     server := n.GetString(":server")

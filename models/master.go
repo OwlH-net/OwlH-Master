@@ -8,6 +8,7 @@ import (
 //    _ "github.com/mattn/go-sqlite3"
     "owlhmaster/database"
     "owlhmaster/aboutme"
+    "owlhmaster/master"
 )
 
 var (
@@ -42,3 +43,7 @@ func UpdateMaster(m map[string]string) (err error) {
     return err
 }
 
+func GetMasterTitle() (data string, err error) {
+    data, err = master.GetMasterTitle()
+    return data, err
+}
