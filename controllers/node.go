@@ -268,12 +268,12 @@ func (n *NodeController) SetRuleset() {
 // @Success 200 {object} models.Node
 // @router /loadfile/:uuid/:fileName [get]
 func (n *NodeController) GetNodeFile() { 
-    logs.Info("Dentro de GetNodeFile")
+    logs.Info("Inside GetNodeFile")
     anode := make(map[string]string)
     anode["uuid"] = n.GetString(":uuid")
     anode["file"] = n.GetString(":fileName")
 
-    logs.Error("JSON DESDE GET "+anode["uuid"]+"  ++++++++"+anode["file"]);
+    //logs.Error("JSON DESDE GET "+anode["uuid"]+"  ++++++++"+anode["file"]);
     returnData,err := models.GetNodeFile(anode)
     logs.Error(returnData);
 
@@ -289,7 +289,7 @@ func (n *NodeController) GetNodeFile() {
 // @Success 200 {object} models.Node
 // @router /savefile [put]
 func (n *NodeController) SetNodeFile() { 
-    logs.Info("Dentro de SetNodeFile")
+    logs.Info("Inside SetNodeFile")
     anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     logs.Warn(anode["uuid"])
@@ -309,7 +309,7 @@ func (n *NodeController) SetNodeFile() {
 func (n *NodeController) GetAllFiles() { 
     uuid := n.GetString(":uuid")
     data, err := models.GetAllFiles(uuid)
-    logs.Info("Vuelto getAllFiles")
+    logs.Info("Come back from getAllFiles")
     n.Data["json"] = data
     logs.Info(data)
     if err != nil {
