@@ -1,6 +1,5 @@
 package aboutme
 
-// copy with Bro and Snort
 
 import (
     "github.com/astaxie/beego/logs"
@@ -23,8 +22,8 @@ var (
 func AboutMe() (plist map[string]*string, err error) {
     paramList = make(map[string]*string)
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return nil, errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("Can't Access Database")
+        return nil, errors.New("Can't Access Database")
     }
     rows, err := ndb.Db.Query("SELECT * FROM aboutme;")
     if err != nil {
@@ -37,7 +36,7 @@ func AboutMe() (plist map[string]*string, err error) {
         var value string
         err = rows.Scan(&id, &name, &value)
         if err != nil {
-            logs.Error("No hemos podido recoger los campos del registro leido (name o value)")
+            logs.Error("There was an error with rows.Scan call")
             continue
         }
         logs.Info("name: %s, Value: %s",name, value)
@@ -48,12 +47,9 @@ func AboutMe() (plist map[string]*string, err error) {
 
 func UpdateMe(param string, value string) (err error) {
 
-    // consulto si el param existe 
-
-    //insert or replace into aboutme (am_param, am_value) values ("floor","third");
     if ndb.Db == nil {
-        logs.Error("no hemos podido acceder a la base de datos")
-        return errors.New("no hemos podido acceder a la bbdd")
+        logs.Error("Can't access database")
+        return errors.New("Can't access database")
     }
     stmt, err := ndb.Db.Prepare("insert or replace into aboutme (am_param, am_value) values(?,?)")
     if err != nil {

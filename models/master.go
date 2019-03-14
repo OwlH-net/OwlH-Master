@@ -1,13 +1,14 @@
 package models 
 
 import (
-    "github.com/astaxie/beego/logs"
+    // "github.com/astaxie/beego/logs"
 //    "database/sql"
 //    "fmt"
 //   "time"
 //    _ "github.com/mattn/go-sqlite3"
     "owlhmaster/database"
     "owlhmaster/aboutme"
+    "owlhmaster/master"
 )
 
 var (
@@ -36,10 +37,13 @@ func GetMaster() (master map[string]*string, err error) {
 }
 
 func UpdateMaster(m map[string]string) (err error) {
-    logs.Info("Entrando en UpdateMaster")
     for key, value := range m {
         err = aboutme.UpdateMe(key, value)
     }
     return err
 }
 
+func GetMasterTitle() (data string, err error) {
+    data, err = master.GetMasterTitle()
+    return data, err
+}

@@ -32,11 +32,11 @@ func (m *MasterController) Get() {
     logs.Info ("Master controller -> GET")
     mm, err := models.GetMaster()
     if err != nil {
-        logs.Info ("Master Controller -> Get -> Error %s", err)
+        logs.Info ("Master Controller -> Get -> Error %s", err.Error())
     }
-    logs.Info ("Master id es %s", mm)
+    logs.Info ("Master id -> %s", mm)
     m.Data["json"] = mm
-    logs.Info ("Master Detail es %s", m)
+    logs.Info ("Master Detail ->  %s", m)
     m.ServeJSON()
 }
 
@@ -50,6 +50,20 @@ func (m *MasterController) Put() {
     json.Unmarshal(m.Ctx.Input.RequestBody, &mm)
     err := models.UpdateMaster(mm)
     m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+    }
+    m.ServeJSON()
+}
+
+// @Title GetMasterTitle
+// @Description Get title for master
+// @Param       body            body    models.Master     true            "body for master content"
+// @Success 200 {object} models.Master
+// @router /getMasterTitle [get]
+func (m *MasterController) GetMasterTitle() {
+    data, err := models.GetMasterTitle()
+    m.Data["json"] = data
     if err != nil {
         m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
     }

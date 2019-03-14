@@ -2,7 +2,7 @@ package main
 
 import (
 
-    "github.com/astaxie/beego/logs"
+    // "github.com/astaxie/beego/logs"
     _ "owlhmaster/routers"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
@@ -18,12 +18,6 @@ func main() {
 
     ndb.Conn()
     ndb.RConn()
-    err := ndb.Get_master()
-
-    if err != nil {
-        logs.Info("Main -> no puedo leer el master")
-    }
-
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
