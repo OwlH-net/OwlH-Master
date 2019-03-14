@@ -369,7 +369,7 @@ func SetRulesetAction(ruleAction map[string]string)(err error){
     action := ruleAction["action"]
 
     path, err := GetRulesetPath(uuid)
-    logs.Info("Path del uuid para el Action: "+path)
+    logs.Info("UUID Path for RulesetAction: "+path)
 
     if (action == "Enable"){
         cmd := "sed -i '/sid:"+sid+"/s/^#//' "+path+""
