@@ -64,7 +64,7 @@ func (n *RulesetController) GetAllRulesets() {
     rulesets, err := models.GetAllRulesets()
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }else{
+	}else{
 		n.Data["json"] = rulesets
 	}
     n.ServeJSON()
