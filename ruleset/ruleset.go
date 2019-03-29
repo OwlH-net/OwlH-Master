@@ -46,9 +46,7 @@ func ReadSID(sid map[string]string)( sidLine map[string]string ,err error){
 }
 
 func Read(path string)(rules map[string]map[string]string, err error) {
-
     data, err := os.Open(path)
-    
     if err != nil {
         fmt.Println("File reading error", err)
         return 
