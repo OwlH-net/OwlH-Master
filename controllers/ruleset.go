@@ -37,6 +37,7 @@ func (n *RulesetController) GetRuleSID(){
     mstatus, _ := models.GetRuleSID(ruleSidPath)
 	n.Data["json"] = mstatus
 	n.ServeJSON()
+	
 }
 
 // @Title AddRuleset
