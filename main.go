@@ -7,6 +7,7 @@ import (
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
+    "owlhmaster/dispatcher"
     //"owlhmaster/models"
     //"owlhmaster/utils"
     //"fmt"
@@ -18,6 +19,8 @@ func main() {
 
     ndb.Conn()
     ndb.RConn()
+    dispatcher.Init()
+    
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
