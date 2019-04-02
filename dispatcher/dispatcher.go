@@ -31,6 +31,7 @@ var latest int
 var timeToken time.Time
 
 func Init() {
+	logs.Info ("Starting Dispatcher ...")
     latest = 0
     for runDispatcher() {
         nodesAndPcaps, err  := loadNodesAndPcaps()
