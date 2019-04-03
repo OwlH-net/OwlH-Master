@@ -18,8 +18,12 @@ type RulesetController struct {
 // @Failure 403 ruleset is empty
 // @router /default [get]
 func (n *RulesetController) GetRules(){ 
-	mstatus, _ := models.GetRules()
+	mstatus, err:= models.GetRules()
 	n.Data["json"] = mstatus
+	if err != nil {
+        logs.Info("GetRules -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
 	n.ServeJSON()
 }
 
@@ -34,8 +38,12 @@ func (n *RulesetController) GetRuleSID(){
     ruleSidPath := make(map[string]string)
     ruleSidPath["sid"] = sid
     ruleSidPath["uuid"] = uuid
-    mstatus, _ := models.GetRuleSID(ruleSidPath)
+    mstatus, err := models.GetRuleSID(ruleSidPath)
 	n.Data["json"] = mstatus
+	if err != nil {
+        logs.Info("GetRuleSID -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
 	n.ServeJSON()
 	
 }

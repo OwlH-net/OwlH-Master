@@ -214,7 +214,7 @@ func StopStapServer(uuid string, server string)(data string, err error){
     return string(body),nil
 }
 
-func PingServerStap(uuid string, server string) (data map[string]bool, err error) {
+func PingServerStap(uuid string, server string) (data map[string]string, err error) {
     ip,port,err := utils.ObtainPortIp(uuid)
     if err != nil {
         logs.Info("PingServerStap - get IP and PORT Error -> %s", err.Error())
@@ -238,7 +238,8 @@ func PingServerStap(uuid string, server string) (data map[string]bool, err error
     err = json.Unmarshal(body, &data)
     if err != nil {
         return nil,err
-    }
+	}
+	logs.Debug(string(data))
     return data,nil
 }
 
