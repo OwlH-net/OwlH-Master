@@ -207,3 +207,19 @@ func (n *RulesetController) SetRuleNote() {
     }
     n.ServeJSON()
 }
+
+// @Title DeleteRuleset
+// @Description Delete a ruleset
+// @Success 200 {string} ruleset deleted
+// @Failure 403 Connection failure
+// @router /deleteRuleset [delete]
+func (n *RulesetController) DeleteNode() { 
+	var rulesetDelete map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &rulesetDelete)
+    err := models.DeleteRuleset(rulesetDelete)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

@@ -450,3 +450,45 @@ func GetRuleNote(ruleGetNote map[string]string)(note string, err error){
     }
     return noteText, nil
 }
+
+func DeleteRuleset(rulesetMap map[string]string)(err error){
+    //name := rulesetMap["name"]
+    path := rulesetMap["path"]
+    uuid := rulesetMap["uuid"]
+
+	//delete ruleset
+	deleteRulesetQuery, err := ndb.Rdb.Prepare("delete from ruleset where ruleset_uniqueid = ?;")
+	_, err = deleteRulesetQuery.Exec(&uuid)  
+	defer deleteRulesetQuery.Close()
+    if err != nil {
+		logs.Error("DB DeleteRuleset -> ERROR on table Ruleset...")
+        return errors.New("DB DeleteRuleset -> ERROR on table Ruleset...")
+	}
+
+	//delete a node ruleset
+	deleteRulesetNodeQuery, err := ndb.Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
+	_, err = deleteRulesetNodeQuery.Exec(&uuid)  
+	defer deleteRulesetNodeQuery.Close()
+    if err != nil {
+		logs.Error("DB DeleteRuleset -> ERROR on table Ruleset_node...")
+        return errors.New("DB DeleteRuleset -> ERROR on table Ruleset_node...")
+	}
+	
+	//delete notes from every ruleset rule
+	deleteRuleNoteQuery, err := ndb.Rdb.Prepare("delete from rule_note where ruleset_uniqueid = ?;")
+	_, err = deleteRuleNoteQuery.Exec(&uuid)  
+	defer deleteRuleNoteQuery.Close()
+    if err != nil {
+		logs.Error("DB DeleteRuleset -> ERROR on table Rule_note...")
+        return errors.New("DB DeleteRuleset -> ERROR on table Rule_note...")
+	}
+
+	//delete ruleset from path
+	err = exec.Command("rm", "-rf", path).Run()
+	if err != nil {
+		logs.Error("DB DeleteRuleset -> ERROR deleting ruleset from their path...")
+		return errors.New("DB DeleteRuleset -> ERROR deleting ruleset from their path...") 
+	}
+
+    return nil
+}

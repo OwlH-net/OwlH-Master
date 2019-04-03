@@ -65,3 +65,8 @@ func GetRuleNote(ruleGetNote map[string]string)(note string, err error){
     note,err = ruleset.GetRuleNote(ruleGetNote)
     return note,err
 }
+
+func DeleteRuleset(rulesetMap map[string]string)(err error){
+    err = ruleset.DeleteRuleset(rulesetMap)
+    return err
+}
