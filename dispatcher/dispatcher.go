@@ -45,7 +45,7 @@ func Init() {
 
 func loadNodesAndPcaps()(nodes listOfNodesAndFolders, err error) {
 	t := listOfNodesAndFolders{}
-    nodesFile, err := os.Open("/root/workspace/src/owlhmaster/conf/nodes.json")
+    nodesFile, err := os.Open("/etc/owlh/conf/nodes.json")
     if err != nil {
 		logs.Error("Error opening nodes.json: "+err.Error())
 		return t, err
@@ -57,7 +57,7 @@ func loadNodesAndPcaps()(nodes listOfNodesAndFolders, err error) {
 }
 
 func noTokenFile() bool {
-	_, err := os.Stat("/root/workspace/src/owlhmaster/conf/stopdispatcher") 
+	_, err := os.Stat("/etc/owlh/conf/stopdispatcher") 
 	if err != nil {
         return true
 	}	
