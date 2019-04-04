@@ -239,7 +239,7 @@ func PingServerStap(uuid string, server string) (data map[string]string, err err
     if err != nil {
         return nil,err
 	}
-	logs.Debug(string(data))
+	logs.Debug("DEBUG ERROR MAP "+string(data["stapStatus"]))
     return data,nil
 }
 

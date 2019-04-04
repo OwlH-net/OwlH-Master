@@ -6,8 +6,10 @@ import (
     "io"
     "io/ioutil"
     "encoding/json"
-    "errors"
-    "github.com/astaxie/beego/logs"
+	"errors"
+	"strconv"
+	"github.com/astaxie/beego/logs"
+	"owlhmaster/utils"
 )
 
 type listOfNodesAndFolders struct {
@@ -31,7 +33,6 @@ var latest int
 var timeToken time.Time
 
 func Init() {
-	logs.Info ("Starting Dispatcher ...")
     latest = 0
     for runDispatcher() {
         nodesAndPcaps, err  := loadNodesAndPcaps()
@@ -43,21 +44,23 @@ func Init() {
 }
 
 func loadNodesAndPcaps()(nodes listOfNodesAndFolders, err error) {
-    nodesFile, err := os.Open("owlhmaster/conf/nodes.json")
+	t := listOfNodesAndFolders{}
+    nodesFile, err := os.Open("/root/workspace/src/owlhmaster/conf/nodes.json")
     if err != nil {
-        logs.Error(err)
+		logs.Error("Error opening nodes.json: "+err.Error())
+		return t, err
     }
     defer nodesFile.Close()
-    t := listOfNodesAndFolders{}
     byteValue, _ := ioutil.ReadAll(nodesFile)
     json.Unmarshal([]byte(byteValue), &t)
     return t, nil
 }
 
 func noTokenFile() bool {
-    if _, err := os.Stat("owlhmaster/conf/stopdispatcher"); os.IsNotExist(err) {
+	_, err := os.Stat("/root/workspace/src/owlhmaster/conf/stopdispatcher") 
+	if err != nil {
         return true
-    }
+	}	
     return false
 }
 
@@ -68,15 +71,27 @@ func runDispatcher() bool {
     return false
 }
 
+func GetDispatcherParam(param string)(result string){
+	//create map and obtain file
+	loadData := map[string]map[string]string{}
+	loadData["dispatcher"] = map[string]string{}
+	loadData["dispatcher"][param] = ""
+	loadData,err := utils.GetConf(loadData)
+	if err != nil {
+		logs.Error("Error getting path and BPF from main.conf")
+		return "60"
+	}
+	return loadData["dispatcher"][param]
+}
 
 func copyFileToNode(dstfolder string, srcfolder string, file string, BUFFERSIZE int64) (err error) {
     sourceFileStat, err := os.Stat(srcfolder+file)
     if err != nil {
         logs.Error("Error -> " + err.Error())
         return err
-    }
-    
-    timeToken := time.Now().Add(time.Second*-60)	
+	}
+	var timeout,_ = strconv.Atoi(GetDispatcherParam("olderTime"))
+    timeToken := time.Now().Add(time.Second*time.Duration(-timeout))	
     if !sourceFileStat.ModTime().Before(timeToken) {
         return errors.New("Newer file")    
     }

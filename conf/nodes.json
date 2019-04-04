@@ -3,24 +3,24 @@
     {
       "name": "node01",
       "ntype": "pool",
-      "pcappath": "/Users/jizquierdo/go/src/dispatcher/node01/"
+      "pcappath": "/tmp/dispatcher/node01/"
     },
     {
       "name": "node02",
       "ntype": "pool",
-      "pcappath": "/Users/jizquierdo/go/src/dispatcher/node02/"
+      "pcappath": "/tmp/dispatcher/node02/"
     },
     {
       "name": "node03",
       "ntype": "alone",
-      "pcappath": "/Users/jizquierdo/go/src/dispatcher/node03/"
+      "pcappath": "/tmp/dispatcher/node03/"
     }
   ],
   "folders": [
     {
       "fname": "main",
       "ftype": "local",
-      "fpath": "/Users/jizquierdo/go/src/dispatcher/pcaps/"
+      "fpath": "/tmp/dispatcher/pcaps/"
     }
   ]
 }

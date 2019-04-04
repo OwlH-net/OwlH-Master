@@ -19,7 +19,7 @@ func main() {
 
     ndb.Conn()
     ndb.RConn()
-    dispatcher.Init()
+    go dispatcher.Init()
     
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
