@@ -20,18 +20,6 @@ import (
 )
 
 func Suricata(n string) (data map[string]bool, err error) {
-    logs.Info("Node suricata -> IN")
-
-    // ip, err := getNodeIPbyUID(n)
-    // if err != nil {
-    //     logs.Info("Suricata - IP Error -> %s", err.Error())
-    //     return nil,err
-    // }
-    // port, err := getNodePortbyUID(n)
-    // if err != nil {
-    //     logs.Info("Suricata - PORT Error -> %s", err.Error())
-    //     return nil,err
-    // }    
     ip,port,err := utils.ObtainPortIp(n)
     if err != nil {
         logs.Info("Suricata - get IP and PORT Error -> %s", err.Error())
@@ -62,7 +50,6 @@ func GetSuricataBPF(n string)(bpf string, err error) {
     defer rows.Close()
     if rows.Next() {
         err = rows.Scan(&res)
-        logs.Info("Get BPF Suricata there are rows")
         if  err != nil {
             logs.Info("Get BPF Suricata scan error %s",err.Error())
             return "", err
@@ -82,16 +69,12 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     jsonnid := n["nid"]
     jsonbpf := n["bpf"]
     bpftext := "bpf"
-
-    // ipnid,portnid,err := GetSuricataIpPort(jsonnid)
     ipnid,portnid,err := utils.ObtainPortIp(jsonnid)
     
-    //crear map con nid y bpf
+    //create json with nid y bpf 
     values := make(map[string]string)
     values["nid"] = jsonnid
     values["bpf"] = jsonbpf
-
-    //pasar json al cliente (MIRAR COMO SE HACE)
     valuesJSON,err := json.Marshal(values)
 
     url := "https://"+ipnid+":"+portnid+"/node/suricata/bpf"
@@ -100,15 +83,13 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
     client := &http.Client{Transport: tr}
     resp, err := client.Do(req)
-
-    logs.Info("Request newBuffer(JSON) -------> ",req.Body)
-    logs.Info("Resp cliente Do (request) -------->",resp.Body)
-
     if err != nil {
         return "",err
     }
     defer resp.Body.Close()
-    
+
+    logs.Info("Request newBuffer(JSON) -------> ",req.Body)
+    logs.Info("Resp cliente Do (request) -------->",resp.Body)
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
@@ -150,49 +131,13 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     return "Error", errors.New("Put SuricataBPF -- There is no defined BPF")
 }
 
-// func GetSuricataIpPort(jsonnid string)(ip string, port string, err error){ //(ipReturn string, portReturn string,  err error ) {
-//     if ndb.Db == nil {
-//         logs.Error("GetSuricataIpPort -- Can't acces to database")
-//         return "","", errors.New("GetSuricataIpPort -- Can't acces to database")
-//     }
-
-//     var ipObtained string
-//     var portObtained string
-
-//     sqlIP := "select node_value from nodes where node_uniqueid = \""+jsonnid+"\" and node_param = \"ip\";"
-//     rowIP, err := ndb.Db.Query(sqlIP)
-//     sqlPORT := "select node_value from nodes where node_uniqueid = \""+jsonnid+"\" and node_param = \"port\";"
-//     rowPORT, err := ndb.Db.Query(sqlPORT)
-    
-//     defer rowIP.Close()
-//     defer rowPORT.Close()
-    
-//     if rowIP.Next() {
-//         err = rowIP.Scan(&ipObtained)
-//         if  err != nil {
-//             logs.Info("--- NO IP FOR THIS NID ---"+err.Error())
-//             return "","",err
-//         }
-//     }
-//     if rowPORT.Next() {
-//         err = rowPORT.Scan(&portObtained)
-//         if  err != nil {
-//             logs.Info("--- NO PORT FOR THIS NID ---"+err.Error())
-//             return "","",err
-//         }
-//     }
-//     return ipObtained,portObtained,err
-// }
-
 func RunSuricata(uuid string)(data string, err error){
     if ndb.Db == nil {
         logs.Error("RunSuricata -- Can't acces to database")
         return "", errors.New("RunSuricata -- Can't acces to database")
     }
     
-    // ipnid,portnid,err := GetSuricataIpPort(uuid)
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
-    
+    ipnid,portnid,err := utils.ObtainPortIp(uuid)    
     url := "https://"+ipnid+":"+portnid+"/node/suricata/RunSuricata"
     req, err := http.NewRequest("PUT", url, nil)
     tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
@@ -214,10 +159,8 @@ func StopSuricata(uuid string)(data string, err error){
         logs.Error("StopSuricata -- Can't acces to database")
         return "", errors.New("StopSuricata -- Can't acces to database")
     }
-
-    // ipnid,portnid,err := GetSuricataIpPort(uuid)
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
-
+	
+	ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/suricata/StopSuricata"
     req, err := http.NewRequest("PUT", url, nil)
     tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}

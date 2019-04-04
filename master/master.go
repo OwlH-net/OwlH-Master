@@ -8,19 +8,20 @@ import (
 //    _ "github.com/mattn/go-sqlite3"
     // "owlhmaster/database"
 	// "owlhmaster/aboutme"
-	"io/ioutil"
-	"encoding/json"
+	"owlhmaster/utils"
+	// "io/ioutil"
+	// "encoding/json"
 )
 
+//Obtain title for webpage from main.conf
 func GetMasterTitle() (data string, err error) {
-	confFilePath := "/etc/owlh/conf/main.conf"
-	jsonPathBpf, err := ioutil.ReadFile(confFilePath)
-    if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)
-        return "",err
-    }
-    var anode map[string]map[string]string
-    json.Unmarshal(jsonPathBpf, &anode)
-
-    return anode["master"]["name"], err
+	loadData := map[string]map[string]string{}
+	loadData["master"] = map[string]string{}
+	loadData["master"]["name"] = ""
+	loadData,err = utils.GetConf(loadData)
+	if err != nil {
+		logs.Error("Error getting Master title from main.conf")
+		return "-",err
+	}
+	return loadData["master"]["name"], nil
 }

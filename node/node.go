@@ -11,8 +11,8 @@ import (
     "owlhmaster/stap"
     "regexp"
     "io/ioutil"
-    "net/http"
-    "crypto/tls"
+    // "net/http"
+    // "crypto/tls"
     "bytes"
     "encoding/json"
 )
@@ -317,7 +317,6 @@ func getNodeIpbyName(n string)(ip string, err error) {
 }
 
 func GetAllNodes() (nodes *map[string]map[string]string, err error) {
-    logs.Info("Node - getAllNodes - IN")
     var allnodes = map[string]map[string]string{}
     var uniqid string
     var param string
@@ -345,7 +344,6 @@ func GetAllNodes() (nodes *map[string]map[string]string, err error) {
 }
 
 func NodePing(n string) (err error) {
-    logs.Info("Node PING -> IN")
     ip, err := getNodeIPbyUID(n)
     if err != nil {
         logs.Info("Ping - IP Error -> %s", err.Error())
@@ -363,52 +361,11 @@ func NodePing(n string) (err error) {
     return nil
 }
 
-// func Zeek(n string) (data []byte, err error) {
-//     logs.Info("Zeek - UID -> %s", n)
-
-//     ip, err := getNodeIPbyUID(n)
-//     if err != nil {
-//         logs.Info("Zeek - IP Error -> %s", err.Error())
-//         return nil,err
-//     }
-//     port, err := getNodePortbyUID(n)
-//     if err != nil {
-//         logs.Info("Zeek - PORT Error -> %s", err.Error())
-//         return nil,err
-//     }    
-//     data, err = nodeclient.Zeek(ip,port)
-//     if err != nil {
-//         return nil,err
-//     }
-//     return data,nil
-// }
-
-// func Wazuh (n string) (data []byte, err error) {
-//     logs.Info("Node wazuh -> IN")
-
-//     ip, err := getNodeIPbyUID(n)
-//     if err != nil {
-//         logs.Info("Wazuh - IP Error -> %s", err.Error())
-//         return nil,err
-//     }
-//     port, err := getNodePortbyUID(n)
-//     if err != nil {
-//         logs.Info("Wazuh - PORT Error -> %s", err.Error())
-//         return nil,err
-//     }    
-//     data, err = nodeclient.Wazuh(ip,port)
-//     if err != nil {
-//         return nil,err
-//     }
-//     return data,nil
-// }
-
 //Set ruleset file from Master to Node
 func SetRuleset(uuid string) (err error) {
     logs.Info("SetRuleset node -->"+uuid)
     var portData string
     var ipData string
-    
     
     //Take IP from specific uuid
 	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+uuid+"';"
@@ -448,7 +405,6 @@ func SetRuleset(uuid string) (err error) {
     }
 
     data, err := ioutil.ReadFile(path)
-    //logs.Info("Leido el data"+ string(data))
     if err != nil {
         logs.Notice("SetRuleset ioutil.ReadFile ERROR: ")
         return err
@@ -460,13 +416,16 @@ func SetRuleset(uuid string) (err error) {
 
     //pasar json al nodo con el ruleset
     url := "https://"+ipData+":"+portData+"/node/suricata/retrieve"
+	valuesJSON,err := json.Marshal(values)
 
-    valuesJSON,err := json.Marshal(values)
-    req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    // req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+	// resp, err := client.Do(req)
+	if err != nil {
+		logs.Error("node/SetRuleset ERROR connection through http new Request: "+err.Error())
+	}
     defer resp.Body.Close()
 
     return nil
@@ -474,7 +433,6 @@ func SetRuleset(uuid string) (err error) {
 
 //Get specific file from node files
 func GetNodeFile(loadFile map[string]string) (data map[string]string, err error) {
-    logs.Info("GetNodeFile node")
     rData := make(map[string]string)
     var voidArray map[string]string
     var portData string
@@ -482,7 +440,6 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 
     //Take IP from specific uuid
 	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+loadFile["uuid"]+"';"
-	// logs.Info("Datos SQL IP --> "+sqlIP)
 	ip, err := ndb.Db.Query(sqlIP)
 	if err != nil {
 		logs.Error("ndb.Db.Query Error  UUID: %s", err.Error())
@@ -506,26 +463,23 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 			return voidArray, err
 		}
 	}
-
-    tr := &http.Transport{
-        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
-    url := "https://"+ipData+":"+portData+"/node/file/"+loadFile["file"]
-    req, err := http.NewRequest("GET", url, nil)
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-    if err != nil {
-        return rData, err
-    }
-
+	url := "https://"+ipData+":"+portData+"/node/file/"+loadFile["file"]
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+    // req, err := http.NewRequest("GET", url, nil)
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+	// resp, err := client.Do(req)
+    // if err != nil {
+    //     return rData, err
+	// }
+	if err != nil {
+		logs.Error("node/GetNodeFile ERROR connection through http new Request: "+err.Error())
+	}
     defer resp.Body.Close()
 
     responseData, err := ioutil.ReadAll(resp.Body)
     logs.Info("GetNodeFile response Body:", responseData)
-
     json.Unmarshal(responseData, &rData)
-    logs.Info(rData)
-
     rData["nodeUUID"] = loadFile["uuid"]
 
     return rData,err
@@ -564,20 +518,17 @@ func SetNodeFile(loadFile map[string]string) (err error) {
 		}
 	}
 
-    //Node URL
     url := "https://"+ipData+":"+portData+"/node/file"
-    //save JSON with data to node
-    valuesJSON,err := json.Marshal(loadFile)
-    req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
+	valuesJSON,err := json.Marshal(loadFile)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    // req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+    // resp, err := client.Do(req)
     defer resp.Body.Close()
-
     if err != nil {
-        logs.Error(err)
-    }
+		logs.Error("node/SetNodeFile ERROR connection through http new Request: "+err.Error())
+	}
 
     return err
 }
@@ -614,18 +565,17 @@ func GetAllFiles(uuid string) (data map[string]string, err error) {
 		}
 	}
 	logs.Info("GetAllFiles PORT --> "+portData)
-    //Node URL
+    
     url := "https://"+ipData+":"+portData+"/node/file"
-
-    //request
-    req, err := http.NewRequest("GET", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-    if err != nil {
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+    // req, err := http.NewRequest("GET", url, nil)
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+    // resp, err := client.Do(req)
+	if err != nil {
+		logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
         return rData, err
     }
-
     defer resp.Body.Close()
 
     logs.Info("GetNodeFile response Status:", resp.Status)
