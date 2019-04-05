@@ -7,7 +7,7 @@ import (
 //    "fmt"
 //    "time"
 //    _ "github.com/mattn/go-sqlite3"
-    "crypto/tls"
+    // "crypto/tls"
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
@@ -15,7 +15,7 @@ import (
     "encoding/json"
 //    "regexp"
     "io/ioutil"
-    "net/http"
+    // "net/http"
     "bytes"
 )
 
@@ -42,23 +42,21 @@ func GetSuricataBPF(n string)(bpf string, err error) {
     sql := "select node_value from nodes where node_uniqueid = \""+n+"\" and node_param = \"bpf\";"
     logs.Info("Get BPF Suricata query sql %s",sql)
     rows, err := ndb.Db.Query(sql)
-    
     if err != nil {
-        logs.Info("Get BPF Suricata query error %s",err.Error())
+        logs.Error("Get BPF Suricata query error %s",err.Error())
         return "", err
     }
     defer rows.Close()
     if rows.Next() {
         err = rows.Scan(&res)
         if  err != nil {
-            logs.Info("Get BPF Suricata scan error %s",err.Error())
+            logs.Error("Get BPF Suricata scan error %s",err.Error())
             return "", err
         }
         logs.Info("Get BPF Suricata res: "+res)
         return res, err
     }
     return "", errors.New("Get SuricataBPF -- There is no defined BPF")
-    //select node_value from nodes where node_uniqueid like '%que-rico%' and node_param = "ip";
 }
 
 func PutSuricataBPF(n map[string]string)(bpf string, err error) {
@@ -78,18 +76,16 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     valuesJSON,err := json.Marshal(values)
 
     url := "https://"+ipnid+":"+portnid+"/node/suricata/bpf"
-    logs.Info("\n"+url+"\n")
-    req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-    if err != nil {
-        return "",err
+    // req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+    // resp, err := client.Do(req)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("node/PutSuricataBPF ERROR connection through http new Request: "+err.Error())
+        return "", err
     }
     defer resp.Body.Close()
-
-    logs.Info("Request newBuffer(JSON) -------> ",req.Body)
-    logs.Info("Resp cliente Do (request) -------->",resp.Body)
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
@@ -98,9 +94,8 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     sql := "select node_value from nodes where node_uniqueid = \""+jsonnid+"\" and node_param = \"bpf\";"
     logs.Info("Put BPF Suricata query sql %s",sql)
     rows, err := ndb.Db.Query(sql)
-    
     if err != nil {
-        logs.Info("Put BPF Suricata query error %s",err.Error())
+        logs.Error("Put BPF Suricata query error %s",err.Error())
         return "", err
     }
 
@@ -109,14 +104,12 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
         rows.Close()
         logs.Info("Put BPF Suricata res UPDATE")
         updtbpf, err := ndb.Db.Prepare("update nodes set node_value = ? where node_uniqueid = ? and node_param = ?;")
-
         if (err != nil){
-            logs.Info("Put BPF Suricata prepare UPDATE -- "+err.Error())
+            logs.Error("Put BPF Suricata prepare UPDATE -- "+err.Error())
             return "", err
         }
         _, err = updtbpf.Exec(&jsonbpf, &jsonnid, bpftext)  
         defer updtbpf.Close()      
-
         return "SuccessUpdate", err
     }else{
         logs.Info("Put BPF Suricata res INSERT")
@@ -124,6 +117,7 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
         _, err = indtbpf.Exec(&jsonnid, bpftext, &jsonbpf)  
         defer indtbpf.Close()
         if (err != nil){
+			logs.Error("Put BPF Suricata prepare INSERT -- "+err.Error())
             return "", err
         }
         return "SuccessInsert", err
@@ -136,21 +130,20 @@ func RunSuricata(uuid string)(data string, err error){
         logs.Error("RunSuricata -- Can't acces to database")
         return "", errors.New("RunSuricata -- Can't acces to database")
     }
-    
     ipnid,portnid,err := utils.ObtainPortIp(uuid)    
     url := "https://"+ipnid+":"+portnid+"/node/suricata/RunSuricata"
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    if err != nil {
-        return "",err
+    // req, err := http.NewRequest("PUT", url, nil)
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+    // resp, err := client.Do(req)
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("node/RunSuricata ERROR connection through http new Request: "+err.Error())
+        return "", err
     }
     defer resp.Body.Close()
 
     body, _ := ioutil.ReadAll(resp.Body)
-    logs.Info("RunSuricata function "+string(body))
     return string(body),nil
 }
 
@@ -159,19 +152,18 @@ func StopSuricata(uuid string)(data string, err error){
         logs.Error("StopSuricata -- Can't acces to database")
         return "", errors.New("StopSuricata -- Can't acces to database")
     }
-	
 	ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/suricata/StopSuricata"
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    if err != nil {
-        return "",err
+    // req, err := http.NewRequest("PUT", url, nil)
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+    // resp, err := client.Do(req)
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("node/StopSuricata ERROR connection through http new Request: "+err.Error())
+        return "", err
     }
     defer resp.Body.Close()
-
     body, _ := ioutil.ReadAll(resp.Body)
     return string(body),nil
 }

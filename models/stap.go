@@ -49,3 +49,8 @@ func PingServerStap(uuid string, server string) (data map[string]string, err err
     data,err = stap.PingServerStap(uuid, server)
     return data,err
 }
+
+func DeleteStapServer(uuid string, server string) (data string, err error) {
+    data,err = stap.DeleteStapServer(uuid, server)
+    return data,err
+}

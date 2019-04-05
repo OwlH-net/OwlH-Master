@@ -148,3 +148,18 @@ func (n *StapController) PingServerStap() {
     }
     n.ServeJSON()
 }
+
+// @Title DeleteStapServer
+// @Description Stop Stap server
+// @Success 200 {object} models.stap
+// @router /DeleteStapServer/:uuid/:server [put]
+func (n *StapController) DeleteStapServer() { 
+    uuid := n.GetString(":uuid")
+    server := n.GetString(":server")
+    data, err := models.DeleteStapServer(uuid,server)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

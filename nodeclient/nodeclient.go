@@ -62,6 +62,7 @@ func Suricata(ip string, port string) (data map[string]bool, err error ) {
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
     if err != nil {
+		logs.Error("nodeClient/Suricata -- ERROR JSON unmarshal: "+err.Error())
         return nil,err
     }
     return data,nil
@@ -84,11 +85,12 @@ func Zeek(ip string, port string) (data map[string]bool, err error ) {
     defer resp.Body.Close()
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
-    body, _ := ioutil.ReadAll(resp.Body)
-
+	body, _ := ioutil.ReadAll(resp.Body)
+	
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
     if err != nil {
+		logs.Error("nodeClient/Zeek -- ERROR JSON unmarshal: "+err.Error())
         return nil,err
     }
     return data,nil

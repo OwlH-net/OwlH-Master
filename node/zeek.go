@@ -7,7 +7,7 @@ import (
 //    "fmt"
 //    "time"
 //    _ "github.com/mattn/go-sqlite3"
-    "crypto/tls"
+    // "crypto/tls"
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
@@ -15,7 +15,7 @@ import (
     // "encoding/json"
 //    "regexp"
     "io/ioutil"
-    "net/http"
+    // "net/http"
     // "bytes"
 )
 
@@ -41,16 +41,16 @@ func RunZeek(uuid string)(data string, err error){
 	
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/zeek/RunZeek"
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    if err != nil {
-        return "",err
+    // req, err := http.NewRequest("PUT", url, nil)
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+    // resp, err := client.Do(req)
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("node/RunZeek ERROR connection through http new Request: "+err.Error())
+        return "", err
     }
     defer resp.Body.Close()
-
     body, _ := ioutil.ReadAll(resp.Body)
     logs.Info("RunZeek function "+string(body))
     return string(body),nil
@@ -64,11 +64,15 @@ func StopZeek(uuid string)(data string, err error){
 	
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/zeek/StopZeek"
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
+    // req, err := http.NewRequest("PUT", url, nil)
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+    // resp, err := client.Do(req)
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("node/RunZeek ERROR connection through http new Request: "+err.Error())
+        return "", err
+    }
     if err != nil {
         return "",err
     }

@@ -7,7 +7,7 @@ import (
 //    "fmt"
 //    "time"
    _ "github.com/mattn/go-sqlite3"
-    "crypto/tls"
+    // "crypto/tls"
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
@@ -15,7 +15,7 @@ import (
     // "encoding/json"
 //    "regexp"
     "io/ioutil"
-    "net/http"
+    // "net/http"
     // "bytes"
 )
 
@@ -41,13 +41,14 @@ func RunWazuh(uuid string)(data string, err error){
     
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/wazuh/RunWazuh"
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    if err != nil {
-        return "",err
+    // req, err := http.NewRequest("PUT", url, nil)
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+    // resp, err := client.Do(req)
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("node/RunWazuh ERROR connection through http new Request: "+err.Error())
+        return "", err
     }
     defer resp.Body.Close()
     body, _ := ioutil.ReadAll(resp.Body)
@@ -62,13 +63,14 @@ func StopWazuh(uuid string)(data string, err error){
 	
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/wazuh/StopWazuh"
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    if err != nil {
-        return "",err
+    // req, err := http.NewRequest("PUT", url, nil)
+    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
+    // client := &http.Client{Transport: tr}
+    // resp, err := client.Do(req)
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("node/StopWazuh ERROR connection through http new Request: "+err.Error())
+        return "", err
     }
     defer resp.Body.Close()
 

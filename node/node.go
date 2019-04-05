@@ -567,11 +567,11 @@ func GetAllFiles(uuid string) (data map[string]string, err error) {
 	logs.Info("GetAllFiles PORT --> "+portData)
     
     url := "https://"+ipData+":"+portData+"/node/file"
-	resp,err := utils.NewRequestHTTP("GET", url, nil)
     // req, err := http.NewRequest("GET", url, nil)
     // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
     // client := &http.Client{Transport: tr}
     // resp, err := client.Do(req)
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
 	if err != nil {
 		logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
         return rData, err
