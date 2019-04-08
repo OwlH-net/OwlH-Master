@@ -54,3 +54,8 @@ func DeleteStapServer(uuid string, server string) (data string, err error) {
     data,err = stap.DeleteStapServer(uuid, server)
     return data,err
 }
+
+func EditStapServer(data map[string]string) (err error) {
+    err = stap.EditStapServer(data)
+    return err
+}

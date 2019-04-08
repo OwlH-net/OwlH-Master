@@ -237,3 +237,21 @@ func PingServerStap(uuid string, server string) (data map[string]string, err err
 	}
     return data,nil
 }
+
+func EditStapServer(data map[string]string) (err error) {
+	uuid := data["uuid"]
+    ip,port,err := utils.ObtainPortIp(uuid)
+    if err != nil {
+        logs.Info("EditStapServer - get IP and PORT Error -> %s", err.Error())
+        return err
+    }    
+	url := "https://"+ip+":"+port+"/node/stap/EditStapServer"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+		logs.Error("EditStapServer ERROR on the new HTTP request response: "+err.Error())
+        return err
+	}
+    defer resp.Body.Close()
+    return nil
+}
