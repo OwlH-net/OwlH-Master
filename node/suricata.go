@@ -74,12 +74,7 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     values["nid"] = jsonnid
     values["bpf"] = jsonbpf
     valuesJSON,err := json.Marshal(values)
-
     url := "https://"+ipnid+":"+portnid+"/node/suricata/bpf"
-    // req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
 		logs.Error("node/PutSuricataBPF ERROR connection through http new Request: "+err.Error())
@@ -132,10 +127,6 @@ func RunSuricata(uuid string)(data string, err error){
     }
     ipnid,portnid,err := utils.ObtainPortIp(uuid)    
     url := "https://"+ipnid+":"+portnid+"/node/suricata/RunSuricata"
-    // req, err := http.NewRequest("PUT", url, nil)
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {
 		logs.Error("node/RunSuricata ERROR connection through http new Request: "+err.Error())
@@ -154,10 +145,6 @@ func StopSuricata(uuid string)(data string, err error){
     }
 	ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/suricata/StopSuricata"
-    // req, err := http.NewRequest("PUT", url, nil)
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {
 		logs.Error("node/StopSuricata ERROR connection through http new Request: "+err.Error())

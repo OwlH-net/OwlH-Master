@@ -41,10 +41,6 @@ func RunWazuh(uuid string)(data string, err error){
     
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/wazuh/RunWazuh"
-    // req, err := http.NewRequest("PUT", url, nil)
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {
 		logs.Error("node/RunWazuh ERROR connection through http new Request: "+err.Error())
@@ -63,10 +59,6 @@ func StopWazuh(uuid string)(data string, err error){
 	
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/wazuh/StopWazuh"
-    // req, err := http.NewRequest("PUT", url, nil)
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {
 		logs.Error("node/StopWazuh ERROR connection through http new Request: "+err.Error())

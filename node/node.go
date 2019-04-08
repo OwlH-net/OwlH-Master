@@ -417,17 +417,11 @@ func SetRuleset(uuid string) (err error) {
     //pasar json al nodo con el ruleset
     url := "https://"+ipData+":"+portData+"/node/suricata/retrieve"
 	valuesJSON,err := json.Marshal(values)
-
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    // req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-	// resp, err := client.Do(req)
 	if err != nil {
 		logs.Error("node/SetRuleset ERROR connection through http new Request: "+err.Error())
 	}
     defer resp.Body.Close()
-
     return nil
 }
 
@@ -436,8 +430,8 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
     rData := make(map[string]string)
     var voidArray map[string]string
     var portData string
-    var ipData string
-
+	var ipData string
+	
     //Take IP from specific uuid
 	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+loadFile["uuid"]+"';"
 	ip, err := ndb.Db.Query(sqlIP)
@@ -465,23 +459,14 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 	}
 	url := "https://"+ipData+":"+portData+"/node/file/"+loadFile["file"]
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
-    // req, err := http.NewRequest("GET", url, nil)
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-	// resp, err := client.Do(req)
-    // if err != nil {
-    //     return rData, err
-	// }
 	if err != nil {
 		logs.Error("node/GetNodeFile ERROR connection through http new Request: "+err.Error())
 	}
     defer resp.Body.Close()
-
     responseData, err := ioutil.ReadAll(resp.Body)
     logs.Info("GetNodeFile response Body:", responseData)
     json.Unmarshal(responseData, &rData)
     rData["nodeUUID"] = loadFile["uuid"]
-
     return rData,err
 }
 
@@ -489,10 +474,8 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 //Get specific file from node files
 func SetNodeFile(loadFile map[string]string) (err error) {
     logs.Info("SetNodeFile node "+loadFile["uuid"])
-
     var portData string
     var ipData string
-
 	sqlIP := "select node_value from nodes where node_param = 'ip' and node_uniqueid = '"+loadFile["uuid"]+"';"
 	ip, err := ndb.Db.Query(sqlIP)
 	if err != nil {
@@ -517,19 +500,13 @@ func SetNodeFile(loadFile map[string]string) (err error) {
 			return err
 		}
 	}
-
     url := "https://"+ipData+":"+portData+"/node/file"
 	valuesJSON,err := json.Marshal(loadFile)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    // req, err := http.NewRequest("PUT", url, bytes.NewBuffer(valuesJSON))
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
     defer resp.Body.Close()
     if err != nil {
 		logs.Error("node/SetNodeFile ERROR connection through http new Request: "+err.Error())
 	}
-
     return err
 }
 
@@ -567,17 +544,12 @@ func GetAllFiles(uuid string) (data map[string]string, err error) {
 	logs.Info("GetAllFiles PORT --> "+portData)
     
     url := "https://"+ipData+":"+portData+"/node/file"
-    // req, err := http.NewRequest("GET", url, nil)
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
 	if err != nil {
 		logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
         return rData, err
     }
     defer resp.Body.Close()
-
     logs.Info("GetNodeFile response Status:", resp.Status)
     logs.Info("GetNodeFile response Headers:", resp.Header)
     responseData, err := ioutil.ReadAll(resp.Body)
@@ -588,5 +560,4 @@ func GetAllFiles(uuid string) (data map[string]string, err error) {
     rData["nodeUUID"] = uuid
 
     return rData,err
-
 }

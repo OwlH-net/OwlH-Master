@@ -41,10 +41,6 @@ func RunZeek(uuid string)(data string, err error){
 	
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/zeek/RunZeek"
-    // req, err := http.NewRequest("PUT", url, nil)
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {
 		logs.Error("node/RunZeek ERROR connection through http new Request: "+err.Error())
@@ -64,10 +60,6 @@ func StopZeek(uuid string)(data string, err error){
 	
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/zeek/StopZeek"
-    // req, err := http.NewRequest("PUT", url, nil)
-    // tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    // client := &http.Client{Transport: tr}
-    // resp, err := client.Do(req)
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {
 		logs.Error("node/RunZeek ERROR connection through http new Request: "+err.Error())

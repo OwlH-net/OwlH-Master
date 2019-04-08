@@ -142,7 +142,7 @@ func copyFileToNode(dstfolder string, srcfolder string, file string, BUFFERSIZE 
     return err
 }
 
-func getFileFromSrcFolders (folder string)(files []os.FileInfo, nofile bool) {
+func getFileFromSrcFolders(folder string)(files []os.FileInfo, nofile bool) {
     files, err := ioutil.ReadDir(folder)
     if err != nil {
         logs.Error("Error --> "+err.Error())

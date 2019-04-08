@@ -175,11 +175,11 @@ func GetRulesetPath(uuid string) (n string, err error) {
         row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid=$1 and ruleset_param=\"path\";",uuid)
         err = row.Scan(&path)
         if err == sql.ErrNoRows {
-            logs.Warn("DB RULESET -> There is no ruleset with id %s",uuid)
+            logs.Error("DB RULESET -> There is no ruleset with id %s",uuid)
             return "", errors.New("DB RULESET -> There is no ruleset with id "+uuid)
         }
         if err != nil {
-            logs.Warn("DB RULESET -> rows.Scan Error -> %s", err.Error())
+            logs.Error("DB RULESET -> rows.Scan Error -> %s", err.Error())
             return "", errors.New("DB RULESET -> -> rows.Scan Error -> " + err.Error())
         }
         return path, nil
@@ -245,7 +245,6 @@ func SetRuleSelected(n map[string]string) (err error) {
             logs.Error("error insertRulesetNode en ruleset/rulesets--> "+err.Error())
             return err
         }
-
         return nil 
     }
     return err
@@ -307,7 +306,6 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     // Path must be setup in main.conf file. 
     path := "/etc/owlh/ruleset/"
     pathNewRule := path+newRuleset+".rules"
-    //pathOldRule := path+clonedRuleset
     newUUID := utils.Generate()
     logs.Info("SetClonedRuleset: PATH: "+clonedPath+" Clone: "+clonedRuleset+" new "+newRuleset+" New UUID --> "+newUUID)
 
@@ -327,7 +325,6 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
             logs.Error("error insertCloneName name ruleset/rulesets--> "+err.Error())
             return err
         }
-        logs.Info("ruleset/SetClonedRuleset INSERT name done")
         insertCloneValue, err := ndb.Rdb.Prepare("insert into ruleset (ruleset_uniqueid, ruleset_param, ruleset_value) values (?,?,?);")
         _, err = insertCloneValue.Exec(&newUUID, "path", &pathNewRule)
         defer insertCloneValue.Close()
@@ -339,7 +336,7 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
         return nil
     }
     if err != nil {
-        logs.Warn("SetClonedRuleset -> rows.Scan %s", err.Error())
+        logs.Error("SetClonedRuleset -> rows.Scan %s", err.Error())
         return err
     }
     return nil   

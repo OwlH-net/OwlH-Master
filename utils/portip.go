@@ -8,7 +8,7 @@ import (
 
 func ObtainPortIp(uuid string)(ip string, port string, err error)  {
 	if ndb.Db == nil {
-		logs.Warn("obtainPortIp -> Error conexión DB")
+		logs.Error("obtainPortIp -> Error conexión DB")
 		return "","",errors.New("DB NODE obtainPortIp -> Can't access database " + err.Error())
 	}
 	
