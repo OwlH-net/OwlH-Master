@@ -45,7 +45,12 @@ func StopStapServer(uuid string, server string) (data string, err error) {
     return data,err
 }
 
-func PingServerStap(uuid string, server string) (data map[string]bool, err error) {
+func PingServerStap(uuid string, server string) (data map[string]string, err error) {
     data,err = stap.PingServerStap(uuid, server)
+    return data,err
+}
+
+func DeleteStapServer(uuid string, server string) (data string, err error) {
+    data,err = stap.DeleteStapServer(uuid, server)
     return data,err
 }

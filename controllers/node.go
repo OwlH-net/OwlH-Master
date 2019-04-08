@@ -114,15 +114,9 @@ func (n *NodeController) GetPong() {
 // @router /:nid/suricata [get]
 func (n *NodeController) GetSuricata() { 
     nid := n.GetString(":nid")
-    data,err := models.Suricata(nid)
-
-    // data["path"]=false
-    // data["bin"]=true
-    // data["running"]=false
-    
+    data,err := models.Suricata(nid)   
     logs.Warn("GetSuricata")
     logs.Warn(data)
-
     n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
@@ -162,8 +156,6 @@ func (n *NodeController) GetWazuh() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
     data,err := models.Wazuh(nid)
-    // var anode map[string]string
-    // json.Unmarshal(data, &anode)
     logs.Warn("GetWazuh")
     logs.Warn(data)
     n.Data["json"] = data
@@ -272,11 +264,7 @@ func (n *NodeController) GetNodeFile() {
     anode := make(map[string]string)
     anode["uuid"] = n.GetString(":uuid")
     anode["file"] = n.GetString(":fileName")
-
-    //logs.Error("JSON DESDE GET "+anode["uuid"]+"  ++++++++"+anode["file"]);
     returnData,err := models.GetNodeFile(anode)
-    logs.Error(returnData);
-
     n.Data["json"] = returnData
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -289,10 +277,8 @@ func (n *NodeController) GetNodeFile() {
 // @Success 200 {object} models.Node
 // @router /savefile [put]
 func (n *NodeController) SetNodeFile() { 
-    logs.Info("Inside SetNodeFile")
     anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    logs.Warn(anode["uuid"])
     err := models.SetNodeFile(anode)
 
     n.Data["json"] = map[string]string{"ack": "true"}
@@ -309,9 +295,7 @@ func (n *NodeController) SetNodeFile() {
 func (n *NodeController) GetAllFiles() { 
     uuid := n.GetString(":uuid")
     data, err := models.GetAllFiles(uuid)
-    logs.Info("Come back from getAllFiles")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -323,12 +307,9 @@ func (n *NodeController) GetAllFiles() {
 // @Success 200 {object} models.Node
 // @router /RunSuricata/:uuid [put]
 func (n *NodeController) RunSuricata() { 
-    logs.Info("Inside RunSuricata")
     uuid := n.GetString(":uuid")
     data, err := models.RunSuricata(uuid)
-    logs.Info("Back RunSuricata")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -342,9 +323,7 @@ func (n *NodeController) RunSuricata() {
 func (n *NodeController) StopSuricata() { 
     uuid := n.GetString(":uuid")
     data, err := models.StopSuricata(uuid)
-    logs.Info("Back StopSuricata")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -356,12 +335,9 @@ func (n *NodeController) StopSuricata() {
 // @Success 200 {object} models.Node
 // @router /RunZeek/:uuid [put]
 func (n *NodeController) RunZeek() { 
-    logs.Info("Inside RunZeek")
     uuid := n.GetString(":uuid")
     data, err := models.RunZeek(uuid)
-    logs.Info("Back RunZeek")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -375,9 +351,7 @@ func (n *NodeController) RunZeek() {
 func (n *NodeController) StopZeek() { 
     uuid := n.GetString(":uuid")
     data, err := models.StopZeek(uuid)
-    logs.Info("Back StopZeek")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -389,12 +363,9 @@ func (n *NodeController) StopZeek() {
 // @Success 200 {object} models.Node
 // @router /RunWazuh/:uuid [put]
 func (n *NodeController) RunWazuh() { 
-    logs.Info("Inside RunWazuh")
     uuid := n.GetString(":uuid")
     data, err := models.RunWazuh(uuid)
-    logs.Info("Back RunWazuh")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -408,9 +379,7 @@ func (n *NodeController) RunWazuh() {
 func (n *NodeController) StopWazuh() { 
     uuid := n.GetString(":uuid")
     data, err := models.StopWazuh(uuid)
-    logs.Info("Back StopWazuh")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

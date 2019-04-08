@@ -18,8 +18,12 @@ type RulesetController struct {
 // @Failure 403 ruleset is empty
 // @router /default [get]
 func (n *RulesetController) GetRules(){ 
-	mstatus, _ := models.GetRules()
+	mstatus, err:= models.GetRules()
 	n.Data["json"] = mstatus
+	if err != nil {
+        logs.Info("GetRules -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
 	n.ServeJSON()
 }
 
@@ -34,9 +38,14 @@ func (n *RulesetController) GetRuleSID(){
     ruleSidPath := make(map[string]string)
     ruleSidPath["sid"] = sid
     ruleSidPath["uuid"] = uuid
-    mstatus, _ := models.GetRuleSID(ruleSidPath)
+    mstatus, err := models.GetRuleSID(ruleSidPath)
 	n.Data["json"] = mstatus
+	if err != nil {
+        logs.Info("GetRuleSID -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
 	n.ServeJSON()
+	
 }
 
 // @Title AddRuleset
@@ -64,7 +73,7 @@ func (n *RulesetController) GetAllRulesets() {
     rulesets, err := models.GetAllRulesets()
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }else{
+	}else{
 		n.Data["json"] = rulesets
 	}
     n.ServeJSON()
@@ -201,6 +210,22 @@ func (n *RulesetController) SetRuleNote() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &ruleAction)
     err := models.SetRuleNote(ruleAction)
     n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteRuleset
+// @Description Delete a ruleset
+// @Success 200 {string} ruleset deleted
+// @Failure 403 Connection failure
+// @router /deleteRuleset [delete]
+func (n *RulesetController) DeleteNode() { 
+	var rulesetDelete map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &rulesetDelete)
+    err := models.DeleteRuleset(rulesetDelete)
+	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

@@ -2,11 +2,12 @@ package nodeclient
 
 import (
     "github.com/astaxie/beego/logs"
-    "net/http"
-    //"bytes"
     "io/ioutil"
-    "crypto/tls"
-    "encoding/json"
+	"encoding/json"
+	"owlhmaster/utils"
+    // "net/http"
+    //"bytes"
+    // "crypto/tls"
 )
 
 func init() {
@@ -19,14 +20,10 @@ func Echo() {
 
 func PingNode(ip string, port string) (err error) {
     logs.Info("NodeClient PingNode -> %s, %s", ip, port)
-    tr := &http.Transport{
-        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
-    url := "https://"+ip+":"+port+"/node/node"
-    req, err := http.NewRequest("GET", url, nil)
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
+	url := "https://"+ip+":"+port+"/node/node"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		logs.Error("nodeClient/PingNode ERROR connection through http new Request: "+err.Error())
         return err
     }
     defer resp.Body.Close()
@@ -39,14 +36,10 @@ func PingNode(ip string, port string) (err error) {
 
 func Suricata(ip string, port string) (data map[string]bool, err error ) {
     logs.Info("NodeClient suricata status -> %s, %s", ip, port)
-    tr := &http.Transport{
-        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
-    url := "https://"+ip+":"+port+"/node/suricata"
-    req, err := http.NewRequest("GET", url, nil)
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
+	url := "https://"+ip+":"+port+"/node/suricata"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		logs.Error("nodeClient/Suricata ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
     defer resp.Body.Close()
@@ -57,31 +50,29 @@ func Suricata(ip string, port string) (data map[string]bool, err error ) {
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
     if err != nil {
+		logs.Error("nodeClient/Suricata -- ERROR JSON unmarshal: "+err.Error())
         return nil,err
     }
     return data,nil
 }
 
 func Zeek(ip string, port string) (data map[string]bool, err error ) {
-    logs.Info("NodeClient zeek status -> %s, %s", ip, port)
-    tr := &http.Transport{
-        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
-    url := "https://"+ip+":"+port+"/node/zeek"
-    req, err := http.NewRequest("GET", url, nil)
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
+	logs.Info("NodeClient zeek status -> %s, %s", ip, port)
+	url := "https://"+ip+":"+port+"/node/zeek"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		logs.Error("nodeClient/Zeek ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
     defer resp.Body.Close()
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
-    body, _ := ioutil.ReadAll(resp.Body)
-
+	body, _ := ioutil.ReadAll(resp.Body)
+	
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
     if err != nil {
+		logs.Error("nodeClient/Zeek -- ERROR JSON unmarshal: "+err.Error())
         return nil,err
     }
     return data,nil
@@ -89,14 +80,10 @@ func Zeek(ip string, port string) (data map[string]bool, err error ) {
 
 func Wazuh(ip string, port string) (data map[string]bool, err error ) {
     logs.Info("NodeClient wazuh status -> %s, %s", ip, port)
-    tr := &http.Transport{
-        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
-    url := "https://"+ip+":"+port+"/node/wazuh"
-    req, err := http.NewRequest("GET", url, nil)
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
+	url := "https://"+ip+":"+port+"/node/wazuh"
+    resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		logs.Error("nodeClient/Wazuh ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
     defer resp.Body.Close()
@@ -114,14 +101,10 @@ func Wazuh(ip string, port string) (data map[string]bool, err error ) {
 
 func Stap(ip string, port string, uuid string) (data map[string]bool, err error ) {
     logs.Info("NodeClient Stap status -> %s, %s", ip, port)
-    tr := &http.Transport{
-        TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
-    url := "https://"+ip+":"+port+"/node/stap/ping/"+uuid
-    req, err := http.NewRequest("GET", url, nil)
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
+	url := "https://"+ip+":"+port+"/node/stap/ping/"+uuid
+    resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		logs.Error("nodeClient/Stap ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
     defer resp.Body.Close()

@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	//"strconv"
 	"github.com/astaxie/beego"
-    "github.com/astaxie/beego/logs"
+    // "github.com/astaxie/beego/logs"
 )
 
 type StapController struct {
@@ -20,10 +20,8 @@ type StapController struct {
 func (n *StapController) AddServer(){ 
 	var newServer map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &newServer)
-
 	err := models.AddServer(newServer)
 	n.Data["json"] = map[string]string{"ack": "true"}
-
 	if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -82,12 +80,9 @@ func (n *StapController) GetStap() {
 // @Success 200 {object} models.stap
 // @router /RunStap/:uuid [put]
 func (n *StapController) RunStap() { 
-    logs.Info("Inside RunStap")
     uuid := n.GetString(":uuid")
     data, err := models.RunStap(uuid)
-    logs.Info("Back RunStap")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -101,9 +96,7 @@ func (n *StapController) RunStap() {
 func (n *StapController) StopStap() { 
     uuid := n.GetString(":uuid")
     data, err := models.StopStap(uuid)
-    logs.Info("Back StopStap")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -117,11 +110,8 @@ func (n *StapController) StopStap() {
 func (n *StapController) RunStapServer() { 
     uuid := n.GetString(":uuid")
     server := n.GetString(":server")
-    logs.Info("Inside RunStapServer --> "+uuid+" -- "+server)
     data, err := models.RunStapServer(uuid,server)
-    logs.Info("Back RunStapServer")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -136,9 +126,7 @@ func (n *StapController) StopStapServer() {
     uuid := n.GetString(":uuid")
     server := n.GetString(":server")
     data, err := models.StopStapServer(uuid,server)
-    logs.Info("Back StopStapServer")
     n.Data["json"] = data
-    logs.Info(data)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -149,7 +137,7 @@ func (n *StapController) StopStapServer() {
 // @Description Get Pong from specific stap server
 // @Success 200 {object} models.stap
 // @Failure 403 :nid is empty
-// @router /PingStapServer/:nid/:server [get]
+// @router /PingServerStap/:nid/:server [get]
 func (n *StapController) PingServerStap() { 
     nid := n.GetString(":nid")
     server := n.GetString(":server")
@@ -157,6 +145,21 @@ func (n *StapController) PingServerStap() {
     n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteStapServer
+// @Description Stop Stap server
+// @Success 200 {object} models.stap
+// @router /DeleteStapServer/:uuid/:server [put]
+func (n *StapController) DeleteStapServer() { 
+    uuid := n.GetString(":uuid")
+    server := n.GetString(":server")
+    data, err := models.DeleteStapServer(uuid,server)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
 }

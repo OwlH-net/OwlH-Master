@@ -6,16 +6,16 @@ import(
 	"github.com/astaxie/beego/logs"
 	"bytes"
 	"encoding/json"
-	"net/http"
+	// "net/http"
 	// "owlhmaster/node"
     // "bufio" //read line by line the doc
     // "regexp"
     // "os"
     // "os/exec"
     //"strconv"
-	"owlhmaster/utils"
-	"crypto/tls"
+	// "crypto/tls"
     // "owlhmaster/database"
+    "owlhmaster/utils"
     // "errors"
     // "database/sql"
     // "strings"
@@ -27,87 +27,79 @@ import(
     "owlhmaster/nodeclient"
 )
 
+//Add server to software TAP
 func AddServer(data map[string]string)(err error) {
-	
-	logs.Info("stap/stap.go stap AddServer()")
 	uuid := data["uuid"]
 	ipuuid,portuuid,err := utils.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("AddServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
+        return err
+	}
 	url := "https://"+ipuuid+":"+portuuid+"/node/stap/"
 	valuesJSON,err := json.Marshal(data)
-
-    req, err := http.NewRequest("POST", url, bytes.NewBuffer(valuesJSON))
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    logs.Info("Request newBuffer(JSON) -------> ",req.Body)
+	if err != nil {
+		logs.Error("Error Marshal new JSON data: "+err.Error())
+        return err
+	}
+	resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
     if err != nil {
+		logs.Error("AddServer ERROR on the new HTTP request response: "+err.Error())
         return err
 	}
     defer resp.Body.Close()
     return nil
 }
 
-
+//Get all STAP servers
 func GetAllServers(nodeuuid string)(data map[string]map[string]string, err error){
     rData := make(map[string]map[string]string)
-    logs.Info("stap/stap.go stap GetAllServers()")
     ipuuid,portuuid,err := utils.ObtainPortIp(nodeuuid)
-    url := "https://"+ipuuid+":"+portuuid+"/node/stap/"
-
-    req, err := http.NewRequest("GET", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    logs.Info("GetAllServers Request -------> ",req.Body)
+	if err != nil {
+		logs.Error("GetAllServers ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
+        return nil,err
+	}
+	url := "https://"+ipuuid+":"+portuuid+"/node/stap/"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		logs.Error("GetAllServers ERROR on the new HTTP request response: "+err.Error())
         return nil,err
 	}
     defer resp.Body.Close()
     responseData, _ := ioutil.ReadAll(resp.Body)
-
     json.Unmarshal(responseData, &rData)
-    logs.Info(rData)
-
     return rData,nil
 }
 
+//Get a specific server
 func GetServer(uuid string, serveruuid string)(data map[string]map[string]string, err error){
     rData := make(map[string]map[string]string)
-    logs.Info("stap/stap.go stap GetServer()")
-    ipuuid,portuuid,err := utils.ObtainPortIp(uuid)
+	ipuuid,portuuid,err := utils.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("GetServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
+        return nil,err
+	}
     url := "https://"+ipuuid+":"+portuuid+"/node/stap/server/"+serveruuid
-
-    req, err := http.NewRequest("GET", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    logs.Info("GetServer Request -------> ",req.Body)
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		logs.Error("GetServer ERROR on the new HTTP request response: "+err.Error())
         return nil,err
 	}
     defer resp.Body.Close()
     responseData, _ := ioutil.ReadAll(resp.Body)
-
     json.Unmarshal(responseData, &rData)
-    logs.Info(rData)
-
     return rData,nil
 }
+
 //ping to Stap function at node.html. Create or update this function if is needed
 func Stap(n string) (data map[string]bool, err error) {
-    logs.Info("Node Stap -> IN")
-
     ip,port,err := utils.ObtainPortIp(n)
     if err != nil {
-        logs.Info("Stap - get IP and PORT Error -> %s", err.Error())
+        logs.Error("Stap ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return nil,err
     }    
-    logs.Info("Stap IP and PORT -> %s, %s", ip, port)
-    data, err = nodeclient.Stap(ip,port,n)
+	data, err = nodeclient.Stap(ip,port,n)
     if err != nil {
+		logs.Error("Stap ERROR: "+err.Error())
         return nil,err
     }
     return data,nil
@@ -119,22 +111,19 @@ func RunStap(uuid string)(data string, err error){
         logs.Error("RunStap -- Can't acces to database")
         return "", errors.New("RunStap -- Can't acces to database")
     }
-    
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
-    
-    url := "https://"+ipnid+":"+portnid+"/node/stap/RunStap/"+uuid
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    if err != nil {
+	ipnid,portnid,err := utils.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("RunStap ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return "",err
     }
+    url := "https://"+ipnid+":"+portnid+"/node/stap/RunStap/"+uuid
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+    if err != nil {
+		logs.Error("RunStap ERROR on the new HTTP request response: "+err.Error())
+        return "",err
+	}
     defer resp.Body.Close()
-
     body, _ := ioutil.ReadAll(resp.Body)
-    logs.Info("RunStap function "+string(body))
     return string(body),nil
 }
 
@@ -145,48 +134,41 @@ func StopStap(uuid string)(data string, err error){
         return "", errors.New("StopStap -- Can't acces to database")
     }
 
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
-
-    url := "https://"+ipnid+":"+portnid+"/node/stap/StopStap/"+uuid
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    if err != nil {
+	ipnid,portnid,err := utils.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("StopStap ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return "",err
     }
+    url := "https://"+ipnid+":"+portnid+"/node/stap/StopStap/"+uuid
+    resp,err := utils.NewRequestHTTP("PUT", url, nil)
+    if err != nil {
+		logs.Error("StopStap ERROR on the new HTTP request response: "+err.Error())
+        return "",err
+	}
     defer resp.Body.Close()
-
     body, _ := ioutil.ReadAll(resp.Body)
     return string(body),nil
 }
 
 //Launch stap specific server
 func RunStapServer(uuid string, server string)(data string, err error){
-    logs.Info("RunStapServer uuid "+uuid)
-    logs.Info("RunStapServer server "+server)
     if ndb.Db == nil {
         logs.Error("RunStapServer -- Can't acces to database")
         return "", errors.New("RunStapServer -- Can't acces to database")
     }
-    
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
-    
-    url := "https://"+ipnid+":"+portnid+"/node/stap/RunStapServer/"+server
-    logs.Info("URL --> "+url)
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    if err != nil {
+	if err != nil {
+		logs.Error("RunStapServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return "",err
     }
+    url := "https://"+ipnid+":"+portnid+"/node/stap/RunStapServer/"+server
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+    if err != nil {
+		logs.Error("RunStapServer ERROR on the new HTTP request response: "+err.Error())
+        return "",err
+	}
     defer resp.Body.Close()
-
     body, _ := ioutil.ReadAll(resp.Body)
-    logs.Warn("RunStapServer function "+string(body))
     return string(body),nil
 }
 
@@ -196,54 +178,62 @@ func StopStapServer(uuid string, server string)(data string, err error){
         logs.Error("StopStapServer -- Can't acces to database")
         return "", errors.New("StopStapServer -- Can't acces to database")
     }
-
     ipnid,portnid,err := utils.ObtainPortIp(uuid)
-
-    url := "https://"+ipnid+":"+portnid+"/node/stap/StopStapServer/"+server
-    req, err := http.NewRequest("PUT", url, nil)
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
-
-    if err != nil {
+	if err != nil {
+		logs.Error("StopStapServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return "",err
-    }
+	}
+	url := "https://"+ipnid+":"+portnid+"/node/stap/StopStapServer/"+server
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+    if err != nil {
+		logs.Error("StopStapServer ERROR on the new HTTP request response: "+err.Error())
+        return "",err
+	}
     defer resp.Body.Close()
-
     body, _ := ioutil.ReadAll(resp.Body)
     return string(body),nil
 }
 
-func PingServerStap(uuid string, server string) (data map[string]bool, err error) {
+//Delete specific stap server
+func DeleteStapServer(uuid string, server string)(data string, err error){
+    if ndb.Db == nil {
+        logs.Error("DeleteStapServer -- Can't acces to database")
+        return "", errors.New("DeleteStapServer -- Can't acces to database")
+    }
+    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("DeleteStapServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
+        return "",err
+    }
+    url := "https://"+ipnid+":"+portnid+"/node/stap/DeleteStapServer/"+server
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+    if err != nil {
+		logs.Error("DeleteStapServer ERROR on the new HTTP request response: "+err.Error())
+        return "",err
+	}
+    defer resp.Body.Close()
+	body, _ := ioutil.ReadAll(resp.Body)
+    return string(body),nil
+}
+
+func PingServerStap(uuid string, server string) (data map[string]string, err error) {
     ip,port,err := utils.ObtainPortIp(uuid)
     if err != nil {
         logs.Info("PingServerStap - get IP and PORT Error -> %s", err.Error())
         return nil,err
     }    
-
-    tr := &http.Transport{
-    TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
-    }
-    url := "https://"+ip+":"+port+"/node/stap/PingServerStap/"+server
-    req, err := http.NewRequest("GET", url, nil)
-    client := &http.Client{Transport: tr}
-    resp, err := client.Do(req)
+	url := "https://"+ip+":"+port+"/node/stap/PingServerStap/"+server
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		logs.Error("PingServerStap ERROR on the new HTTP request response: "+err.Error())
         return nil,err
-    }
+	}
     defer resp.Body.Close()
-    logs.Info("response Status:", resp.Status)
-    logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
     err = json.Unmarshal(body, &data)
     if err != nil {
+		logs.Error("PingServerStap ERROR doing unmarshal JSON: "+err.Error())
         return nil,err
-    }
+	}
     return data,nil
 }
-
-
-
-
-
-
