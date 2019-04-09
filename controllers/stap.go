@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	//"strconv"
 	"github.com/astaxie/beego"
-    "github.com/astaxie/beego/logs"
 )
 
 type StapController struct {

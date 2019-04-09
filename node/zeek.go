@@ -20,7 +20,7 @@ import (
 )
 
 func Zeek(n string) (data map[string]bool, err error) {
-    ip,port,err := utils.ObtainPortIp(n)
+    ip,port,err := ndb.ObtainPortIp(n)
     if err != nil {
         logs.Info("Zeek - get IP and PORT Error -> %s", err.Error())
         return nil,err
@@ -39,7 +39,7 @@ func RunZeek(uuid string)(data string, err error){
         return "", errors.New("RunZeek -- Can't acces to database")
 	}
 	
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/zeek/RunZeek"
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {
@@ -58,7 +58,7 @@ func StopZeek(uuid string)(data string, err error){
         return "", errors.New("StopZeek -- Can't acces to database")
 	}
 	
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/zeek/StopZeek"
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {

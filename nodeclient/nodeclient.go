@@ -20,7 +20,8 @@ func Echo() {
 
 func PingNode(ip string, port string) (err error) {
     logs.Info("NodeClient PingNode -> %s, %s", ip, port)
-	url := "https://"+ip+":"+port+"/node/node"
+	// url := "https://"+ip+":"+port+"/node/node"
+	url := "https://"+ip+":"+port+"/node/ping"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
 		logs.Error("nodeClient/PingNode ERROR connection through http new Request: "+err.Error())

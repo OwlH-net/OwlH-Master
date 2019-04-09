@@ -20,7 +20,7 @@ import (
 )
 
 func Suricata(n string) (data map[string]bool, err error) {
-    ip,port,err := utils.ObtainPortIp(n)
+    ip,port,err := ndb.ObtainPortIp(n)
     if err != nil {
         logs.Info("Suricata - get IP and PORT Error -> %s", err.Error())
         return nil,err
@@ -67,7 +67,7 @@ func PutSuricataBPF(n map[string]string)(bpf string, err error) {
     jsonnid := n["nid"]
     jsonbpf := n["bpf"]
     bpftext := "bpf"
-    ipnid,portnid,err := utils.ObtainPortIp(jsonnid)
+    ipnid,portnid,err := ndb.ObtainPortIp(jsonnid)
     
     //create json with nid y bpf 
     values := make(map[string]string)
@@ -125,7 +125,7 @@ func RunSuricata(uuid string)(data string, err error){
         logs.Error("RunSuricata -- Can't acces to database")
         return "", errors.New("RunSuricata -- Can't acces to database")
     }
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)    
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)    
     url := "https://"+ipnid+":"+portnid+"/node/suricata/RunSuricata"
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {
@@ -143,7 +143,7 @@ func StopSuricata(uuid string)(data string, err error){
         logs.Error("StopSuricata -- Can't acces to database")
         return "", errors.New("StopSuricata -- Can't acces to database")
     }
-	ipnid,portnid,err := utils.ObtainPortIp(uuid)
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/suricata/StopSuricata"
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {

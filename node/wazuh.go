@@ -20,7 +20,7 @@ import (
 )
 
 func Wazuh(n string) (data map[string]bool, err error) {
-    ip,port,err := utils.ObtainPortIp(n)
+    ip,port,err := ndb.ObtainPortIp(n)
     if err != nil {
         logs.Info("Wazuh - get IP and PORT Error -> %s", err.Error())
         return nil,err
@@ -39,7 +39,7 @@ func RunWazuh(uuid string)(data string, err error){
         return "", errors.New("RunWazuh -- Can't acces to database")
     }
     
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/wazuh/RunWazuh"
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {
@@ -57,7 +57,7 @@ func StopWazuh(uuid string)(data string, err error){
         return "", errors.New("StopWazuh -- Can't acces to database")
 	}
 	
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     url := "https://"+ipnid+":"+portnid+"/node/wazuh/StopWazuh"
 	resp,err := utils.NewRequestHTTP("PUT", url, nil)
 	if err != nil {

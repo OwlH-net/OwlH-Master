@@ -40,7 +40,6 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
             }
         }
     }
-    
     return loadData, nil
 }
 

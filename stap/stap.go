@@ -30,7 +30,7 @@ import(
 //Add server to software TAP
 func AddServer(data map[string]string)(err error) {
 	uuid := data["uuid"]
-	ipuuid,portuuid,err := utils.ObtainPortIp(uuid)
+	ipuuid,portuuid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
 		logs.Error("AddServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return err
@@ -53,7 +53,7 @@ func AddServer(data map[string]string)(err error) {
 //Get all STAP servers
 func GetAllServers(nodeuuid string)(data map[string]map[string]string, err error){
     rData := make(map[string]map[string]string)
-    ipuuid,portuuid,err := utils.ObtainPortIp(nodeuuid)
+    ipuuid,portuuid,err := ndb.ObtainPortIp(nodeuuid)
 	if err != nil {
 		logs.Error("GetAllServers ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return nil,err
@@ -73,7 +73,7 @@ func GetAllServers(nodeuuid string)(data map[string]map[string]string, err error
 //Get a specific server
 func GetServer(uuid string, serveruuid string)(data map[string]map[string]string, err error){
     rData := make(map[string]map[string]string)
-	ipuuid,portuuid,err := utils.ObtainPortIp(uuid)
+	ipuuid,portuuid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
 		logs.Error("GetServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return nil,err
@@ -92,7 +92,7 @@ func GetServer(uuid string, serveruuid string)(data map[string]map[string]string
 
 //ping to Stap function at node.html. Create or update this function if is needed
 func Stap(n string) (data map[string]bool, err error) {
-    ip,port,err := utils.ObtainPortIp(n)
+    ip,port,err := ndb.ObtainPortIp(n)
     if err != nil {
         logs.Error("Stap ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return nil,err
@@ -111,7 +111,7 @@ func RunStap(uuid string)(data string, err error){
         logs.Error("RunStap -- Can't acces to database")
         return "", errors.New("RunStap -- Can't acces to database")
     }
-	ipnid,portnid,err := utils.ObtainPortIp(uuid)
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
 		logs.Error("RunStap ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return "",err
@@ -134,7 +134,7 @@ func StopStap(uuid string)(data string, err error){
         return "", errors.New("StopStap -- Can't acces to database")
     }
 
-	ipnid,portnid,err := utils.ObtainPortIp(uuid)
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
 		logs.Error("StopStap ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return "",err
@@ -156,7 +156,7 @@ func RunStapServer(uuid string, server string)(data string, err error){
         logs.Error("RunStapServer -- Can't acces to database")
         return "", errors.New("RunStapServer -- Can't acces to database")
     }
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
 		logs.Error("RunStapServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return "",err
@@ -178,7 +178,7 @@ func StopStapServer(uuid string, server string)(data string, err error){
         logs.Error("StopStapServer -- Can't acces to database")
         return "", errors.New("StopStapServer -- Can't acces to database")
     }
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
 		logs.Error("StopStapServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return "",err
@@ -200,7 +200,7 @@ func DeleteStapServer(uuid string, server string)(data string, err error){
         logs.Error("DeleteStapServer -- Can't acces to database")
         return "", errors.New("DeleteStapServer -- Can't acces to database")
     }
-    ipnid,portnid,err := utils.ObtainPortIp(uuid)
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
 		logs.Error("DeleteStapServer ERROR Obtaining Port and IP for Add a new server into STAP: "+err.Error())
         return "",err
@@ -217,7 +217,7 @@ func DeleteStapServer(uuid string, server string)(data string, err error){
 }
 
 func PingServerStap(uuid string, server string) (data map[string]string, err error) {
-    ip,port,err := utils.ObtainPortIp(uuid)
+    ip,port,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Info("PingServerStap - get IP and PORT Error -> %s", err.Error())
         return nil,err
@@ -240,7 +240,7 @@ func PingServerStap(uuid string, server string) (data map[string]string, err err
 
 func EditStapServer(data map[string]string) (err error) {
 	uuid := data["uuid"]
-    ip,port,err := utils.ObtainPortIp(uuid)
+    ip,port,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Info("EditStapServer - get IP and PORT Error -> %s", err.Error())
         return err

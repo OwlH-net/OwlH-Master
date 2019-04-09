@@ -1,12 +1,15 @@
 package ndb
 
 import (
-    "github.com/astaxie/beego/logs"
-    "database/sql"
-    "strconv"
-//    "fmt"
-//   "time"
-    _ "github.com/mattn/go-sqlite3"
+	"github.com/astaxie/beego/logs"
+	"database/sql"
+	"owlhmaster/utils"
+	"strconv"
+	//    "fmt"
+	//   "time"
+	// _ "github.com/mattn/go-sqlite3"
+	// "errors"
+	// "owlhmaster/utils"
 )
 
 var (
@@ -25,11 +28,23 @@ func init() {
 }
 
 func Conn() {
-    var err error
-    Db, err = sql.Open("sqlite3", "database/node.db")
+	var err error
+	loadDataSQL := map[string]map[string]string{}
+	loadDataSQL["dbsConn"] = map[string]string{}
+	loadDataSQL["dbsConn"]["path"] = ""
+	loadDataSQL["dbsConn"]["cmd"] = "" 
+	loadDataSQL, err = utils.GetConf(loadDataSQL)    
+    path := loadDataSQL["dbsConn"]["path"]
+    cmd := loadDataSQL["dbsConn"]["cmd"]
+	if err != nil {
+		logs.Error("Conn Error getting data from main.conf at master: "+err.Error())
+	}
+	
+    Db, err = sql.Open(cmd,path)
     if err != nil {
-        panic("DB Open Failed ")
+        panic("dbs/servers -- DB Open Failed")
     }
+    logs.Info("dbs/servers -- DB -> sql.Open, DB Ready") 
 }
 
 
