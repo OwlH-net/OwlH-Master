@@ -4,10 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
 	"database/sql"
 	"owlhmaster/utils"
-//    "fmt"
-//   "time"
-    _ "github.com/mattn/go-sqlite3"
-	//"errors"
+	"os"
 )
 
 var (
@@ -26,11 +23,13 @@ func RConn() {
 	if err != nil {
 		logs.Error("RConn Error getting data from main.conf at master: "+err.Error())
 	}
-	
+	_, err = os.Stat(path) 
+	if err != nil {
+		panic("ruleset/Ruleset DB -- DB Open Failed")
+	}	
     Rdb, err = sql.Open(cmd,path)
     if err != nil {
-        panic("ruleset/servers -- DB Open Failed")
+		logs.Error("ruleset/Ruleset DB -- SQL openning Error") 
     }
-    logs.Info("ruleset/servers -- DB -> sql.Open, DB Ready") 
-
+    logs.Info("ruleset/Ruleset DB -- DB -> sql.Open, DB Ready") 
 }

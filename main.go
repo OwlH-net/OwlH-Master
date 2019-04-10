@@ -17,9 +17,6 @@ import (
 
 
 func main() {
-
-
-
 	var err error
 	loadDataLogger := map[string]map[string]string{}
 	loadDataLogger["logs"] = map[string]string{}
@@ -44,8 +41,7 @@ func main() {
 	logs.NewLogger(10000)
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
-
-	//log.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
+	logs.Error("Version: 0.5.190410.1300")
 
     ndb.Conn()
     ndb.RConn()

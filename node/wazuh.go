@@ -2,21 +2,12 @@ package node
 
 import (
     "github.com/astaxie/beego/logs"
-// 	  "strings"
-//    "database/sql"
-//    "fmt"
-//    "time"
-   _ "github.com/mattn/go-sqlite3"
-    // "crypto/tls"
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
     "owlhmaster/utils"
-    // "encoding/json"
-//    "regexp"
     "io/ioutil"
-    // "net/http"
-    // "bytes"
+
 )
 
 func Wazuh(n string) (data map[string]bool, err error) {
