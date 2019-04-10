@@ -1,19 +1,10 @@
 package utils
 
 import (
-    //"owlhnode/models"
     "encoding/json"
-    // "strconv"
-    //"github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
     "io/ioutil"
     "io"
-    // "strings"
-    // "os"
-    // "time"
-    // "os/exec"
-    // "fmt"
-	// "crypto/rand"
 	"net/http"
 	"crypto/tls"
 )
@@ -21,7 +12,8 @@ import (
 //Read map data
 //leer json del fichero para obtener el path del bpf
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
-    confFilePath := "/etc/owlh/conf/main.conf"
+    // confFilePath := "/etc/owlh/conf/main.conf"
+    confFilePath := "./conf/main.conf"
     jsonPathBpf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
         logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)

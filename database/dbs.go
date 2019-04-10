@@ -3,8 +3,8 @@ package ndb
 import (
 	"github.com/astaxie/beego/logs"
 	"database/sql"
-	"owlhmaster/utils"
 	"os"
+	"owlhmaster/utils"
 )
 
 var (
@@ -30,8 +30,9 @@ func Conn() {
     Db, err = sql.Open(cmd,path)
     if err != nil {
         logs.Error("dbs/node DB -- DB Open Failed")
-    }
-    logs.Info("dbs/node DB -- DB -> sql.Open, DB Ready") 
+    }else{
+		logs.Info("dbs/node DB -- DB -> sql.Open, DB Ready") 
+	}
 }
 
 func Close() {

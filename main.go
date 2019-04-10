@@ -8,11 +8,7 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     "owlhmaster/dispatcher"
-    //"owlhmaster/models"
     "owlhmaster/utils"
-	//"fmt"
-	// "strconv"
-    //"io/ioutil"
 )
 
 

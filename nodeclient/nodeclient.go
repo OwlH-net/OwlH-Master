@@ -5,9 +5,8 @@ import (
     "io/ioutil"
 	"encoding/json"
 	"owlhmaster/utils"
-    // "net/http"
-    //"bytes"
-    // "crypto/tls"
+	"bytes"
+	"net/http"
 )
 
 func init() {
@@ -16,6 +15,41 @@ func init() {
  
 func Echo() {
     logs.Info("NODE CLIENT -> ECHO")
+}
+
+func SetRuleset(ipData string, portData string, data []byte)(err error){
+	values := make(map[string][]byte)
+	values["data"] = data
+	url := "https://"+ipData+":"+portData+"/node/suricata/retrieve"
+	valuesJSON,err := json.Marshal(values)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("node/SetRuleset ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+func SetNodeFile(ipData string, portData string, loadFile map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/file"
+	valuesJSON,err := json.Marshal(loadFile)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("node/SetRuleset ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+func GetNodeFile(ipData string, portData string, loadFile string)(resp *http.Response, err error){
+	url := "https://"+ipData+":"+portData+"/node/file/"+loadFile
+	resp,err = utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("node/GetNodeFile ERROR connection through http new Request: "+err.Error())
+		return resp,err;
+	}
+    defer resp.Body.Close()
+	return resp,nil;
 }
 
 func PingNode(ip string, port string) (err error) {
@@ -119,4 +153,15 @@ func Stap(ip string, port string, uuid string) (data map[string]bool, err error 
         return nil,err
     }
     return data,nil
+}
+
+func GetAllFiles(ipData string, portData string)(resp *http.Response, err error){
+	url := "https://"+ipData+":"+portData+"/node/file"
+	resp,err = utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
+        return resp,err
+    }
+    defer resp.Body.Close()
+	return resp,nil;
 }

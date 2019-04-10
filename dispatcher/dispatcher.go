@@ -44,20 +44,39 @@ func Init() {
 }
 
 func loadNodesAndPcaps()(nodes listOfNodesAndFolders, err error) {
+	//create map and obtain file
 	t := listOfNodesAndFolders{}
-    nodesFile, err := os.Open("/etc/owlh/conf/nodes.json")
-    if err != nil {
-		logs.Error("Error opening nodes.json: "+err.Error())
+	loadData := map[string]map[string]string{}
+	loadData["dispatcher"] = map[string]string{}
+	loadData["dispatcher"]["nodesAndCaps"] = ""
+	loadData,err = utils.GetConf(loadData)
+	path := loadData["dispatcher"]["nodesAndCaps"]
+	if err != nil {
+		logs.Error("Error loadNodesAndPcaps importing from main.conf: "+err.Error())
 		return t, err
-    }
-    defer nodesFile.Close()
+	}
+	nodesFile, err := os.Open(path)
+	if err != nil {
+		logs.Error("Error loadNodesAndPcaps opening file : "+err.Error())
+		return t, err
+	}
+    // defer nodesFile.Close()
     byteValue, _ := ioutil.ReadAll(nodesFile)
     json.Unmarshal([]byte(byteValue), &t)
     return t, nil
 }
 
 func noTokenFile() bool {
-	_, err := os.Stat("/etc/owlh/conf/stopdispatcher") 
+	loadData := map[string]map[string]string{}
+	loadData["dispatcher"] = map[string]string{}
+	loadData["dispatcher"]["noTokenFile"] = ""
+	loadData,err := utils.GetConf(loadData)
+	path := loadData["dispatcher"]["noTokenFile"]
+	if err != nil {
+		logs.Error("Error loadNodesAndPcaps importing from main.conf: "+err.Error())
+		return false
+	}
+	_, err = os.Stat(path) 
 	if err != nil {
         return true
 	}	
@@ -78,7 +97,7 @@ func GetDispatcherParam(param string)(result string){
 	loadData["dispatcher"][param] = ""
 	loadData,err := utils.GetConf(loadData)
 	if err != nil {
-		logs.Error("Error getting path and BPF from main.conf")
+		logs.Error("GetDispatcherParam Error getting param from main.conf: "+err.Error())
 		return "60"
 	}
 	return loadData["dispatcher"][param]

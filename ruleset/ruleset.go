@@ -1,14 +1,12 @@
 package ruleset
 
 import(
-    //"io/ioutil"
     "fmt"
     "github.com/astaxie/beego/logs"
     "bufio" //read line by line the doc
     "regexp"
     "os"
     "os/exec"
-    //"strconv"
     "owlhmaster/utils"
     "owlhmaster/database"
     "errors"
