@@ -200,8 +200,8 @@ func (n *NodeController) PutSuricataBPF() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
     if nid != "" {
-        data,err := models.PutSuricataBPF(anode)
-        n.Data["json"] = map[string]string{"bpf": data}
+        err := models.PutSuricataBPF(anode)
+        n.Data["json"] = map[string]string{"status": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
@@ -307,8 +307,10 @@ func (n *NodeController) GetAllFiles() {
 // @Success 200 {object} models.Node
 // @router /RunSuricata/:uuid [put]
 func (n *NodeController) RunSuricata() { 
-    uuid := n.GetString(":uuid")
-    data, err := models.RunSuricata(uuid)
+	logs.Debug("DENTRO DEL RUN SURICATA")
+	uuid := n.GetString(":uuid")
+	data, err := models.RunSuricata(uuid)
+
     n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

@@ -11,7 +11,6 @@ import (
     "owlhmaster/utils"
     "regexp"
     "io/ioutil"
-    "encoding/json"
 )
 
 func findNode(s string) (id string, err error) {
@@ -392,38 +391,26 @@ func SetRuleset(uuid string) (err error) {
     
     rulesetID, err := ruleset.GetRuleSelected(uuid)
     if err != nil {
-        logs.Error("SetRuleset node ERROR GetRuleSelected")
+        logs.Error("SetRuleset node ERROR GetRuleSelected: "+err.Error())
         return err
     }
     path, err := ruleset.GetRulesetPath(rulesetID)
     if err != nil {
-        logs.Error("SetRuleset node ERROR GetRulesetPath")
+        logs.Error("SetRuleset node ERROR GetRulesetPath: "+err.Error())
         return err
     }
 
     data, err := ioutil.ReadFile(path)
     if err != nil {
-        logs.Error("SetRuleset ioutil.ReadFile ERROR")
+        logs.Error("SetRuleset ioutil.ReadFile ERROR: "+err.Error())
         return err
     }
 
-    // //crear map para insertar el ruleset
-    // values := make(map[string][]byte)
-    // values["data"] = data
-
-    // //pasar json al nodo con el ruleset
-    // url := "https://"+ipData+":"+portData+"/node/suricata/retrieve"
-	// valuesJSON,err := json.Marshal(values)
-	// resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	// if err != nil {
-	// 	logs.Error("node/SetRuleset ERROR connection through http new Request: "+err.Error())
-	// }
-	// defer resp.Body.Close()
-	err = nodeclient.SetRuleset(ipData,portData, data)
+	err = nodeclient.SetRuleset(ipData,portData,data)
 	if err != nil {
-        logs.Error("Error SetRuleset utils nodeClient")
-        return err
-    }
+		logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error())
+		return err
+	}
     return nil
 }
 
@@ -459,26 +446,14 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 			return voidArray, err
 		}
 	}
-	// url := "https://"+ipData+":"+portData+"/node/file/"+loadFile["file"]
-	// resp,err := utils.NewRequestHTTP("GET", url, nil)
-	// if err != nil {
-	// 	logs.Error("node/GetNodeFile ERROR connection through http new Request: "+err.Error())
-	// }
-	// defer resp.Body.Close()
-	resp,err := nodeclient.GetNodeFile(ipData,portData,loadFile["file"])
-	if err != nil {
-		logs.Error("node/GetNodeFile ERROR connection through http new Request: "+err.Error())
-		return nil, err
-	}
-	responseData, err := ioutil.ReadAll(resp.Body)
+
+	rData,err = nodeclient.GetNodeFile(ipData,portData,loadFile)
 	if err != nil {
 		logs.Error("node/GetNodeFile ERROR reading file: "+err.Error())
 		return nil, err
 	}
-    logs.Info("GetNodeFile response Body:", responseData)
-    json.Unmarshal(responseData, &rData)
-    rData["nodeUUID"] = loadFile["uuid"]
-    return rData,err
+
+    return rData,nil
 }
 
 
@@ -511,18 +486,13 @@ func SetNodeFile(loadFile map[string]string) (err error) {
 			return err
 		}
 	}
-	// valuesJSON,err := json.Marshal(loadFile)
-	// resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    // defer resp.Body.Close()
-    // if err != nil {
-	// 	logs.Error("node/SetNodeFile ERROR connection through http new Request: "+err.Error())
-	// }
+
 	err = nodeclient.SetNodeFile(ipData,portData,loadFile)
 	if err != nil {
 		logs.Error("node/SetNodeFile ERROR request HTTP: "+err.Error())
 		return err
 	}
-    return err
+    return nil
 }
 
 
@@ -557,27 +527,12 @@ func GetAllFiles(uuid string) (data map[string]string, err error) {
 		}
 	}
 	logs.Info("GetAllFiles PORT --> "+portData)
-	
-    // url := "https://"+ipData+":"+portData+"/node/file"
-	// resp,err := utils.NewRequestHTTP("GET", url, nil)
-	// if err != nil {
-		// 	logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
-		//     return rData, err
-		// }
-		// defer resp.Body.Close()
-	resp,err := nodeclient.GetAllFiles(ipData,portData)
+
+	resp,err := nodeclient.GetAllFiles(ipData,portData,uuid)
 	if err != nil {
 		logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
         return rData, err
-    }
-    logs.Info("GetNodeFile response Status:", resp.Status)
-    logs.Info("GetNodeFile response Headers:", resp.Header)
-    responseData, err := ioutil.ReadAll(resp.Body)
-    logs.Info("GetNodeFile response Body:", responseData)
+	}
 
-    json.Unmarshal(responseData, &rData)
-    logs.Info(rData)
-    rData["nodeUUID"] = uuid
-
-    return rData,err
+    return resp,err
 }

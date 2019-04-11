@@ -46,9 +46,9 @@ func GetSuricataBPF(n string) (data string, err error) {
     return data,err
 }
 
-func PutSuricataBPF(n map[string]string) (data string, err error) {
-    data,err = node.PutSuricataBPF(n)
-    return data,err
+func PutSuricataBPF(n map[string]string) (err error) {
+    err = node.PutSuricataBPF(n)
+    return err
 }
 
 

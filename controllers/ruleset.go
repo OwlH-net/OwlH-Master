@@ -101,8 +101,6 @@ func (n *RulesetController) GetRulesetRules() {
 // @Failure 403 Connection Failure
 // @router /set [put]
 func (n *RulesetController) SetRuleSelected() { 
-	// change /SET for / - put method is enough describing action
-    logs.Info("ROUTER SetRuleSelected --> iNSIDE")
     var ruleSelected map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &ruleSelected)
     err := models.SetRuleSelected(ruleSelected)

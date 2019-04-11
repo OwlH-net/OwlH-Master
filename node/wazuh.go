@@ -5,9 +5,6 @@ import (
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
-    "owlhmaster/utils"
-    "io/ioutil"
-
 )
 
 func Wazuh(n string) (data map[string]bool, err error) {
@@ -30,16 +27,17 @@ func RunWazuh(uuid string)(data string, err error){
         return "", errors.New("RunWazuh -- Can't acces to database")
     }
     
-    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-    url := "https://"+ipnid+":"+portnid+"/node/wazuh/RunWazuh"
-	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
-		logs.Error("node/RunWazuh ERROR connection through http new Request: "+err.Error())
-        return "", err
+		logs.Error("node/RunWazuh ERROR Obtaining Port and Ip: "+err.Error())
+        return "",err
     }
-    defer resp.Body.Close()
-    body, _ := ioutil.ReadAll(resp.Body)
-    return string(body),nil
+	data,err = nodeclient.RunWazuh(ipnid,portnid)
+	if err != nil {
+		logs.Error("node/RunWazuh ERROR http data request: "+err.Error())
+        return "",err
+    }
+	return data,nil
 }
 
 func StopWazuh(uuid string)(data string, err error){
@@ -48,15 +46,15 @@ func StopWazuh(uuid string)(data string, err error){
         return "", errors.New("StopWazuh -- Can't acces to database")
 	}
 	
-    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-    url := "https://"+ipnid+":"+portnid+"/node/wazuh/StopWazuh"
-	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
-		logs.Error("node/StopWazuh ERROR connection through http new Request: "+err.Error())
-        return "", err
+		logs.Error("node/StopWazuh ERROR Obtaining Port and Ip: "+err.Error())
+        return "",err
     }
-    defer resp.Body.Close()
-
-    body, _ := ioutil.ReadAll(resp.Body)
-    return string(body),nil
+	data,err = nodeclient.StopWazuh(ipnid,portnid)
+	if err != nil {
+		logs.Error("node/StopWazuh ERROR http data request: "+err.Error())
+        return "",err
+    }
+	return data,nil
 }
