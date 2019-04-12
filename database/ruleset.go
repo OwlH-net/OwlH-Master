@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"owlhmaster/utils"
 	"os"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -25,11 +26,11 @@ func RConn() {
 	}
 	_, err = os.Stat(path) 
 	if err != nil {
-		panic("ruleset/Ruleset DB -- DB Open Failed")
+		panic("ruleset/Ruleset DB -- DB Open Failed: "+err.Error())
 	}	
     Rdb, err = sql.Open(cmd,path)
     if err != nil {
-		logs.Error("ruleset/Ruleset DB -- SQL openning Error") 
+		logs.Error("ruleset/Ruleset DB -- SQL openning Error: "+err.Error()) 
     }
     logs.Info("ruleset/Ruleset DB -- DB -> sql.Open, DB Ready") 
 }

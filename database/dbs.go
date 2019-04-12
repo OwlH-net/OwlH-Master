@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"os"
 	"owlhmaster/utils"
+	_ "github.com/mattn/go-sqlite3"
 )
 
 var (
@@ -25,11 +26,11 @@ func Conn() {
 	}
 	_, err = os.Stat(path) 
 	if err != nil {
-		panic("dbs/node DB -- DB Open Failed")
+		panic("Error: dbs/node DB -- DB Open Failed: "+err.Error())
 	}	
     Db, err = sql.Open(cmd,path)
     if err != nil {
-        logs.Error("dbs/node DB -- DB Open Failed")
+        logs.Error("dbs/node DB -- DB Open Failed: "+err.Error())
     }else{
 		logs.Info("dbs/node DB -- DB -> sql.Open, DB Ready") 
 	}

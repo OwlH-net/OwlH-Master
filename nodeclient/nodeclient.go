@@ -25,11 +25,11 @@ func PingNode(ip string, port string) (err error) {
 		logs.Error("nodeClient/PingNode ERROR connection through http new Request: "+err.Error())
         return err
     }
-    defer resp.Body.Close()
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
     logs.Info("response Body:", string(body))
+    defer resp.Body.Close()
     return nil
 }
 
@@ -41,7 +41,7 @@ func Suricata(ip string, port string) (data map[string]bool, err error ) {
 		logs.Error("nodeClient/Suricata ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
-    defer resp.Body.Close()
+      defer resp.Body.Close()
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
@@ -63,7 +63,6 @@ func Zeek(ip string, port string) (data map[string]bool, err error ) {
 		logs.Error("nodeClient/Zeek ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
-    defer resp.Body.Close()
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
 	body, _ := ioutil.ReadAll(resp.Body)
@@ -74,6 +73,7 @@ func Zeek(ip string, port string) (data map[string]bool, err error ) {
 		logs.Error("nodeClient/Zeek -- ERROR JSON unmarshal: "+err.Error())
         return nil,err
     }
+	defer resp.Body.Close()
     return data,nil
 }
 
@@ -85,16 +85,16 @@ func Wazuh(ip string, port string) (data map[string]bool, err error ) {
 		logs.Error("nodeClient/Wazuh ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
-    defer resp.Body.Close()
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
-
+	
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
     if err != nil {
-        return nil,err
+		return nil,err
     }
+	defer resp.Body.Close()
     return data,nil
 }
 
@@ -106,16 +106,16 @@ func Stap(ip string, port string, uuid string) (data map[string]bool, err error 
 		logs.Error("nodeClient/Stap ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
-    defer resp.Body.Close()
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
-
+	
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
     if err != nil {
-        return nil,err
+		return nil,err
     }
+	defer resp.Body.Close()
     return data,nil
 }
 
@@ -126,18 +126,18 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
 		logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
-	defer resp.Body.Close()
 	
     logs.Info("GetAllFiles response Status:", resp.Status)
     logs.Info("GetAllFiles response Headers:", resp.Header)
     responseData, err := ioutil.ReadAll(resp.Body)
     logs.Info("GetAllFiles response Body:", responseData)
-
+	
     json.Unmarshal(responseData, &rData)
     logs.Info("rData Response: ")
     logs.Info(rData)
     rData["nodeUUID"] = uuid
-
+	
+	defer resp.Body.Close()
 	return rData,nil;
 }
 
@@ -174,7 +174,6 @@ func GetNodeFile(ipData string, portData string, loadFile map[string]string)(rDa
 		logs.Error("nodeclient/GetNodeFile ERROR connection through http new Request: "+err.Error())
 		return nil, err
 	}
-	defer resp.Body.Close()
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/GetNodeFile ERROR reading file: "+err.Error())
@@ -182,7 +181,8 @@ func GetNodeFile(ipData string, portData string, loadFile map[string]string)(rDa
 	}
     json.Unmarshal(responseData, &rData)
     rData["nodeUUID"] = loadFile["uuid"]
-		
+	
+	defer resp.Body.Close()
 	return rData, nil
 }
 
@@ -209,13 +209,13 @@ func GetSuricataBPF(ipnid string, portnid string)(bpf string, err error){
 		logs.Error("nodeclient/GetNodeFile ERROR connection through http new Request: "+err.Error())
 		return "", err
 	}
-	defer resp.Body.Close()
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/GetNodeFile ERROR reading file: "+err.Error())
 		return "", err
 	}
     json.Unmarshal(responseData, &bpf)
+	defer resp.Body.Close()
 	return bpf, nil
 }
 
@@ -226,13 +226,13 @@ func RunSuricata(ipnid string, portnid string)(data string, err error){
 		logs.Error("nodeclient/RunSuricata ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
-
+	
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/RunSuricata ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -243,13 +243,13 @@ func StopSuricata(ipnid string, portnid string)(data string, err error){
 		logs.Error("nodeclient/StopSuricata ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
-
+	
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/StopSuricata ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -260,13 +260,13 @@ func RunWazuh(ipnid string, portnid string)(data string, err error){
 		logs.Error("nodeclient/RunWazuh ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
-
+	
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/RunWazuh ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -277,13 +277,13 @@ func StopWazuh(ipnid string, portnid string)(data string, err error){
 		logs.Error("nodeclient/RunWazuh ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
-
+	
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/RunWazuh ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -294,13 +294,13 @@ func RunZeek(ipnid string, portnid string)(data string, err error){
 		logs.Error("nodeclient/RunZeek ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
-
+	
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/RunZeek ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -311,13 +311,13 @@ func StopZeek(ipnid string, portnid string)(data string, err error){
 		logs.Error("nodeclient/StopZeek ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
-
+	
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/StopZeek ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -344,13 +344,13 @@ func GetAllServers(ipuuid string,portuuid string)(data map[string]map[string]str
 		logs.Error("GetAllServers ERROR on the new HTTP request response: "+err.Error())
         return nil,err
 	}
-    defer resp.Body.Close()
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("GetAllServers ERROR reading requested data: "+err.Error())
         return nil,err
 	}
     json.Unmarshal(responseData, &data)
+	defer resp.Body.Close()
     return data,nil
 }
 
@@ -361,13 +361,13 @@ func GetServer(ipuuid string,portuuid string, serveruuid string)(data map[string
 		logs.Error("GetServer ERROR on the new HTTP request response: "+err.Error())
         return nil,err
 	}
-    defer resp.Body.Close()
 	responseData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("GetServer ERROR reading requested data: "+err.Error())
         return nil,err
 	}
     json.Unmarshal(responseData, &data)
+	defer resp.Body.Close()
     return data,nil
 }
 
@@ -378,13 +378,13 @@ func RunStap(ipnid string, portnid string, uuid string)(data string, err error){
 		logs.Error("nodeclient/RunStap ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
-
+	
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/RunStap ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -395,13 +395,13 @@ func StopStap(ipnid string, portnid string, uuid string)(data string, err error)
 		logs.Error("nodeclient/StopStap ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
-
+	
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/StopStap ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -412,12 +412,12 @@ func RunStapServer(ipnid string, portnid string, server string)(data string, err
 		logs.Error("nodeclient/RunStapServer ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/RunStapServer ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -428,12 +428,12 @@ func StopStapServer(ipnid string, portnid string, server string)(data string, er
 		logs.Error("nodeclient/StopStapServer ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/StopStapServer ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -444,12 +444,12 @@ func DeleteStapServer(ipnid string, portnid string, server string)(data string, 
 		logs.Error("nodeclient/DeleteStapServer ERROR connection through http new Request: "+err.Error())
         return "", err
     }
-    defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/DeleteStapServer ERROR reading request data: "+err.Error())
         return "",err
 	}
+	defer resp.Body.Close()
 	return string(body),nil
 }
 
@@ -460,7 +460,6 @@ func PingServerStap(ipnid string, portnid string, server string)(data map[string
 		logs.Error("nodeclient/PingServerStap ERROR connection through http new Request: "+err.Error())
         return nil, err
     }
-    defer resp.Body.Close()
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		logs.Error("nodeclient/PingServerStap ERROR reading request data: "+err.Error())
@@ -471,6 +470,7 @@ func PingServerStap(ipnid string, portnid string, server string)(data map[string
 		logs.Error("PingServerStap ERROR doing unmarshal JSON: "+err.Error())
         return nil,err
 	}
+	defer resp.Body.Close()
 	return data,nil
 }
 

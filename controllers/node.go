@@ -44,7 +44,7 @@ func (n *NodeController) CreateNode() {
     err := models.AddNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
-        logs.Info("NODE CREATE -> error: %s", err.Error())
+        logs.Error("NODE CREATE -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -63,7 +63,7 @@ func (n *NodeController) DeployNode() {
     n.Data["json"] = map[string]string{"nid": nid, "state":"Success"}
     if nid == "" {
     	n.Data["json"] = map[string]string{"nid": "", "state":"Failure"}
-        logs.Info("NODE DEPLOY -> error -> No Node ID")
+        logs.Error("NODE DEPLOY -> error -> No Node ID")
     }
     n.ServeJSON()
 }
@@ -80,7 +80,7 @@ func (n *NodeController) UpdateNode() {
     err := models.UpdateNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
-        logs.Info("NODE CREATE -> error: %s", err.Error())
+        logs.Info("NODE UPDATE -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -165,7 +165,7 @@ func (n *NodeController) GetWazuh() {
     n.ServeJSON()
 }
 
-// @Title Get Suricata BPF
+// @Title GetSuricata BPF
 // @Description Get Suricata BPF from node
 // @Success 200 {object} models.Node
 // @Failure 403 :nid is empty
@@ -187,7 +187,7 @@ func (n *NodeController) GetSuricataBPF() {
 }
 
 
-// @Title Set BPF to Node
+// @Title PutSuricataBPF
 // @Description Set BPF to node
 // @Success 200 {object} models.Node
 // @Failure 403 :nid is empty

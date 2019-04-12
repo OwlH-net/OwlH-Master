@@ -37,7 +37,7 @@ func main() {
 	logs.NewLogger(10000)
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
-	logs.Error("Version: 0.5.190411.0915")
+	logs.Error("Version: 0.5.190412.0915")
 
     ndb.Conn()
     ndb.RConn()

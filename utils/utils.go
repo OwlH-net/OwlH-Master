@@ -42,8 +42,8 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
 	if err != nil {
 		logs.Error("Error Executing HTTP new request")
 	}
-    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true},}
-    client := &http.Client{Transport: tr}
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, DisableKeepAlives: true,}
+	client := &http.Client{Transport: tr}
 	resp, err = client.Do(req)
 	if err != nil {
 		logs.Error("Error Retrieving response from client HTTP new request")
