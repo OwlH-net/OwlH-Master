@@ -41,8 +41,9 @@ type NodeController struct {
 func (n *NodeController) CreateNode() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.AddNode(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+	logs.Debug("creating node")
+	err := models.AddNode(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Error("NODE CREATE -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
