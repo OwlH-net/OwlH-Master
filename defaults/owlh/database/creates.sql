@@ -1,9 +1,4 @@
-CREATE TABLE aboutme (
- am_id integer PRIMARY KEY AUTOINCREMENT,
- am_param text NOT NULL, 
- am_value text NOT NULL
-);
-
+// node.db
 CREATE TABLE nodes (
  node_id integer PRIMARY KEY AUTOINCREMENT,
  node_uniqueid text NOT NULL,
@@ -11,6 +6,7 @@ CREATE TABLE nodes (
  node_value text NOT NULL
 );
 
+// ruleset.db
 CREATE TABLE ruleset (
  ruleset_id integer PRIMARY KEY AUTOINCREMENT,
  ruleset_uniqueid text NOT NULL,

@@ -41,7 +41,6 @@ type NodeController struct {
 func (n *NodeController) CreateNode() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	logs.Debug("creating node")
 	err := models.AddNode(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -308,7 +307,6 @@ func (n *NodeController) GetAllFiles() {
 // @Success 200 {object} models.Node
 // @router /RunSuricata/:uuid [put]
 func (n *NodeController) RunSuricata() { 
-	logs.Debug("DENTRO DEL RUN SURICATA")
 	uuid := n.GetString(":uuid")
 	data, err := models.RunSuricata(uuid)
 

@@ -242,17 +242,17 @@ func AddNode(n map[string]string) (err error) {
     logs.Info("ADD NODE -> IN")
 	nodeKey := utils.Generate()
     if _, ok := n["name"]; !ok {
-		logs.Debug("name empty")
+		logs.Error("name empty: "+err.Error())
         return errors.New("name empty")
     }
     if _, ok := n["ip"]; !ok {
-		logs.Debug("ip empty")
+		logs.Error("ip empty: "+err.Error())
         return errors.New("ip empty")
     }
 
     if err := nodeExists(nodeKey); err != nil {
-		logs.Debug("node exist")
-        return err
+		logs.Error("node exist: "+err.Error())
+        return errors.New("name empty")
     }
     
     for key, value := range n {
