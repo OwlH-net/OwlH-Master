@@ -34,6 +34,11 @@ func init() {
 				&controllers.StapController{},
 			),
 		),
+		beego.NSNamespace("/group",
+			beego.NSInclude(
+				&controllers.StapController{},
+		),
+	),
 		
 	)
 	beego.AddNamespace(ns)

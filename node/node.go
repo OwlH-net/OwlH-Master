@@ -213,12 +213,10 @@ func nodeKeyUpdate(id int, nkey string, key string, value string) (err error) {
 }
 
 func nodeKeyInsert(nkey string, key string, value string) (err error) {
-    logs.Info("NODE Insert -> IN")
     if ndb.Db == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
     }
-    logs.Info("nkey: %s, key: %s, value: %s", nkey, key, value)
     stmt, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values(?,?,?)")
     if err != nil {
         logs.Error("Prepare -> %s", err.Error())
