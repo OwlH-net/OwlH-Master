@@ -2,15 +2,7 @@ package master
 
 import (
     "github.com/astaxie/beego/logs"
-//    "database/sql"
-//    "fmt"
-//   "time"
-//    _ "github.com/mattn/go-sqlite3"
-    // "owlhmaster/database"
-	// "owlhmaster/aboutme"
 	"owlhmaster/utils"
-	// "io/ioutil"
-	// "encoding/json"
 )
 
 //Obtain title for webpage from main.conf

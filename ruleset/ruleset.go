@@ -1,14 +1,12 @@
 package ruleset
 
 import(
-    //"io/ioutil"
     "fmt"
     "github.com/astaxie/beego/logs"
     "bufio" //read line by line the doc
     "regexp"
     "os"
     "os/exec"
-    //"strconv"
     "owlhmaster/utils"
     "owlhmaster/database"
     "errors"
@@ -51,8 +49,9 @@ func Read(path string)(rules map[string]map[string]string, err error) {
 
     var validID = regexp.MustCompile(`sid:(\d+);`)
     var ipfield = regexp.MustCompile(`^([^\(]+)\(`)
-    var msgfield = regexp.MustCompile(`msg:([^;]+);`)
-    var enablefield = regexp.MustCompile(`^#`)
+    var msgfield = regexp.MustCompile(`msg:\"([^"]+)\"`)
+	var enablefield = regexp.MustCompile(`^#`)
+
 
     scanner := bufio.NewScanner(data)
     rules = make(map[string]map[string]string)
@@ -421,10 +420,11 @@ func GetRuleNote(ruleGetNote map[string]string)(note string, err error){
         return "", errors.New("GetRuleNote -- Can't access to database")
     } 
     row := ndb.Rdb.QueryRow("SELECT ruleNote FROM rule_note WHERE ruleset_uniqueid=\""+uuidMap+"\" and rule_sid=\""+sidMap+"\";")
-    err = row.Scan(&noteText)
+	err = row.Scan(&noteText)
+
     if err != nil {
-        logs.Error("DB GetNote -> Can't read query result")
-        return "", errors.New("DB GetNote -> row.Scan error")
+        logs.Error("DB GetNote -> Can't read query result: "+err.Error())
+        return "", err
     }
     return noteText, nil
 }

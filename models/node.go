@@ -2,24 +2,8 @@ package models
 
 import (
     "github.com/astaxie/beego/logs"
-    // "errors"
     "owlhmaster/node"
-//    "database/sql"
-//    "fmt"
-//   "time"
-//    _ "github.com/mattn/go-sqlite3"
-//    "myapi/database"
 )
-
-
-
-func init() {
-    logs.Info("NODE -> Init")
-}
-
-func InitNode() string {
-    return "go"
-}
 
 func GetAllNodes() (anode *map[string]map[string]string, err error) {
     anode, err = node.GetAllNodes()
@@ -62,9 +46,9 @@ func GetSuricataBPF(n string) (data string, err error) {
     return data,err
 }
 
-func PutSuricataBPF(n map[string]string) (data string, err error) {
-    data,err = node.PutSuricataBPF(n)
-    return data,err
+func PutSuricataBPF(n map[string]string) (err error) {
+    err = node.PutSuricataBPF(n)
+    return err
 }
 
 

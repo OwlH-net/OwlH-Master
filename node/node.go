@@ -7,14 +7,10 @@ import (
     "errors"
     "owlhmaster/nodeclient"
     "owlhmaster/ruleset"
-    "owlhmaster/utils"
     "owlhmaster/stap"
+    "owlhmaster/utils"
     "regexp"
     "io/ioutil"
-    // "net/http"
-    // "crypto/tls"
-    "bytes"
-    "encoding/json"
 )
 
 func findNode(s string) (id string, err error) {
@@ -244,16 +240,19 @@ func nodeKeyInsert(nkey string, key string, value string) (err error) {
 
 func AddNode(n map[string]string) (err error) {
     logs.Info("ADD NODE -> IN")
-    nodeKey := utils.Generate()
+	nodeKey := utils.Generate()
     if _, ok := n["name"]; !ok {
+		logs.Error("name empty: "+err.Error())
         return errors.New("name empty")
     }
     if _, ok := n["ip"]; !ok {
+		logs.Error("ip empty: "+err.Error())
         return errors.New("ip empty")
     }
 
     if err := nodeExists(nodeKey); err != nil {
-        return err
+		logs.Error("node exist: "+err.Error())
+        return errors.New("name empty")
     }
     
     for key, value := range n {
@@ -395,33 +394,26 @@ func SetRuleset(uuid string) (err error) {
     
     rulesetID, err := ruleset.GetRuleSelected(uuid)
     if err != nil {
-        logs.Notice("SetRuleset node ERROR GetRuleSelected: ")
+        logs.Error("SetRuleset node ERROR GetRuleSelected: "+err.Error())
         return err
     }
     path, err := ruleset.GetRulesetPath(rulesetID)
     if err != nil {
-        logs.Notice("SetRuleset node ERROR GetRulesetPath: ")
+        logs.Error("SetRuleset node ERROR GetRulesetPath: "+err.Error())
         return err
     }
 
     data, err := ioutil.ReadFile(path)
     if err != nil {
-        logs.Notice("SetRuleset ioutil.ReadFile ERROR: ")
+        logs.Error("SetRuleset ioutil.ReadFile ERROR: "+err.Error())
         return err
     }
 
-    //crear map para insertar el ruleset
-    values := make(map[string][]byte)
-    values["data"] = data
-
-    //pasar json al nodo con el ruleset
-    url := "https://"+ipData+":"+portData+"/node/suricata/retrieve"
-	valuesJSON,err := json.Marshal(values)
-	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	err = nodeclient.SetRuleset(ipData,portData,data)
 	if err != nil {
-		logs.Error("node/SetRuleset ERROR connection through http new Request: "+err.Error())
+		logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error())
+		return err
 	}
-    defer resp.Body.Close()
     return nil
 }
 
@@ -457,17 +449,14 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 			return voidArray, err
 		}
 	}
-	url := "https://"+ipData+":"+portData+"/node/file/"+loadFile["file"]
-	resp,err := utils.NewRequestHTTP("GET", url, nil)
+
+	rData,err = nodeclient.GetNodeFile(ipData,portData,loadFile)
 	if err != nil {
-		logs.Error("node/GetNodeFile ERROR connection through http new Request: "+err.Error())
+		logs.Error("node/GetNodeFile ERROR reading file: "+err.Error())
+		return nil, err
 	}
-    defer resp.Body.Close()
-    responseData, err := ioutil.ReadAll(resp.Body)
-    logs.Info("GetNodeFile response Body:", responseData)
-    json.Unmarshal(responseData, &rData)
-    rData["nodeUUID"] = loadFile["uuid"]
-    return rData,err
+
+    return rData,nil
 }
 
 
@@ -500,14 +489,13 @@ func SetNodeFile(loadFile map[string]string) (err error) {
 			return err
 		}
 	}
-    url := "https://"+ipData+":"+portData+"/node/file"
-	valuesJSON,err := json.Marshal(loadFile)
-	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    defer resp.Body.Close()
-    if err != nil {
-		logs.Error("node/SetNodeFile ERROR connection through http new Request: "+err.Error())
+
+	err = nodeclient.SetNodeFile(ipData,portData,loadFile)
+	if err != nil {
+		logs.Error("node/SetNodeFile ERROR request HTTP: "+err.Error())
+		return err
 	}
-    return err
+    return nil
 }
 
 
@@ -542,22 +530,12 @@ func GetAllFiles(uuid string) (data map[string]string, err error) {
 		}
 	}
 	logs.Info("GetAllFiles PORT --> "+portData)
-    
-    url := "https://"+ipData+":"+portData+"/node/file"
-	resp,err := utils.NewRequestHTTP("GET", url, nil)
+
+	resp,err := nodeclient.GetAllFiles(ipData,portData,uuid)
 	if err != nil {
 		logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
         return rData, err
-    }
-    defer resp.Body.Close()
-    logs.Info("GetNodeFile response Status:", resp.Status)
-    logs.Info("GetNodeFile response Headers:", resp.Header)
-    responseData, err := ioutil.ReadAll(resp.Body)
-    logs.Info("GetNodeFile response Body:", responseData)
+	}
 
-    json.Unmarshal(responseData, &rData)
-    logs.Info(rData)
-    rData["nodeUUID"] = uuid
-
-    return rData,err
+    return resp,err
 }

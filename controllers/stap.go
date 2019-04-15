@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	//"strconv"
 	"github.com/astaxie/beego"
-    // "github.com/astaxie/beego/logs"
 )
 
 type StapController struct {
@@ -158,6 +157,21 @@ func (n *StapController) DeleteStapServer() {
     server := n.GetString(":server")
     data, err := models.DeleteStapServer(uuid,server)
     n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title EditStapServer
+// @Description Edit Stap server
+// @Success 200 {object} models.stap
+// @router /EditStapServer [put]
+func (n *StapController) EditStapServer() { 
+    var editedMap map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &editedMap)
+    err := models.EditStapServer(editedMap)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
