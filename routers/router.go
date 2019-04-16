@@ -36,7 +36,7 @@ func init() {
 		),
 		beego.NSNamespace("/group",
 			beego.NSInclude(
-				&controllers.StapController{},
+				&controllers.GroupController{},
 		),
 	),
 		

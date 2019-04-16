@@ -13,6 +13,7 @@ import (
 
 
 func main() {
+	//Configuration for the logger
 	var err error
 	loadDataLogger := map[string]map[string]string{}
 	loadDataLogger["logs"] = map[string]string{}
@@ -37,12 +38,18 @@ func main() {
 	logs.NewLogger(10000)
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
-	logs.Error("Version: 0.5.190415.0922")
+	//Application version
+	logs.Error("Version: 0.5.190416.1100")
 
+	//Init database connection
     ndb.Conn()
     ndb.RConn()
+	ndb.GConn()
+	
+	//Init dispatcher at master
     go dispatcher.Init()
-    
+	
+	//Beego API documentation
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
