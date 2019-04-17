@@ -34,12 +34,16 @@ func init() {
 				&controllers.StapController{},
 			),
 		),
+		beego.NSNamespace("/rulesetSource",
+			beego.NSInclude(
+				&controllers.RulesetSourceController{},
+			),
+		),
 		beego.NSNamespace("/group",
 			beego.NSInclude(
 				&controllers.GroupController{},
-		),
-	),
-		
+			),
+		),	
 	)
 	beego.AddNamespace(ns)
 }

@@ -27,3 +27,15 @@ CREATE TABLE ruleset_node (
     note_date text NOT NULL,
     ruleNote text NOT NULL
  );
+  CREATE TABLE groups (
+    group_id integer PRIMARY KEY AUTOINCREMENT,
+    group_uniqueid text NOT NULL,
+    group_param text NOT NULL,
+    group_value text NOT NULL
+ );
+ CREATE TABLE ruleset_source (
+    source_id integer PRIMARY KEY AUTOINCREMENT,
+    source_uniqueid text NOT NULL,
+    source_param text NOT NULL,
+    source_value text NOT NULL
+ );

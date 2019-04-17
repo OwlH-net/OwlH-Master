@@ -52,12 +52,12 @@ func DeleteGroup(groupId string) (err error) {
 	return nil
 }
 
-func groupExists(nodeid string) (err error) {
+func groupExists(groupID string) (err error) {
     if ndb.Gdb == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
     }
-    sql := "SELECT * FROM groups where group_uniqueid = '"+nodeid+"';"
+    sql := "SELECT * FROM groups where group_uniqueid = '"+groupID+"';"
     rows, err := ndb.Gdb.Query(sql)
     if err != nil {
         logs.Error("Error on query groupExist at group.go "+err.Error())
@@ -65,7 +65,7 @@ func groupExists(nodeid string) (err error) {
     }
     defer rows.Close()
     if rows.Next() {
-        return errors.New("Node Exists " + nodeid)
+        return errors.New("Group Exists " + groupID)
     } else {
         return nil
     }
@@ -116,37 +116,37 @@ func GetAllGroups()(groups map[string]map[string]string, err error){
 }
 
 func EditGroup(data map[string]string) (err error) { 
-	var name = data["name"]
-	var desc = data["desc"]
 	var groupid = data["groupid"]
     if ndb.Gdb == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
 	}
 	
-	//insert name
-    insertName, err := ndb.Gdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
-    if err != nil {
-		logs.Error("Prepare EditGroup-> %s", err.Error())
-        return err
-    }
-    _, err = insertName.Exec(&name, "name", &groupid)
-    if err != nil {
-		logs.Error("Execute EditGroup-> %s", err.Error())
-        return err
-	}
-	
-	//insert desc
-	insertDesc, err := ndb.Gdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
-    if err != nil {
-        logs.Error("Prepare EditGroup-> %s", err.Error())
-        return err
-    }
-    _, err = insertDesc.Exec(&desc, "desc", &groupid)
-    if err != nil {
-        logs.Error("Execute EditGroup-> %s", err.Error())
-        return err
+	for k,v := range data { 
+		if k == "groupid"{
+			continue
+		}else{
+			err = InsertGroup(k, v, groupid)
+			if err != nil {
+				logs.Error("Error inserting edit files to group")
+				return err
+			}
+		}
 	}
 	
     return nil
+}
+
+func InsertGroup(param string, value string, groupid string)(err error){
+	editGroup, err := ndb.Gdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
+	if err != nil {
+		logs.Error("Prepare EditGroup-> %s", err.Error())
+		return err
+	}
+	_, err = editGroup.Exec(&value, &param, &groupid)
+	if err != nil {
+		logs.Error("Execute EditGroup-> %s", err.Error())
+		return err
+	}
+	return nil
 }

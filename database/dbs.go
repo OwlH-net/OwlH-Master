@@ -40,4 +40,5 @@ func Close() {
 	Db.Close()
 	Rdb.Close()
 	Gdb.Close()
+	RSdb.Close()
 }

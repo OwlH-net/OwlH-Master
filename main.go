@@ -39,12 +39,13 @@ func main() {
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
 	//Application version
-	logs.Error("Version: 0.5.190416.1100")
+	logs.Error("Version: 0.5.190417.1139")
 
 	//Init database connection
     ndb.Conn()
     ndb.RConn()
 	ndb.GConn()
+	ndb.RSConn()
 	
 	//Init dispatcher at master
     go dispatcher.Init()
