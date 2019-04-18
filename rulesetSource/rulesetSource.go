@@ -3,7 +3,8 @@ package rulesetSource
 import (
     "github.com/astaxie/beego/logs"
     "owlhmaster/database"
-    "errors"
+	"errors"
+	"os"
     "owlhmaster/utils"
 )
 
@@ -154,10 +155,21 @@ func InsertRulesetSource(param string, value string, sourceuuid string)(err erro
 }
 
 func DownloadFile(data map[string]string) (err error) {	
+	os.Remove("/rules")
 	err = utils.DownloadFile(data["path"], data["url"])
 	if err != nil {
 		logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
 		return err
 	}
+
+	err = utils.ExtractTarGz(data["path"])
+	if err != nil {
+		logs.Error("Error unzipping file downloaded: "+err.Error())
+        return err
+	}
+	logs.Debug("AFTER THE DARK")
+
+	os.Remove(data["path"])
+
 	return nil
 }

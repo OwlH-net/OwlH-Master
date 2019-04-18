@@ -8,6 +8,8 @@ import (
 	"os"
 	"net/http"
 	"crypto/tls"
+	"archive/tar"
+	"compress/gzip"
 )
 
 //Read map data
@@ -56,10 +58,10 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
 func DownloadFile(filepath string, url string) error {
-	logs.Debug(filepath+"  --  "+url)
     // Get the data
     resp, err := http.Get(url)
     if err != nil {
+		logs.Error("Error downloading file: "+err.Error())
         return err
     }
     defer resp.Body.Close()
@@ -67,11 +69,64 @@ func DownloadFile(filepath string, url string) error {
     // Create the file
     out, err := os.Create(filepath)
     if err != nil {
-        return err
+		logs.Error("Error creating file after download: "+err.Error())
+		return err
     }
     defer out.Close()
 
     // Write the body to file
-    _, err = io.Copy(out, resp.Body)
-    return err
+	_, err = io.Copy(out, resp.Body)
+	if err != nil {
+		logs.Error("Error Copying downloaded file: "+err.Error())
+        return err
+	}
+    return nil
+}
+
+func ExtractTarGz(filePath string)(err error){
+	os.Remove("/tmp/owlh/unzipped")
+	file, err := os.Open(filePath)
+	defer file.Close()
+	if err != nil {
+        return err
+	}
+
+	uncompressedStream, err := gzip.NewReader(file)
+	if err != nil {
+        return err
+	}
+
+	tarReader := tar.NewReader(uncompressedStream)
+	for true {
+		header, err := tarReader.Next()
+        if err == io.EOF {
+            break
+        }
+        if err != nil {
+			return err
+        }
+
+        switch header.Typeflag {
+		case tar.TypeDir:
+			err := os.Mkdir(header.Name, 0755);
+			if err != nil {
+				logs.Error("TypeDir: "+err.Error())
+				return err
+            }
+		case tar.TypeReg:
+			outFile, err := os.Create(header.Name)
+			_, err = io.Copy(outFile, tarReader)
+            if err != nil {
+				logs.Error("TypeReg: "+err.Error())
+				return err
+            }
+        default:
+            logs.Error(
+                "ExtractTarGz: uknown type: %s in %s",
+                header.Typeflag,
+                header.Name)
+        }
+    }
+
+	return nil
 }
