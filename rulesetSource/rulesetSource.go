@@ -4,8 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "owlhmaster/database"
 	"errors"
-	"os"
-    "owlhmaster/utils"
+	"owlhmaster/utils"
 )
 
 
@@ -155,7 +154,6 @@ func InsertRulesetSource(param string, value string, sourceuuid string)(err erro
 }
 
 func DownloadFile(data map[string]string) (err error) {	
-	os.Remove("/rules")
 	err = utils.DownloadFile(data["path"], data["url"])
 	if err != nil {
 		logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
@@ -167,9 +165,32 @@ func DownloadFile(data map[string]string) (err error) {
 		logs.Error("Error unzipping file downloaded: "+err.Error())
         return err
 	}
-	logs.Debug("AFTER THE DARK")
+	logs.Info("Extract complete!")
+	return nil
+}
 
-	os.Remove(data["path"])
+func CompareFiles(data map[string]string) (err error) {	
+	// file1, err := utils.MapFromFile(data["new"])
+	// file2, err := utils.MapFromFile(data["old"])
+	file1, err := utils.MapFromFile("/root/workspace/src/owlhmaster/rules/drop.rules")
+	file2, err := utils.MapFromFile("/root/workspace/src/owlhmaster/rules2/drop.rules")
+
+	notExist := true
+	logs.Error(notExist)
+	for x,_ := range file1 { 
+		for y,_ := range file2 { 
+			if x == y {
+				notExist = false
+				if file1[x]["Line"] != file2[x]["Line"] || file1[x]["Enabled"] != file2[x]["Enabled"] {
+					logs.Info(file1[x]["Line"])
+				}
+			}
+		}
+		if notExist {
+			logs.Error(x+" NOT EXIST")
+		}
+	}
+	logs.Debug(notExist)
 
 	return nil
 }

@@ -1,5 +1,6 @@
 package utils
 
+
 import (
     "encoding/json"
     "github.com/astaxie/beego/logs"
@@ -10,6 +11,8 @@ import (
 	"crypto/tls"
 	"archive/tar"
 	"compress/gzip"
+	"regexp"
+	"bufio"
 )
 
 //Read map data
@@ -66,26 +69,52 @@ func DownloadFile(filepath string, url string) error {
     }
     defer resp.Body.Close()
 
-    // Create the file
-    out, err := os.Create(filepath)
-    if err != nil {
+	//check if the directory exists
+	// ck := exists(filepath)
+	// if ck == true { // path contains data
+	// 	//remove from old_download
+	// 	os.RemoveAll("/tmp/owlh/old_download")
+	// 	//copy from new_download to old_download
+	// 	err = CopyDir("/tmp/owlh/new_download/", "/tmp/owlh/old_download/")
+	// 	if err != nil {
+	// 		return err
+	// 	}
+	// 	//remove from new_download
+	// 	os.RemoveAll("/tmp/owlh/new_download")
+	// 	//download new content
+	// 	// out, err := os.Create(filepath)
+	// 	// if err != nil {
+	// 	// 	logs.Error("Error creating file after download: "+err.Error())
+	// 	// 	return err
+	// 	// }
+	// 	// defer out.Close()
+	// 	// _, err = io.Copy(out, resp.Body)
+	// 	// if err != nil {
+	// 	// 	logs.Error("Error Copying downloaded file: "+err.Error())
+	// 	// 	return err
+	// 	// }
+	// }else{ //path is empty
+
+	// Create the file
+	out, err := os.Create(filepath)
+	if err != nil {
 		logs.Error("Error creating file after download: "+err.Error())
 		return err
-    }
-    defer out.Close()
+	}
+	defer out.Close()
 
-    // Write the body to file
+	// Write the body to file
 	_, err = io.Copy(out, resp.Body)
 	if err != nil {
 		logs.Error("Error Copying downloaded file: "+err.Error())
-        return err
+		return err
 	}
-    return nil
+	// }
+	return nil
 }
 
-func ExtractTarGz(filePath string)(err error){
-	os.Remove("/tmp/owlh/unzipped")
-	file, err := os.Open(filePath)
+func ExtractTarGz(filepath string)(err error){
+	file, err := os.Open(filepath)
 	defer file.Close()
 	if err != nil {
         return err
@@ -127,6 +156,95 @@ func ExtractTarGz(filePath string)(err error){
                 header.Name)
         }
     }
-
 	return nil
+}
+
+// exists returns whether the given file or directory exists
+func exists(path string) (bool) {
+    _, err := os.Stat(path)
+    if err == nil { return false}
+    if os.IsNotExist(err) { return true }
+    return false
+}
+
+func CopyDir(source string, dest string) (err error) {
+	// get properties of source dir
+	sourceinfo, err := os.Stat(source)
+	if err != nil {
+		return err
+	}
+	// create dest dir
+	err = os.MkdirAll(dest, sourceinfo.Mode())
+	if err != nil {
+		return err
+	}
+	directory, _ := os.Open(source)
+	objects, err := directory.Readdir(-1)
+	for _, obj := range objects {
+		sourcefilepointer := source + "/" + obj.Name()
+		destinationfilepointer := dest + "/" + obj.Name()
+		if obj.IsDir() {
+			// create sub-directories - recursively
+			err = CopyDir(sourcefilepointer, destinationfilepointer)
+			if err != nil {
+				logs.Error("Error copying folder recursively: "+err.Error())
+			}
+		} else {
+			// perform copy
+			err = CopyFile(sourcefilepointer, destinationfilepointer)
+			if err != nil {
+				logs.Error("Error copying file recursively: "+err.Error())
+			}
+		}
+	}
+	return
+}
+
+func CopyFile(source string, dest string) (err error) {
+	sourcefile, err := os.Open(source)
+	if err != nil {
+		return err
+	}
+	defer sourcefile.Close()
+	destfile, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer destfile.Close()
+	_, err = io.Copy(destfile, sourcefile)
+	if err == nil {
+		sourceinfo, err := os.Stat(source)
+		if err != nil {
+			err = os.Chmod(dest, sourceinfo.Mode())
+		}
+	}
+	return
+}
+
+func MapFromFile(path string)(mapData map[string]map[string]string, err error){
+	var mapFile = make(map[string]map[string]string)
+	var validID = regexp.MustCompile(`sid:(\d+);`)
+	var enablefield = regexp.MustCompile(`^#`)
+	// file, err := os.Open("/root/workspace/src/owlhmaster/rules/drop.rules")
+	file, err := os.Open(path)
+	if err != nil {
+		logs.Error("Openning File for export to map: "+ err.Error())
+		return nil, err
+	}
+	scanner := bufio.NewScanner(file)
+	
+	for scanner.Scan() {
+		sid := validID.FindStringSubmatch(scanner.Text())
+		if sid != nil {
+			lineData := make(map[string]string)
+			if enablefield.MatchString(scanner.Text()){
+                lineData["Enabled"]="Disabled"
+            }else{
+                lineData["Enabled"]="Enabled"
+            }
+			lineData["Line"] = scanner.Text()
+			mapFile[sid[1]] = lineData
+		}
+	}
+	return mapFile, nil
 }

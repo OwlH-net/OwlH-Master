@@ -84,3 +84,20 @@ func (n *RulesetSourceController) DownloadFile() {
     }
     n.ServeJSON()
 }
+
+// @Title CompareFiles
+// @Description edit a RulesetSource
+// @Success 200 {object} models.RulesetSource
+// @router /compareFiles [get]
+func (n *RulesetSourceController) CompareFiles() { 
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	logs.Info(anode["new"])
+	logs.Info(anode["old"])
+    err := models.CompareFiles(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

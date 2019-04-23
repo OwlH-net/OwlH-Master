@@ -28,3 +28,8 @@ func DownloadFile(data map[string]string) (err error) {
     err = rulesetSource.DownloadFile(data)
     return err
 }
+
+func CompareFiles(data map[string]string) (err error) {
+    err = rulesetSource.CompareFiles(data)
+    return err
+}
