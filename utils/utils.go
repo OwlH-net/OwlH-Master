@@ -167,72 +167,72 @@ func exists(path string) (bool) {
     return false
 }
 
-func CopyDir(source string, dest string) (err error) {
-	// get properties of source dir
-	sourceinfo, err := os.Stat(source)
-	if err != nil {
-		return err
-	}
-	// create dest dir
-	err = os.MkdirAll(dest, sourceinfo.Mode())
-	if err != nil {
-		return err
-	}
-	directory, _ := os.Open(source)
-	objects, err := directory.Readdir(-1)
-	for _, obj := range objects {
-		sourcefilepointer := source + "/" + obj.Name()
-		destinationfilepointer := dest + "/" + obj.Name()
-		if obj.IsDir() {
-			// create sub-directories - recursively
-			err = CopyDir(sourcefilepointer, destinationfilepointer)
-			if err != nil {
-				logs.Error("Error copying folder recursively: "+err.Error())
-			}
-		} else {
-			// perform copy
-			err = CopyFile(sourcefilepointer, destinationfilepointer)
-			if err != nil {
-				logs.Error("Error copying file recursively: "+err.Error())
-			}
-		}
-	}
-	return
-}
+// func CopyDir(source string, dest string) (err error) {
+// 	// get properties of source dir
+// 	sourceinfo, err := os.Stat(source)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	// create dest dir
+// 	err = os.MkdirAll(dest, sourceinfo.Mode())
+// 	if err != nil {
+// 		return err
+// 	}
+// 	directory, _ := os.Open(source)
+// 	objects, err := directory.Readdir(-1)
+// 	for _, obj := range objects {
+// 		sourcefilepointer := source + "/" + obj.Name()
+// 		destinationfilepointer := dest + "/" + obj.Name()
+// 		if obj.IsDir() {
+// 			// create sub-directories - recursively
+// 			err = CopyDir(sourcefilepointer, destinationfilepointer)
+// 			if err != nil {
+// 				logs.Error("Error copying folder recursively: "+err.Error())
+// 			}
+// 		} else {
+// 			// perform copy
+// 			err = CopyFile(sourcefilepointer, destinationfilepointer)
+// 			if err != nil {
+// 				logs.Error("Error copying file recursively: "+err.Error())
+// 			}
+// 		}
+// 	}
+// 	return
+// }
 
-func CopyFile(source string, dest string) (err error) {
-	sourcefile, err := os.Open(source)
-	if err != nil {
-		return err
-	}
-	defer sourcefile.Close()
-	destfile, err := os.Create(dest)
-	if err != nil {
-		return err
-	}
-	defer destfile.Close()
-	_, err = io.Copy(destfile, sourcefile)
-	if err == nil {
-		sourceinfo, err := os.Stat(source)
-		if err != nil {
-			err = os.Chmod(dest, sourceinfo.Mode())
-		}
-	}
-	return
-}
+// func CopyFile(source string, dest string) (err error) {
+// 	sourcefile, err := os.Open(source)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer sourcefile.Close()
+// 	destfile, err := os.Create(dest)
+// 	if err != nil {
+// 		return err
+// 	}
+// 	defer destfile.Close()
+// 	_, err = io.Copy(destfile, sourcefile)
+// 	if err == nil {
+// 		sourceinfo, err := os.Stat(source)
+// 		if err != nil {
+// 			err = os.Chmod(dest, sourceinfo.Mode())
+// 		}
+// 	}
+// 	return
+// }
 
 func MapFromFile(path string)(mapData map[string]map[string]string, err error){
 	var mapFile = make(map[string]map[string]string)
 	var validID = regexp.MustCompile(`sid:(\d+);`)
 	var enablefield = regexp.MustCompile(`^#`)
-	// file, err := os.Open("/root/workspace/src/owlhmaster/rules/drop.rules")
+	
 	file, err := os.Open(path)
 	if err != nil {
 		logs.Error("Openning File for export to map: "+ err.Error())
 		return nil, err
 	}
-	scanner := bufio.NewScanner(file)
 	
+	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		sid := validID.FindStringSubmatch(scanner.Text())
 		if sid != nil {

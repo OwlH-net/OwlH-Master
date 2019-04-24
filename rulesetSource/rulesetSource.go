@@ -169,28 +169,67 @@ func DownloadFile(data map[string]string) (err error) {
 	return nil
 }
 
-func CompareFiles(data map[string]string) (err error) {	
-	// file1, err := utils.MapFromFile(data["new"])
-	// file2, err := utils.MapFromFile(data["old"])
-	file1, err := utils.MapFromFile("/root/workspace/src/owlhmaster/rules/drop.rules")
-	file2, err := utils.MapFromFile("/root/workspace/src/owlhmaster/rules2/drop.rules")
+func CompareFiles(data map[string]string) (mapData map[string]map[string]string, err error) {	
+	file1, err := utils.MapFromFile(data["new"])
+	file2, err := utils.MapFromFile(data["old"])
+	if err != nil {
+		logs.Error("Error getting file from map: "+err.Error())
+        return nil, err
+	}
+	var returnMap = make(map[string]map[string]string)
+	
+	lineExist := false
 
-	notExist := true
-	logs.Error(notExist)
+	//check if all the new lines are in old file
 	for x,_ := range file1 { 
+		returnLines := make(map[string]string)
 		for y,_ := range file2 { 
 			if x == y {
-				notExist = false
-				if file1[x]["Line"] != file2[x]["Line"] || file1[x]["Enabled"] != file2[x]["Enabled"] {
-					logs.Info(file1[x]["Line"])
+				lineExist = true
+				if (file1[x]["Line"] != file2[y]["Line"] || file1[x]["Enabled"] != file2[y]["Enabled"]) {
+					returnLines["new"] = file1[x]["Line"]
+					returnLines["old"] = file2[y]["Line"]
+					returnLines["enabled-new"] = file1[x]["Enabled"]
+					returnLines["enabled-old"] = file2[y]["Enabled"]
+					returnLines["sid"] = x
+					returnMap[x] = returnLines
 				}
+				continue
 			}
 		}
-		if notExist {
-			logs.Error(x+" NOT EXIST")
+		if !lineExist {
+			returnLines["new"] = file1[x]["Line"]
+			returnLines["old"] = "N/A"
+			returnLines["enabled-new"] = file1[x]["Enabled"]
+			returnLines["enabled-old"] = "N/A"
+			returnLines["sid"] = x
+			returnMap[x] = returnLines
 		}
-	}
-	logs.Debug(notExist)
 
-	return nil
+		lineExist = false
+	}
+
+	//check if all the old lines are in new file
+	for y,_ := range file2 { 
+		returnLines := make(map[string]string)
+		for x,_ := range file1 {
+			if y == x {
+				lineExist = true
+				continue
+			}
+		}
+		if !lineExist {
+			returnLines["new"] = "N/A"
+			returnLines["old"] = file2[y]["Line"]
+			returnLines["enabled-new"] = "N/A"
+			returnLines["enabled-old"] = file2[y]["Enabled"]
+			returnLines["sid"] = y
+			returnMap[y] = returnLines
+		}
+
+		lineExist = false
+	}
+
+	
+	return returnMap, nil
 }
