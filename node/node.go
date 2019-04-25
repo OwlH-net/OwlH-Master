@@ -394,7 +394,8 @@ func SetRuleset(uuid string) (err error) {
     if err != nil {
         logs.Error("SetRuleset node ERROR GetRuleSelected: "+err.Error())
         return err
-    }
+	}
+
     path, err := ruleset.GetRulesetPath(rulesetID)
     if err != nil {
         logs.Error("SetRuleset node ERROR GetRulesetPath: "+err.Error())

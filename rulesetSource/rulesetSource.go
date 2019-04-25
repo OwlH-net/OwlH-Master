@@ -233,3 +233,12 @@ func CompareFiles(data map[string]string) (mapData map[string]map[string]string,
 	
 	return returnMap, nil
 }
+
+
+func CreateNewFile(data map[string]string) (err error) {
+	logs.Info(data);
+	//create an old file backup 
+	//create new file with
+    
+    return nil
+}

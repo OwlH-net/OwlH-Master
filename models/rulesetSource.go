@@ -33,3 +33,8 @@ func CompareFiles(data map[string]string) (mapData map[string]map[string]string,
     mapData,err = rulesetSource.CompareFiles(data)
     return mapData,err
 }
+
+func CreateNewFile(data map[string]string) (err error) {
+    err = rulesetSource.CreateNewFile(data)
+    return err
+}
