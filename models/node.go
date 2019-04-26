@@ -112,3 +112,8 @@ func StopWazuh(uuid string) (data string, err error) {
     data,err = node.StopWazuh(uuid)
     return data,err
 }
+
+func SyncRulesetToAllNodes(uuid string)(err error){
+    err = node.SyncRulesetToAllNodes(uuid)
+    return err
+}

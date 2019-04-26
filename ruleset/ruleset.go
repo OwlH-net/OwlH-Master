@@ -174,17 +174,6 @@ func GetRulesetPath(uuid string) (n string, err error) {
         row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid=$1 and ruleset_param=\"path\";",uuid)
 		err = row.Scan(&path)
 
-		logs.Debug(path)
-		logs.Debug(path)
-		logs.Debug(path)
-		logs.Debug(path)
-		logs.Debug(path)
-		logs.Debug(path)
-		logs.Debug(path)
-		logs.Debug(path)
-		logs.Debug(path)
-		logs.Debug(path)
-
         if err == sql.ErrNoRows {
             logs.Error("DB RULESET -> There is no ruleset with id %s",uuid)
             return "", errors.New("DB RULESET -> There is no ruleset with id "+uuid)
@@ -321,7 +310,6 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     newFile := ruleCloned["newFile"]
     newDesc := ruleCloned["newDesc"]
     clonedPath := ruleCloned["path"]
-    newRulesetName := strings.Replace(newName, " ", "_", -1)
     newRulesetFile := strings.Replace(newFile, " ", "_", -1)
 
     pathNewRule := path+newRulesetFile+".rules"
@@ -337,7 +325,7 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
             return err
 		}
 		
-		err = insertRulesetValues(newUUID, "name", newRulesetName)
+		err = insertRulesetValues(newUUID, "name", newName)
 		err = insertRulesetValues(newUUID, "file", newFile)
 		err = insertRulesetValues(newUUID, "desc", newDesc)
 		err = insertRulesetValues(newUUID, "path", pathNewRule)
@@ -495,3 +483,31 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
 	}
     return nil
 }
+
+// func SyncRulesetToAllNodes(uuid string)(err error){
+// 	if ndb.Rdb == nil {
+//         logs.Error("SyncRulesetToAllNodes -- Can't access to database")
+//         return errors.New("SyncRulesetToAllNodes -- Can't access to database")
+//     }
+// 	sqlQuery := "SELECT node_uniqueid FROM ruleset_node WHERE ruleset_uniqueid = \""+uuid+"\" ;"
+//     rows, err := ndb.Rdb.Query(sqlQuery)
+//     if err != nil {
+//         logs.Error("SyncRulesetToAllNodes query error %s",err.Error())
+//         return err
+//     }
+//     defer rows.Close()
+//     for rows.Next() {
+// 		var nodeID string
+// 		err = rows.Scan(&nodeID)
+// 		if err != nil {
+// 			logs.Error("SyncRulesetToAllNodes FOR query error %s",err.Error())
+// 			return err
+// 		}
+// 		err = node.SetRuleset(nodeID)
+// 		if err != nil {
+// 			logs.Error("SyncRulesetToAllNodes node.SetRuleset query error %s",err.Error())
+// 			return err
+// 		}
+// 	}
+// 	return nil
+// }

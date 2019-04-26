@@ -69,3 +69,8 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
     err = ruleset.DeleteRuleset(rulesetMap)
     return err
 }
+
+// func SyncRulesetToAllNodes(uuid string)(err error){
+//     err = ruleset.SyncRulesetToAllNodes(uuid)
+//     return err
+// }

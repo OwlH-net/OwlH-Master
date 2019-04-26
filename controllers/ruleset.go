@@ -229,3 +229,18 @@ func (n *RulesetController) DeleteNode() {
     }
     n.ServeJSON()
 }
+
+// // @Title SyncRulesetToAllNodes
+// // @Description synchronize Ruleset to all nodes using it
+// // @Success 200 {object} models.ruleset
+// // @Failure 403 Connection Failure
+// // @router /synchronize/:uuid [put]
+// func (n *RulesetController) SyncRulesetToAllNodes() { 
+// 	uuid := n.GetString(":uuid")
+//     err := models.SyncRulesetToAllNodes(uuid)
+//     n.Data["json"] = map[string]string{"ack": "true"}
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }

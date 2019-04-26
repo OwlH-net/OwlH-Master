@@ -124,7 +124,6 @@ func EditRulesetSource(data map[string]string) (err error) {
         logs.Error("no access to database")
         return errors.New("no access to database")
 	}
-	logs.Debug(data)
 	for k,v := range data { 
 		if k == "sourceuuid"{
 			continue

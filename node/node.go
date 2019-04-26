@@ -538,3 +538,32 @@ func GetAllFiles(uuid string) (data map[string]string, err error) {
 
     return resp,err
 }
+
+
+func SyncRulesetToAllNodes(uuid string)(err error){
+	if ndb.Rdb == nil {
+        logs.Error("SyncRulesetToAllNodes -- Can't access to database")
+        return errors.New("SyncRulesetToAllNodes -- Can't access to database")
+    }
+	sqlQuery := "SELECT node_uniqueid FROM ruleset_node WHERE ruleset_uniqueid = \""+uuid+"\" ;"
+    rows, err := ndb.Rdb.Query(sqlQuery)
+    if err != nil {
+        logs.Error("SyncRulesetToAllNodes query error %s",err.Error())
+        return err
+    }
+    defer rows.Close()
+    for rows.Next() {
+		var nodeID string
+		err = rows.Scan(&nodeID)
+		if err != nil {
+			logs.Error("SyncRulesetToAllNodes FOR query error %s",err.Error())
+			return err
+		}
+		err = SetRuleset(nodeID)
+		if err != nil {
+			logs.Error("SyncRulesetToAllNodes node.SetRuleset query error %s",err.Error())
+			return err
+		}
+	}
+	return nil
+}
