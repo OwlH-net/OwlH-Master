@@ -7,12 +7,15 @@ import (
     "io/ioutil"
 	"io"
 	"os"
+	"os/exec"
 	"net/http"
 	"crypto/tls"
 	"archive/tar"
 	"compress/gzip"
 	"regexp"
+	"strconv"
 	"bufio"
+	"time"
 )
 
 //Read map data
@@ -57,6 +60,20 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
 	return resp, err
 }
 
+func BackupFile(path string, fileName string) (err error) { 
+	logs.Debug(path+fileName)
+    t := time.Now()
+    newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
+    srcFolder := path+fileName
+    destFolder := path+newFile
+    cpCmd := exec.Command("cp", srcFolder, destFolder)
+    err = cpCmd.Run()
+    if err != nil{
+        logs.Error("BackupFile Error exec cmd command: "+err.Error())
+        return err
+    }
+    return nil
+}
 
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.

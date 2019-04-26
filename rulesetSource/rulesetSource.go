@@ -235,9 +235,17 @@ func CompareFiles(data map[string]string) (mapData map[string]map[string]string,
 
 
 func CreateNewFile(data map[string]string) (err error) {
-	logs.Info(data);
+	err = utils.BackupFile("rules/", "drop.rules")
+
+	var lines string
+	
+	// for x := range data{
+		
+	// }
+
 	//create an old file backup 
-	//create new file with
+	//compare 
+		//create new file with new lines
     
     return nil
 }
