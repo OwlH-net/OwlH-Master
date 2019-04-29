@@ -61,7 +61,6 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
 }
 
 func BackupFile(path string, fileName string) (err error) { 
-	logs.Debug(path+fileName)
     t := time.Now()
     newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
     srcFolder := path+fileName
@@ -264,4 +263,41 @@ func MapFromFile(path string)(mapData map[string]map[string]string, err error){
 		}
 	}
 	return mapFile, nil
+}
+
+func ReplaceLines(data map[string]string)(err error){
+	logs.Error(data)
+	saved := false
+	f, err := os.Create("_creating-new-file.txt")
+	defer f.Close()
+	var validID = regexp.MustCompile(`sid:(\d+);`)
+
+	fileOpened, err := os.Open("rules2/drop.rules")
+	scanner := bufio.NewScanner(fileOpened)
+	for scanner.Scan() {
+		for x := range data{
+			if data[x] == "N/A"{
+				logs.Error(data[x])
+				continue
+			}
+			sid := validID.FindStringSubmatch(scanner.Text())
+			if (sid != nil) && (sid[1] == string(x)) {
+				_, err = f.WriteString(string(data[x]))	
+				_, err = f.WriteString("\n")	
+				saved = true
+			}
+		}
+		if !saved{
+			_, err = f.WriteString(scanner.Text())
+			_, err = f.WriteString("\n")	
+		}
+		saved = false
+	}
+	if err != nil {
+		logs.Error("ReplaceLines error writting new lines: "+ err.Error())
+		return err
+	}
+	// b, err := ioutil.ReadFile("_creating-new-file.txt")
+	// _ = os.Remove("_creating-new-file.txt")
+	return nil
 }

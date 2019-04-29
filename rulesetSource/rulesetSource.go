@@ -236,16 +236,16 @@ func CompareFiles(data map[string]string) (mapData map[string]map[string]string,
 
 func CreateNewFile(data map[string]string) (err error) {
 	err = utils.BackupFile("rules/", "drop.rules")
+	if err != nil {
+		logs.Error("CreateNewFile: Error BackupFile from map --> "+err.Error())
+        return err
+	}
 
-	var lines string
-	
-	// for x := range data{
-		
-	// }
-
-	//create an old file backup 
-	//compare 
-		//create new file with new lines
+	err = utils.ReplaceLines(data)
+	if err != nil {
+		logs.Error("CreateNewFile: Error replacing lines from map --> "+err.Error())
+        return err
+	}
     
     return nil
 }
