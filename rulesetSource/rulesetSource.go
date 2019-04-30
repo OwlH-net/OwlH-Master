@@ -5,6 +5,7 @@ import (
     "owlhmaster/database"
 	"errors"
 	"owlhmaster/utils"
+	"os"
 )
 
 
@@ -153,6 +154,11 @@ func InsertRulesetSource(param string, value string, sourceuuid string)(err erro
 }
 
 func DownloadFile(data map[string]string) (err error) {	
+	err = os.RemoveAll(data["path"])
+	if err != nil {
+		logs.Error("Error removing all the files and directories for download new rules-> %s", err.Error())
+		return err
+	}
 	err = utils.DownloadFile(data["path"], data["url"])
 	if err != nil {
 		logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
@@ -164,6 +170,7 @@ func DownloadFile(data map[string]string) (err error) {
 		logs.Error("Error unzipping file downloaded: "+err.Error())
         return err
 	}
+
 	logs.Info("Extract complete!")
 	return nil
 }

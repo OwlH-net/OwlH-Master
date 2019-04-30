@@ -61,10 +61,20 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
 }
 
 func BackupFile(path string, fileName string) (err error) { 
+	loadData := map[string]map[string]string{}
+	loadData["files"] = map[string]string{}
+	loadData["files"]["backupPath"] = ""
+	loadData,err = GetConf(loadData)
+	backupPath := loadData["files"]["backupPath"]
+	if err != nil {
+		logs.Error("Error BackupFile Creating backup: "+err.Error())
+		return err
+	}
+
     t := time.Now()
     newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
     srcFolder := path+fileName
-    destFolder := path+newFile
+    destFolder := backupPath+newFile
     cpCmd := exec.Command("cp", srcFolder, destFolder)
     err = cpCmd.Run()
     if err != nil{
@@ -153,13 +163,13 @@ func ExtractTarGz(filepath string)(err error){
 
         switch header.Typeflag {
 		case tar.TypeDir:
-			err := os.Mkdir(header.Name, 0755);
+			err := os.MkdirAll("conf/downloads/"+header.Name, 0755);
 			if err != nil {
 				logs.Error("TypeDir: "+err.Error())
 				return err
             }
 		case tar.TypeReg:
-			outFile, err := os.Create(header.Name)
+			outFile, err := os.Create("conf/downloads/"+header.Name)
 			_, err = io.Copy(outFile, tarReader)
             if err != nil {
 				logs.Error("TypeReg: "+err.Error())
@@ -175,13 +185,13 @@ func ExtractTarGz(filepath string)(err error){
 	return nil
 }
 
-// exists returns whether the given file or directory exists
-func exists(path string) (bool) {
-    _, err := os.Stat(path)
-    if err == nil { return false}
-    if os.IsNotExist(err) { return true }
-    return false
-}
+// // exists returns whether the given file or directory exists
+// func exists(path string) (bool) {
+//     _, err := os.Stat(path)
+//     if err == nil { return false}
+//     if os.IsNotExist(err) { return true }
+//     return false
+// }
 
 // func CopyDir(source string, dest string) (err error) {
 // 	// get properties of source dir
@@ -266,38 +276,44 @@ func MapFromFile(path string)(mapData map[string]map[string]string, err error){
 }
 
 func ReplaceLines(data map[string]string)(err error){
-	logs.Error(data)
 	saved := false
-	f, err := os.Create("_creating-new-file.txt")
-	defer f.Close()
+	// rulesFile, err := os.OpenFile("rules/drop.rules", os.O_WRONLY | os.O_APPEND, 0666)
+	rulesFile, err := os.Create("_creating-new-file.txt")
+	defer rulesFile.Close()
 	var validID = regexp.MustCompile(`sid:(\d+);`)
 
-	fileOpened, err := os.Open("rules2/drop.rules")
-	scanner := bufio.NewScanner(fileOpened)
+	newFileDownloaded, err := os.Open("conf/downloads/rules/drop.rules")
+	scanner := bufio.NewScanner(newFileDownloaded)
 	for scanner.Scan() {
 		for x := range data{
-			if data[x] == "N/A"{
-				logs.Error(data[x])
-				continue
-			}
 			sid := validID.FindStringSubmatch(scanner.Text())
 			if (sid != nil) && (sid[1] == string(x)) {
-				_, err = f.WriteString(string(data[x]))	
-				_, err = f.WriteString("\n")	
-				saved = true
+				if data[x] == "N/A"{
+					saved = true
+					continue
+				}else{
+					_, err = rulesFile.WriteString(string(data[x]))	
+					_, err = rulesFile.WriteString("\n")	
+					saved = true
+					continue
+				}
 			}
 		}
 		if !saved{
-			_, err = f.WriteString(scanner.Text())
-			_, err = f.WriteString("\n")	
+			_, err = rulesFile.WriteString(scanner.Text())
+			_, err = rulesFile.WriteString("\n")	
 		}
 		saved = false
 	}
+
+	input, err := ioutil.ReadFile("conf/downloads/rules/drop.rules")
+	err = ioutil.WriteFile("rules/drop.rules", input, 0644)
+
+	_ = os.Remove("_creating-new-file.txt")
+
 	if err != nil {
 		logs.Error("ReplaceLines error writting new lines: "+ err.Error())
 		return err
 	}
-	// b, err := ioutil.ReadFile("_creating-new-file.txt")
-	// _ = os.Remove("_creating-new-file.txt")
 	return nil
 }
