@@ -196,8 +196,10 @@ func DownloadFile(data map[string]string) (err error) {
 }
 
 func CompareFiles(data map[string]string) (mapData map[string]map[string]string, err error) {	
-	file1, err := utils.MapFromFile(data["new"])
-	file2, err := utils.MapFromFile(data["old"])
+	// file1, err := utils.MapFromFile(data["new"])
+	// file2, err := utils.MapFromFile(data["old"])
+	file1, err := utils.MapFromFile()
+	file2, err := utils.MapFromFile()
 	if err != nil {
 		logs.Error("Error getting file from map: "+err.Error())
         return nil, err
