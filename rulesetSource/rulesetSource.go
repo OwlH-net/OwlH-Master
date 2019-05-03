@@ -5,6 +5,7 @@ import (
     "owlhmaster/database"
 	"errors"
 	"owlhmaster/utils"
+	"strings"
 	"os"
 )
 
@@ -19,16 +20,21 @@ func CreateRulesetSource(n map[string]string) (err error) {
 		logs.Error("desc source empty: "+err.Error())
         return errors.New("desc empty")
     }
-    if _, ok := n["path"]; !ok {
-		logs.Error("path source empty: "+err.Error())
-        return errors.New("path empty")
-    }
-
     if err := rulesetSourceExists(rulesetSourceKey); err != nil {
 		logs.Error("rulesetSource exist: "+err.Error())
         return errors.New("rulesetSource exist")
-    }
-    
+	}
+	
+	sourceDownload := map[string]map[string]string{}
+	sourceDownload["ruleset"] = map[string]string{}
+	sourceDownload["ruleset"]["sourceDownload"] = ""
+	sourceDownload,err = utils.GetConf(sourceDownload)
+	path := sourceDownload["ruleset"]["sourceDownload"]
+
+	
+	nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)
+	n["path"] = path + nameWithoutSpaces +"/"+ n["fileName"]
+	    
     for key, value := range n {
         err = rulesetSourceKeyInsert(rulesetSourceKey, key, value)
     }
@@ -154,18 +160,32 @@ func InsertRulesetSource(param string, value string, sourceuuid string)(err erro
 }
 
 func DownloadFile(data map[string]string) (err error) {	
-	err = os.RemoveAll(data["path"])
-	if err != nil {
-		logs.Error("Error removing all the files and directories for download new rules-> %s", err.Error())
-		return err
-	}
+
+	// //removing existing path
+	// err = os.RemoveAll(data["path"])
+	// if err != nil {
+	// 	logs.Error("Error removing all the files and directories for download new rules-> %s", err.Error())
+	// 	return err
+	// }
+
+	sourceDownload := map[string]map[string]string{}
+	sourceDownload["ruleset"] = map[string]string{}
+	sourceDownload["ruleset"]["sourceDownload"] = ""
+	sourceDownload,err = utils.GetConf(sourceDownload)
+	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
+
+	//create direcory if doesn't exist
+	splitPath := strings.Split(data["path"], "/")
+	pathSelected := splitPath[len(splitPath)-2]
+	os.MkdirAll(pathDownloaded+pathSelected, os.ModePerm)
+
 	err = utils.DownloadFile(data["path"], data["url"])
 	if err != nil {
 		logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
 		return err
 	}
 
-	err = utils.ExtractTarGz(data["path"])
+	err = utils.ExtractTarGz(data["path"], pathDownloaded, pathSelected)
 	if err != nil {
 		logs.Error("Error unzipping file downloaded: "+err.Error())
         return err
@@ -242,7 +262,17 @@ func CompareFiles(data map[string]string) (mapData map[string]map[string]string,
 
 
 func CreateNewFile(data map[string]string) (err error) {
-	err = utils.BackupFile("rules/", "drop.rules")
+	sourceDownload := map[string]map[string]string{}
+	sourceDownload["ruleset"] = map[string]string{}
+	sourceDownload["ruleset"]["backupPath"] = ""
+	sourceDownload,err = utils.GetConf(sourceDownload)
+	backupPath := sourceDownload["ruleset"]["backupPath"]
+
+	splitPath := strings.Split(data["path"], "/")
+	pathSelected := splitPath[len(splitPath)-2]
+
+
+	err = utils.BackupFile(backupPath + pathSelected, "drop.rules")
 	if err != nil {
 		logs.Error("CreateNewFile: Error BackupFile from map --> "+err.Error())
         return err

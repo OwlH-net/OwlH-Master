@@ -16,6 +16,7 @@ import (
 	"strconv"
 	"bufio"
 	"time"
+	"strings"
 )
 
 //Read map data
@@ -139,8 +140,8 @@ func DownloadFile(filepath string, url string) error {
 	return nil
 }
 
-func ExtractTarGz(filepath string)(err error){
-	file, err := os.Open(filepath)
+func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err error){
+	file, err := os.Open(tarGzFile)
 	defer file.Close()
 	if err != nil {
         return err
@@ -163,13 +164,13 @@ func ExtractTarGz(filepath string)(err error){
 
         switch header.Typeflag {
 		case tar.TypeDir:
-			err := os.MkdirAll("conf/downloads/"+header.Name, 0755);
+			err := os.MkdirAll(pathDownloads+folder+"/"+header.Name, 0755);
 			if err != nil {
 				logs.Error("TypeDir: "+err.Error())
 				return err
             }
 		case tar.TypeReg:
-			outFile, err := os.Create("conf/downloads/"+header.Name)
+			outFile, err := os.Create(pathDownloads+folder+"/"+header.Name)
 			_, err = io.Copy(outFile, tarReader)
             if err != nil {
 				logs.Error("TypeReg: "+err.Error())
@@ -276,13 +277,38 @@ func MapFromFile(path string)(mapData map[string]map[string]string, err error){
 }
 
 func ReplaceLines(data map[string]string)(err error){
+	sourceDownload := map[string]map[string]string{}
+	sourceDownload["ruleset"] = map[string]string{}
+	sourceDownload["ruleset"]["sourceDownload"] = ""
+	sourceDownload,err = GetConf(sourceDownload)
+	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
+	if err != nil {
+		logs.Error("ReplaceLines error loading data from main.conf: "+ err.Error())
+		return err
+	}
+	
+	//split path 
+	splitPath := strings.Split(data["path"], "/")
+	pathSelected := splitPath[len(splitPath)-2]
+
 	saved := false
-	// rulesFile, err := os.OpenFile("rules/drop.rules", os.O_WRONLY | os.O_APPEND, 0666)
 	rulesFile, err := os.Create("_creating-new-file.txt")
 	defer rulesFile.Close()
 	var validID = regexp.MustCompile(`sid:(\d+);`)
 
-	newFileDownloaded, err := os.Open("conf/downloads/rules/drop.rules")
+	newFileDownloaded, err := os.Open(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
+	// newFileDownloaded, err := os.Open("conf/downloads/rules/drop.rules")
+
 	scanner := bufio.NewScanner(newFileDownloaded)
 	for scanner.Scan() {
 		for x := range data{
@@ -306,7 +332,8 @@ func ReplaceLines(data map[string]string)(err error){
 		saved = false
 	}
 
-	input, err := ioutil.ReadFile("conf/downloads/rules/drop.rules")
+	input, err := ioutil.ReadFile("_creating-new-file.txt")
+	// err = ioutil.WriteFile("rules/drop.rules", input, 0644)
 	err = ioutil.WriteFile("rules/drop.rules", input, 0644)
 
 	_ = os.Remove("_creating-new-file.txt")
