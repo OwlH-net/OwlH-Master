@@ -196,16 +196,19 @@ func DownloadFile(data map[string]string) (err error) {
 }
 
 func CompareFiles(data map[string]string) (mapData map[string]map[string]string, err error) {	
-	// file1, err := utils.MapFromFile(data["new"])
-	// file2, err := utils.MapFromFile(data["old"])
-	file1, err := utils.MapFromFile()
-	file2, err := utils.MapFromFile()
+	file1, err := utils.MapFromFile(data["new"])
+	file2, err := utils.MapFromFile(data["old"])
+	// file1, err := utils.MapFromFile("conf/downloads/Default/rules/drop.rules")
+	// file2, err := utils.MapFromFile("rules/drop.rules")
+
 	if err != nil {
 		logs.Error("Error getting file from map: "+err.Error())
         return nil, err
 	}
 	var returnMap = make(map[string]map[string]string)
-	
+	// returnMap["newFile"] = file1
+	// returnMap["currentFile"] = file2
+
 	lineExist := false
 
 	//check if all the new lines are in old file
@@ -216,7 +219,9 @@ func CompareFiles(data map[string]string) (mapData map[string]map[string]string,
 				lineExist = true
 				if (file1[x]["Line"] != file2[y]["Line"] || file1[x]["Enabled"] != file2[y]["Enabled"]) {
 					returnLines["new"] = file1[x]["Line"]
+					returnLines["newFile"] = data["new"]
 					returnLines["old"] = file2[y]["Line"]
+					returnLines["oldFile"] = data["old"]
 					returnLines["enabled-new"] = file1[x]["Enabled"]
 					returnLines["enabled-old"] = file2[y]["Enabled"]
 					returnLines["sid"] = x
@@ -270,8 +275,14 @@ func CreateNewFile(data map[string]string) (err error) {
 	sourceDownload,err = utils.GetConf(sourceDownload)
 	backupPath := sourceDownload["ruleset"]["backupPath"]
 
+	logs.Debug(data)
+	logs.Debug(data)
+	logs.Debug(data)
+	logs.Debug(data)
 	splitPath := strings.Split(data["path"], "/")
+	logs.Debug(splitPath)
 	pathSelected := splitPath[len(splitPath)-2]
+	logs.Debug(backupPath + pathSelected + "-drop.rules")
 
 
 	err = utils.BackupFile(backupPath + pathSelected, "drop.rules")

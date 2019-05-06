@@ -59,10 +59,10 @@ func DeleteNode(nodeid string)(err error) {
     return nil
 }
 
-func getNodeIPbyUID(nk string) (ip string, err error) {
+func GetNodeIPbyUUID(nk string) (ip string, err error) {
     if ndb.Db == nil {
-        logs.Error("getNodeIPbyUID -> No access to database")
-        return "", errors.New("getNodeIPbyUID -> No access to database")
+        logs.Error("GetNodeIPbyUUID -> No access to database")
+        return "", errors.New("GetNodeIPbyUUID -> No access to database")
     }
     sql := "SELECT node_value FROM nodes where node_param = 'ip' and node_uniqueid='"+nk+"';"
     logs.Info("GetNodeIP -> SQL -> %s", sql)
@@ -110,10 +110,10 @@ func getNodeConf(nodeKey string)(conf map[string]string, err error) {
     return conf, nil
 }
 
-func getNodePortbyUID(nk string) (port string, err error) {
+func GetNodePortbyUUID(nk string) (port string, err error) {
     if ndb.Db == nil {
-        logs.Error("getNodePortbyUID -> no access to database")
-        return "", errors.New("getNodePortbyUID -> no access to database")
+        logs.Error("GetNodePortbyUUID -> no access to database")
+        return "", errors.New("GetNodePortbyUUID -> no access to database")
     }
     sql := "SELECT node_value FROM nodes where node_param = 'port' and node_uniqueid='"+nk+"';"
     rows, err := ndb.Db.Query(sql)
@@ -341,12 +341,12 @@ func GetAllNodes() (nodes *map[string]map[string]string, err error) {
 }
 
 func NodePing(n string) (err error) {
-    ip, err := getNodeIPbyUID(n)
+    ip, err := GetNodeIPbyUUID(n)
     if err != nil {
         logs.Info("Ping - IP Error -> %s", err.Error())
         return err
     }
-    port, err := getNodePortbyUID(n)
+    port, err := GetNodePortbyUUID(n)
     if err != nil {
         logs.Info("Ping - PORT Error -> %s", err.Error())
         return err

@@ -44,6 +44,11 @@ func init() {
 				&controllers.GroupController{},
 			),
 		),	
+		beego.NSNamespace("/collector",
+			beego.NSInclude(
+				&controllers.CollectorController{},
+			),
+		),	
 	)
 	beego.AddNamespace(ns)
 }

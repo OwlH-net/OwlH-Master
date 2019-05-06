@@ -485,3 +485,51 @@ func EditStapServer(ip string, port string, data map[string]string)(err error){
     defer resp.Body.Close()
     return nil
 }
+
+func PlayCollector(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/collector/play"
+	_,err = utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/playCollector ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	return nil
+}
+func StopCollector(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/collector/stop"
+	_,err = utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/StopCollector ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	return nil
+}
+func ShowCollector(ipnid string, portnid string)(data string, err error){
+	url := "https://"+ipnid+":"+portnid+"/node/collector/show"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/ShowCollector ERROR connection through http new Request: "+err.Error())
+        return "",err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	
+	logs.Debug(string(body))
+	logs.Debug(string(body))
+	logs.Debug(string(body))
+	logs.Debug(string(body))
+	logs.Debug(string(body))
+	logs.Debug(string(body))
+	logs.Debug(string(body))
+
+	if err != nil {
+		logs.Error("nodeclient/ShowCollector ERROR reading request data: "+err.Error())
+        return "",err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("ShowCollector ERROR doing unmarshal JSON: "+err.Error())
+        return "",err
+	}
+	defer resp.Body.Close()
+	return data,nil
+}
