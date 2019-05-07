@@ -117,3 +117,8 @@ func SyncRulesetToAllNodes(uuid string)(err error){
     err = node.SyncRulesetToAllNodes(uuid)
     return err
 }
+
+func DeployZeek(uuid string)(err error){
+    err = node.DeployZeek(uuid)
+    return err
+}

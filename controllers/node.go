@@ -401,3 +401,22 @@ func (n *NodeController) SyncRulesetToAllNodes() {
     }
     n.ServeJSON()
 }
+
+// @Title DeployZeek
+// @Description Get Pong from Node
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /deploy/:nid [get]
+// @router /:nid/deploy [get]
+func (n *NodeController) DeployZeek() { 
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
+    if nid != "" {
+        err := models.DeployZeek(nid)
+        n.Data["json"] = map[string]string{"ping": "pong", "nid": nid}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

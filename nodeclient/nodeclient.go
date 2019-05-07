@@ -525,3 +525,15 @@ func ShowCollector(ipnid string, portnid string)(data string, err error){
 	defer resp.Body.Close()
 	return data,nil
 }
+
+func DeployZeek(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/DeployZeek"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/DeployZeek ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+	defer resp.Body.Close()
+	return nil
+}
