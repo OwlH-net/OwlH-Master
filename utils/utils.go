@@ -17,6 +17,7 @@ import (
 	"bufio"
 	"time"
 	"strings"
+	"errors"
 )
 
 //Read map data
@@ -96,32 +97,6 @@ func DownloadFile(filepath string, url string) error {
     }
     defer resp.Body.Close()
 
-	//check if the directory exists
-	// ck := exists(filepath)
-	// if ck == true { // path contains data
-	// 	//remove from old_download
-	// 	os.RemoveAll("/tmp/owlh/old_download")
-	// 	//copy from new_download to old_download
-	// 	err = CopyDir("/tmp/owlh/new_download/", "/tmp/owlh/old_download/")
-	// 	if err != nil {
-	// 		return err
-	// 	}
-	// 	//remove from new_download
-	// 	os.RemoveAll("/tmp/owlh/new_download")
-	// 	//download new content
-	// 	// out, err := os.Create(filepath)
-	// 	// if err != nil {
-	// 	// 	logs.Error("Error creating file after download: "+err.Error())
-	// 	// 	return err
-	// 	// }
-	// 	// defer out.Close()
-	// 	// _, err = io.Copy(out, resp.Body)
-	// 	// if err != nil {
-	// 	// 	logs.Error("Error Copying downloaded file: "+err.Error())
-	// 	// 	return err
-	// 	// }
-	// }else{ //path is empty
-
 	// Create the file
 	out, err := os.Create(filepath)
 	if err != nil {
@@ -136,8 +111,8 @@ func DownloadFile(filepath string, url string) error {
 		logs.Error("Error Copying downloaded file: "+err.Error())
 		return err
 	}
-	// }
-	return nil
+	return errors.New("math: square root of negative number")
+	// return nil
 }
 
 func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err error){
@@ -185,68 +160,6 @@ func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err err
     }
 	return nil
 }
-
-// // exists returns whether the given file or directory exists
-// func exists(path string) (bool) {
-//     _, err := os.Stat(path)
-//     if err == nil { return false}
-//     if os.IsNotExist(err) { return true }
-//     return false
-// }
-
-// func CopyDir(source string, dest string) (err error) {
-// 	// get properties of source dir
-// 	sourceinfo, err := os.Stat(source)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	// create dest dir
-// 	err = os.MkdirAll(dest, sourceinfo.Mode())
-// 	if err != nil {
-// 		return err
-// 	}
-// 	directory, _ := os.Open(source)
-// 	objects, err := directory.Readdir(-1)
-// 	for _, obj := range objects {
-// 		sourcefilepointer := source + "/" + obj.Name()
-// 		destinationfilepointer := dest + "/" + obj.Name()
-// 		if obj.IsDir() {
-// 			// create sub-directories - recursively
-// 			err = CopyDir(sourcefilepointer, destinationfilepointer)
-// 			if err != nil {
-// 				logs.Error("Error copying folder recursively: "+err.Error())
-// 			}
-// 		} else {
-// 			// perform copy
-// 			err = CopyFile(sourcefilepointer, destinationfilepointer)
-// 			if err != nil {
-// 				logs.Error("Error copying file recursively: "+err.Error())
-// 			}
-// 		}
-// 	}
-// 	return
-// }
-
-// func CopyFile(source string, dest string) (err error) {
-// 	sourcefile, err := os.Open(source)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer sourcefile.Close()
-// 	destfile, err := os.Create(dest)
-// 	if err != nil {
-// 		return err
-// 	}
-// 	defer destfile.Close()
-// 	_, err = io.Copy(destfile, sourcefile)
-// 	if err == nil {
-// 		sourceinfo, err := os.Stat(source)
-// 		if err != nil {
-// 			err = os.Chmod(dest, sourceinfo.Mode())
-// 		}
-// 	}
-// 	return
-// }
 
 func MapFromFile(path string)(mapData map[string]map[string]string, err error){
 	var mapFile = make(map[string]map[string]string)
@@ -297,16 +210,6 @@ func ReplaceLines(data map[string]string)(err error){
 	var validID = regexp.MustCompile(`sid:(\d+);`)
 
 	newFileDownloaded, err := os.Open(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	logs.Debug(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
 	// newFileDownloaded, err := os.Open("conf/downloads/rules/drop.rules")
 
 	scanner := bufio.NewScanner(newFileDownloaded)

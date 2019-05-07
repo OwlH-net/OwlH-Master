@@ -512,14 +512,6 @@ func ShowCollector(ipnid string, portnid string)(data string, err error){
         return "",err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
-	
-	logs.Debug(string(body))
-	logs.Debug(string(body))
-	logs.Debug(string(body))
-	logs.Debug(string(body))
-	logs.Debug(string(body))
-	logs.Debug(string(body))
-	logs.Debug(string(body))
 
 	if err != nil {
 		logs.Error("nodeclient/ShowCollector ERROR reading request data: "+err.Error())

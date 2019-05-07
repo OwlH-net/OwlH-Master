@@ -60,14 +60,6 @@ func ShowCollector(uuid string) (data string, err error) {
 		logs.Error("nodeclient.ShowCollector ERROR connection through http new Request: "+err.Error())
 		return "",err
 	}
-
-	logs.Debug(data)
-	logs.Debug(data)
-	logs.Debug(data)
-	logs.Debug(data)
-	logs.Debug(data)
-	logs.Debug(data)
-	logs.Debug(data)
 	
 	return data,nil
 }
