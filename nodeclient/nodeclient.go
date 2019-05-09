@@ -540,3 +540,71 @@ func DeployZeek(ipnid string, portnid string)(err error){
 	defer resp.Body.Close()
 	return nil
 }
+
+func ShowPorts(ipnid string, portnid string)(data map[string]string ,err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/ShowPorts ERROR connection through http new Request: "+err.Error())
+        return data,err
+    }
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/ShowPorts ERROR reading request data: "+err.Error())
+        return data,err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("ShowPorts ERROR doing unmarshal JSON: "+err.Error())
+        return data,err
+	}
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func PingPorts(ipnid string, portnid string)(data map[string]map[string]string ,err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/PingPorts/"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/PingPorts ERROR connection through http new Request: "+err.Error())
+        return data,err
+    }
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error())
+        return data,err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error())
+        return data,err
+	}
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func ChangeMode(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/mode/"
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/ChangeMode ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}
+
+func ChangeStatus(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/status/"
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/ChangeStatus ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}

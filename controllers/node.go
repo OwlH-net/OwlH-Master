@@ -420,3 +420,80 @@ func (n *NodeController) DeployZeek() {
     }
     n.ServeJSON()
 }
+
+// @Title ShowPorts
+// @Description Get ports from knownports
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /ports/:nid [get]
+// @router /:nid/ports [get]
+func (n *NodeController) ShowPorts() { 
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
+    if nid != "" {
+        data, err := models.ShowPorts(nid)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title ChangeMode
+// @Description put Pong from Node
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /mode/:nid [put]
+// @router /:nid/mode [put]
+func (n *NodeController) ChangeMode() { 
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
+    if nid != "" {
+        err := models.ChangeMode(nid)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title ChangeStatus
+// @Description put Pong from Node
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /status/:nid [put]
+// @router /:nid/status [put]
+func (n *NodeController) ChangeStatus() { 
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
+    if nid != "" {
+        err := models.ChangeStatus(nid)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title Ping Ports
+// @Description Get Ping from ports
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /PingPorts/:nid [get]
+// @router /:nid/PingPorts [get]
+func (n *NodeController) PingPorts() { 
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
+    if nid != "" {
+        data, err := models.PingPorts(nid)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+        }
+	}
+
+    n.ServeJSON()
+}
