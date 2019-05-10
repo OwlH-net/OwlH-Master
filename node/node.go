@@ -605,7 +605,9 @@ func PingPorts(uuid string)(data map[string]map[string]string, err error){
 	return data,nil
 }
 
-func ChangeMode(uuid string)(err error){
+func ChangeMode(anode map[string]string)(err error){
+	uuid := anode["uuid"]
+	mode := anode["mode"]
     if ndb.Db == nil {
         logs.Error("ChangeMode -- Can't acces to database")
         return errors.New("ChangeMode -- Can't acces to database")
@@ -616,7 +618,7 @@ func ChangeMode(uuid string)(err error){
 		logs.Error("node/ChangeMode ERROR Obtaining Port and Ip: "+err.Error())
         return err
     }
-	err = nodeclient.ChangeMode(ipnid,portnid)
+	err = nodeclient.ChangeMode(ipnid,portnid,mode)
 	if err != nil {
 		logs.Error("node/ChangeMode ERROR http data request: "+err.Error())
         return err
@@ -624,7 +626,9 @@ func ChangeMode(uuid string)(err error){
 	return nil
 }
 
-func ChangeStatus(uuid string)(err error){
+func ChangeStatus(anode map[string]string)(err error){
+	uuid := anode["uuid"]
+	status := anode["status"]
     if ndb.Db == nil {
         logs.Error("ChangeStatus -- Can't acces to database")
         return errors.New("ChangeStatus -- Can't acces to database")
@@ -635,7 +639,7 @@ func ChangeStatus(uuid string)(err error){
 		logs.Error("node/ChangeStatus ERROR Obtaining Port and Ip: "+err.Error())
         return err
     }
-	err = nodeclient.ChangeStatus(ipnid,portnid)
+	err = nodeclient.ChangeStatus(ipnid,portnid,status)
 	if err != nil {
 		logs.Error("node/ChangeStatus ERROR http data request: "+err.Error())
         return err

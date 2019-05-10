@@ -131,11 +131,11 @@ func PingPorts(uuid string)(data map[string]map[string]string, err error){
     return data, err
 }
 
-func ChangeMode(uuid string)(err error){
-    err = node.ChangeMode(uuid)
+func ChangeMode(anode map[string]string)(err error){
+    err = node.ChangeMode(anode)
     return err
 }
-func ChangeStatus(uuid string)(err error){
-    err = node.ChangeStatus(uuid)
+func ChangeStatus(anode map[string]string)(err error){
+    err = node.ChangeStatus(anode)
     return err
 }

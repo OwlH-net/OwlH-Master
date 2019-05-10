@@ -587,9 +587,12 @@ func PingPorts(ipnid string, portnid string)(data map[string]map[string]string ,
 	return data,nil
 }
 
-func ChangeMode(ipnid string, portnid string)(err error){
-	url := "https://"+ipnid+":"+portnid+"/node/mode/"
-	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+func ChangeMode(ipnid string, portnid string, mode string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/mode"
+	values := make(map[string]string)
+    values["mode"] = mode
+	valuesJSON,err := json.Marshal(values)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
 		logs.Error("nodeclient/ChangeMode ERROR connection through http new Request: "+err.Error())
         return err
@@ -598,9 +601,12 @@ func ChangeMode(ipnid string, portnid string)(err error){
 	return nil
 }
 
-func ChangeStatus(ipnid string, portnid string)(err error){
-	url := "https://"+ipnid+":"+portnid+"/node/status/"
-	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+func ChangeStatus(ipnid string, portnid string, status string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/status"
+	values := make(map[string]string)
+    values["status"] = status
+	valuesJSON,err := json.Marshal(values)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
 		logs.Error("nodeclient/ChangeStatus ERROR connection through http new Request: "+err.Error())
         return err

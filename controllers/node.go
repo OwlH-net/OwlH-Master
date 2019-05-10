@@ -443,38 +443,34 @@ func (n *NodeController) ShowPorts() {
 // @Title ChangeMode
 // @Description put Pong from Node
 // @Success 200 {object} models.Node
-// @Failure 403 :nid is empty
-// @router /mode/:nid [put]
-// @router /:nid/mode [put]
+// @Failure 403 Error
+// @router /mode [put]
 func (n *NodeController) ChangeMode() { 
-    nid := n.GetString(":nid")
-    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
-    if nid != "" {
-        err := models.ChangeMode(nid)
-        n.Data["json"] = map[string]string{"ack": "true"}
-        if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
-        }
-    }
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.ChangeMode(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
     n.ServeJSON()
 }
 
 // @Title ChangeStatus
 // @Description put Pong from Node
 // @Success 200 {object} models.Node
-// @Failure 403 :nid is empty
-// @router /status/:nid [put]
-// @router /:nid/status [put]
+// @Failure 403 Error
+// @router /status [put]
 func (n *NodeController) ChangeStatus() { 
-    nid := n.GetString(":nid")
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
-    if nid != "" {
-        err := models.ChangeStatus(nid)
-        n.Data["json"] = map[string]string{"ack": "true"}
-        if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
-        }
-    }
+	err := models.ChangeStatus(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    
     n.ServeJSON()
 }
 
