@@ -123,7 +123,7 @@ func Stap(ip string, port string, uuid string) (data map[string]bool, err error 
 }
 
 func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]string, err error){
-	url := "https://"+ipData+":"+portData+"/node/file2"
+	url := "https://"+ipData+":"+portData+"/node/file"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
 	if err != nil {
 		logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
