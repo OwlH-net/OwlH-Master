@@ -122,10 +122,22 @@ func DeployZeek(uuid string)(err error){
     err = node.DeployZeek(uuid)
     return err
 }
-func ShowPorts(uuid string)(data map[string]string, err error){
+
+func ShowPorts(uuid string)(data map[string]map[string]string, err error){
     data, err = node.ShowPorts(uuid)
     return data, err
 }
+
+func DeletePorts(anode map[string]string, uuid string)(err error){
+    err = node.DeletePorts(anode, uuid)
+    return err
+}
+
+func DeleteAllPorts(uuid string)(err error){
+    err = node.DeleteAllPorts(uuid)
+    return err
+}
+
 func PingPorts(uuid string)(data map[string]map[string]string, err error){
     data, err = node.PingPorts(uuid)
     return data, err

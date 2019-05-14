@@ -51,7 +51,7 @@ func Suricata(ip string, port string) (data map[string]bool, err error ) {
     if err != nil {
 		logs.Error("nodeClient/Suricata -- ERROR JSON unmarshal: "+err.Error())
         return nil,err
-    }
+	}
     return data,nil
 }
 
@@ -541,7 +541,7 @@ func DeployZeek(ipnid string, portnid string)(err error){
 	return nil
 }
 
-func ShowPorts(ipnid string, portnid string)(data map[string]string ,err error){
+func ShowPorts(ipnid string, portnid string)(data map[string]map[string]string ,err error){
 	url := "https://"+ipnid+":"+portnid+"/node/ports/"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
 	if err != nil {
@@ -609,6 +609,30 @@ func ChangeStatus(ipnid string, portnid string, status string)(err error){
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
 		logs.Error("nodeclient/ChangeStatus ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}
+
+func DeletePorts(ipnid string, portnid string, ports map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/delete"
+ 
+	valuesJSON,err := json.Marshal(ports)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/DeletePorts ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}
+
+func DeleteAllPorts(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/deleteAll"
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/DeleteAllPorts ERROR connection through http new Request: "+err.Error())
         return err
     }
 	defer resp.Body.Close()

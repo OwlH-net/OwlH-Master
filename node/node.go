@@ -568,7 +568,7 @@ func SyncRulesetToAllNodes(uuid string)(err error){
 	return nil
 }
 
-func ShowPorts(uuid string)(data map[string]string, err error){
+func ShowPorts(uuid string)(data map[string]map[string]string, err error){
     if ndb.Db == nil {
         logs.Error("ShowPorts -- Can't acces to database")
         return data,errors.New("ShowPorts -- Can't acces to database")
@@ -642,6 +642,44 @@ func ChangeStatus(anode map[string]string)(err error){
 	err = nodeclient.ChangeStatus(ipnid,portnid,status)
 	if err != nil {
 		logs.Error("node/ChangeStatus ERROR http data request: "+err.Error())
+        return err
+    }
+	return nil
+}
+
+func DeletePorts(anode map[string]string, uuid string)(err error){
+	if ndb.Db == nil {
+        logs.Error("DeletePorts -- Can't acces to database")
+        return errors.New("DeletePorts -- Can't acces to database")
+	}
+	
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("node/DeletePorts ERROR Obtaining Port and Ip: "+err.Error())
+        return err
+    }
+	err = nodeclient.DeletePorts(ipnid,portnid, anode)
+	if err != nil {
+		logs.Error("node/DeletePorts ERROR http data request: "+err.Error())
+        return err
+    }
+	return nil
+}
+
+func DeleteAllPorts(uuid string)(err error){
+	if ndb.Db == nil {
+        logs.Error("DeleteAllPorts -- Can't acces to database")
+        return errors.New("DeleteAllPorts -- Can't acces to database")
+	}
+	
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("node/DeleteAllPorts ERROR Obtaining Port and Ip: "+err.Error())
+        return err
+    }
+	err = nodeclient.DeleteAllPorts(ipnid,portnid)
+	if err != nil {
+		logs.Error("node/DeleteAllPorts ERROR http data request: "+err.Error())
         return err
     }
 	return nil

@@ -440,6 +440,41 @@ func (n *NodeController) ShowPorts() {
     n.ServeJSON()
 }
 
+// @Title DeletePorts
+// @Description delete ports from knownports
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /ports/delete/:uuid [put]
+func (n *NodeController) DeletePorts() { 
+	uuid := n.GetString(":uuid")
+	anode := make(map[string]string)
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+	err := models.DeletePorts(anode,uuid)
+	n.Data["json"] = map[string]string{"ack": "true"}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "nid": uuid, "error": err.Error()}
+	}
+    
+    n.ServeJSON()
+}
+
+// @Title DeleteAllPorts
+// @Description delete all ports from knownports
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /ports/deleteAll/:uuid [put]
+func (n *NodeController) DeleteAllPorts() { 
+	uuid := n.GetString(":uuid")
+	err := models.DeleteAllPorts(uuid)
+	n.Data["json"] = map[string]string{"ack": "true"}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+	}
+    
+    n.ServeJSON()
+}
+
 // @Title ChangeMode
 // @Description put Pong from Node
 // @Success 200 {object} models.Node
