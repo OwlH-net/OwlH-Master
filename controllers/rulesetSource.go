@@ -114,3 +114,19 @@ func (n *RulesetSourceController) CreateNewFile() {
     }
     n.ServeJSON()
 }
+
+// @Title Details
+// @Description edit a RulesetSource
+// @Success 200 {object} models.RulesetSource
+// @router /details [put]
+func (n *RulesetSourceController) Details() { 
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	data, err := models.Details(anode)
+	
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

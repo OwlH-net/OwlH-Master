@@ -17,7 +17,6 @@ import (
 	"bufio"
 	"time"
 	"strings"
-	"errors"
 )
 
 //Read map data
@@ -89,7 +88,8 @@ func BackupFile(path string, fileName string) (err error) {
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
 func DownloadFile(filepath string, url string) error {
-    // Get the data
+	// Get the data
+	
     resp, err := http.Get(url)
     if err != nil {
 		logs.Error("Error downloading file: "+err.Error())
@@ -111,8 +111,7 @@ func DownloadFile(filepath string, url string) error {
 		logs.Error("Error Copying downloaded file: "+err.Error())
 		return err
 	}
-	return errors.New("math: square root of negative number")
-	// return nil
+	return nil
 }
 
 func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err error){

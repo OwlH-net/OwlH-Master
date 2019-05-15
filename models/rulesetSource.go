@@ -38,3 +38,8 @@ func CreateNewFile(data map[string]string) (err error) {
     err = rulesetSource.CreateNewFile(data)
     return err
 }
+
+func Details(data map[string]string) (files map[string]string, err error) {
+    files, err = rulesetSource.Details(data)
+    return files ,err
+}

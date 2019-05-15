@@ -178,7 +178,7 @@ func DownloadFile(data map[string]string) (err error) {
 	splitPath := strings.Split(data["path"], "/")
 	pathSelected := splitPath[len(splitPath)-2]
 	os.MkdirAll(pathDownloaded+pathSelected, os.ModePerm)
-
+	
 	err = utils.DownloadFile(data["path"], data["url"])
 	if err != nil {
 		logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
@@ -298,4 +298,9 @@ func CreateNewFile(data map[string]string) (err error) {
 	}
     
     return nil
+}
+
+func Details(data map[string]string) (files map[string]string, err error) {
+
+	return 
 }
