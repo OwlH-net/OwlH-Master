@@ -7,6 +7,8 @@ import (
 	"owlhmaster/utils"
 	"strings"
 	"os"
+	"regexp"
+	"path/filepath"
 )
 
 
@@ -135,7 +137,7 @@ func EditRulesetSource(data map[string]string) (err error) {
 		if k == "sourceuuid"{
 			continue
 		}else{
-			err = InsertRulesetSource(k, v, sourceuuid)
+			err = UpdateRulesetSource(k, v, sourceuuid)
 			if err != nil {
 				logs.Error("Error inserting edit files from source ruleset")
 				return err
@@ -145,7 +147,7 @@ func EditRulesetSource(data map[string]string) (err error) {
 	return nil
 }
 
-func InsertRulesetSource(param string, value string, sourceuuid string)(err error){
+func UpdateRulesetSource(param string, value string, sourceuuid string)(err error){
 	editSource, err := ndb.RSdb.Prepare("update ruleset_source set source_value = ? where source_param = ? and source_uniqueid = ?")
 	if err != nil {
 		logs.Error("Prepare EditRulesetSource-> %s", err.Error())
@@ -275,14 +277,8 @@ func CreateNewFile(data map[string]string) (err error) {
 	sourceDownload,err = utils.GetConf(sourceDownload)
 	backupPath := sourceDownload["ruleset"]["backupPath"]
 
-	logs.Debug(data)
-	logs.Debug(data)
-	logs.Debug(data)
-	logs.Debug(data)
 	splitPath := strings.Split(data["path"], "/")
-	logs.Debug(splitPath)
 	pathSelected := splitPath[len(splitPath)-2]
-	logs.Debug(backupPath + pathSelected + "-drop.rules")
 
 
 	err = utils.BackupFile(backupPath + pathSelected, "drop.rules")
@@ -300,7 +296,40 @@ func CreateNewFile(data map[string]string) (err error) {
     return nil
 }
 
-func Details(data map[string]string) (files map[string]string, err error) {
+func Details(data map[string]string) (files map[string]map[string]string, err error) {
 
-	return 
+	sourceDownload := map[string]map[string]string{}
+	sourceDownload["ruleset"] = map[string]string{}
+	sourceDownload["ruleset"]["sourceDownload"] = ""
+	sourceDownload,err = utils.GetConf(sourceDownload)
+
+	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
+
+	splitPath := strings.Split(data["path"], "/")
+	pathSelected := splitPath[:len(splitPath)-1]
+	folder := pathSelected[len(pathSelected)-1]
+
+	path := pathDownloaded+folder
+	var fileExtension = regexp.MustCompile(`(\w+).rules$`)
+	dataFiles := map[string]map[string]string{}
+	dataFiles["files"] = map[string]string{}
+
+	err = filepath.Walk(path,
+		func(file string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+		if fileExtension.MatchString(info.Name()){
+			dataFiles["files"][info.Name()] = file
+		}
+		return nil
+	})
+	
+	if err != nil {
+		logs.Error("Error recursively file")
+		return nil ,err
+	}
+	
+	logs.Notice(dataFiles)
+	return dataFiles ,nil
 }

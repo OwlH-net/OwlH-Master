@@ -124,9 +124,10 @@ func (n *RulesetSourceController) Details() {
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	data, err := models.Details(anode)
 	
-    n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
+	
     n.ServeJSON()
 }
