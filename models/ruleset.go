@@ -6,7 +6,7 @@ import (
 
 
 func GetRules()(rules map[string]map[string]string, err error) {
-    rules,err = ruleset.Read("")
+    rules,err = ruleset.ReadRuleset("")
     return rules,err
 }
 

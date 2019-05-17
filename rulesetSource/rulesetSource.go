@@ -162,38 +162,47 @@ func UpdateRulesetSource(param string, value string, sourceuuid string)(err erro
 }
 
 func DownloadFile(data map[string]string) (err error) {	
-
-	// //removing existing path
-	// err = os.RemoveAll(data["path"])
-	// if err != nil {
-	// 	logs.Error("Error removing all the files and directories for download new rules-> %s", err.Error())
-	// 	return err
-	// }
-
 	sourceDownload := map[string]map[string]string{}
 	sourceDownload["ruleset"] = map[string]string{}
 	sourceDownload["ruleset"]["sourceDownload"] = ""
 	sourceDownload,err = utils.GetConf(sourceDownload)
 	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
 
-	//create direcory if doesn't exist
 	splitPath := strings.Split(data["path"], "/")
 	pathSelected := splitPath[len(splitPath)-2]
-	os.MkdirAll(pathDownloaded+pathSelected, os.ModePerm)
+
+	if _, err := os.Stat(pathDownloaded+pathSelected); os.IsNotExist(err) {
+		os.MkdirAll(pathDownloaded+pathSelected, os.ModePerm)
+
+		err = utils.DownloadFile(data["path"], data["url"])
+		if err != nil {
+			logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
+			return err
+		}
 	
-	err = utils.DownloadFile(data["path"], data["url"])
-	if err != nil {
-		logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
-		return err
+		err = utils.ExtractTarGz(data["path"], pathDownloaded, pathSelected)
+		if err != nil {
+			logs.Error("Error unzipping file downloaded: "+err.Error())
+			return err
+		}
+
+		//insert into DB
+		ruleFiles, err := Details(data)
+		for k,_ := range ruleFiles["files"] {
+			logs.Debug(k)
+
+			uuid := utils.Generate()
+			err = rulesetSourceKeyInsert(uuid, "name", pathSelected)
+			err = rulesetSourceKeyInsert(uuid, "file", k)
+			err = rulesetSourceKeyInsert(uuid, "path", ruleFiles["files"][k])
+		}
+		if err != nil {
+			logs.Error("DownloadFile Error from RulesetSource-> %s", err.Error())
+			return err
+		}
+		logs.Info("Extract complete!")
 	}
 
-	err = utils.ExtractTarGz(data["path"], pathDownloaded, pathSelected)
-	if err != nil {
-		logs.Error("Error unzipping file downloaded: "+err.Error())
-        return err
-	}
-
-	logs.Info("Extract complete!")
 	return nil
 }
 
@@ -330,6 +339,5 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
 		return nil ,err
 	}
 	
-	logs.Notice(dataFiles)
 	return dataFiles ,nil
 }

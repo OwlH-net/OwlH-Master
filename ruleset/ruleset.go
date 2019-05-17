@@ -40,7 +40,7 @@ func ReadSID(sid map[string]string)( sidLine map[string]string ,err error){
 }
 
 //Read ruleset rules data
-func Read(path string)(rules map[string]map[string]string, err error) {
+func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
     data, err := os.Open(path)
     if err != nil {
         fmt.Println("File reading error", err)
@@ -193,7 +193,7 @@ func GetRulesetPath(uuid string) (n string, err error) {
 func GetRulesetRules(uuid string)(r map[string]map[string]string, err error){
     rules := make(map[string]map[string]string)
     path,err := GetRulesetPath(uuid)
-    rules,err = Read(path)
+    rules,err = ReadRuleset(path)
     for rule, _ := range rules{
         retrieveNote := make(map[string]string)
         retrieveNote["uuid"] = uuid
