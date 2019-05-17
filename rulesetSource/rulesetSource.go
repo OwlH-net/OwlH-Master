@@ -113,17 +113,27 @@ func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
 	if ndb.RSdb == nil {
         logs.Error("DeleteRulesetSource -- Can't acces to database")
         return errors.New("DeleteRulesetSource -- Can't acces to database")
-    }
+	}
+	
+	//delete a ruleset source
 	sourceSQL, err := ndb.RSdb.Prepare("delete from ruleset_source where source_uniqueid = ?")
-    if err != nil {
-        logs.Error("Prepare DeleteRulesetSource -> %s", err.Error())
-        return err
-    }
     _, err = sourceSQL.Exec(&rulesetSourceUUID)
     if err != nil {
-        logs.Error("Execute DeleteRulesetSource -> %s", err.Error())
+        logs.Error("DeleteRulesetSource deleting a ruleset source -> %s", err.Error())
         return err
-    }
+	}
+	
+	//delete every rule files asociated to ruleset source
+	rulesSQL, err := ndb.RSdb.Prepare("delete from source_rules where and rules_value = ?")
+    _, err = rulesSQL.Exec(&rulesetSourceUUID)
+    if err != nil {
+        logs.Error("DeleteRulesetSource deleting rules -> %s", err.Error())
+        return err
+	}
+	
+	//delete files
+	// os.Remove()
+
 	return nil
 }
 
@@ -139,14 +149,23 @@ func EditRulesetSource(data map[string]string) (err error) {
 		}else{
 			err = UpdateRulesetSource(k, v, sourceuuid)
 			if err != nil {
-				logs.Error("Error inserting edit files from source ruleset")
+				logs.Error("Error updating ruleset source data")
 				return err
 			}
 		}
-    }
+	}
+	
+	err = UpdateRulesetSourceRule(data["name"])
+	if err != nil {
+		logs.Error("Error updating ruleset source rule data")
+		return err
+	}
+
 	return nil
 }
 
+
+//update source ruleset data
 func UpdateRulesetSource(param string, value string, sourceuuid string)(err error){
 	editSource, err := ndb.RSdb.Prepare("update ruleset_source set source_value = ? where source_param = ? and source_uniqueid = ?")
 	if err != nil {
@@ -158,6 +177,23 @@ func UpdateRulesetSource(param string, value string, sourceuuid string)(err erro
 		logs.Error("Execute EditRulesetSource-> %s", err.Error())
 		return err
 	}
+
+	return nil
+}
+
+//update source ruleset Rule name for put the same name with their ruleset source
+func UpdateRulesetSourceRule(name string)(err error){
+	editSource, err := ndb.RSdb.Prepare("update source_rules set rules_value = ? where rules_param = ?")
+	if err != nil {
+		logs.Error("Prepare EditRulesetSource-> %s", err.Error())
+		return err
+	}
+	_, err = editSource.Exec(&name, "name")
+	if err != nil {
+		logs.Error("Execute EditRulesetSource-> %s", err.Error())
+		return err
+	}
+
 	return nil
 }
 
@@ -189,12 +225,11 @@ func DownloadFile(data map[string]string) (err error) {
 		//insert into DB
 		ruleFiles, err := Details(data)
 		for k,_ := range ruleFiles["files"] {
-			logs.Debug(k)
-
 			uuid := utils.Generate()
-			err = rulesetSourceKeyInsert(uuid, "name", pathSelected)
-			err = rulesetSourceKeyInsert(uuid, "file", k)
-			err = rulesetSourceKeyInsert(uuid, "path", ruleFiles["files"][k])
+			err = InsertRulesetSourceRules(uuid, "name", pathSelected)
+			err = InsertRulesetSourceRules(uuid, "file", k)
+			err = InsertRulesetSourceRules(uuid, "path", ruleFiles["files"][k])
+			err = InsertRulesetSourceRules(uuid, "sourceUUID", data["sourceuuid"])
 		}
 		if err != nil {
 			logs.Error("DownloadFile Error from RulesetSource-> %s", err.Error())
@@ -206,20 +241,34 @@ func DownloadFile(data map[string]string) (err error) {
 	return nil
 }
 
+func InsertRulesetSourceRules(nkey string, key string, value string) (err error) {
+    if ndb.RSdb == nil {
+        logs.Error("no access to database")
+        return errors.New("no access to database")
+    }
+    stmt, err := ndb.RSdb.Prepare("insert into source_rules (rules_uniqueid, rules_param, rules_value) values(?,?,?)")
+    if err != nil {
+        logs.Error("Prepare -> %s", err.Error())
+        return err
+    }
+    _, err = stmt.Exec(&nkey, &key, &value)
+    if err != nil {
+        logs.Error("Execute -> %s", err.Error())
+        return err
+    }
+    return nil
+}
+
 func CompareFiles(data map[string]string) (mapData map[string]map[string]string, err error) {	
 	file1, err := utils.MapFromFile(data["new"])
 	file2, err := utils.MapFromFile(data["old"])
-	// file1, err := utils.MapFromFile("conf/downloads/Default/rules/drop.rules")
-	// file2, err := utils.MapFromFile("rules/drop.rules")
 
 	if err != nil {
 		logs.Error("Error getting file from map: "+err.Error())
         return nil, err
 	}
-	var returnMap = make(map[string]map[string]string)
-	// returnMap["newFile"] = file1
-	// returnMap["currentFile"] = file2
 
+	var returnMap = make(map[string]map[string]string)
 	lineExist := false
 
 	//check if all the new lines are in old file

@@ -20,22 +20,28 @@ CREATE TABLE ruleset_node (
     node_uniqueid text NOT NULL
  );
 
- CREATE TABLE rule_note (
+CREATE TABLE rule_note (
     ruleset_id integer PRIMARY KEY AUTOINCREMENT,
     ruleset_uniqueid text NOT NULL,
     rule_sid text NOT NULL,
     note_date text NOT NULL,
     ruleNote text NOT NULL
  );
-  CREATE TABLE groups (
+CREATE TABLE groups (
     group_id integer PRIMARY KEY AUTOINCREMENT,
     group_uniqueid text NOT NULL,
     group_param text NOT NULL,
     group_value text NOT NULL
  );
- CREATE TABLE ruleset_source (
+CREATE TABLE ruleset_source (
     source_id integer PRIMARY KEY AUTOINCREMENT,
     source_uniqueid text NOT NULL,
     source_param text NOT NULL,
     source_value text NOT NULL
+ );
+CREATE TABLE source_rules (
+    rules_id integer PRIMARY KEY AUTOINCREMENT,
+    rules_uniqueid text NOT NULL,
+    rules_param text NOT NULL,
+    rules_value text NOT NULL
  );
