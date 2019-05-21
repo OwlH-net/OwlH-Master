@@ -33,15 +33,9 @@ CREATE TABLE groups (
     group_param text NOT NULL,
     group_value text NOT NULL
  );
-CREATE TABLE ruleset_source (
-    source_id integer PRIMARY KEY AUTOINCREMENT,
-    source_uniqueid text NOT NULL,
-    source_param text NOT NULL,
-    source_value text NOT NULL
- );
-CREATE TABLE source_rules (
-    rules_id integer PRIMARY KEY AUTOINCREMENT,
-    rules_uniqueid text NOT NULL,
-    rules_param text NOT NULL,
-    rules_value text NOT NULL
+CREATE TABLE rule_files (
+    rule_id integer PRIMARY KEY AUTOINCREMENT,
+    rule_uniqueid text NOT NULL,
+    rule_param text NOT NULL,
+    rule_value text NOT NULL
  );

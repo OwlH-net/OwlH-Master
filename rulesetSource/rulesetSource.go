@@ -24,7 +24,7 @@ func CreateRulesetSource(n map[string]string) (err error) {
     }
     if err := rulesetSourceExists(rulesetSourceKey); err != nil {
 		logs.Error("rulesetSource exist: "+err.Error())
-        return errors.New("rulesetSource exist")
+        return errors.New("rulesetSource not exist")
 	}
 	
 	sourceDownload := map[string]map[string]string{}
@@ -47,12 +47,12 @@ func CreateRulesetSource(n map[string]string) (err error) {
 }
 
 func rulesetSourceExists(sourceID string) (err error) {
-    if ndb.RSdb == nil {
+    if ndb.Rdb == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
     }
-    sql := "SELECT * FROM ruleset_source where source_uniqueid = '"+sourceID+"';"
-    rows, err := ndb.RSdb.Query(sql)
+    sql := "SELECT * FROM ruleset where ruleset_uniqueid = '"+sourceID+"';"
+    rows, err := ndb.Rdb.Query(sql)
     if err != nil {
         logs.Error("Error on query rulesetSourceExist at rulesetSource.go "+err.Error())
         return err
@@ -66,11 +66,11 @@ func rulesetSourceExists(sourceID string) (err error) {
 }
 
 func rulesetSourceKeyInsert(nkey string, key string, value string) (err error) {
-    if ndb.RSdb == nil {
+    if ndb.Rdb == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
     }
-    stmt, err := ndb.RSdb.Prepare("insert into ruleset_source (source_uniqueid, source_param, source_value) values(?,?,?)")
+    stmt, err := ndb.Rdb.Prepare("insert into ruleset (ruleset_uniqueid, ruleset_param, ruleset_value) values (?,?,?);")
     if err != nil {
         logs.Error("Prepare -> %s", err.Error())
         return err
@@ -88,107 +88,151 @@ func GetAllRulesetSource()(sources map[string]map[string]string, err error){
     var uniqid string
     var param string
     var value string
-    if ndb.RSdb == nil {
+    var uuidSource string
+    if ndb.Rdb == nil {
         logs.Error("no access to database")
         return nil, errors.New("no access to database")
     }
-    sql := "select source_uniqueid, source_param, source_value from ruleset_source;"
-    rows, err := ndb.RSdb.Query(sql)
-    if err != nil {
-        logs.Error("ndb.RSdb.Query Error : %s", err.Error())
+	sqlUUID := "select ruleset_uniqueid from ruleset where ruleset_param='type' and ruleset_value = 'source';"
+	uuidRows, err := ndb.Rdb.Query(sqlUUID)
+	defer uuidRows.Close()
+	if err != nil {
+        logs.Error("ndb.Rdb.Query Error checking uuid for take the uuid list for ruleset_source: %s", err.Error())
         return nil, err
     }
-    for rows.Next() {
-        if err = rows.Scan(&uniqid, &param, &value); err != nil {
-            logs.Error("GetAllRulesetSource rows.Scan: %s", err.Error())
+	for uuidRows.Next() {
+		if err = uuidRows.Scan(&uuidSource); err != nil {
+            logs.Error("GetAllRulesetSource UUIDSource uuidRows.Scan: %s", err.Error())
             return nil, err
-        }
-        if allsources[uniqid] == nil { allsources[uniqid] = map[string]string{}}
-        allsources[uniqid][param]=value
-	} 
+		}
+		sql := "select ruleset_uniqueid, ruleset_param, ruleset_value from ruleset where ruleset_uniqueid='"+uuidSource+"';"
+		rows, err := ndb.Rdb.Query(sql)
+		if err != nil {
+			logs.Error("ndb.Rdb.Query Error : %s", err.Error())
+			return nil, err
+		}
+		for rows.Next() {
+			if err = rows.Scan(&uniqid, &param, &value); err != nil {
+				logs.Error("GetAllRulesetSource rows.Scan: %s", err.Error())
+				return nil, err
+			}
+			if allsources[uniqid] == nil { allsources[uniqid] = map[string]string{}}
+			allsources[uniqid][param]=value
+		} 
+	}
+
     return allsources, nil
 }
 
 func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
-	if ndb.RSdb == nil {
+	var uniqueid string
+	var pathToDelete string
+	var uuidArray []string
+	sourceDownload := map[string]map[string]string{}
+	sourceDownload["ruleset"] = map[string]string{}
+	sourceDownload["ruleset"]["sourceDownload"] = ""
+	sourceDownload,err = utils.GetConf(sourceDownload)
+	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
+
+	if ndb.Rdb == nil || ndb.Rdb == nil{
         logs.Error("DeleteRulesetSource -- Can't acces to database")
         return errors.New("DeleteRulesetSource -- Can't acces to database")
 	}
+
+	//delete path recursively
+	uuidPath, err := ndb.Rdb.Query("select ruleset_value from ruleset where ruleset_uniqueid = '"+rulesetSourceUUID+"' and ruleset_param='path'")
+	if err != nil {
+		logs.Error("ndb.Rdb.Query Error checking rule_uniqueid for rule_files: %s", err.Error())
+		return err
+	}
+	defer uuidPath.Close()
+	for uuidPath.Next() {
+		if err = uuidPath.Scan(&pathToDelete); err != nil {
+			logs.Error("DeleteRulesetSource for delete path rows.Scan: %s", err.Error())
+			return err
+		}
+		splitPath := strings.Split(pathToDelete, "/")
+		pathSelected := splitPath[len(splitPath)-2]
+		err = os.RemoveAll(pathDownloaded+pathSelected)
+		if err = uuidPath.Scan(&pathToDelete); err != nil {
+			logs.Error("DeleteRulesetSource Error deleting path: %s", err.Error())
+			return err
+		}
+	}
 	
-	//delete a ruleset source
-	sourceSQL, err := ndb.RSdb.Prepare("delete from ruleset_source where source_uniqueid = ?")
+	//delete a ruleset source in ruleset table
+	sourceSQL, err := ndb.Rdb.Prepare("delete from ruleset where ruleset_uniqueid = ?")
+    if err != nil {
+        logs.Error("DeleteRulesetSource Prepare delete a ruleset source -> %s", err.Error())
+        return err
+	}
     _, err = sourceSQL.Exec(&rulesetSourceUUID)
     if err != nil {
         logs.Error("DeleteRulesetSource deleting a ruleset source -> %s", err.Error())
         return err
 	}
 	
-	//delete every rule files asociated to ruleset source
-	rulesSQL, err := ndb.RSdb.Prepare("delete from source_rules where and rules_value = ?")
-    _, err = rulesSQL.Exec(&rulesetSourceUUID)
-    if err != nil {
-        logs.Error("DeleteRulesetSource deleting rules -> %s", err.Error())
+	//delete all ruleset source rules
+	uuidRules, err := ndb.Rdb.Query("select rule_uniqueid from rule_files where rule_value='"+rulesetSourceUUID+"'")
+	if err != nil {
+        logs.Error("ndb.Rdb.Query Error checking rule_uniqueid for rule_files: %s", err.Error())
         return err
 	}
-	
-	//delete files
-	// os.Remove()
+	defer uuidRules.Close()
+	for uuidRules.Next() {
+		if err = uuidRules.Scan(&uniqueid); err != nil {
+			logs.Error("GetAllRulesetSource rows.Scan: %s", err.Error())
+			return err
+		}
+		uuidArray = append(uuidArray, uniqueid)
+	}
+	for x := range uuidArray{
+		DeleteUUIDPrepare, err := ndb.Rdb.Prepare("delete from rule_files where rule_uniqueid = ?")
+		if err != nil {
+			logs.Error("ndb.Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
+			return err
+		}
+		_, err = DeleteUUIDPrepare.Exec(&uuidArray[x])
+		if err != nil {
+			logs.Error("DeleteRulesetSource deleting a ruleset source -> %s", err.Error())
+			return err
+		}
+	}
 
 	return nil
 }
 
 func EditRulesetSource(data map[string]string) (err error) { 
 	var sourceuuid = data["sourceuuid"]
-    if ndb.RSdb == nil {
-        logs.Error("no access to database")
+    if ndb.Rdb == nil {
+		logs.Error("no access to database")
         return errors.New("no access to database")
 	}
 	for k,v := range data { 
 		if k == "sourceuuid"{
 			continue
 		}else{
+			//update ruleset source
 			err = UpdateRulesetSource(k, v, sourceuuid)
 			if err != nil {
 				logs.Error("Error updating ruleset source data")
 				return err
 			}
+
 		}
 	}
-	
-	err = UpdateRulesetSourceRule(data["name"])
-	if err != nil {
-		logs.Error("Error updating ruleset source rule data")
-		return err
-	}
-
+		
 	return nil
 }
 
-
-//update source ruleset data
+//update ruleset data from ruleset source page
 func UpdateRulesetSource(param string, value string, sourceuuid string)(err error){
-	editSource, err := ndb.RSdb.Prepare("update ruleset_source set source_value = ? where source_param = ? and source_uniqueid = ?")
+	editSource, err := ndb.Rdb.Prepare("update ruleset set ruleset_value = ? where ruleset_param = ? and ruleset_uniqueid = ?")
 	if err != nil {
 		logs.Error("Prepare EditRulesetSource-> %s", err.Error())
 		return err
 	}
 	_, err = editSource.Exec(&value, &param, &sourceuuid)
-	if err != nil {
-		logs.Error("Execute EditRulesetSource-> %s", err.Error())
-		return err
-	}
-
-	return nil
-}
-
-//update source ruleset Rule name for put the same name with their ruleset source
-func UpdateRulesetSourceRule(name string)(err error){
-	editSource, err := ndb.RSdb.Prepare("update source_rules set rules_value = ? where rules_param = ?")
-	if err != nil {
-		logs.Error("Prepare EditRulesetSource-> %s", err.Error())
-		return err
-	}
-	_, err = editSource.Exec(&name, "name")
 	if err != nil {
 		logs.Error("Execute EditRulesetSource-> %s", err.Error())
 		return err
@@ -227,8 +271,9 @@ func DownloadFile(data map[string]string) (err error) {
 		for k,_ := range ruleFiles["files"] {
 			uuid := utils.Generate()
 			err = InsertRulesetSourceRules(uuid, "name", pathSelected)
-			err = InsertRulesetSourceRules(uuid, "file", k)
 			err = InsertRulesetSourceRules(uuid, "path", ruleFiles["files"][k])
+			err = InsertRulesetSourceRules(uuid, "file", k)
+			err = InsertRulesetSourceRules(uuid, "type", "source")
 			err = InsertRulesetSourceRules(uuid, "sourceUUID", data["sourceuuid"])
 		}
 		if err != nil {
@@ -242,11 +287,11 @@ func DownloadFile(data map[string]string) (err error) {
 }
 
 func InsertRulesetSourceRules(nkey string, key string, value string) (err error) {
-    if ndb.RSdb == nil {
+    if ndb.Rdb == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
     }
-    stmt, err := ndb.RSdb.Prepare("insert into source_rules (rules_uniqueid, rules_param, rules_value) values(?,?,?)")
+    stmt, err := ndb.Rdb.Prepare("insert into rule_files (rule_uniqueid, rule_param, rule_value) values(?,?,?)")
     if err != nil {
         logs.Error("Prepare -> %s", err.Error())
         return err
@@ -355,7 +400,6 @@ func CreateNewFile(data map[string]string) (err error) {
 }
 
 func Details(data map[string]string) (files map[string]map[string]string, err error) {
-
 	sourceDownload := map[string]map[string]string{}
 	sourceDownload["ruleset"] = map[string]string{}
 	sourceDownload["ruleset"]["sourceDownload"] = ""
@@ -378,7 +422,9 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
 			return err
 		}
 		if fileExtension.MatchString(info.Name()){
-			dataFiles["files"][info.Name()] = file
+			dataFiles["files"]["name"] = info.Name()
+			dataFiles["files"]["file"] = file
+			logs.Warn(file)
 		}
 		return nil
 	})

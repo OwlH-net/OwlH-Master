@@ -44,10 +44,10 @@ func (n *RulesetSourceController) GetAllRulesetSource() {
 // @Title DeleteRulesetSource
 // @Description delete a RulesetSource
 // @Success 200 {object} models.DeleteRulesetSource
-// @router /DeleteRulesetSource/:groupID [put]
+// @router /DeleteRulesetSource/:uuid [put]
 func (n *RulesetSourceController) DeleteRulesetSource() { 
-	groupID := n.GetString(":groupID") 
-    err := models.DeleteRulesetSource(groupID)
+	uuid := n.GetString(":uuid") 
+    err := models.DeleteRulesetSource(uuid)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

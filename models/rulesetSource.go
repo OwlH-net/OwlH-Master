@@ -19,8 +19,8 @@ func EditRulesetSource(data map[string]string) (err error) {
     return err
 }
 
-func DeleteRulesetSource(groupId string) (err error) {
-    err = rulesetSource.DeleteRulesetSource(groupId)
+func DeleteRulesetSource(uuid string) (err error) {
+    err = rulesetSource.DeleteRulesetSource(uuid)
     return err
 }
 

@@ -60,7 +60,7 @@ func loadNodesAndPcaps()(nodes listOfNodesAndFolders, err error) {
 		logs.Error("Error loadNodesAndPcaps opening file : "+err.Error())
 		return t, err
 	}
-    // defer nodesFile.Close()
+    defer nodesFile.Close()
     byteValue, _ := ioutil.ReadAll(nodesFile)
     json.Unmarshal([]byte(byteValue), &t)
     return t, nil

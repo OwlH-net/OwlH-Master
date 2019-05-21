@@ -169,9 +169,10 @@ func GetAllRulesets() (rulesets *map[string]map[string]string, err error) {
 
 //Get a specific ruleset path
 func GetRulesetPath(uuid string) (n string, err error) {
-    var path string
+	var path string
     if ndb.Rdb != nil {
-        row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid=$1 and ruleset_param=\"path\";",uuid)
+        // row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid=$1 and ruleset_param=\"path\";",uuid)
+        row := ndb.Rdb.QueryRow("SELECT rule_value FROM rule_files WHERE rule_uniqueid=$1 and rule_param=\"path\";",uuid)
 		err = row.Scan(&path)
 
         if err == sql.ErrNoRows {
@@ -329,6 +330,7 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
 		err = insertRulesetValues(newUUID, "file", newFile)
 		err = insertRulesetValues(newUUID, "desc", newDesc)
 		err = insertRulesetValues(newUUID, "path", pathNewRule)
+		err = insertRulesetValues(newUUID, "type", "local")
         if (err != nil){
             logs.Error("error insertRulesetValues values on ruleset/rulesets--> "+err.Error())
             return err
