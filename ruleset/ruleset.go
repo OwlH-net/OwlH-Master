@@ -560,7 +560,7 @@ func AddNewRuleset(data map[string]map[string]string)(err error) {
 	
 	for x := range data {
 		logs.Warn(data[x]["fileName"])
-
+		err = rulesetSource.InsertRulesetSourceRules()
 
 
 	}
