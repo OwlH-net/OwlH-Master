@@ -134,6 +134,9 @@ func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
 	sourceDownload,err = utils.GetConf(sourceDownload)
 	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
 
+	splitPath := strings.Split(pathToDelete, "/")
+	pathSelected := splitPath[len(splitPath)-2]
+
 	if ndb.Rdb == nil || ndb.Rdb == nil{
         logs.Error("DeleteRulesetSource -- Can't acces to database")
         return errors.New("DeleteRulesetSource -- Can't acces to database")
@@ -151,8 +154,7 @@ func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
 			logs.Error("DeleteRulesetSource for delete path rows.Scan: %s", err.Error())
 			return err
 		}
-		splitPath := strings.Split(pathToDelete, "/")
-		pathSelected := splitPath[len(splitPath)-2]
+		
 		err = os.RemoveAll(pathDownloaded+pathSelected)
 		if err = uuidPath.Scan(&pathToDelete); err != nil {
 			logs.Error("DeleteRulesetSource Error deleting path: %s", err.Error())
@@ -257,12 +259,14 @@ func DownloadFile(data map[string]string) (err error) {
 		err = utils.DownloadFile(data["path"], data["url"])
 		if err != nil {
 			logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
+			err = os.RemoveAll(pathDownloaded+pathSelected)
 			return err
 		}
 	
 		err = utils.ExtractTarGz(data["path"], pathDownloaded, pathSelected)
 		if err != nil {
 			logs.Error("Error unzipping file downloaded: "+err.Error())
+			err = os.RemoveAll(pathDownloaded+pathSelected)
 			return err
 		}
 
@@ -399,6 +403,7 @@ func CreateNewFile(data map[string]string) (err error) {
     return nil
 }
 
+//get data from local files for insert into DB
 func Details(data map[string]string) (files map[string]map[string]string, err error) {
 	sourceDownload := map[string]map[string]string{}
 	sourceDownload["ruleset"] = map[string]string{}
@@ -422,9 +427,7 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
 			return err
 		}
 		if fileExtension.MatchString(info.Name()){
-			dataFiles["files"]["name"] = info.Name()
-			dataFiles["files"]["file"] = file
-			logs.Warn(file)
+			dataFiles["files"][info.Name()] = file
 		}
 		return nil
 	})
@@ -435,4 +438,46 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
 	}
 	
 	return dataFiles ,nil
+}
+
+//
+func GetDetails(uuid string) (data map[string]map[string]string, err error){
+	var allRuleDetails = map[string]map[string]string{}
+	var uniqid string
+    var param string
+    var value string
+    var uuidSource string
+    if ndb.Rdb == nil {
+        logs.Error("no access to database")
+        return nil, errors.New("no access to database")
+    }
+	sqlUUID := "select rule_uniqueid from rule_files where rule_param='sourceUUID' and rule_value = '"+uuid+"';"
+	uuidRows, err := ndb.Rdb.Query(sqlUUID)
+	if err != nil {
+		logs.Error("ndb.Rdb.Query Error checking uuid for take the uuid list for GetDetails: %s", err.Error())
+        return nil, err
+    }
+	defer uuidRows.Close()
+	for uuidRows.Next() {
+		if err = uuidRows.Scan(&uuidSource); err != nil {
+            logs.Error("GetDetails UUIDSource uuidRows.Scan: %s", err.Error())
+            return nil, err
+		}
+		sql := "select rule_uniqueid, rule_param, rule_value from rule_files where rule_uniqueid='"+uuidSource+"';"
+		rows, err := ndb.Rdb.Query(sql)
+		if err != nil {
+			logs.Error("ndb.Rdb.Query Error : %s", err.Error())
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			if err = rows.Scan(&uniqid, &param, &value); err != nil {
+				logs.Error("GetDetails rows.Scan: %s", err.Error())
+				return nil, err
+			}
+			if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
+			allRuleDetails[uniqid][param]=value
+		} 
+	}
+	return allRuleDetails, nil
 }

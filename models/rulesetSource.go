@@ -39,7 +39,7 @@ func CreateNewFile(data map[string]string) (err error) {
     return err
 }
 
-func Details(data map[string]string) (files map[string]map[string]string, err error) {
-    files, err = rulesetSource.Details(data)
+func GetDetails(uuid string) (files map[string]map[string]string, err error) {
+    files, err = rulesetSource.GetDetails(uuid)
     return files ,err
 }

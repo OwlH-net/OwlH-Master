@@ -74,3 +74,13 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
 //     err = ruleset.SyncRulesetToAllNodes(uuid)
 //     return err
 // }
+
+func GetAllRuleData()(data map[string]map[string]string,err error) {
+    data,err = ruleset.GetAllRuleData()
+    return data,err
+}
+
+func AddNewRuleset(data map[string]map[string]string)(err error) {
+    err = ruleset.AddNewRuleset(data)
+    return err
+}

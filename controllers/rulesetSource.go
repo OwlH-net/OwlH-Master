@@ -115,14 +115,13 @@ func (n *RulesetSourceController) CreateNewFile() {
     n.ServeJSON()
 }
 
-// @Title Details
+// @Title GetDetails
 // @Description edit a RulesetSource
 // @Success 200 {object} models.RulesetSource
-// @router /details [put]
-func (n *RulesetSourceController) Details() { 
-	var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	data, err := models.Details(anode)
+// @router /getDetails/:uuid [get]
+func (n *RulesetSourceController) GetDetails() { 
+	uuid := n.GetString(":uuid")
+	data, err := models.GetDetails(uuid)
 	
     n.Data["json"] = data
     if err != nil {

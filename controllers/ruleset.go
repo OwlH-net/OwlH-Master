@@ -244,3 +244,33 @@ func (n *RulesetController) DeleteNode() {
 //     }
 //     n.ServeJSON()
 // }
+
+// @Title GetAllRuleData
+// @Description Get all data from rule data
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /getAllRuleData [get]
+func (n *RulesetController) GetAllRuleData() { 
+    data,err := models.GetAllRuleData()
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title AddNewRuleset
+// @Description Add new custom ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /addNewRuleset [put]
+func (n *RulesetController) AddNewRuleset() { 
+    var anode map[string]map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.AddNewRuleset(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

@@ -349,12 +349,12 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
 //insert values to ruleset table
 func insertRulesetValues(uuid string, param string, value string)(err error){
 	insertRulesetValues, err := ndb.Rdb.Prepare("insert into ruleset (ruleset_uniqueid, ruleset_param, ruleset_value) values (?,?,?);")
-        _, err = insertRulesetValues.Exec(&uuid, &param, &value)
-        defer insertRulesetValues.Close()
-        if (err != nil){
-            return err
-		}
-		return nil
+	_, err = insertRulesetValues.Exec(&uuid, &param, &value)
+	defer insertRulesetValues.Close()
+	if (err != nil){
+		return err
+	}
+	return nil
 }
 
 //Change rule status to enabled or disabled
@@ -513,3 +513,61 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
 // 	}
 // 	return nil
 // }
+
+//Get all rulesets from DB
+func GetAllRuleData()(data map[string]map[string]string,err error) {
+    var ruleData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if ndb.Rdb == nil {
+        logs.Error("ruleset/GetAllRuleData -- Can't access to database")
+        return nil, errors.New("ruleset/GetAllRuleData -- Can't access to database")
+    }
+    sql := "select rule_uniqueid, rule_param, rule_value from rule_files;"
+    rows, err := ndb.Rdb.Query(sql)
+    if err != nil {
+        logs.Error("ruleset/GetAllRuleData -- Query error: %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("ruleset/GetAllRuleData -- Query return error: %s", err.Error())
+            return nil, err
+        }
+        if ruleData[uniqid] == nil { ruleData[uniqid] = map[string]string{}}
+        ruleData[uniqid][param]=value
+	}
+    return ruleData, nil
+}
+
+
+//Get all rulesets from DB
+func AddNewRuleset(data map[string]map[string]string)(err error) {
+    if ndb.Rdb == nil {
+        logs.Error("ruleset/AddNewRuleset -- Can't access to database")
+        return errors.New("ruleset/AddNewRuleset -- Can't access to database")
+	}
+	
+	newUUID := utils.Generate()
+	err = insertRulesetValues(newUUID, "Type", "local")
+	err = insertRulesetValues(newUUID, "name", data[x]["rulesetName"])
+	err = insertRulesetValues(newUUID, "desc", data[x]["rulesetDesc"])
+	if err != nil {
+		logs.Error("ruleset/AddNewRuleset -- Insert error: %s", err.Error())
+		return err
+	}
+	
+	for x := range data {
+		logs.Warn(data[x]["fileName"])
+
+
+
+	}
+
+
+
+
+	
+	return nil
+}
