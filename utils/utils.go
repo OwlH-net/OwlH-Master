@@ -45,8 +45,6 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
     return loadData, nil
 }
 
-
-
 func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Response, err error){
 	req, err := http.NewRequest(order, url, values)
 	if err != nil {

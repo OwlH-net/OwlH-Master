@@ -9,11 +9,12 @@ import(
     "os/exec"
     "owlhmaster/utils"
     "owlhmaster/database"
+    "owlhmaster/rulesetSource"
     "errors"
     "database/sql"
     "strings"
     "time"
-    "strconv"
+	"strconv"
 )
 
 //read rule raw data
@@ -141,37 +142,51 @@ func rulesetInsert(nkey string, key string, value string) (err error) {
 }
 
 //Get all rulesets from DB
-func GetAllRulesets() (rulesets *map[string]map[string]string, err error) {
+func GetAllRulesets() (rulesets map[string]map[string]string, err error) {
     var allrulesets = map[string]map[string]string{}
     var uniqid string
     var param string
-    var value string
+	var value string
+	var uuidLocal string
     if ndb.Rdb == nil {
         logs.Error("ruleset/GetAllRulesets -- Can't access to database")
         return nil, errors.New("ruleset/GetAllRulesets -- Can't access to database")
     }
-    sql := "select ruleset_uniqueid, ruleset_param, ruleset_value from ruleset;"
+    sql := "select ruleset_uniqueid from ruleset where ruleset_param='type' and ruleset_value = 'local';"
     rows, err := ndb.Rdb.Query(sql)
     if err != nil {
         logs.Error("ruleset/GetAllRulesets -- Query error: %s", err.Error())
         return nil, err
-    }
+	}
+	defer rows.Close()
     for rows.Next() {
-        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+        if err = rows.Scan(&uuidLocal); err != nil {
             logs.Error("ruleset/GetAllRulesets -- Query return error: %s", err.Error())
             return nil, err
-        }
-        if allrulesets[uniqid] == nil { allrulesets[uniqid] = map[string]string{}}
-        allrulesets[uniqid][param]=value
+		}
+		sql := "select ruleset_uniqueid, ruleset_param, ruleset_value from ruleset where ruleset_uniqueid='"+uuidLocal+"';"
+			rowsLocal, err := ndb.Rdb.Query(sql)
+			if err != nil {
+				logs.Error("GetAllRulesets ndb.Rdb.Query Error : %s", err.Error())
+				return nil, err
+			}
+			defer rowsLocal.Close()
+			for rowsLocal.Next() {
+				if err = rowsLocal.Scan(&uniqid, &param, &value); err != nil {
+					logs.Error("GetAllRulesets rowsLocal.Scan: %s", err.Error())
+					return nil, err
+				}
+				if allrulesets[uniqid] == nil { allrulesets[uniqid] = map[string]string{}}
+				allrulesets[uniqid][param]=value
+			} 
     }
-    return &allrulesets, nil
+	return allrulesets, nil
 }
 
 //Get a specific ruleset path
 func GetRulesetPath(uuid string) (n string, err error) {
 	var path string
     if ndb.Rdb != nil {
-        // row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid=$1 and ruleset_param=\"path\";",uuid)
         row := ndb.Rdb.QueryRow("SELECT rule_value FROM rule_files WHERE rule_uniqueid=$1 and rule_param=\"path\";",uuid)
 		err = row.Scan(&path)
 
@@ -445,10 +460,19 @@ func GetRuleNote(ruleGetNote map[string]string)(note string, err error){
     return noteText, nil
 }
 
-//Delete specific ruleset
+//Delete specific ruleset and all their asociated files
 func DeleteRuleset(rulesetMap map[string]string)(err error){
-    path := rulesetMap["path"]
 	uuid := rulesetMap["uuid"]
+	name := rulesetMap["name"]
+	rulesetFolderName := strings.Replace(name, " ", "_", -1)
+	var uniqueid string
+	var uuidArray []string	
+
+	localRulesets := map[string]map[string]string{}
+	localRulesets["ruleset"] = map[string]string{}
+	localRulesets["ruleset"]["localRulesets"] = ""
+	localRulesets,err = utils.GetConf(localRulesets)
+	localRulesetFiles := localRulesets["ruleset"]["localRulesets"]
 
 	//delete ruleset
 	deleteRulesetQuery, err := ndb.Rdb.Prepare("delete from ruleset where ruleset_uniqueid = ?;")
@@ -459,60 +483,60 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
         return errors.New("DB DeleteRuleset/deleteRulesetQuery -> ERROR on table Ruleset...")
 	}
 
-	//delete a node ruleset
-	deleteRulesetNodeQuery, err := ndb.Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
-	_, err = deleteRulesetNodeQuery.Exec(&uuid)
-	defer deleteRulesetNodeQuery.Close()
-    if err != nil {
-		logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
-        return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
-	}
+	// //delete a node ruleset
+	// deleteRulesetNodeQuery, err := ndb.Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
+	// _, err = deleteRulesetNodeQuery.Exec(&uuid)
+	// defer deleteRulesetNodeQuery.Close()
+    // if err != nil {
+	// 	logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+    //     return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+	// }
 
-	//delete notes from every ruleset rule
-	deleteRuleNoteQuery, err := ndb.Rdb.Prepare("delete from rule_note where ruleset_uniqueid = ?;")
-	_, err = deleteRuleNoteQuery.Exec(&uuid)
-	defer deleteRuleNoteQuery.Close()
-    if err != nil {
-		logs.Error("DB DeleteRuleset/deleteRuleNoteQuery -> ERROR on table Rule_note...")
-        return errors.New("DB DeleteRuleset/deleteRuleNoteQuery -> ERROR on table Rule_note...")
-	}
+	// //delete notes from every ruleset rule
+	// deleteRuleNoteQuery, err := ndb.Rdb.Prepare("delete from rule_note where ruleset_uniqueid = ?;")
+	// _, err = deleteRuleNoteQuery.Exec(&uuid)
+	// defer deleteRuleNoteQuery.Close()
+    // if err != nil {
+	// 	logs.Error("DB DeleteRuleset/deleteRuleNoteQuery -> ERROR on table Rule_note...")
+    //     return errors.New("DB DeleteRuleset/deleteRuleNoteQuery -> ERROR on table Rule_note...")
+	// }
 
 	//delete ruleset from path
-	err = exec.Command("rm", "-rf", path).Run()
+	err = os.RemoveAll(localRulesetFiles+rulesetFolderName)
 	if err != nil {
 		logs.Error("DB DeleteRuleset/rm -> ERROR deleting ruleset from their path...")
 		return errors.New("DB DeleteRuleset/rm -> ERROR deleting ruleset from their path...")
 	}
+
+	//delete all ruleset source rules
+	uuidRules, err := ndb.Rdb.Query("select rule_uniqueid from rule_files where rule_value='"+uuid+"'")
+	if err != nil {
+		logs.Error("DeleteRulese ndb.Rdb.Query Error checking rule_uniqueid for rule_files: %s", err.Error())
+		return err
+	}
+	defer uuidRules.Close()
+	for uuidRules.Next() {
+		if err = uuidRules.Scan(&uniqueid); err != nil {
+			logs.Error("DeleteRulese rows.Scan: %s", err.Error())
+			return err
+		}
+		uuidArray = append(uuidArray, uniqueid)
+	}
+	for x := range uuidArray{
+		DeleteUUIDPrepare, err := ndb.Rdb.Prepare("delete from rule_files where rule_uniqueid = ?")
+		if err != nil {
+			logs.Error("DeleteRulese ndb.Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
+			return err
+		}
+		_, err = DeleteUUIDPrepare.Exec(&uuidArray[x])
+		if err != nil {
+			logs.Error("DeleteRulese deleting a ruleset source -> %s", err.Error())
+			return err
+		}
+	}
+
     return nil
 }
-
-// func SyncRulesetToAllNodes(uuid string)(err error){
-// 	if ndb.Rdb == nil {
-//         logs.Error("SyncRulesetToAllNodes -- Can't access to database")
-//         return errors.New("SyncRulesetToAllNodes -- Can't access to database")
-//     }
-// 	sqlQuery := "SELECT node_uniqueid FROM ruleset_node WHERE ruleset_uniqueid = \""+uuid+"\" ;"
-//     rows, err := ndb.Rdb.Query(sqlQuery)
-//     if err != nil {
-//         logs.Error("SyncRulesetToAllNodes query error %s",err.Error())
-//         return err
-//     }
-//     defer rows.Close()
-//     for rows.Next() {
-// 		var nodeID string
-// 		err = rows.Scan(&nodeID)
-// 		if err != nil {
-// 			logs.Error("SyncRulesetToAllNodes FOR query error %s",err.Error())
-// 			return err
-// 		}
-// 		err = node.SetRuleset(nodeID)
-// 		if err != nil {
-// 			logs.Error("SyncRulesetToAllNodes node.SetRuleset query error %s",err.Error())
-// 			return err
-// 		}
-// 	}
-// 	return nil
-// }
 
 //Get all rulesets from DB
 func GetAllRuleData()(data map[string]map[string]string,err error) {
@@ -541,33 +565,85 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
     return ruleData, nil
 }
 
+func SyncRulesetToNode(uuid string)(err error){
+	if ndb.Rdb == nil {
+        logs.Error("SyncRulesetToNode -- Can't access to database")
+        return errors.New("SyncRulesetToNode -- Can't access to database")
+    }
+	sqlQuery := "SELECT node_uniqueid FROM ruleset_node WHERE ruleset_uniqueid = \""+uuid+"\" ;"
+    rows, err := ndb.Rdb.Query(sqlQuery)
+    if err != nil {
+        logs.Error("SyncRulesetToNode query error %s",err.Error())
+        return err
+    }
+    defer rows.Close()
+    for rows.Next() {
+		var nodeID string
+		err = rows.Scan(&nodeID)
+		if err != nil {
+			logs.Error("SyncRulesetToNode FOR query error %s",err.Error())
+			return err
+		}
+		err = node.SetRuleset(nodeID)
+		if err != nil {
+			logs.Error("SyncRulesetToNode node.SetRuleset query error %s",err.Error())
+			return err
+		}
+	}
+	return nil
+}
 
 //Get all rulesets from DB
 func AddNewRuleset(data map[string]map[string]string)(err error) {
+	logs.Warn(data)
     if ndb.Rdb == nil {
         logs.Error("ruleset/AddNewRuleset -- Can't access to database")
         return errors.New("ruleset/AddNewRuleset -- Can't access to database")
 	}
 	
-	newUUID := utils.Generate()
-	err = insertRulesetValues(newUUID, "Type", "local")
-	err = insertRulesetValues(newUUID, "name", data[x]["rulesetName"])
-	err = insertRulesetValues(newUUID, "desc", data[x]["rulesetDesc"])
-	if err != nil {
-		logs.Error("ruleset/AddNewRuleset -- Insert error: %s", err.Error())
-		return err
-	}
-	
+	localRulesets := map[string]map[string]string{}
+	localRulesets["ruleset"] = map[string]string{}
+	localRulesets["ruleset"]["localRulesets"] = ""
+	localRulesets,err = utils.GetConf(localRulesets)
+	localFiles := localRulesets["ruleset"]["localRulesets"]
+
+	rulesetUUID := utils.Generate()
+	rulesetCreated := false
 	for x := range data {
-		logs.Warn(data[x]["fileName"])
-		err = rulesetSource.InsertRulesetSourceRules()
+		if !rulesetCreated {
+			err = insertRulesetValues(rulesetUUID, "type", "local")
+			err = insertRulesetValues(rulesetUUID, "name", data[x]["rulesetName"])
+			err = insertRulesetValues(rulesetUUID, "desc", data[x]["rulesetDesc"])
+			if err != nil {
+				logs.Error("ruleset/AddNewRuleset -- Insert error: %s", err.Error())
+				return err
+			}
+			rulesetCreated = true
+		}
+		
+		rulesetFolderName := strings.Replace(data[x]["rulesetName"], " ", "_", -1)
 
-
+		ruleFilesUUID := utils.Generate()
+		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "name", data[x]["rulesetName"])
+		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "path", localFiles + rulesetFolderName + "/" + data[x]["fileName"])
+		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "file", data[x]["fileName"])
+		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "type", "local")
+		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "sourceUUID", rulesetUUID)
+		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "sourceFileUUID", x)
+		
+		//copy source file into new folder
+		if _, err := os.Stat(localFiles + rulesetFolderName); os.IsNotExist(err) {
+			os.MkdirAll(localFiles + rulesetFolderName, os.ModePerm)
+		}
+		
+		//copyfile
+		cpCmd := exec.Command("cp", data[x]["filePath"], localFiles + rulesetFolderName + "/" + data[x]["fileName"])
+    	err = cpCmd.Run()
+		if err != nil {
+			logs.Error("ruleset/AddNewRuleset -- Error copying new file: %s", err.Error())
+			return err
+		}
 	}
 
-
-
-
-	
 	return nil
 }

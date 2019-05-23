@@ -113,8 +113,8 @@ func StopWazuh(uuid string) (data string, err error) {
     return data,err
 }
 
-func SyncRulesetToAllNodes(uuid string)(err error){
-    err = node.SyncRulesetToAllNodes(uuid)
+func SyncRulesetToNode(uuid string)(err error){
+    err = node.SyncRulesetToNode(uuid)
     return err
 }
 

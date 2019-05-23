@@ -20,7 +20,7 @@ func AddRuleset(n map[string]string)(err error){
     return err
 }
 
-func GetAllRulesets()(rulesets *map[string]map[string]string, err error){
+func GetAllRulesets()(rulesets map[string]map[string]string, err error){
     rulesets,err = ruleset.GetAllRulesets()
     return rulesets,err
 }

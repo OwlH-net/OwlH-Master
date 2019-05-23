@@ -125,8 +125,8 @@ func GetAllRulesetSource()(sources map[string]map[string]string, err error){
 }
 
 func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
-	var uniqueid string
 	var pathToDelete string
+	var uniqueid string
 	var uuidArray []string
 	sourceDownload := map[string]map[string]string{}
 	sourceDownload["ruleset"] = map[string]string{}
@@ -134,10 +134,7 @@ func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
 	sourceDownload,err = utils.GetConf(sourceDownload)
 	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
 
-	splitPath := strings.Split(pathToDelete, "/")
-	pathSelected := splitPath[len(splitPath)-2]
-
-	if ndb.Rdb == nil || ndb.Rdb == nil{
+	if ndb.Rdb == nil {
         logs.Error("DeleteRulesetSource -- Can't acces to database")
         return errors.New("DeleteRulesetSource -- Can't acces to database")
 	}
@@ -154,6 +151,9 @@ func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
 			logs.Error("DeleteRulesetSource for delete path rows.Scan: %s", err.Error())
 			return err
 		}
+		
+		splitPath := strings.Split(pathToDelete, "/")
+		pathSelected := splitPath[len(splitPath)-2]
 		
 		err = os.RemoveAll(pathDownloaded+pathSelected)
 		if err = uuidPath.Scan(&pathToDelete); err != nil {
@@ -409,7 +409,6 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
 	sourceDownload["ruleset"] = map[string]string{}
 	sourceDownload["ruleset"]["sourceDownload"] = ""
 	sourceDownload,err = utils.GetConf(sourceDownload)
-
 	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
 
 	splitPath := strings.Split(data["path"], "/")

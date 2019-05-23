@@ -387,14 +387,14 @@ func (n *NodeController) StopWazuh() {
     n.ServeJSON()
 }
 
-// @Title SyncRulesetToAllNodes
-// @Description synchronize Ruleset to all nodes using it
+// @Title SyncRulesetToNode
+// @Description synchronize Ruleset to node
 // @Success 200 {object} models.Node
 // @Failure 403 Connection Failure
 // @router /synchronize/:uuid [put]
-func (n *NodeController) SyncRulesetToAllNodes() { 
+func (n *NodeController) SyncRulesetToNode() { 
 	uuid := n.GetString(":uuid")
-    err := models.SyncRulesetToAllNodes(uuid)
+    err := models.SyncRulesetToNode(uuid)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

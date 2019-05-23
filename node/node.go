@@ -390,29 +390,35 @@ func SetRuleset(uuid string) (err error) {
 		}
 	}
     
-    rulesetID, err := ruleset.GetRuleSelected(uuid)
-    if err != nil {
-        logs.Error("SetRuleset node ERROR GetRuleSelected: "+err.Error())
-        return err
-	}
+    // rulesetID, err := ruleset.GetRuleSelected(uuid)
+    // if err != nil {
+    //     logs.Error("SetRuleset node ERROR GetRuleSelected: "+err.Error())
+    //     return err
+	// }
 
-    path, err := ruleset.GetRulesetPath(rulesetID)
-    if err != nil {
-        logs.Error("SetRuleset node ERROR GetRulesetPath: "+err.Error())
-        return err
-    }
+    // path, err := ruleset.GetRulesetPath(rulesetID)
+    // if err != nil {
+    //     logs.Error("SetRuleset node ERROR GetRulesetPath: "+err.Error())
+    //     return err
+    // }
 
-    data, err := ioutil.ReadFile(path)
-    if err != nil {
-        logs.Error("SetRuleset ioutil.ReadFile ERROR: "+err.Error())
-        return err
-    }
-
-	err = nodeclient.SetRuleset(ipData,portData,data)
+    // data, err := ioutil.ReadFile(path)
+    // if err != nil {
+    //     logs.Error("SetRuleset ioutil.ReadFile ERROR: "+err.Error())
+    //     return err
+	// }
+	
+	data,err := ndb.CreateNewRuleFile(uuid)
 	if err != nil {
 		logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error())
 		return err
 	}
+
+	// err = nodeclient.SetRuleset(ipData,portData,data)
+	// if err != nil {
+	// 	logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error())
+	// 	return err
+	// }
     return nil
 }
 
