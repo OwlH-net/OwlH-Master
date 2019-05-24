@@ -57,10 +57,10 @@ func DeleteNode(n string) (err error) {
     return err
 }
 
-func SetRuleset(nid string) (err error) {
-    err = node.SetRuleset(nid)
-    return err
-}
+// func SetRuleset(nid string) (err error) {
+//     err = node.SetRuleset(nid)
+//     return err
+// }
 
 func GetNodeFile(n map[string]string) (data map[string]string, err error) {
     data,err = node.GetNodeFile(n)
@@ -113,8 +113,8 @@ func StopWazuh(uuid string) (data string, err error) {
     return data,err
 }
 
-func SyncRulesetToNode(uuid string)(err error){
-    err = node.SyncRulesetToNode(uuid)
+func SyncRulesetToNode(anode map[string]string)(err error){
+    err = node.SyncRulesetToNode(anode)
     return err
 }
 

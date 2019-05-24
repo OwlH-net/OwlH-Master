@@ -3,12 +3,12 @@ package ruleset
 import(
     "fmt"
     "github.com/astaxie/beego/logs"
-    "bufio" //read line by line the doc
+    "bufio"
     "regexp"
     "os"
     "os/exec"
-    "owlhmaster/utils"
     "owlhmaster/database"
+    "owlhmaster/utils"
     "owlhmaster/rulesetSource"
     "errors"
     "database/sql"
@@ -563,34 +563,6 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
         ruleData[uniqid][param]=value
 	}
     return ruleData, nil
-}
-
-func SyncRulesetToNode(uuid string)(err error){
-	if ndb.Rdb == nil {
-        logs.Error("SyncRulesetToNode -- Can't access to database")
-        return errors.New("SyncRulesetToNode -- Can't access to database")
-    }
-	sqlQuery := "SELECT node_uniqueid FROM ruleset_node WHERE ruleset_uniqueid = \""+uuid+"\" ;"
-    rows, err := ndb.Rdb.Query(sqlQuery)
-    if err != nil {
-        logs.Error("SyncRulesetToNode query error %s",err.Error())
-        return err
-    }
-    defer rows.Close()
-    for rows.Next() {
-		var nodeID string
-		err = rows.Scan(&nodeID)
-		if err != nil {
-			logs.Error("SyncRulesetToNode FOR query error %s",err.Error())
-			return err
-		}
-		err = node.SetRuleset(nodeID)
-		if err != nil {
-			logs.Error("SyncRulesetToNode node.SetRuleset query error %s",err.Error())
-			return err
-		}
-	}
-	return nil
 }
 
 //Get all rulesets from DB

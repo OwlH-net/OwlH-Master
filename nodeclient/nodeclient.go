@@ -144,7 +144,7 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
 	return rData,nil;
 }
 
-func SetRuleset(ipData string, portData string, data []byte)(err error){
+func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
 	values := make(map[string][]byte)
 	values["data"] = data
 	url := "https://"+ipData+":"+portData+"/node/suricata/retrieve"

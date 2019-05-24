@@ -241,13 +241,14 @@ func (n *NodeController) DeleteNode() {
     n.ServeJSON()
 }
 
-// @Title SetRuleset
+// @Title SyncRulesetToNode
 // @Description Send Ruleset file to node
 // @Success 200 {object} models.Node
-// @router /ruleset/set/:nid [get]
-func (n *NodeController) SetRuleset() { 
-    nid := n.GetString(":nid")
-    err := models.SetRuleset(nid)
+// @router /ruleset/set [put]
+func (n *NodeController) SyncRulesetToNode() { 
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SyncRulesetToNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -381,21 +382,6 @@ func (n *NodeController) StopWazuh() {
     uuid := n.GetString(":uuid")
     data, err := models.StopWazuh(uuid)
     n.Data["json"] = data
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
-    n.ServeJSON()
-}
-
-// @Title SyncRulesetToNode
-// @Description synchronize Ruleset to node
-// @Success 200 {object} models.Node
-// @Failure 403 Connection Failure
-// @router /synchronize/:uuid [put]
-func (n *NodeController) SyncRulesetToNode() { 
-	uuid := n.GetString(":uuid")
-    err := models.SyncRulesetToNode(uuid)
-    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

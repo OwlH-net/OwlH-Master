@@ -45,6 +45,7 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
     return loadData, nil
 }
 
+//create conection through http.
 func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Response, err error){
 	req, err := http.NewRequest(order, url, values)
 	if err != nil {
@@ -59,6 +60,7 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
 	return resp, err
 }
 
+//create a backup of selected file
 func BackupFile(path string, fileName string) (err error) { 
 	loadData := map[string]map[string]string{}
 	loadData["files"] = map[string]string{}
@@ -112,6 +114,7 @@ func DownloadFile(filepath string, url string) error {
 	return nil
 }
 
+//extract tar.gz files
 func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err error){
 	file, err := os.Open(tarGzFile)
 	defer file.Close()
@@ -158,6 +161,7 @@ func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err err
 	return nil
 }
 
+//create a hashmap from file
 func MapFromFile(path string)(mapData map[string]map[string]string, err error){
 	var mapFile = make(map[string]map[string]string)
 	var validID = regexp.MustCompile(`sid:(\d+);`)
@@ -186,6 +190,7 @@ func MapFromFile(path string)(mapData map[string]map[string]string, err error){
 	return mapFile, nil
 }
 
+//replace lines between 2 files selected
 func ReplaceLines(data map[string]string)(err error){
 	sourceDownload := map[string]map[string]string{}
 	sourceDownload["ruleset"] = map[string]string{}
@@ -207,7 +212,6 @@ func ReplaceLines(data map[string]string)(err error){
 	var validID = regexp.MustCompile(`sid:(\d+);`)
 
 	newFileDownloaded, err := os.Open(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
-	// newFileDownloaded, err := os.Open("conf/downloads/rules/drop.rules")
 
 	scanner := bufio.NewScanner(newFileDownloaded)
 	for scanner.Scan() {
@@ -233,7 +237,6 @@ func ReplaceLines(data map[string]string)(err error){
 	}
 
 	input, err := ioutil.ReadFile("_creating-new-file.txt")
-	// err = ioutil.WriteFile("rules/drop.rules", input, 0644)
 	err = ioutil.WriteFile("rules/drop.rules", input, 0644)
 
 	_ = os.Remove("_creating-new-file.txt")

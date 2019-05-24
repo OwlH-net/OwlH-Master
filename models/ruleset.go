@@ -2,6 +2,7 @@ package models
 
 import (
     "owlhmaster/ruleset"
+    "owlhmaster/node"
 )
 
 
@@ -70,10 +71,10 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
     return err
 }
 
-// func SyncRulesetToAllNodes(uuid string)(err error){
-//     err = ruleset.SyncRulesetToAllNodes(uuid)
-//     return err
-// }
+func SyncRulesetToAllNodes(anode map[string]string)(err error){
+    err = node.SyncRulesetToAllNodes(anode)
+    return err
+}
 
 func GetAllRuleData()(data map[string]map[string]string,err error) {
     data,err = ruleset.GetAllRuleData()
