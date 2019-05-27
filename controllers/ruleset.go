@@ -239,8 +239,6 @@ func (n *RulesetController) SyncRulesetToAllNodes() {
 	var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	
-	logs.Notice(anode["uuid"])
-
     err := models.SyncRulesetToAllNodes(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {

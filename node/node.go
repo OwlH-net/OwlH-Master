@@ -85,12 +85,22 @@ func DeleteNode(nodeid string)(err error) {
     }
     stmt, err := ndb.Db.Prepare("delete from nodes where node_uniqueid = ?")
     if err != nil {
-        logs.Error("Prepare -> %s", err.Error())
+        logs.Error("Prepare nodes -> %s", err.Error())
         return err
     }
     _, err = stmt.Exec(&nodeid)
     if err != nil {
-        logs.Error("Execute -> %s", err.Error())
+        logs.Error("Execute nodes -> %s", err.Error())
+        return err
+    }
+    deleteRulesetNode, err := ndb.Rdb.Prepare("delete from ruleset_node where node_uniqueid = ?")
+    if err != nil {
+        logs.Error("Prepare ruleset_node -> %s", err.Error())
+        return err
+    }
+    _, err = deleteRulesetNode.Exec(&nodeid)
+    if err != nil {
+        logs.Error("Execute ruleset_node -> %s", err.Error())
         return err
     }
     return nil
@@ -644,8 +654,6 @@ func SyncRulesetToAllNodes(anode map[string]string)(err error){
 			return err
 		}
 	}
-
-
 	
 	return nil
 }

@@ -483,14 +483,14 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
         return errors.New("DB DeleteRuleset/deleteRulesetQuery -> ERROR on table Ruleset...")
 	}
 
-	// //delete a node ruleset
-	// deleteRulesetNodeQuery, err := ndb.Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
-	// _, err = deleteRulesetNodeQuery.Exec(&uuid)
-	// defer deleteRulesetNodeQuery.Close()
-    // if err != nil {
-	// 	logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
-    //     return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
-	// }
+	//delete a node ruleset
+	deleteRulesetNodeQuery, err := ndb.Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
+	_, err = deleteRulesetNodeQuery.Exec(&uuid)
+	defer deleteRulesetNodeQuery.Close()
+    if err != nil {
+		logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+        return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+	}
 
 	// //delete notes from every ruleset rule
 	// deleteRuleNoteQuery, err := ndb.Rdb.Prepare("delete from rule_note where ruleset_uniqueid = ?;")

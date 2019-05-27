@@ -124,6 +124,44 @@ func GetAllRulesetSource()(sources map[string]map[string]string, err error){
     return allsources, nil
 }
 
+//Delete specific file for ruleset
+func DeleteRulesetFile(uuid string) (err error) {
+	var pathToDelete string
+	if ndb.Rdb == nil {
+        logs.Error("DeleteRulesetSource -- Can't acces to database")
+        return errors.New("DeleteRulesetSource -- Can't acces to database")
+	}
+
+	//delete file selected
+	uuidPath, err := ndb.Rdb.Query("select rule_value from rule_files where rule_uniqueid = '"+uuid+"' and rule_param='path'")
+	if err != nil {
+		logs.Error("ndb.Rdb.Query Error checking path for delete a file on rule_files: %s", err.Error())
+		return err
+	}
+	defer uuidPath.Close()
+	for uuidPath.Next() {
+		if err = uuidPath.Scan(&pathToDelete); err != nil {
+			logs.Error("DeleteRulesetSource for delete path rows.Scan: %s", err.Error())
+			return err
+		}
+	
+		err = os.Remove(pathToDelete)
+	}
+	
+	//delete a ruleset source in ruleset table
+	sourceSQL, err := ndb.Rdb.Prepare("delete from rule_files where rule_uniqueid = ?")
+    if err != nil {
+        logs.Error("Error DeleteRulesetSource Prepare delete a file -> %s", err.Error())
+        return err
+	}
+    _, err = sourceSQL.Exec(&uuid)
+    if err != nil {
+        logs.Error("Error DeleteRulesetSource deleting a file -> %s", err.Error())
+        return err
+	}
+	return nil
+}
+
 func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
 	var pathToDelete string
 	var uniqueid string

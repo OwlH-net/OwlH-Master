@@ -24,6 +24,11 @@ func DeleteRulesetSource(uuid string) (err error) {
     return err
 }
 
+func DeleteRulesetFile(uuid string) (err error) {
+    err = rulesetSource.DeleteRulesetFile(uuid)
+    return err
+}
+
 func DownloadFile(data map[string]string) (err error) {
     err = rulesetSource.DownloadFile(data)
     return err
