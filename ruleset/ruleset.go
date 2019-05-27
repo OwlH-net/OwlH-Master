@@ -581,6 +581,12 @@ func AddNewRuleset(data map[string]map[string]string)(err error) {
 
 	rulesetUUID := utils.Generate()
 	rulesetCreated := false
+	
+	//checking SID
+	for w := range data {
+		
+	}
+
 	for x := range data {
 		if !rulesetCreated {
 			err = insertRulesetValues(rulesetUUID, "type", "local")
