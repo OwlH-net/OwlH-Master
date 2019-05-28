@@ -568,21 +568,21 @@ func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated map[string
 	sidLineResult := make(map[string]map[string]string)
 	sidLineDuplicated := make(map[string]map[string]string)
 
-	// type Duplicated struct {
-	// 	Duplicated Duplicated `json:"duplicated"`
-	// }
-	// type Duplicated struct {
-	// 	Sid      	int `json:"sid"`
-	// 	Values		Values `json:"values"`
-	// }
-	// type Values struct {
-	// 	Path     	string `json:"path"`
-	// 	FileName    string `json:"fileName"`
-	// 	Line		string `json:"line"`
-	// 	Counter   	int `json:"counter"`
-	// }
-	// values = Values{}
-	// duplicated = Duplicated{}
+	type Lines struct {
+		Duplicated Duplicated `json:"duplicated"`
+	}
+	type SidLines struct {
+		Sid      	int `json:"sid"`
+		Values		Values `json:"values"`
+	}
+	type Values struct {
+		Path     	string `json:"path"`
+		FileName    string `json:"fileName"`
+		Line		string `json:"line"`
+		Counter   	int `json:"counter"`
+	}
+	values = Values{}
+	sidLines = SidLines{}
 
 	for x := range data {
 		sidLines,err := ReadRuleset(data[x]["filePath"])
