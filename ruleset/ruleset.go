@@ -53,7 +53,6 @@ func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
     var msgfield = regexp.MustCompile(`msg:\"([^"]+)\"`)
 	var enablefield = regexp.MustCompile(`^#`)
 
-
     scanner := bufio.NewScanner(data)
     rules = make(map[string]map[string]string)
     for scanner.Scan(){
@@ -565,12 +564,119 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
     return ruleData, nil
 }
 
+func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated map[string]map[string]string, err error){
+	sidLineResult := make(map[string]map[string]string)
+	sidLineDuplicated := make(map[string]map[string]string)
+
+	// type Duplicated struct {
+	// 	Duplicated Duplicated `json:"duplicated"`
+	// }
+	// type Duplicated struct {
+	// 	Sid      	int `json:"sid"`
+	// 	Values		Values `json:"values"`
+	// }
+	// type Values struct {
+	// 	Path     	string `json:"path"`
+	// 	FileName    string `json:"fileName"`
+	// 	Line		string `json:"line"`
+	// 	Counter   	int `json:"counter"`
+	// }
+	// values = Values{}
+	// duplicated = Duplicated{}
+
+	for x := range data {
+		sidLines,err := ReadRuleset(data[x]["filePath"])
+		if err != nil {
+			logs.Error("ERROR --> "+err.Error())
+			return nil,err
+		}
+
+		count := 1
+		isFirstValueInserted := false
+		for y := range sidLines {
+			Result := make(map[string]string)
+
+			if len(sidLineResult) == 0{
+				// values.Path = data[x]["filePath"]
+				// values.FileName = data[x]["fileName"]
+				// values.Line = sidLines[y]["raw"]
+				// values.Counter = count
+				// duplicated.Sid = y
+				// duplicated.Values = values
+
+				// Result[filename][raw] = raw
+				// Reault[filename][path] = path 
+				// sidLineDuplicated[sid][counter] = 1
+				// sidLineDuplicated[sid][files] = Result
+
+
+
+				Result["fileName"] = data[x]["fileName"]
+				Result["line"] = sidLines[y]["raw"]
+				Result["sid"] = y
+				Result["path"] = data[x]["filePath"]
+				sidLineResult[y] = Result
+				continue
+			}
+
+			if sidLineResult[y]["sid"] == sidLines[y]["sid"]{
+				// duplicated.Sid = y
+				// values.Path = data[x]["filePath"]
+				// values.FileName = data[x]["fileName"]
+				// values.Line = sidLines[y]["raw"]
+				// values.Counter += 1
+				// duplicated.Values = values
+				
+				// Result[filename][raw] = raw
+				// Reault[filename][path] = path
+				// sidLineDuplicated[sid][counter] += 1
+				// sidLineDuplicated[sid][files] = Result
+
+				Result["fileName-"+strconv.Itoa(count)] = data[x]["fileName"]
+				Result["line-"+strconv.Itoa(count)] = sidLines[y]["raw"]
+				Result["path-"+strconv.Itoa(count)] = data[x]["filePath"]
+				Result["sid-"+strconv.Itoa(count)] = y
+				sidLineDuplicated[sidLines[y]["sid"]] = Result
+				count += 1
+			}else{
+				// duplicated.Sid = y
+				// values.Path = data[x]["filePath"]
+				// values.FileName = data[x]["fileName"]
+				// values.Line = sidLines[y]["raw"]
+				// values.Counter += 1
+				// duplicated.Values = values
+
+				// Result[filename][raw] = raw
+				// Reault[filename][path] = path 
+				// sidLineDuplicated[sid][counter] = 1
+				// sidLineDuplicated[sid][files] = Result
+
+				Result["fileName"] = data[x]["fileName"]
+				Result["line"] = sidLines[y]["raw"]
+				Result["sid"] = y
+				Result["path"] = data[x]["filePath"]
+				sidLineResult[y] = Result
+			}
+		}
+	}
+	return sidLineDuplicated, nil
+}
+
 //Get all rulesets from DB
-func AddNewRuleset(data map[string]map[string]string)(err error) {
-	logs.Warn(data)
+func AddNewRuleset(data map[string]map[string]string)(duplicated map[string]map[string]string, err error) {
+
+	//check for duplicated rule SIDs
+	if duplicated,err = FindDuplicatedSIDs(data); duplicated != nil {
+		return duplicated, nil
+	}
+	if err != nil {
+		logs.Error("ruleset/AddNewRuleset -- duplicated error: %s", err.Error())
+		return nil,err
+	}
+
     if ndb.Rdb == nil {
         logs.Error("ruleset/AddNewRuleset -- Can't access to database")
-        return errors.New("ruleset/AddNewRuleset -- Can't access to database")
+        return nil,errors.New("ruleset/AddNewRuleset -- Can't access to database")
 	}
 	
 	localRulesets := map[string]map[string]string{}
@@ -582,11 +688,6 @@ func AddNewRuleset(data map[string]map[string]string)(err error) {
 	rulesetUUID := utils.Generate()
 	rulesetCreated := false
 	
-	//checking SID
-	for w := range data {
-		
-	}
-
 	for x := range data {
 		if !rulesetCreated {
 			err = insertRulesetValues(rulesetUUID, "type", "local")
@@ -594,7 +695,7 @@ func AddNewRuleset(data map[string]map[string]string)(err error) {
 			err = insertRulesetValues(rulesetUUID, "desc", data[x]["rulesetDesc"])
 			if err != nil {
 				logs.Error("ruleset/AddNewRuleset -- Insert error: %s", err.Error())
-				return err
+				return nil,err
 			}
 			rulesetCreated = true
 		}
@@ -619,9 +720,9 @@ func AddNewRuleset(data map[string]map[string]string)(err error) {
     	err = cpCmd.Run()
 		if err != nil {
 			logs.Error("ruleset/AddNewRuleset -- Error copying new file: %s", err.Error())
-			return err
+			return nil,err
 		}
 	}
 
-	return nil
+	return nil,nil
 }
