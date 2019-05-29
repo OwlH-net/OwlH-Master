@@ -6,7 +6,8 @@ import(
     "bufio"
     "regexp"
     "os"
-    "os/exec"
+	"os/exec"
+	"encoding/json"
     "owlhmaster/database"
     "owlhmaster/utils"
     "owlhmaster/rulesetSource"
@@ -16,6 +17,17 @@ import(
     "time"
 	"strconv"
 )
+
+type LinesID struct {
+	Counter     int `json:"counter"`
+	Values		[]Values `json:"values"`
+}
+type Values struct {
+	Path     	string `json:"path"`
+	FileName    string `json:"fileName"`
+	Line		string `json:"line"`
+}
+
 
 //read rule raw data
 func ReadSID(sid map[string]string)( sidLine map[string]string ,err error){
@@ -564,26 +576,10 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
     return ruleData, nil
 }
 
-func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated map[string]map[string]string, err error){
-	sidLineResult := make(map[string]map[string]string)
-	sidLineDuplicated := make(map[string]map[string]string)
-
-	type Lines struct {
-		Duplicated Duplicated `json:"duplicated"`
-	}
-	type SidLines struct {
-		Sid      	int `json:"sid"`
-		Values		Values `json:"values"`
-	}
-	type Values struct {
-		Path     	string `json:"path"`
-		FileName    string `json:"fileName"`
-		Line		string `json:"line"`
-		Counter   	int `json:"counter"`
-	}
-	values = Values{}
-	sidLines = SidLines{}
-
+func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated []byte, err error){
+	allSids := make(map[string]LinesID)
+	allSidsResult := make(map[string]LinesID)
+	
 	for x := range data {
 		sidLines,err := ReadRuleset(data[x]["filePath"])
 		if err != nil {
@@ -591,79 +587,48 @@ func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated map[string
 			return nil,err
 		}
 
-		count := 1
-		isFirstValueInserted := false
 		for y := range sidLines {
-			Result := make(map[string]string)
-
-			if len(sidLineResult) == 0{
-				// values.Path = data[x]["filePath"]
-				// values.FileName = data[x]["fileName"]
-				// values.Line = sidLines[y]["raw"]
-				// values.Counter = count
-				// duplicated.Sid = y
-				// duplicated.Values = values
-
-				// Result[filename][raw] = raw
-				// Reault[filename][path] = path 
-				// sidLineDuplicated[sid][counter] = 1
-				// sidLineDuplicated[sid][files] = Result
-
-
-
-				Result["fileName"] = data[x]["fileName"]
-				Result["line"] = sidLines[y]["raw"]
-				Result["sid"] = y
-				Result["path"] = data[x]["filePath"]
-				sidLineResult[y] = Result
-				continue
-			}
-
-			if sidLineResult[y]["sid"] == sidLines[y]["sid"]{
-				// duplicated.Sid = y
-				// values.Path = data[x]["filePath"]
-				// values.FileName = data[x]["fileName"]
-				// values.Line = sidLines[y]["raw"]
-				// values.Counter += 1
-				// duplicated.Values = values
-				
-				// Result[filename][raw] = raw
-				// Reault[filename][path] = path
-				// sidLineDuplicated[sid][counter] += 1
-				// sidLineDuplicated[sid][files] = Result
-
-				Result["fileName-"+strconv.Itoa(count)] = data[x]["fileName"]
-				Result["line-"+strconv.Itoa(count)] = sidLines[y]["raw"]
-				Result["path-"+strconv.Itoa(count)] = data[x]["filePath"]
-				Result["sid-"+strconv.Itoa(count)] = y
-				sidLineDuplicated[sidLines[y]["sid"]] = Result
-				count += 1
-			}else{
-				// duplicated.Sid = y
-				// values.Path = data[x]["filePath"]
-				// values.FileName = data[x]["fileName"]
-				// values.Line = sidLines[y]["raw"]
-				// values.Counter += 1
-				// duplicated.Values = values
-
-				// Result[filename][raw] = raw
-				// Reault[filename][path] = path 
-				// sidLineDuplicated[sid][counter] = 1
-				// sidLineDuplicated[sid][files] = Result
-
-				Result["fileName"] = data[x]["fileName"]
-				Result["line"] = sidLines[y]["raw"]
-				Result["sid"] = y
-				Result["path"] = data[x]["filePath"]
-				sidLineResult[y] = Result
+			values := Values{}
+			linesID := LinesID{}
+			values.Path = data[x]["filePath"]
+			values.FileName = data[x]["fileName"]
+			values.Line = sidLines[y]["raw"]
+			if _, exists := allSids[y]; exists { //exist				
+				linesID.Counter = allSids[y].Counter 
+				linesID.Counter += 1
+				linesID.Values = allSids[y].Values
+				linesID.Values = append(linesID.Values, values)
+				allSids[y]=linesID
+			}else{ //not exist
+				linesID.Counter = 1
+				linesID.Values = append(linesID.Values, values)
+				allSids[y]=linesID
 			}
 		}
 	}
-	return sidLineDuplicated, nil
+	//create response array
+	for n := range allSids{
+		if allSids[n].Counter > 1 {
+			allSidsResult[n] = allSids[n]
+		}
+	}
+	//check if response array is empty
+	logs.Info(allSidsResult)
+	if len(allSidsResult) == 0{
+		logs.Info(allSidsResult)
+		return nil,nil
+	}else{
+		LinesOutput, err := json.Marshal(allSidsResult)
+		if err != nil {
+			logs.Error("ERROR Marshal allSidsResult --> "+err.Error())
+			return nil,err
+		}
+		return LinesOutput, nil
+	}
 }
 
 //Get all rulesets from DB
-func AddNewRuleset(data map[string]map[string]string)(duplicated map[string]map[string]string, err error) {
+func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err error) {
 
 	//check for duplicated rule SIDs
 	if duplicated,err = FindDuplicatedSIDs(data); duplicated != nil {

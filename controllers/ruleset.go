@@ -270,14 +270,17 @@ func (n *RulesetController) AddNewRuleset() {
     var anode map[string]map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	duplicated,err := models.AddNewRuleset(anode)
-	logs.Warn(duplicated)
-	if duplicated == nil {
-		n.Data["json"] = map[string]string{"ack": "true"}	
-	}else{
-		n.Data["json"] = duplicated
+	
+	logs.Warn(string(duplicated))
+
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}else {
+		if duplicated == nil {
+			n.Data["json"] = map[string]string{"ack": "true"}	
+		}else{
+			n.Data["json"] = string(duplicated)
+		}
 	}
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
     n.ServeJSON()
 }

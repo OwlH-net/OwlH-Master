@@ -315,6 +315,7 @@ func DownloadFile(data map[string]string) (err error) {
 			err = InsertRulesetSourceRules(uuid, "name", pathSelected)
 			err = InsertRulesetSourceRules(uuid, "path", ruleFiles["files"][k])
 			err = InsertRulesetSourceRules(uuid, "file", k)
+			err = InsertRulesetSourceRules(uuid, "isDownloaded", "true")
 			err = InsertRulesetSourceRules(uuid, "type", "source")
 			err = InsertRulesetSourceRules(uuid, "sourceUUID", data["sourceuuid"])
 		}
