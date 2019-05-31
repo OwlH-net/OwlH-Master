@@ -99,6 +99,22 @@ func (n *RulesetSourceController) DownloadFile() {
     n.ServeJSON()
 }
 
+// @Title OverwriteDownload
+// @Description Overwrite the current download
+// @Success 200 {object} models.RulesetSource
+// @router /overwriteDownload [put]
+func (n *RulesetSourceController) OverwriteDownload() { 
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	
+    err := models.OverwriteDownload(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    n.ServeJSON()
+}
+
 // @Title CompareFiles
 // @Description edit a RulesetSource
 // @Success 200 {object} models.RulesetSource
