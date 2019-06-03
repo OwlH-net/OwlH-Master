@@ -10,7 +10,6 @@ import(
 	"encoding/json"
     "owlhmaster/database"
     "owlhmaster/utils"
-    "owlhmaster/rulesetSource"
     "errors"
     "database/sql"
     "strings"
@@ -668,12 +667,12 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
 		rulesetFolderName := strings.Replace(data[x]["rulesetName"], " ", "_", -1)
 
 		ruleFilesUUID := utils.Generate()
-		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "name", data[x]["rulesetName"])
-		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "path", localFiles + rulesetFolderName + "/" + data[x]["fileName"])
-		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "file", data[x]["fileName"])
-		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "type", "local")
-		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "sourceUUID", rulesetUUID)
-		err = rulesetSource.InsertRulesetSourceRules(ruleFilesUUID, "sourceFileUUID", x)
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "name", data[x]["rulesetName"])
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "path", localFiles + rulesetFolderName + "/" + data[x]["fileName"])
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "file", data[x]["fileName"])
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "type", "local")
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceUUID", rulesetUUID)
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceFileUUID", x)
 		
 		//copy source file into new folder
 		if _, err := os.Stat(localFiles + rulesetFolderName); os.IsNotExist(err) {

@@ -114,7 +114,8 @@ func DownloadFile(filepath string, url string)(err error){
 }
 
 //extract tar.gz files
-func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err error){
+// func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err error){
+func ExtractTarGz(tarGzFile string, pathDownloads string)(err error){
 	file, err := os.Open(tarGzFile)
 	defer file.Close()
 	if err != nil {
@@ -138,13 +139,13 @@ func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err err
 
         switch header.Typeflag {
 		case tar.TypeDir:
-			err := os.MkdirAll(pathDownloads+folder+"/"+header.Name, 0755);
+			err := os.MkdirAll(pathDownloads+"/"+header.Name, 0755);
 			if err != nil {
 				logs.Error("TypeDir: "+err.Error())
 				return err
             }
 		case tar.TypeReg:
-			outFile, err := os.Create(pathDownloads+folder+"/"+header.Name)
+			outFile, err := os.Create(pathDownloads+"/"+header.Name)
 			_, err = io.Copy(outFile, tarReader)
             if err != nil {
 				logs.Error("TypeReg: "+err.Error())

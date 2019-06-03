@@ -75,7 +75,8 @@ func (n *RulesetSourceController) DeleteRulesetFile() {
 // @router /EditRulesetSource [put]
 func (n *RulesetSourceController) EditRulesetSource() { 
 	var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	
     err := models.EditRulesetSource(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -96,6 +97,7 @@ func (n *RulesetSourceController) DownloadFile() {
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
+
     n.ServeJSON()
 }
 
@@ -112,6 +114,7 @@ func (n *RulesetSourceController) OverwriteDownload() {
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
+
     n.ServeJSON()
 }
 
