@@ -468,7 +468,6 @@ func DownloadFile(data map[string]string) (err error) {
 		}
 
 	}
-
 	logs.Info("Download and extract complete")
 
 	return nil
