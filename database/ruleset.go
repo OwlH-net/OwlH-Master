@@ -58,13 +58,29 @@ func UpdateRuleset(uuid string, param string, value string)(err error){
 	logs.Debug(param+" --> "+value)
 	updateRulesetNode, err := Rdb.Prepare("update ruleset set ruleset_value = ? where ruleset_uniqueid = ? and ruleset_param = ?;")
         if (err != nil){
-            logs.Error("UPDATE prepare error for update isDownloaded -- "+err.Error())
+            logs.Error("UpdateRuleset UPDATE prepare error for update isDownloaded -- "+err.Error())
             return err
         }
         _, err = updateRulesetNode.Exec(&value, &uuid, &param)
         defer updateRulesetNode.Close()
         if (err != nil){
-            logs.Error("UPDATE error for update isDownloaded -- "+err.Error())
+            logs.Error("UpdateRuleset UPDATE error for update isDownloaded -- "+err.Error())
+            return err
+		}
+	return nil
+}
+
+func UpdateRuleFiles(uuid string, param string, value string)(err error){
+	logs.Debug(param+" --> "+value)
+	updateRulesetNode, err := Rdb.Prepare("update rule_files set rule_value = ? where rule_uniqueid = ? and rule_param = ?;")
+        if (err != nil){
+            logs.Error("UpdateRuleFiles UPDATE prepare error for update isDownloaded -- "+err.Error())
+            return err
+        }
+        _, err = updateRulesetNode.Exec(&value, &uuid, &param)
+        defer updateRulesetNode.Close()
+        if (err != nil){
+            logs.Error("UpdateRuleFiles UPDATE error for update isDownloaded -- "+err.Error())
             return err
 		}
 	return nil

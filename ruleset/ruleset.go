@@ -91,11 +91,11 @@ func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
 func AddRuleset(n map[string]string) (err error) {
     rulesetID := utils.Generate()
     //Verify parameters
-    if _, ok := n["name"]; !ok {
+	if n["name"] == "" {
         return errors.New("Name is empty")
-    }
-    if _, ok := n["path"]; !ok {
-        return errors.New("Path is empty")
+	}
+	if n["desc"] == "" {
+        return errors.New("Description is empty")
     }
     //Verify that the ruleset exists
     if err := rulesetExists(rulesetID); err != nil {
@@ -553,11 +553,12 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
     var ruleData = map[string]map[string]string{}
     var uniqid string
     var param string
-    var value string
-    if ndb.Rdb == nil {
+	var value string
+	if ndb.Rdb == nil {
         logs.Error("ruleset/GetAllRuleData -- Can't access to database")
         return nil, errors.New("ruleset/GetAllRuleData -- Can't access to database")
-    }
+	}
+		
     sql := "select rule_uniqueid, rule_param, rule_value from rule_files;"
     rows, err := ndb.Rdb.Query(sql)
     if err != nil {
@@ -568,7 +569,7 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
         if err = rows.Scan(&uniqid, &param, &value); err != nil {
             logs.Error("ruleset/GetAllRuleData -- Query return error: %s", err.Error())
             return nil, err
-        }
+		}
         if ruleData[uniqid] == nil { ruleData[uniqid] = map[string]string{}}
         ruleData[uniqid][param]=value
 	}
@@ -673,6 +674,7 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
 		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "type", "local")
 		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceUUID", rulesetUUID)
 		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceFileUUID", x)
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "exists", "true")
 		
 		//copy source file into new folder
 		if _, err := os.Stat(localFiles + rulesetFolderName); os.IsNotExist(err) {
