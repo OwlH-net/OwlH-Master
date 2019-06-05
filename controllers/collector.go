@@ -20,14 +20,14 @@ func (n *CollectorController) PlayCollector() {
 	err := models.PlayCollector(uuid)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
-        logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
+        logs.Error("PlayCollector ERROR -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
 }
 
 // @Title StopCollector
-// @Description Stop collector
+// @Description Stop Collector
 // @Success 200 {object} models.Collector
 // @Failure 403 body is empty
 // @router /stop/:uuid [get]
@@ -36,14 +36,14 @@ func (n *CollectorController) StopCollector() {
 	err := models.StopCollector(uuid)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
-        logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
+        logs.Error("StopCollector ERROR -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
 }
 
 // @Title ShowCollector
-// @Description Show collector
+// @Description Show Collector
 // @Success 200 {object} models.Collector
 // @Failure 403 body is empty
 // @router /show/:uuid [get]
@@ -52,8 +52,56 @@ func (n *CollectorController) ShowCollector() {
 	data, err := models.ShowCollector(uuid)
 	n.Data["json"] = data
     if err != nil {
-        logs.Error("COLLECTOR CREATE -> error: %s", err.Error())
+        logs.Error("ShowCollector ERROR -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
+    n.ServeJSON()
+}
+
+// @Title PlayMasterCollector
+// @Description Play Master Collector
+// @Success 200 {object} models.Collector
+// @Failure 403 body is empty
+// @router /playMasterCollector [put]
+func (n *CollectorController) PlayMasterCollector() {
+	err := models.PlayMasterCollector()
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Error("PlayMasterCollector ERROR -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+	
+    n.ServeJSON()
+}
+
+// @Title StopMasterCollector
+// @Description Play Master Collector
+// @Success 200 {object} models.Collector
+// @Failure 403 body is empty
+// @router /stopMasterCollector [put]
+func (n *CollectorController) StopMasterCollector() {
+	err := models.StopMasterCollector()
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Error("StopMasterCollector ERROR -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+	
+    n.ServeJSON()
+}
+
+// @Title ShowMasterCollector
+// @Description Show Master Collector
+// @Success 200 {object} models.Collector
+// @Failure 403 body is empty
+// @router /showMasterCollector [get]
+func (n *CollectorController) ShowMasterCollector() {
+	data, err := models.ShowMasterCollector()
+	n.Data["json"] = data
+    if err != nil {
+        logs.Error("ShowMasterCollector Error -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+	
     n.ServeJSON()
 }

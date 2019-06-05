@@ -243,7 +243,8 @@ func (n *RulesetController) SyncRulesetToAllNodes() {
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+	}
+	
     n.ServeJSON()
 }
 

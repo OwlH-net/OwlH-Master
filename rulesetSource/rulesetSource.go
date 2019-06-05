@@ -365,7 +365,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 		for z := range dbFiles[y] {
 			values[z] = dbFiles[y][z]
 		}
-		values["count"] = "0" //DB OK! -- !file
+		values["count"] = "0" //DB contains a file, but the new download don't contain a current file 
 		values["uuid"] = y
 		newFilesDB[dbFiles[y]["file"]] = values
 	}
@@ -374,7 +374,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 	for w := range newFilesDownloaded {
 		var values = make(map[string]string)
 		if _, found := newFilesDB[w]; !found {
-			values["count"] = "1" //new file -- !DB
+			values["count"] = "1" //new file downloaded -- !DB not contain the new file
 			newFilesDB[w] = values
 		}else{// _, found := newFilesDB[w]; found{
 			values["count"] = "2"//File and DB OK
