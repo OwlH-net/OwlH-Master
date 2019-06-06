@@ -18,11 +18,30 @@ type RulesetSourceController struct {
 // @router / [post]
 func (n *RulesetSourceController) CreateRulesetSource() {
     var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	
 	err := models.CreateRulesetSource(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         logs.Error("CreateRulesetSource CREATE -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title CreateCustomRulesetSource
+// @Description Create new RulesetSource
+// @Success 200 {object} models.RulesetSource
+// @Failure 403 body is empty
+// @router /custom [post]
+func (n *RulesetSourceController) CreateCustomRulesetSource() {
+    var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	
+	err := models.CreateCustomRulesetSource(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Error("CreateCustomRulesetSource CREATE -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()

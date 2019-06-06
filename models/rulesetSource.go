@@ -9,6 +9,11 @@ func CreateRulesetSource(data map[string]string) (err error) {
     return err
 }
 
+func CreateCustomRulesetSource(data map[string]string) (err error) {
+    err = rulesetSource.CreateCustomRulesetSource(data)
+    return err
+}
+
 func GetAllRulesetSource() (data map[string]map[string]string, err error) {
 	data, err = rulesetSource.GetAllRulesetSource()
 	return data, err

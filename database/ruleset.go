@@ -102,3 +102,46 @@ func GetRulesetSourcePath(uuid string, param string)(path string, err error){
 	} 
 	return value,nil
 }
+
+func GetAllCustomRulesetDB()(path []string, err error){
+	var customData []string
+    var uniqid string
+
+	sql := "select ruleset_uniqueid from ruleset where ruleset_value='custom' and ruleset_param='sourceType'";
+	rows, err := Rdb.Query(sql)
+	if err != nil {
+		logs.Error("GetAllCustomRuleset Rdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	for rows.Next() {
+		if err = rows.Scan(&uniqid); err != nil {
+            logs.Error("GetAllCustomRuleset -- Query return error: %s", err.Error())
+            return nil, err
+		}
+		customData = append(customData, uniqid)
+	} 
+	return customData,nil
+}
+
+func GetAllDataCustomRulesetDB(uuid string)(path map[string]map[string]string, err error){
+	var customData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+
+	sql := "select ruleset_uniqueid, ruleset_param, ruleset_value from ruleset where ruleset_uniqueid='"+uuid+"'";
+	rows, err := Rdb.Query(sql)
+	if err != nil {
+		logs.Error("GetAllCustomRuleset Rdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetAllCustomRuleset -- Query return error: %s", err.Error())
+            return nil, err
+		}
+        if customData[uniqid] == nil { customData[uniqid] = map[string]string{}}
+        customData[uniqid][param]=value
+	} 
+	return customData,nil
+}

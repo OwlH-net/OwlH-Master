@@ -82,6 +82,11 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
 }
 
 func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err error) {
-    duplicated, err = ruleset.AddNewRuleset(data)
+	duplicated, err = ruleset.AddNewRuleset(data)
     return duplicated, err
+}
+
+func GetAllCustomRulesets()(data map[string]map[string]string,err error) {
+	data,err = ruleset.GetAllCustomRulesets()
+	return data,err
 }

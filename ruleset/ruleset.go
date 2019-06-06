@@ -692,3 +692,17 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
 
 	return nil,nil
 }
+
+func GetAllCustomRulesets()(data map[string]map[string]string, err error) {
+	customData := make(map[string]map[string]string)
+	uuid,err := ndb.GetAllCustomRulesetDB()
+	for x := range uuid {
+		retrievedData,err := ndb.GetAllDataCustomRulesetDB(uuid[x])
+		customData[uuid[x]] = retrievedData[uuid[x]]
+		if err != nil {
+			logs.Error("GetAllCustomRulesets -- Error retrieving Custom ruleset data: %s", err.Error())
+			return nil,err
+		}
+	}
+	return customData, nil
+}

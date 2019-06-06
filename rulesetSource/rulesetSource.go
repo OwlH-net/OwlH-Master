@@ -7,6 +7,7 @@ import (
 	"owlhmaster/utils"
 	"strings"
 	"os"
+	"io/ioutil"
 	"regexp"
 	"path/filepath"
 )
@@ -55,6 +56,53 @@ func CreateRulesetSource(n map[string]string) (err error) {
     if err != nil {
         return err
     }
+    return nil
+}
+
+func CreateCustomRulesetSource(n map[string]string)(err error){
+	if n["name"] == "" {
+        return errors.New("Name is empty")
+	}
+	if n["desc"] == "" {
+        return errors.New("Description is empty")
+	}
+	customRulesets := map[string]map[string]string{}
+	customRulesets["ruleset"] = map[string]string{}
+	customRulesets["ruleset"]["customRulesets"] = ""
+	customRulesets,err = utils.GetConf(customRulesets)
+	path := customRulesets["ruleset"]["customRulesets"]
+
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		err = os.MkdirAll(path, os.ModePerm)
+	}
+	if err != nil {
+		logs.Error("Error checking the path: "+err.Error())
+        return err
+	}
+	
+	newUUID := utils.Generate()
+
+	nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)
+	n["path"] = path + nameWithoutSpaces +".rules"
+
+	if _, err := os.Stat(n["path"]); !os.IsNotExist(err) {
+		return errors.New("The custom file "+n["name"]+" already exists. Use other name for the new custom ruleset source.")
+	}
+
+	err = ioutil.WriteFile(n["path"], []byte(""), 0755)
+    if err != nil {
+        return errors.New("Can't create the custom rule file.")
+	}
+
+	for key, value := range n {
+        err = rulesetSourceKeyInsert(newUUID, key, value)
+	}
+	if err != nil {
+        return errors.New("Error adding custom rule file data to database.")
+	}
+	
+
+	
     return nil
 }
 

@@ -272,8 +272,6 @@ func (n *RulesetController) AddNewRuleset() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	duplicated,err := models.AddNewRuleset(anode)
 	
-	logs.Warn(string(duplicated))
-
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}else {
@@ -283,5 +281,19 @@ func (n *RulesetController) AddNewRuleset() {
 			n.Data["json"] = string(duplicated)
 		}
 	}
+    n.ServeJSON()
+}
+
+// @Title GetAllCustomRulesets
+// @Description Get All Custom Rulesets
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /custom [get]
+func (n *RulesetController) GetAllCustomRulesets() { 
+    data,err := models.GetAllCustomRulesets()
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }
