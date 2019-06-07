@@ -706,3 +706,7 @@ func GetAllCustomRulesets()(data map[string]map[string]string, err error) {
 	}
 	return customData, nil
 }
+
+func AddrulesToCustomRuleset(uuid string, sidLines string)(err error) {
+	
+}
