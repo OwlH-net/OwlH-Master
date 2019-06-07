@@ -90,3 +90,8 @@ func GetAllCustomRulesets()(data map[string]map[string]string,err error) {
 	data,err = ruleset.GetAllCustomRulesets()
 	return data,err
 }
+
+func AddrulesToCustomRuleset(uuid string, sidLines string)(err error) {
+	err = ruleset.AddrulesToCustomRuleset(uuid, sidLines)
+	return err
+}

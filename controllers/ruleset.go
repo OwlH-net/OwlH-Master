@@ -297,3 +297,22 @@ func (n *RulesetController) GetAllCustomRulesets() {
     }
     n.ServeJSON()
 }
+
+
+// @Title AddrulesToCustomRuleset
+// @Description Add rules to custom ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /addRulesToCustom/:uuid/:sidLines [put]
+func (n *RulesetController) AddrulesToCustomRuleset() { 
+	// var anode string
+	// json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	uuid := n.GetString(":uuid")
+	sidLines := n.GetString(":sidLines")
+    err := models.AddrulesToCustomRuleset(uuid, sidLines)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
