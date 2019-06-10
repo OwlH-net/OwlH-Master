@@ -91,7 +91,7 @@ func GetAllCustomRulesets()(data map[string]map[string]string,err error) {
 	return data,err
 }
 
-func AddrulesToCustomRuleset(uuid string, sidLines string)(err error) {
-	err = ruleset.AddrulesToCustomRuleset(uuid, sidLines)
-	return err
+func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string]string, err error) {
+	duplicatedRules, err = ruleset.AddRulesToCustomRuleset(anode)
+	return duplicatedRules, err
 }

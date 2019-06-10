@@ -145,3 +145,42 @@ func GetAllDataCustomRulesetDB(uuid string)(path map[string]map[string]string, e
 	} 
 	return customData,nil
 }
+
+//Get a specific ruleset path
+func GetRulesetPath(uuid string) (n string, err error) {
+	var path string
+    if Rdb != nil {
+        row := Rdb.QueryRow("SELECT rule_value FROM rule_files WHERE rule_uniqueid=$1 and rule_param=\"path\";",uuid)
+		err = row.Scan(&path)
+
+        if err == sql.ErrNoRows {
+            logs.Error("DB RULESET -> There is no ruleset with id %s",uuid)
+            return "", errors.New("DB RULESET -> There is no ruleset with id "+uuid)
+        }
+        if err != nil {
+            logs.Error("DB RULESET -> rows.Scan Error -> %s", err.Error())
+            return "", errors.New("DB RULESET -> -> rows.Scan Error -> " + err.Error())
+        }
+        return path, nil
+    } else {
+        logs.Info("DB RULESET -> No access to database")
+        return "", errors.New("DB RULESET -> No access to database")
+    }
+}
+
+func GetRuleFilesPath(uuid string, param string)(path string, err error){
+	var value string
+	sql := "select rule_value from rule_files where rule_uniqueid='"+uuid+"' and rule_param = '"+param+"';"
+	rows, err := Rdb.Query(sql)
+	if err != nil {
+		logs.Error("Rdb.Query Error : %s", err.Error())
+		return "", err
+	}
+	for rows.Next() {
+		if err = rows.Scan(&value); err != nil {
+			logs.Error("GetRulesetSourcePath rows.Scan: %s", err.Error())
+			return "", err
+		}
+	} 
+	return value,nil
+}

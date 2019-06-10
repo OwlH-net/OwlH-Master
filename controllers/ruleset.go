@@ -299,18 +299,17 @@ func (n *RulesetController) GetAllCustomRulesets() {
 }
 
 
-// @Title AddrulesToCustomRuleset
+// @Title AddRulesToCustomRuleset
 // @Description Add rules to custom ruleset
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
-// @router /addRulesToCustom/:uuid/:sidLines [put]
-func (n *RulesetController) AddrulesToCustomRuleset() { 
-	// var anode string
-	// json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	uuid := n.GetString(":uuid")
-	sidLines := n.GetString(":sidLines")
-    err := models.AddrulesToCustomRuleset(uuid, sidLines)
-    n.Data["json"] = map[string]string{"ack": "true"}
+// @router /addRulesToCustom [put]
+func (n *RulesetController) AddRulesToCustomRuleset() { 
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	logs.Info(anode)
+    data, err := models.AddRulesToCustomRuleset(anode)
+    n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

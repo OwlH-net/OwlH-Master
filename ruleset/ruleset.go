@@ -29,10 +29,10 @@ type Values struct {
 
 
 //read rule raw data
-func ReadSID(sid map[string]string)( sidLine map[string]string ,err error){
+func ReadSID(sid map[string]string)(sidLine map[string]string ,err error){
     sidMap := sid["sid"]
     uuidMap := sid["uuid"]
-    path, err := GetRulesetPath(uuidMap)
+    path, err := ndb.GetRulesetPath(uuidMap)
     data, err := os.Open(path)
     if err != nil {
         fmt.Println("File reading error", err)
@@ -193,32 +193,10 @@ func GetAllRulesets() (rulesets map[string]map[string]string, err error) {
 	return allrulesets, nil
 }
 
-//Get a specific ruleset path
-func GetRulesetPath(uuid string) (n string, err error) {
-	var path string
-    if ndb.Rdb != nil {
-        row := ndb.Rdb.QueryRow("SELECT rule_value FROM rule_files WHERE rule_uniqueid=$1 and rule_param=\"path\";",uuid)
-		err = row.Scan(&path)
-
-        if err == sql.ErrNoRows {
-            logs.Error("DB RULESET -> There is no ruleset with id %s",uuid)
-            return "", errors.New("DB RULESET -> There is no ruleset with id "+uuid)
-        }
-        if err != nil {
-            logs.Error("DB RULESET -> rows.Scan Error -> %s", err.Error())
-            return "", errors.New("DB RULESET -> -> rows.Scan Error -> " + err.Error())
-        }
-        return path, nil
-    } else {
-        logs.Info("DB RULESET -> No access to database")
-        return "", errors.New("DB RULESET -> No access to database")
-    }
-}
-
 //Get rules from specific ruleset
 func GetRulesetRules(uuid string)(r map[string]map[string]string, err error){
     rules := make(map[string]map[string]string)
-    path,err := GetRulesetPath(uuid)
+    path,err := ndb.GetRulesetPath(uuid)
     rules,err = ReadRuleset(path)
     for rule, _ := range rules{
         retrieveNote := make(map[string]string)
@@ -387,7 +365,7 @@ func SetRulesetAction(ruleAction map[string]string)(err error){
     sid := ruleAction["sid"]
     uuid := ruleAction["uuid"]
     action := ruleAction["action"]
-    path, err := GetRulesetPath(uuid)
+    path, err := ndb.GetRulesetPath(uuid)
     if (action == "Enable"){
         cmd := "sed -i '/sid:"+sid+"/s/^#//' "+path+""
         _, err := exec.Command("bash", "-c", cmd).Output()
@@ -707,6 +685,90 @@ func GetAllCustomRulesets()(data map[string]map[string]string, err error) {
 	return customData, nil
 }
 
-func AddrulesToCustomRuleset(uuid string, sidLines string)(err error) {
-	
+func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string]string, err error) {
+	rulesDuplicated := make(map[string]string)
+	sidsSplit := strings.Split(anode["sids"], ",")
+	path,err := ndb.GetRulesetSourcePath(anode["dest"], "path") 
+	for uuid := range sidsSplit{
+		var validID = regexp.MustCompile(`sid:`+sidsSplit[uuid]+`;`)
+		readSidsData := make(map[string]string)
+		readSidsData["sid"] = sidsSplit[uuid]
+		readSidsData["uuid"] = anode["orig"]
+		readSidsData["action"] = "Disable"
+		
+		sidLine,err := ReadSID(readSidsData)
+		if err != nil {
+			logs.Error("AddRulesToCustomRuleset -- Error readding SID: %s", err.Error())
+			return nil,err
+		}
+
+		// path,err := ndb.GetRulesetSourcePath(anode["dest"], "path") 
+		if err != nil {
+			logs.Error("AddRulesToCustomRuleset -- Error getting GetRulesetSourcePath: %s", err.Error())
+			return nil,err
+		}
+		file, err := os.Open(path)
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file) 
+    	for scanner.Scan() { 
+			if validID.MatchString(scanner.Text()){ 
+				rulesDuplicated[sidsSplit[uuid]] = scanner.Text()
+			}
+		}
+
+		if rulesDuplicated[sidsSplit[uuid]] == "" {
+			var EnabledRule = regexp.MustCompile(`^#`)
+			rulePath,err := ndb.GetRuleFilesPath(anode["orig"], "path")
+
+			//change destiny status to Enable
+			writeFile,err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+			defer writeFile.Close()
+			_, err = writeFile.WriteString(sidLine["raw"])
+			_, err = writeFile.WriteString("\r")
+
+			if err != nil {
+				logs.Error("AddRulesToCustomRuleset -- Error getting origin path: %s", err.Error())
+				return nil,err
+			}
+
+			originFile, err := os.Open(rulePath)
+			defer originFile.Close()	
+
+			//change origin status to Disable
+			scanner := bufio.NewScanner(originFile) 
+			for scanner.Scan() { 
+				if validID.MatchString(scanner.Text()) {
+					if !EnabledRule.MatchString(scanner.Text()) {
+						err = SetRulesetAction(readSidsData)
+						if err != nil {
+							logs.Error("AddRulesToCustomRuleset -- SetRulesetAction Error writting data: %s", err.Error())
+							return nil,err
+						}	
+					}
+				}
+			}
+
+			//enable destiny rules
+			scannerDst := bufio.NewScanner(writeFile) 
+			for scannerDst.Scan() { 
+				if EnabledRule.MatchString(scanner.Text()) {
+					// cmd := "sed -i '/sid:"+sidsSplit[uuid]+"/s/^/#/' "+path+""
+					cmd := "sed -i '/sid:"+sidsSplit[uuid]+"/s/^#//' "+path+""
+					_, err := exec.Command("bash", "-c", cmd).Output()
+					if err != nil {
+						logs.Error("AddRulesToCustomRuleset -- Can't enable the rule: %s", err.Error())
+						return nil,err
+					}
+				}
+			}
+		}
+
+		if err != nil {
+			logs.Error("AddRulesToCustomRuleset -- Error inserting rules into custom ruleset: %s", err.Error())
+			return nil,err
+		}
+	}
+		
+	return rulesDuplicated, nil	
 }
