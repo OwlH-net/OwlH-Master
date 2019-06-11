@@ -34,3 +34,4 @@ func RSConn() {
     }
     logs.Info("database/RulesetSource -- DB -> sql.Open, DB Ready") 
 }
+

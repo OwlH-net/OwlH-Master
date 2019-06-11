@@ -36,6 +36,24 @@ func RConn() {
     logs.Info("ruleset/Ruleset DB -- DB -> sql.Open, DB Ready") 
 }
 
+func RulesetSourceKeyInsert(nkey string, key string, value string) (err error) {
+    if Rdb == nil {
+        logs.Error("no access to database")
+        return errors.New("no access to database")
+    }
+    stmt, err := Rdb.Prepare("insert into ruleset (ruleset_uniqueid, ruleset_param, ruleset_value) values (?,?,?);")
+    if err != nil {
+        logs.Error("Prepare -> %s", err.Error())
+        return err
+    }
+    _, err = stmt.Exec(&nkey, &key, &value)
+    if err != nil {
+        logs.Error("Execute -> %s", err.Error())
+        return err
+    }
+    return nil
+}
+
 func InsertRulesetSourceRules(nkey string, key string, value string) (err error) {
     if Rdb == nil {
         logs.Error("no access to database")
@@ -86,7 +104,7 @@ func UpdateRuleFiles(uuid string, param string, value string)(err error){
 	return nil
 }
 
-func GetRulesetSourcePath(uuid string, param string)(path string, err error){
+func GetRulesetSourceValue(uuid string, param string)(path string, err error){
 	var value string
 	sql := "select ruleset_value from ruleset where ruleset_uniqueid='"+uuid+"' and ruleset_param = '"+param+"';"
 	rows, err := Rdb.Query(sql)

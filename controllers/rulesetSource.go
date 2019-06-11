@@ -19,7 +19,7 @@ type RulesetSourceController struct {
 func (n *RulesetSourceController) CreateRulesetSource() {
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	
+	logs.Warn(anode)
 	err := models.CreateRulesetSource(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -37,7 +37,7 @@ func (n *RulesetSourceController) CreateRulesetSource() {
 func (n *RulesetSourceController) CreateCustomRulesetSource() {
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	
+	logs.Notice(anode)
 	err := models.CreateCustomRulesetSource(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -180,5 +180,19 @@ func (n *RulesetSourceController) GetDetails() {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
 	
+    n.ServeJSON()
+}
+
+// @Title GetFileUUIDfromRulesetUUID
+// @Description Get full list of RulesetSource
+// @Success 200 {object} models.RulesetSource
+// @router /GetFileUUIDfromRulesetUUID/:uuid [get]
+func (n *RulesetSourceController) GetFileUUIDfromRulesetUUID() { 
+	value := n.GetString(":uuid")
+    rulesetSource, err := models.GetFileUUIDfromRulesetUUID(value)
+    n.Data["json"] = rulesetSource
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }

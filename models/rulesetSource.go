@@ -58,3 +58,8 @@ func GetDetails(uuid string) (files map[string]map[string]string, err error) {
     files, err = rulesetSource.GetDetails(uuid)
     return files ,err
 }
+
+func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
+    uuid,err = rulesetSource.GetFileUUIDfromRulesetUUID(value)
+    return uuid,err
+}

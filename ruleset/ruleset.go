@@ -688,7 +688,7 @@ func GetAllCustomRulesets()(data map[string]map[string]string, err error) {
 func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string]string, err error) {
 	rulesDuplicated := make(map[string]string)
 	sidsSplit := strings.Split(anode["sids"], ",")
-	path,err := ndb.GetRulesetSourcePath(anode["dest"], "path") 
+	path,err := ndb.GetRulesetSourceValue(anode["dest"], "path") 
 	for uuid := range sidsSplit{
 		var validID = regexp.MustCompile(`sid:`+sidsSplit[uuid]+`;`)
 		readSidsData := make(map[string]string)
@@ -702,9 +702,9 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
 			return nil,err
 		}
 
-		// path,err := ndb.GetRulesetSourcePath(anode["dest"], "path") 
+		// path,err := ndb.GetRulesetSourceValue(anode["dest"], "path") 
 		if err != nil {
-			logs.Error("AddRulesToCustomRuleset -- Error getting GetRulesetSourcePath: %s", err.Error())
+			logs.Error("AddRulesToCustomRuleset -- Error getting GetRulesetSourceValue: %s", err.Error())
 			return nil,err
 		}
 		file, err := os.Open(path)
@@ -724,8 +724,12 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
 			//change destiny status to Enable
 			writeFile,err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 			defer writeFile.Close()
-			_, err = writeFile.WriteString(sidLine["raw"])
-			_, err = writeFile.WriteString("\r")
+
+			str := EnabledRule.ReplaceAllString(sidLine["raw"],"")
+			logs.Info(str)
+
+			_, err = writeFile.WriteString(str)
+			_, err = writeFile.WriteString("\n")
 
 			if err != nil {
 				logs.Error("AddRulesToCustomRuleset -- Error getting origin path: %s", err.Error())
@@ -748,27 +752,12 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
 					}
 				}
 			}
-
-			//enable destiny rules
-			scannerDst := bufio.NewScanner(writeFile) 
-			for scannerDst.Scan() { 
-				if EnabledRule.MatchString(scanner.Text()) {
-					// cmd := "sed -i '/sid:"+sidsSplit[uuid]+"/s/^/#/' "+path+""
-					cmd := "sed -i '/sid:"+sidsSplit[uuid]+"/s/^#//' "+path+""
-					_, err := exec.Command("bash", "-c", cmd).Output()
-					if err != nil {
-						logs.Error("AddRulesToCustomRuleset -- Can't enable the rule: %s", err.Error())
-						return nil,err
-					}
-				}
-			}
 		}
-
 		if err != nil {
 			logs.Error("AddRulesToCustomRuleset -- Error inserting rules into custom ruleset: %s", err.Error())
 			return nil,err
 		}
 	}
-		
+
 	return rulesDuplicated, nil	
 }

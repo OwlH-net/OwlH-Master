@@ -12,6 +12,23 @@ import (
 	"path/filepath"
 )
 
+func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
+	var uniqueid string
+	uuidRules, err := ndb.Rdb.Query("select rule_uniqueid from rule_files where rule_value='"+value+"'")
+	if err != nil {
+        logs.Error("ndb.Rdb.Query Error checking rule_uniqueid for rule_files: %s", err.Error())
+        return "",err
+	}
+	defer uuidRules.Close()
+	for uuidRules.Next() {
+		if err = uuidRules.Scan(&uniqueid); err != nil {
+			logs.Error("GetAllRulesetSource rows.Scan: %s", err.Error())
+			return "",err
+		}
+	}
+	return uniqueid,nil
+}
+
 
 func CreateRulesetSource(n map[string]string) (err error) {
 	rulesetSourceKey := utils.Generate()
@@ -26,7 +43,7 @@ func CreateRulesetSource(n map[string]string) (err error) {
     }
     if err := rulesetSourceExists(rulesetSourceKey); err != nil {
 		logs.Error("rulesetSource exist: "+err.Error())
-        return errors.New("rulesetSource not exist")
+        return errors.New("rulesetSource exist")
 	}
 	
 	sourceDownload := map[string]map[string]string{}
@@ -51,7 +68,7 @@ func CreateRulesetSource(n map[string]string) (err error) {
 	n["path"] = path + nameWithoutSpaces +"/"+ n["fileName"]
 	    
     for key, value := range n {
-        err = rulesetSourceKeyInsert(rulesetSourceKey, key, value)
+        err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, value)
     }
     if err != nil {
         return err
@@ -95,13 +112,23 @@ func CreateCustomRulesetSource(n map[string]string)(err error){
 	}
 
 	for key, value := range n {
-        err = rulesetSourceKeyInsert(newUUID, key, value)
+        err = ndb.RulesetSourceKeyInsert(newUUID, key, value)
 	}
 	if err != nil {
         return errors.New("Error adding custom rule file data to database.")
 	}
 	
-
+	//insert file into rule_files
+	uuid := utils.Generate()
+	err = ndb.InsertRulesetSourceRules(uuid, "name", n["name"])
+	err = ndb.InsertRulesetSourceRules(uuid, "path", n["path"])
+	err = ndb.InsertRulesetSourceRules(uuid, "file", nameWithoutSpaces +".rules")
+	err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
+	err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", newUUID)
+	err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
+	if err != nil {
+        return errors.New("Error adding custom rule file data to database.")
+	}
 	
     return nil
 }
@@ -123,24 +150,6 @@ func rulesetSourceExists(sourceID string) (err error) {
     } else {
         return nil
     }
-}
-
-func rulesetSourceKeyInsert(nkey string, key string, value string) (err error) {
-    if ndb.Rdb == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-    }
-    stmt, err := ndb.Rdb.Prepare("insert into ruleset (ruleset_uniqueid, ruleset_param, ruleset_value) values (?,?,?);")
-    if err != nil {
-        logs.Error("Prepare -> %s", err.Error())
-        return err
-    }
-    _, err = stmt.Exec(&nkey, &key, &value)
-    if err != nil {
-        logs.Error("Execute -> %s", err.Error())
-        return err
-    }
-    return nil
 }
 
 func GetAllRulesetSource()(sources map[string]map[string]string, err error){
@@ -349,7 +358,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 	sourceDownload,err = utils.GetConf(sourceDownload)
 	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
 	
-	pathAndFile,err := ndb.GetRulesetSourcePath(data["uuid"], "path")
+	pathAndFile,err := ndb.GetRulesetSourceValue(data["uuid"], "path")
 	if err != nil {
 		logs.Error("Error Getting path for download file from RulesetSource-> %s", err.Error())
 		return err
@@ -477,7 +486,7 @@ func DownloadFile(data map[string]string) (err error) {
 	sourceDownload,err = utils.GetConf(sourceDownload)
 	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
 
-	value,err := ndb.GetRulesetSourcePath(data["uuid"], "path")
+	value,err := ndb.GetRulesetSourceValue(data["uuid"], "path")
 	if err != nil {
 		logs.Error("Error Getting path for download file from RulesetSource-> %s", err.Error())
 		return err
