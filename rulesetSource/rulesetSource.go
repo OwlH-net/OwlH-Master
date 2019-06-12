@@ -122,10 +122,12 @@ func CreateCustomRulesetSource(n map[string]string)(err error){
 	uuid := utils.Generate()
 	err = ndb.InsertRulesetSourceRules(uuid, "name", n["name"])
 	err = ndb.InsertRulesetSourceRules(uuid, "path", n["path"])
+	err = ndb.InsertRulesetSourceRules(uuid, "sourceType", n["sourceType"])
 	err = ndb.InsertRulesetSourceRules(uuid, "file", nameWithoutSpaces +".rules")
 	err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
 	err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", newUUID)
 	err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
+	err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
 	if err != nil {
         return errors.New("Error adding custom rule file data to database.")
 	}
@@ -448,6 +450,12 @@ func OverwriteDownload(data map[string]string) (err error) {
 				return err
 			}
 
+			// err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "isUpdated", "true")
+			if (err != nil){
+				logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
+				return err
+			}
+
 			var uuidFromNewFiles string
 			sql := "select rule_uniqueid from rule_files where rule_param='sourceFileUUID' and rule_value='"+newFilesDB[w]["uuid"]+"';"
 			rows, err := ndb.Rdb.Query(sql)
@@ -470,11 +478,11 @@ func OverwriteDownload(data map[string]string) (err error) {
 			err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
 			err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", data["uuid"])
 			err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
+			// err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
 		}
 	}
 
 	logs.Info("Overwrite complete")
-
 
 	return nil
 }
@@ -523,6 +531,7 @@ func DownloadFile(data map[string]string) (err error) {
 			err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
 			err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", data["uuid"])
 			err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
+			// err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
 		}
 		if err != nil {
 			logs.Error("DownloadFile Error from RulesetSource-> %s", err.Error())
@@ -710,10 +719,25 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
 				logs.Error("GetDetails rows.Scan: %s", err.Error())
 				return nil, err
 			}
+			
+			// //check diff
+			// allRuleDetails[uniqid]["exists"]=verifyDiff(local,surce)
+
+			// //check if file exist
+			// if param == path {´
+			// 	verifyPathexists()
+			// 	 allRuleDetails[uniqid]["exists"]=verifyPathexists
+			// }
+
 			if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
 			allRuleDetails[uniqid][param]=value
+
 		} 
 	}
+
+	
+
+
 	return allRuleDetails, nil
 }
 

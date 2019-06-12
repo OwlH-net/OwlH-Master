@@ -89,18 +89,22 @@ func UpdateRuleset(uuid string, param string, value string)(err error){
 }
 
 func UpdateRuleFiles(uuid string, param string, value string)(err error){
-	logs.Debug(param+" --> "+value)
+	logs.Debug(uuid+"  |:::|  "+param+" --> "+value)
 	updateRulesetNode, err := Rdb.Prepare("update rule_files set rule_value = ? where rule_uniqueid = ? and rule_param = ?;")
-        if (err != nil){
-            logs.Error("UpdateRuleFiles UPDATE prepare error for update isDownloaded -- "+err.Error())
-            return err
-        }
-        _, err = updateRulesetNode.Exec(&value, &uuid, &param)
-        defer updateRulesetNode.Close()
-        if (err != nil){
-            logs.Error("UpdateRuleFiles UPDATE error for update isDownloaded -- "+err.Error())
-            return err
-		}
+	defer updateRulesetNode.Close()
+	if (err != nil){
+		logs.Error("UpdateRuleFiles UPDATE prepare error for update isDownloaded -- "+err.Error())
+		defer updateRulesetNode.Close()
+		return err
+	}
+	// defer updateRulesetNode.Close()
+	_, err = updateRulesetNode.Exec(&value, &uuid, &param)
+	if (err != nil){
+		logs.Error("UpdateRuleFiles UPDATE error for update isDownloaded -- "+err.Error())
+		defer updateRulesetNode.Close()
+		return err
+	}
+	
 	return nil
 }
 
@@ -186,7 +190,7 @@ func GetRulesetPath(uuid string) (n string, err error) {
     }
 }
 
-func GetRuleFilesPath(uuid string, param string)(path string, err error){
+func GetRuleFilesValue(uuid string, param string)(path string, err error){
 	var value string
 	sql := "select rule_value from rule_files where rule_uniqueid='"+uuid+"' and rule_param = '"+param+"';"
 	rows, err := Rdb.Query(sql)

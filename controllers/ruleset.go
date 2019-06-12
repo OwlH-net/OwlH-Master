@@ -307,9 +307,39 @@ func (n *RulesetController) GetAllCustomRulesets() {
 func (n *RulesetController) AddRulesToCustomRuleset() { 
 	var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	logs.Info(anode)
     data, err := models.AddRulesToCustomRuleset(anode)
     n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ReadRulesetData
+// @Description Add rules to custom ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /readRuleset/:uuid [put]
+func (n *RulesetController) ReadRulesetData() { 
+    uuid := n.GetString(":uuid")
+    data, err := models.ReadRulesetData(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveRulesetData
+// @Description Add rules to custom ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /saveRuleset/ [put]
+func (n *RulesetController) SaveRulesetData() { 
+    var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveRulesetData(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

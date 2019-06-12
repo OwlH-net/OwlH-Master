@@ -95,3 +95,13 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
 	duplicatedRules, err = ruleset.AddRulesToCustomRuleset(anode)
 	return duplicatedRules, err
 }
+
+func ReadRulesetData(uuid string)(content map[string]string, err error) {
+	content, err = ruleset.ReadRulesetData(uuid)
+	return content, err
+}
+
+func SaveRulesetData(content map[string]string)(err error) {
+	err = ruleset.SaveRulesetData(content)
+	return err
+}

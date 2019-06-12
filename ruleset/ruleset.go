@@ -15,6 +15,7 @@ import(
     "strings"
     "time"
 	"strconv"
+	"io/ioutil"
 )
 
 type LinesID struct {
@@ -202,7 +203,13 @@ func GetRulesetRules(uuid string)(r map[string]map[string]string, err error){
         retrieveNote := make(map[string]string)
         retrieveNote["uuid"] = uuid
         retrieveNote["sid"] = rule
-        rules[rule]["note"], _ = GetRuleNote(retrieveNote)
+        // rules[rule]["note"], _ = GetRuleNote(retrieveNote)
+		sourceType,err := ndb.GetRuleFilesValue(uuid, "sourceType")
+		if err != nil {
+			logs.Error("GetRulesetRules--> GetRuleFilesValue query error %s",err.Error())
+			return nil,err
+		}
+		rules[rule]["sourceType"] = sourceType
     }
     return rules, err
 }
@@ -719,7 +726,7 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
 
 		if rulesDuplicated[sidsSplit[uuid]] == "" {
 			var EnabledRule = regexp.MustCompile(`^#`)
-			rulePath,err := ndb.GetRuleFilesPath(anode["orig"], "path")
+			rulePath,err := ndb.GetRuleFilesValue(anode["orig"], "path")
 
 			//change destiny status to Enable
 			writeFile,err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
@@ -760,4 +767,40 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
 	}
 
 	return rulesDuplicated, nil	
+}
+
+func ReadRulesetData(uuid string)(content map[string]string, err error) {
+	path,err := ndb.GetRulesetPath(uuid)
+	//get file path
+	fileReaded, err := ioutil.ReadFile(path)
+    if err != nil {
+		logs.Error("ReadRulesetData Error reading ruleset content: "+err.Error())
+        return nil,err
+    }
+	sendBackFile := make(map[string]string)
+	sendBackFile["fileContent"] = string(fileReaded)
+	return sendBackFile,nil
+}
+
+func SaveRulesetData(anode map[string]string)(err error) {
+	uuid := anode["uuid"]
+	content := anode["content"]
+	
+	path,err := ndb.GetRulesetPath(uuid)
+
+	file, err := os.OpenFile(path, os.O_RDWR, 0644)
+    if err != nil {
+		logs.Error("SaveRulesetData failed opening file: %s", err)
+		return err
+    }
+	defer file.Close()
+	file.Truncate(0)
+	file.Seek(0,0)
+    _, err = file.WriteAt([]byte(content), 0) // Write at 0 beginning
+    if err != nil {
+		logs.Error("SaveRulesetData failed writing to file: %s", err)
+		return err
+    }
+	
+	return nil
 }
