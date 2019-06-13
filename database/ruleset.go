@@ -89,7 +89,6 @@ func UpdateRuleset(uuid string, param string, value string)(err error){
 }
 
 func UpdateRuleFiles(uuid string, param string, value string)(err error){
-	logs.Debug(uuid+"  |:::|  "+param+" --> "+value)
 	updateRulesetNode, err := Rdb.Prepare("update rule_files set rule_value = ? where rule_uniqueid = ? and rule_param = ?;")
 	defer updateRulesetNode.Close()
 	if (err != nil){

@@ -37,7 +37,6 @@ func (n *RulesetSourceController) CreateRulesetSource() {
 func (n *RulesetSourceController) CreateCustomRulesetSource() {
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	logs.Notice(anode)
 	err := models.CreateCustomRulesetSource(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -63,10 +62,12 @@ func (n *RulesetSourceController) GetAllRulesetSource() {
 // @Title DeleteRulesetSource
 // @Description delete a RulesetSource
 // @Success 200 {object} models.DeleteRulesetSource
-// @router /DeleteRulesetSource/:uuid [delete]
+// @router /DeleteRulesetSource [delete]
 func (n *RulesetSourceController) DeleteRulesetSource() { 
-	uuid := n.GetString(":uuid") 
-    err := models.DeleteRulesetSource(uuid)
+    var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	logs.Notice(anode)
+	err := models.DeleteRulesetSource(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

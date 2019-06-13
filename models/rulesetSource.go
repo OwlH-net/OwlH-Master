@@ -24,8 +24,8 @@ func EditRulesetSource(data map[string]string) (err error) {
     return err
 }
 
-func DeleteRulesetSource(uuid string) (err error) {
-    err = rulesetSource.DeleteRulesetSource(uuid)
+func DeleteRulesetSource(anode map[string]string) (err error) {
+    err = rulesetSource.DeleteRulesetSource(anode)
     return err
 }
 

@@ -56,13 +56,6 @@ func CreateRulesetSource(n map[string]string) (err error) {
 	if _, err := os.Stat(path+n["name"]); !os.IsNotExist(err) {
 		return errors.New("The folder "+n["name"]+" already exists. Use other name for the new ruleset source.")
 	}
-
-	// //create empty folder for the new rulesetSource
-	// err = os.MkdirAll(path+n["name"], os.ModePerm)
-	// if err != nil {
-	// 	logs.Error("Error creating new folder. Already exists...")
-	// 	return err
-	// }
 	
 	nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)
 	n["path"] = path + nameWithoutSpaces +"/"+ n["fileName"]
@@ -233,8 +226,10 @@ func DeleteRulesetFile(uuid string) (err error) {
 	return nil
 }
 
-func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
-	var pathToDelete string
+func DeleteRulesetSource(anode map[string]string) (err error) {
+	rulesetSourceUUID := anode["uuid"]
+	sourceType := anode["sourceType"]
+	// var pathToDelete string
 	var uniqueid string
 	var uuidArray []string
 	sourceDownload := map[string]map[string]string{}
@@ -248,25 +243,50 @@ func DeleteRulesetSource(rulesetSourceUUID string) (err error) {
         return errors.New("DeleteRulesetSource -- Can't acces to database")
 	}
 
-	//delete path recursively
-	uuidPath, err := ndb.Rdb.Query("select ruleset_value from ruleset where ruleset_uniqueid = '"+rulesetSourceUUID+"' and ruleset_param='path'")
-	if err != nil {
-		logs.Error("ndb.Rdb.Query Error checking rule_uniqueid for rule_files: %s", err.Error())
-		return err
-	}
-	defer uuidPath.Close()
-	for uuidPath.Next() {
-		if err = uuidPath.Scan(&pathToDelete); err != nil {
-			logs.Error("DeleteRulesetSource for delete path rows.Scan: %s", err.Error())
+	if sourceType == "url" {
+		name,err := ndb.GetRulesetSourceValue(rulesetSourceUUID, "name")
+		nameWithoutSpaces := strings.Replace(name, " ", "_", -1)
+		err = os.RemoveAll(pathDownloaded+nameWithoutSpaces)
+		if err != nil {
+			logs.Error("DeleteRulesetSource Error deleting path for URL source type: %s", err.Error())
 			return err
 		}
-				
-		err = os.RemoveAll(pathDownloaded+pathToDelete)
-		if err = uuidPath.Scan(&pathToDelete); err != nil {
-			logs.Error("DeleteRulesetSource Error deleting path: %s", err.Error())
-			return err
+	}else{
+		path,err := ndb.GetRulesetSourceValue(rulesetSourceUUID, "path")
+		err = os.RemoveAll(path)
+		if err != nil {
+			logs.Error("DeleteRulesetSource Error deleting path for CUSTOM source type: %s", err.Error())
 		}
 	}
+
+	// //delete path 
+	// uuidPath, err := ndb.Rdb.Query("select ruleset_value from ruleset where ruleset_uniqueid = '"+rulesetSourceUUID+"' and ruleset_param='path'")
+	// if err != nil {
+	// 	logs.Error("ndb.Rdb.Query Error checking rule_uniqueid for rule_files: %s", err.Error())
+	// 	return err
+	// }
+	// defer uuidPath.Close()
+	// for uuidPath.Next() {
+	// 	if err = uuidPath.Scan(&pathToDelete); err != nil {
+	// 		logs.Error("DeleteRulesetSource for delete path rows.Scan: %s", err.Error())
+	// 		return err
+	// 	}
+	// 	logs.Info(pathToDelete)
+		
+	// 	// if sourceType == "custom" {
+	// 	// 	nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)
+
+	// 	// }
+	// 	// }else{
+
+	// 	// }
+
+	// 	err = os.RemoveAll(pathToDelete)
+	// 	if err = uuidPath.Scan(&pathToDelete); err != nil {
+	// 		logs.Error("DeleteRulesetSource Error deleting path: %s", err.Error())
+	// 		return err
+	// 	}
+	// }
 	
 	//delete a ruleset source in ruleset table
 	sourceSQL, err := ndb.Rdb.Prepare("delete from ruleset where ruleset_uniqueid = ?")
@@ -690,7 +710,8 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
 	var uniqid string
     var param string
     var value string
-    var uuidSource string
+	var uuidSource string
+	var checked string
     if ndb.Rdb == nil {
         logs.Error("no access to database")
         return nil, errors.New("no access to database")
@@ -719,25 +740,30 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
 				logs.Error("GetDetails rows.Scan: %s", err.Error())
 				return nil, err
 			}
-			
+			if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
+
+
 			// //check diff
-			// allRuleDetails[uniqid]["exists"]=verifyDiff(local,surce)
+			// allRuleDetails[uniqid]["isUpdated"]=verifyDiff(local,surce)
 
 			// //check if file exist
-			// if param == path {´
-			// 	verifyPathexists()
-			// 	 allRuleDetails[uniqid]["exists"]=verifyPathexists
-			// }
-
-			if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
-			allRuleDetails[uniqid][param]=value
-
+			if param == "path" {
+				checked = VerifyPathExists(value)				
+			}else if param == "exists" {
+				allRuleDetails[uniqid]["exists"]=checked
+			}else{
+				logs.Info(param+" - "+value)
+				allRuleDetails[uniqid][param]=value
+			}
 		} 
 	}
-
-	
-
-
 	return allRuleDetails, nil
 }
 
+func VerifyPathExists(path string)(stauts string){
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		return "false"
+	}else{
+		return "true"
+	}
+}
