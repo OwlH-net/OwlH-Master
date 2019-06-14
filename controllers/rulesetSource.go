@@ -19,7 +19,6 @@ type RulesetSourceController struct {
 func (n *RulesetSourceController) CreateRulesetSource() {
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	logs.Warn(anode)
 	err := models.CreateRulesetSource(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -66,7 +65,6 @@ func (n *RulesetSourceController) GetAllRulesetSource() {
 func (n *RulesetSourceController) DeleteRulesetSource() { 
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	logs.Notice(anode)
 	err := models.DeleteRulesetSource(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {

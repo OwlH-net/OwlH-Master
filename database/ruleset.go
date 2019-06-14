@@ -73,7 +73,6 @@ func InsertRulesetSourceRules(nkey string, key string, value string) (err error)
 }
 
 func UpdateRuleset(uuid string, param string, value string)(err error){
-	logs.Debug(param+" --> "+value)
 	updateRulesetNode, err := Rdb.Prepare("update ruleset set ruleset_value = ? where ruleset_uniqueid = ? and ruleset_param = ?;")
         if (err != nil){
             logs.Error("UpdateRuleset UPDATE prepare error for update isDownloaded -- "+err.Error())
@@ -103,7 +102,6 @@ func UpdateRuleFiles(uuid string, param string, value string)(err error){
 		defer updateRulesetNode.Close()
 		return err
 	}
-	
 	return nil
 }
 

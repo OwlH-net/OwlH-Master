@@ -450,47 +450,50 @@ func OverwriteDownload(data map[string]string) (err error) {
 	}
 
 	//assign stauts
-	for w := range newFilesDownloaded {
+	for r := range newFilesDownloaded {
 		var values = make(map[string]string)
-		if _, found := newFilesDB[w]; !found {
+		if _, found := newFilesDB[r]; !found {
 			values["count"] = "1" //new file downloaded -- !DB not contain the new file
-			newFilesDB[w] = values
+			newFilesDB[r] = values
 		}else{// _, found := newFilesDB[w]; found{
 			values["count"] = "2"//File and DB OK
-			newFilesDB[w] = values
+			newFilesDB[r] = values
 		}
 	}
 
 	// check status
 	for w := range newFilesDB {
-		if newFilesDB[w]["count"] == "0" {
-			err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "exists", "false")
-			if (err != nil){
-				logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
-				return err
-			}
+		
 
-			// err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "isUpdated", "true")
-			if (err != nil){
-				logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
-				return err
-			}
+		// if newFilesDB[w]["count"] == "0" {
+		// 	err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "exists", "false")
+		// 	if (err != nil){
+		// 		logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
+		// 		return err
+		// 	}
 
-			var uuidFromNewFiles string
-			sql := "select rule_uniqueid from rule_files where rule_param='sourceFileUUID' and rule_value='"+newFilesDB[w]["uuid"]+"';"
-			rows, err := ndb.Rdb.Query(sql)
-			for rows.Next() {
-				if err = rows.Scan(&uuidFromNewFiles); err != nil {
-					logs.Error("OverwriteDownload GetRulesetSourcePath rows.Scan: %s", err.Error())
-					return err
-				}
-				err = ndb.UpdateRuleFiles(uuidFromNewFiles, "exists", "false")
-				if (err != nil){
-					logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
-					return err
-				}
-			} 
-		} else if newFilesDB[w]["count"] == "1" {
+		// 	// err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "isUpdated", "true")
+		// 	// if (err != nil){
+		// 	// 	logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
+		// 	// 	return err
+		// 	// }
+
+		// 	// var uuidFromNewFiles string
+		// 	// sql := "select rule_uniqueid from rule_files where rule_param='sourceFileUUID' and rule_value='"+newFilesDB[w]["uuid"]+"';"
+		// 	// rows, err := ndb.Rdb.Query(sql)
+		// 	// for rows.Next() {
+		// 	// 	if err = rows.Scan(&uuidFromNewFiles); err != nil {
+		// 	// 		logs.Error("OverwriteDownload GetRulesetSourcePath rows.Scan: %s", err.Error())
+		// 	// 		return err
+		// 	// 	}
+		// 	// 	err = ndb.UpdateRuleFiles(uuidFromNewFiles, "exists", "false")
+		// 	// 	if (err != nil){
+		// 	// 		logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
+		// 	// 		return err
+		// 	// 	}
+		// 	// } 
+		// } else 
+		if newFilesDB[w]["count"] == "1" {
 			uuid := utils.Generate()
 			err = ndb.InsertRulesetSourceRules(uuid, "name", pathSelected)
 			err = ndb.InsertRulesetSourceRules(uuid, "path", pathAndFile)
@@ -727,7 +730,7 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
 		if err = uuidRows.Scan(&uuidSource); err != nil {
             logs.Error("GetDetails UUIDSource uuidRows.Scan: %s", err.Error())
             return nil, err
-		}
+		}		
 		sql := "select rule_uniqueid, rule_param, rule_value from rule_files where rule_uniqueid='"+uuidSource+"';"
 		rows, err := ndb.Rdb.Query(sql)
 		if err != nil {
@@ -741,26 +744,37 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
 				return nil, err
 			}
 			if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
-
+			allRuleDetails[uniqid][param]=value
 
 			// //check diff
 			// allRuleDetails[uniqid]["isUpdated"]=verifyDiff(local,surce)
 
 			// //check if file exist
-			if param == "path" {
-				checked = VerifyPathExists(value)				
-			}else if param == "exists" {
-				allRuleDetails[uniqid]["exists"]=checked
-			}else{
-				logs.Info(param+" - "+value)
-				allRuleDetails[uniqid][param]=value
-			}
+			// if param == "path" {
+			// 	checked = VerifyPathExists(allRuleDetails[uuidSource]["path"])								
+			// }else if param == "exists" {
+			// 	allRuleDetails[uuidSource]["exists"]=checked
+			// }else{
+				// allRuleDetails[uniqid][param]=value
+			// }
 		} 
+	}
+	
+	for x := range allRuleDetails{
+		checked = VerifyPathExists(allRuleDetails[x]["path"])
+		logs.Warn(allRuleDetails[x]["file"]+" -*- "+checked)
+		allRuleDetails[x]["exists"]=checked
+		err = ndb.UpdateRuleFiles(x, "exists", checked)
+		if err != nil {
+			logs.Error("ndb.UpdateRuleFiles Error : %s", err.Error())
+			return nil, err
+		}
 	}
 	return allRuleDetails, nil
 }
 
 func VerifyPathExists(path string)(stauts string){
+	
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return "false"
 	}else{
