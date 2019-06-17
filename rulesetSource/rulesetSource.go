@@ -379,38 +379,31 @@ func OverwriteDownload(data map[string]string) (err error) {
 	sourceDownload["ruleset"]["sourceDownload"] = ""
 	sourceDownload,err = utils.GetConf(sourceDownload)
 	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
-	
-	pathAndFile,err := ndb.GetRulesetSourceValue(data["uuid"], "path")
-	if err != nil {
-		logs.Error("Error Getting path for download file from RulesetSource-> %s", err.Error())
-		return err
-	}
 
-	splitPath := strings.Split(pathAndFile, "/")
-	pathSelected := splitPath[len(splitPath)-2]
+	splitPath := strings.Split(data["url"], "/")
+	fileDownloaded := splitPath[len(splitPath)-1]
 
-	_ = os.RemoveAll(pathDownloaded+pathSelected)
+	_ = os.RemoveAll(pathDownloaded+data["name"])
 
 	//download file
-	if _, err := os.Stat(pathDownloaded+pathSelected); os.IsNotExist(err) {
-		os.MkdirAll(pathDownloaded+pathSelected, os.ModePerm)
+	if _, err := os.Stat(pathDownloaded+data["name"]); os.IsNotExist(err) {
+		os.MkdirAll(pathDownloaded+data["name"], os.ModePerm)
 
-		err = utils.DownloadFile(data["path"], data["url"])
+		err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"])
 		if err != nil {
 			logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
-			_ = os.RemoveAll(pathDownloaded+pathSelected)
+			_ = os.RemoveAll(pathDownloaded+data["name"])
 
 			// update ruleset "exists" field
 			_ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-
 			return err
 		}
 	
-		// err = utils.ExtractTarGz(data["path"], pathDownloaded, pathSelected)
-		err = utils.ExtractTarGz(data["path"], pathDownloaded+pathSelected)
+		// err = utils.ExtractTarGz(data["path"], pathDownloaded, data["name"])
+		err = utils.ExtractTarGz(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
 		if err != nil {
 			logs.Error("Error unzipping file downloaded: "+err.Error())
-			err = os.RemoveAll(pathDownloaded+pathSelected)
+			err = os.RemoveAll(pathDownloaded+data["name"])
 			
 			// update ruleset "exists" field
 			err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
@@ -421,24 +414,27 @@ func OverwriteDownload(data map[string]string) (err error) {
 
 			return err
 		}
-	logs.Info("Download and extract complete")
-
+		logs.Info("Download and extract complete")
 	}
 
+	_ = ndb.UpdateRuleset(data["uuid"], "path", pathDownloaded + data["name"] + "/" + fileDownloaded)
+	_ = ndb.UpdateRuleset(data["uuid"], "url", data["url"])
+
 	//get map with new files downloaded
-	err = filepath.Walk(pathDownloaded+pathSelected,
+	err = filepath.Walk(pathDownloaded + data["name"],
 		func(file string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if fileExtension.MatchString(info.Name()){
-			newFilesDownloaded[info.Name()] = info.Name()
+			logs.Notice(file)
+			newFilesDownloaded[info.Name()] = file
 		}
 		return nil
 	})
 
 	//Create map
-	dbFiles,err := GetDetails(data["uuid"])
+	dbFiles,err := ndb.GetRulesFromRuleset(data["uuid"])
 	for y := range dbFiles { 
 		var values = make(map[string]string)
 		for z := range dbFiles[y] {
@@ -452,6 +448,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 	//assign stauts
 	for r := range newFilesDownloaded {
 		var values = make(map[string]string)
+		values["filePath"] = newFilesDownloaded[r]
 		if _, found := newFilesDB[r]; !found {
 			values["count"] = "1" //new file downloaded -- !DB not contain the new file
 			newFilesDB[r] = values
@@ -465,43 +462,23 @@ func OverwriteDownload(data map[string]string) (err error) {
 	for w := range newFilesDB {
 		
 
-		// if newFilesDB[w]["count"] == "0" {
-		// 	err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "exists", "false")
-		// 	if (err != nil){
-		// 		logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
-		// 		return err
-		// 	}
-
-		// 	// err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "isUpdated", "true")
-		// 	// if (err != nil){
-		// 	// 	logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
-		// 	// 	return err
-		// 	// }
-
-		// 	// var uuidFromNewFiles string
-		// 	// sql := "select rule_uniqueid from rule_files where rule_param='sourceFileUUID' and rule_value='"+newFilesDB[w]["uuid"]+"';"
-		// 	// rows, err := ndb.Rdb.Query(sql)
-		// 	// for rows.Next() {
-		// 	// 	if err = rows.Scan(&uuidFromNewFiles); err != nil {
-		// 	// 		logs.Error("OverwriteDownload GetRulesetSourcePath rows.Scan: %s", err.Error())
-		// 	// 		return err
-		// 	// 	}
-		// 	// 	err = ndb.UpdateRuleFiles(uuidFromNewFiles, "exists", "false")
-		// 	// 	if (err != nil){
-		// 	// 		logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
-		// 	// 		return err
-		// 	// 	}
-		// 	// } 
-		// } else 
+		if newFilesDB[w]["count"] == "0" {
+			err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "exists", "false")
+			if (err != nil){
+				logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
+				return err
+			}
+		}
+		
 		if newFilesDB[w]["count"] == "1" {
 			uuid := utils.Generate()
-			err = ndb.InsertRulesetSourceRules(uuid, "name", pathSelected)
-			err = ndb.InsertRulesetSourceRules(uuid, "path", pathAndFile)
+			err = ndb.InsertRulesetSourceRules(uuid, "name", data["name"])
+			err = ndb.InsertRulesetSourceRules(uuid, "path", newFilesDB[w]["filePath"])
 			err = ndb.InsertRulesetSourceRules(uuid, "file", w)
 			err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
 			err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", data["uuid"])
 			err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
-			// err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
+			err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
 		}
 	}
 
@@ -554,7 +531,7 @@ func DownloadFile(data map[string]string) (err error) {
 			err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
 			err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", data["uuid"])
 			err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
-			// err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
+			err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
 		}
 		if err != nil {
 			logs.Error("DownloadFile Error from RulesetSource-> %s", err.Error())
@@ -709,68 +686,27 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
 
 //
 func GetDetails(uuid string) (data map[string]map[string]string, err error){
-	var allRuleDetails = map[string]map[string]string{}
-	var uniqid string
-    var param string
-    var value string
-	var uuidSource string
 	var checked string
-    if ndb.Rdb == nil {
-        logs.Error("no access to database")
-        return nil, errors.New("no access to database")
-    }
-	sqlUUID := "select rule_uniqueid from rule_files where rule_param='sourceUUID' and rule_value = '"+uuid+"';"
-	uuidRows, err := ndb.Rdb.Query(sqlUUID)
-	if err != nil {
-		logs.Error("ndb.Rdb.Query Error checking uuid for take the uuid list for GetDetails: %s", err.Error())
-        return nil, err
-    }
-	defer uuidRows.Close()
-	for uuidRows.Next() {
-		if err = uuidRows.Scan(&uuidSource); err != nil {
-            logs.Error("GetDetails UUIDSource uuidRows.Scan: %s", err.Error())
-            return nil, err
-		}		
-		sql := "select rule_uniqueid, rule_param, rule_value from rule_files where rule_uniqueid='"+uuidSource+"';"
-		rows, err := ndb.Rdb.Query(sql)
-		if err != nil {
-			logs.Error("ndb.Rdb.Query Error : %s", err.Error())
-			return nil, err
-		}
-		defer rows.Close()
-		for rows.Next() {
-			if err = rows.Scan(&uniqid, &param, &value); err != nil {
-				logs.Error("GetDetails rows.Scan: %s", err.Error())
-				return nil, err
-			}
-			if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
-			allRuleDetails[uniqid][param]=value
-
-			// //check diff
-			// allRuleDetails[uniqid]["isUpdated"]=verifyDiff(local,surce)
-
-			// //check if file exist
-			// if param == "path" {
-			// 	checked = VerifyPathExists(allRuleDetails[uuidSource]["path"])								
-			// }else if param == "exists" {
-			// 	allRuleDetails[uuidSource]["exists"]=checked
-			// }else{
-				// allRuleDetails[uniqid][param]=value
-			// }
-		} 
-	}
 	
-	for x := range allRuleDetails{
-		checked = VerifyPathExists(allRuleDetails[x]["path"])
-		logs.Warn(allRuleDetails[x]["file"]+" -*- "+checked)
-		allRuleDetails[x]["exists"]=checked
+	dbFiles,err := ndb.GetRulesFromRuleset(uuid)
+	
+	for x := range dbFiles{
+		checked = VerifyPathExists(dbFiles[x]["path"])
 		err = ndb.UpdateRuleFiles(x, "exists", checked)
 		if err != nil {
 			logs.Error("ndb.UpdateRuleFiles Error : %s", err.Error())
 			return nil, err
 		}
+		dbFiles[x]["exists"]=checked
+
+		//get ruleset data by rule_files "sourceUUID"
+		//get files by ruleset
+		//
 	}
-	return allRuleDetails, nil
+	
+	//cehck file by file differences
+
+	return dbFiles, nil
 }
 
 func VerifyPathExists(path string)(stauts string){

@@ -92,14 +92,14 @@ func UpdateRuleFiles(uuid string, param string, value string)(err error){
 	defer updateRulesetNode.Close()
 	if (err != nil){
 		logs.Error("UpdateRuleFiles UPDATE prepare error for update isDownloaded -- "+err.Error())
-		defer updateRulesetNode.Close()
+		// defer updateRulesetNode.Close()
 		return err
 	}
 	// defer updateRulesetNode.Close()
 	_, err = updateRulesetNode.Exec(&value, &uuid, &param)
 	if (err != nil){
 		logs.Error("UpdateRuleFiles UPDATE error for update isDownloaded -- "+err.Error())
-		defer updateRulesetNode.Close()
+		// defer updateRulesetNode.Close()
 		return err
 	}
 	return nil
@@ -202,4 +202,45 @@ func GetRuleFilesValue(uuid string, param string)(path string, err error){
 		}
 	} 
 	return value,nil
+}
+
+func GetRulesFromRuleset(uuid string) (data map[string]map[string]string, err error){
+	var allRuleDetails = map[string]map[string]string{}
+	var uniqid string
+    var param string
+    var value string
+	var uuidSource string
+    if Rdb == nil {
+        logs.Error("no access to database")
+        return nil, errors.New("no access to database")
+	}
+	sqlUUID := "select rule_uniqueid from rule_files where rule_param='sourceUUID' and rule_value = '"+uuid+"';"
+	uuidRows, err := Rdb.Query(sqlUUID)
+	if err != nil {
+		logs.Error("Rdb.Query Error checking uuid for take the uuid list for GetDetails: %s", err.Error())
+        return nil, err
+    }
+	defer uuidRows.Close()
+	for uuidRows.Next() {
+		if err = uuidRows.Scan(&uuidSource); err != nil {
+            logs.Error("GetDetails UUIDSource uuidRows.Scan: %s", err.Error())
+            return nil, err
+		}		
+		sql := "select rule_uniqueid, rule_param, rule_value from rule_files where rule_uniqueid='"+uuidSource+"';"
+		rows, err := Rdb.Query(sql)
+		if err != nil {
+			logs.Error("Rdb.Query Error : %s", err.Error())
+			return nil, err
+		}
+		defer rows.Close()
+		for rows.Next() {
+			if err = rows.Scan(&uniqid, &param, &value); err != nil {
+				logs.Error("GetDetails rows.Scan: %s", err.Error())
+				return nil, err
+			}
+			if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
+			allRuleDetails[uniqid][param]=value
+		} 
+	}
+	return allRuleDetails, nil
 }

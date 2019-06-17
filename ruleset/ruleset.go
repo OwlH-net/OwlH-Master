@@ -197,7 +197,8 @@ func GetAllRulesets() (rulesets map[string]map[string]string, err error) {
 //Get rules from specific ruleset
 func GetRulesetRules(uuid string)(r map[string]map[string]string, err error){
     rules := make(map[string]map[string]string)
-    path,err := ndb.GetRulesetPath(uuid)
+	path,err := ndb.GetRulesetPath(uuid)
+	logs.Warn("PATH--> "+path)
     rules,err = ReadRuleset(path)
     for rule, _ := range rules{
         retrieveNote := make(map[string]string)
@@ -558,7 +559,10 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
         if ruleData[uniqid] == nil { ruleData[uniqid] = map[string]string{}}
         ruleData[uniqid][param]=value
 	}
-    return ruleData, nil
+	for x := range ruleData {
+		logs.Notice(ruleData[x])
+	}
+	return ruleData, nil
 }
 
 func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated []byte, err error){
