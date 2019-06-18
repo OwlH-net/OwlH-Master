@@ -44,8 +44,8 @@ func OverwriteDownload(data map[string]string) (err error) {
     return err
 }
 
-func CompareFiles(data map[string]string) (mapData map[string]map[string]string, err error) {
-    mapData,err = rulesetSource.CompareFiles(data)
+func CompareFiles(uuid string) (mapData map[string]map[string]string, err error) {
+    mapData,err = rulesetSource.CompareFiles(uuid)
     return mapData,err
 }
 
@@ -62,4 +62,9 @@ func GetDetails(uuid string) (files map[string]map[string]string, err error) {
 func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
     uuid,err = rulesetSource.GetFileUUIDfromRulesetUUID(value)
     return uuid,err
+}
+
+func OverwriteRuleFile(uuid string)(err error){
+    err = rulesetSource.OverwriteRuleFile(uuid)
+    return err
 }

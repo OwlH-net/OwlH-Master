@@ -244,3 +244,26 @@ func GetRulesFromRuleset(uuid string) (data map[string]map[string]string, err er
 	}
 	return allRuleDetails, nil
 }
+
+func GetRuleFilesByUniqueid(uuid string)(data map[string]map[string]string, err error){
+	var allRuleDetails = map[string]map[string]string{}
+	var uniqid string
+    var param string
+    var value string
+	sql := "select rule_uniqueid, rule_param, rule_value from rule_files where rule_uniqueid='"+uuid+"';"
+	rows, err := Rdb.Query(sql)
+	if err != nil {
+		logs.Error("Rdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+			logs.Error("GetDetails rows.Scan: %s", err.Error())
+			return nil, err
+		}
+		if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
+		allRuleDetails[uniqid][param]=value
+	} 
+	return allRuleDetails, nil
+}

@@ -139,11 +139,10 @@ func (n *RulesetSourceController) OverwriteDownload() {
 // @Title CompareFiles
 // @Description edit a RulesetSource
 // @Success 200 {object} models.RulesetSource
-// @router /compareFiles [put]
+// @router /compareSourceFiles/:uuid [get]
 func (n *RulesetSourceController) CompareFiles() { 
-	var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    mapData,err := models.CompareFiles(anode)
+	uuid := n.GetString(":uuid")
+    mapData,err := models.CompareFiles(uuid)
     n.Data["json"] = mapData
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -190,6 +189,20 @@ func (n *RulesetSourceController) GetFileUUIDfromRulesetUUID() {
 	value := n.GetString(":uuid")
     rulesetSource, err := models.GetFileUUIDfromRulesetUUID(value)
     n.Data["json"] = rulesetSource
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title OverwriteRuleFile
+// @Description delete a RulesetSource specific file
+// @Success 200 {object} models.OverwriteRuleFile
+// @router /OverwriteRuleFile/:uuid [put]
+func (n *RulesetSourceController) OverwriteRuleFile() { 
+	uuid := n.GetString(":uuid") 
+    err := models.OverwriteRuleFile(uuid)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
