@@ -68,3 +68,8 @@ func OverwriteRuleFile(uuid string)(err error){
     err = rulesetSource.OverwriteRuleFile(uuid)
     return err
 }
+
+func AddNewLinesToRuleset(uuid string)(err error){
+    err = rulesetSource.AddNewLinesToRuleset(uuid)
+    return err
+}

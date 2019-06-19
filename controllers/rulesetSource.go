@@ -137,13 +137,27 @@ func (n *RulesetSourceController) OverwriteDownload() {
 }
 
 // @Title CompareFiles
-// @Description edit a RulesetSource
+// @Description Compare local ruleset file with their downloaded source file
 // @Success 200 {object} models.RulesetSource
 // @router /compareSourceFiles/:uuid [get]
 func (n *RulesetSourceController) CompareFiles() { 
 	uuid := n.GetString(":uuid")
     mapData,err := models.CompareFiles(uuid)
     n.Data["json"] = mapData
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title AddNewLinesToRuleset
+// @Description Add new downloaded rules to local ruleset
+// @Success 200 {object} models.RulesetSource
+// @router /AddNewLinesToRuleset/:uuid [put]
+func (n *RulesetSourceController) AddNewLinesToRuleset() { 
+	uuid := n.GetString(":uuid")
+    err := models.AddNewLinesToRuleset(uuid)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

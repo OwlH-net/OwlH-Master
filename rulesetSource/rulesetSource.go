@@ -532,7 +532,6 @@ func DownloadFile(data map[string]string) (err error) {
 }
 
 func CompareFiles(uuid string) (mapData map[string]map[string]string, err error) {	
-	logs.Warn(uuid)
 	rulesetFile,err := ndb.GetRuleFilesByUniqueid(uuid)
 	var sourcePath string
 	var rulesetPath string
@@ -561,11 +560,8 @@ func CompareFiles(uuid string) (mapData map[string]map[string]string, err error)
 			if x == y {
 				lineExist = true
 				if (fileDst[x]["Line"] != fileOrig[y]["Line"] || fileDst[x]["Enabled"] != fileOrig[y]["Enabled"]) {
-					logs.Debug("x==y")
 					returnLines["new"] = fileDst[x]["Line"]
-					// returnLines["newFile"] = data["new"]
 					returnLines["old"] = fileOrig[y]["Line"]
-					// returnLines["oldFile"] = data["old"]
 					returnLines["enabled-new"] = fileDst[x]["Enabled"]
 					returnLines["enabled-old"] = fileOrig[y]["Enabled"]
 					returnLines["sid"] = x
@@ -591,7 +587,6 @@ func CompareFiles(uuid string) (mapData map[string]map[string]string, err error)
 		returnLines := make(map[string]string)
 		for x,_ := range fileDst {
 			if y == x {
-				logs.Error("x==y")
 				lineExist = true
 				continue
 			}
@@ -696,12 +691,14 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
 			logs.Error("ndb.GetRuleFilesByUniqueid Error : %s", err.Error())
 			return nil, err
 		}
-
-		//check differences
+		
+		//check differences for md5
 		for n := range sourceFile{
-			md5,err := utils.CalculateMD5(sourceFile[n]["path"])
-			if (sourceFile[n]["md5"] != md5){
+			dbFiles[x]["existsSourceFile"]=utils.VerifyPathExists(sourceFile[n]["path"])
+			md5S,err := utils.CalculateMD5(sourceFile[n]["path"])
+			if (sourceFile[n]["md5"] != md5S){
 				dbFiles[x]["isUpdated"]="true"
+				err = ndb.UpdateRuleFiles(n, "isUpdated", "true")
 				err = ndb.UpdateRuleFiles(x, "isUpdated", "true")
 				if err != nil {
 					logs.Error("Error updating after compare md5 GetDetails: %s", err.Error())
@@ -709,6 +706,7 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
 				}
 			}else{
 				dbFiles[x]["isUpdated"]="false"
+				err = ndb.UpdateRuleFiles(n, "isUpdated", "false")
 				err = ndb.UpdateRuleFiles(x, "isUpdated", "false")
 				if err != nil {
 					logs.Error("Error updating after compare md5 GetDetails: %s", err.Error())
@@ -718,8 +716,6 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
 		}
 	}
 	
-	logs.Info(dbFiles)
-
 	return dbFiles, nil
 }
 
@@ -732,6 +728,7 @@ func OverwriteRuleFile(uuid string)(err error){
 			logs.Error("SaveRulesetData failed writing to file: %s", err)
 			return err
 		}
+
 		for t := range sourceFile {
 			fileOrig, err := os.Open(sourceFile[t]["path"])
 			fileDst,err := os.OpenFile(dbFiles[r]["path"], os.O_APPEND|os.O_WRONLY, os.ModeAppend)
@@ -754,22 +751,88 @@ func OverwriteRuleFile(uuid string)(err error){
 			}
 
 			//change md5 and isUpdated status
-			md5,err := utils.CalculateMD5(dbFiles[r]["path"])
-			dbFiles[r]["isUpdated"]="false"
-			err = ndb.UpdateRuleFiles(r, "isUpdated", "false")			
-			err = ndb.UpdateRuleFiles(r, "md5", md5)			
-			if err != nil {
-				logs.Error("Error updating dbFiles after compare md5 OverwriteRuleFile: %s", err.Error())
-				return err
-			}
-			md5,err = utils.CalculateMD5(sourceFile[t]["path"])
+			md5S,err := utils.CalculateMD5(sourceFile[t]["path"])
+			md5L,err := utils.CalculateMD5(dbFiles[r]["path"])
 			err = ndb.UpdateRuleFiles(t, "isUpdated", "false")	
-			err = ndb.UpdateRuleFiles(t, "md5", md5)					
+			err = ndb.UpdateRuleFiles(t, "md5", md5S)					
+			err = ndb.UpdateRuleFiles(r, "isUpdated", "false")	
+			err = ndb.UpdateRuleFiles(r, "md5", md5L)					
 			if err != nil {
 				logs.Error("Error updating sourceFile after compare md5 OverwriteRuleFile: %s", err.Error())
 				return err
 			}
 		}
 	}
+	return nil
+}
+
+func AddNewLinesToRuleset(uuid string)(err error){
+	rulesetFile,err := ndb.GetRuleFilesByUniqueid(uuid)
+	var sourcePath string
+	var rulesetPath string
+	for r := range rulesetFile {
+		rulesetPath = rulesetFile[r]["path"]
+		sourceFile,err := ndb.GetRuleFilesByUniqueid(rulesetFile[r]["sourceFileUUID"])
+		if err != nil {
+			logs.Error("AddNewLinesToRuleset failed getting sourceFileUUID data: %s", err)
+			return err
+		}
+		for t := range sourceFile {
+			sourcePath = sourceFile[t]["path"]
+		}
+	}
+
+	fileOrig,err := utils.MapFromFile(sourcePath)
+	fileDst,err := utils.MapFromFile(rulesetPath)
+	if err != nil {
+		logs.Error("AddNewLinesToRuleset failed getting map from file: %s", err)
+		return err
+	}
+
+	for x := range fileOrig {
+		isEquals := false
+		for y := range fileDst {
+			if x == y{
+				isEquals = true
+				continue
+			}
+
+		}
+		if !isEquals{
+			writeFile,err := os.OpenFile(rulesetPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+			defer writeFile.Close()
+		
+			_, err = writeFile.WriteString(fileOrig[x]["Line"])
+			_, err = writeFile.WriteString("\n")
+		
+			if err != nil {
+				logs.Error("AddNewLinesToRuleset -- Error adding new lines: %s", err.Error())
+				return err
+			}
+		}
+	}
+
+	//change md5 and isUpdated status
+	for w := range rulesetFile{
+		sourceFile,err := ndb.GetRuleFilesByUniqueid(rulesetFile[w]["sourceFileUUID"])
+		if err != nil {
+			logs.Error("Error getting sourceFile for update md5 OverwriteRuleFile: %s", err.Error())
+			return err
+		}
+		for s := range sourceFile{
+			//change md5 and isUpdated status
+			md5S,err := utils.CalculateMD5(sourceFile[s]["path"])
+			md5L,err := utils.CalculateMD5(rulesetFile[w]["path"])
+			err = ndb.UpdateRuleFiles(w, "isUpdated", "false")	
+			err = ndb.UpdateRuleFiles(w, "md5", md5L)					
+			err = ndb.UpdateRuleFiles(s, "isUpdated", "false")	
+			err = ndb.UpdateRuleFiles(s, "md5", md5S)					
+			if err != nil {
+				logs.Error("Error updating sourceFile after compare md5 OverwriteRuleFile: %s", err.Error())
+				return err
+			}
+		}
+	}
+
 	return nil
 }
