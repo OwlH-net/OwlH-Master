@@ -345,3 +345,35 @@ func (n *RulesetController) SaveRulesetData() {
     }
     n.ServeJSON()
 }
+
+// @Title TimeSchedule
+// @Description Add a time schedule for syncronize rulesets
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /timeSchedule [put]
+func (n *RulesetController) TimeSchedule() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.TimeSchedule(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopTimeSchedule
+// @Description Stop a current time schedule for syncronize rulesets
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /stopTimeSchedule [put]
+func (n *RulesetController) StopTimeSchedule() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.StopTimeSchedule(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

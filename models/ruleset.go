@@ -105,3 +105,13 @@ func SaveRulesetData(content map[string]string)(err error) {
 	err = ruleset.SaveRulesetData(content)
 	return err
 }
+
+func TimeSchedule(content map[string]string)(err error) {
+	err = ruleset.TimeSchedule(content)
+	return err
+}
+
+func StopTimeSchedule(content map[string]string)(err error) {
+	err = ruleset.StopTimeSchedule(content)
+	return err
+}

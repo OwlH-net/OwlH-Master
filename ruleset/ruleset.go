@@ -10,6 +10,7 @@ import(
 	"encoding/json"
     "owlhmaster/database"
     "owlhmaster/utils"
+    "owlhmaster/node"
     "errors"
     "database/sql"
     "strings"
@@ -17,6 +18,9 @@ import(
 	"strconv"
 	"io/ioutil"
 )
+
+// var timer *time.Timer
+var ticker *time.Ticker
 
 type LinesID struct {
 	Counter     int `json:"counter"`
@@ -804,5 +808,42 @@ func SaveRulesetData(anode map[string]string)(err error) {
 		return err
     }
 	
+	return nil
+}
+
+func TimeSchedule(content map[string]string)(err error) {
+	// err = StopTimeSchedule(content)
+	// if err != nil {
+	// 	logs.Error("TimeSchedule Error stopping previous time: %s", err)
+	// 	return err
+	// }
+
+	logs.Notice(content["uuid"]+" -- "+content["time"])
+
+	t, err := strconv.Atoi(content["time"])
+    ticker = time.NewTicker(time.Duration(t) * time.Minute)
+	
+    go func() {
+		for _ = range ticker.C {
+			logs.Notice("Sync this ruleset with all the nodes who use it")		
+			err = node.SyncRulesetToAllNodes(content)
+			if err != nil {
+				logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
+				break
+			}
+		}
+    }()
+
+	return err
+}
+
+func StopTimeSchedule(content map[string]string)(err error) {
+	logs.Error(content["uuid"]+" -- "+content["time"])
+   	ticker.Stop()
+
+	logs.Error("Timer stopped")
+	logs.Error("Timer stopped")
+	logs.Error("Timer stopped")
+    
 	return nil
 }
