@@ -373,7 +373,6 @@ func OverwriteDownload(data map[string]string) (err error) {
 
 			return err
 		}
-		logs.Info("Download and extract complete")
 	}
 
 	_ = ndb.UpdateRuleset(data["uuid"], "path", pathDownloaded + data["name"] + "/" + fileDownloaded)
@@ -763,6 +762,7 @@ func OverwriteRuleFile(uuid string)(err error){
 			}
 		}
 	}
+	logs.Info("File Overwrited succesfully")
 	return nil
 }
 

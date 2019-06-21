@@ -9,6 +9,7 @@ import(
 	"os/exec"
 	"encoding/json"
     "owlhmaster/database"
+    "owlhmaster/rulesetSource"
     "owlhmaster/utils"
     "owlhmaster/node"
     "errors"
@@ -206,7 +207,7 @@ func GetRulesetRules(uuid string)(r map[string]map[string]string, err error){
         retrieveNote := make(map[string]string)
         retrieveNote["uuid"] = uuid
         retrieveNote["sid"] = rule
-        // rules[rule]["note"], _ = GetRuleNote(retrieveNote)
+        rules[rule]["note"], _ = GetRuleNote(retrieveNote)
 		sourceType,err := ndb.GetRuleFilesValue(uuid, "sourceType")
 		if err != nil {
 			logs.Error("GetRulesetRules--> GetRuleFilesValue query error %s",err.Error())
@@ -689,7 +690,7 @@ func GetAllCustomRulesets()(data map[string]map[string]string, err error) {
 	customData := make(map[string]map[string]string)
 	uuid,err := ndb.GetAllCustomRulesetDB()
 	for x := range uuid {
-		retrievedData,err := ndb.GetAllDataCustomRulesetDB(uuid[x])
+		retrievedData,err := ndb.GetAllDataRulesetDB(uuid[x])
 		customData[uuid[x]] = retrievedData[uuid[x]]
 		if err != nil {
 			logs.Error("GetAllCustomRulesets -- Error retrieving Custom ruleset data: %s", err.Error())
@@ -812,25 +813,86 @@ func SaveRulesetData(anode map[string]string)(err error) {
 }
 
 func TimeSchedule(content map[string]string)(err error) {
-	// err = StopTimeSchedule(content)
-	// if err != nil {
-	// 	logs.Error("TimeSchedule Error stopping previous time: %s", err)
-	// 	return err
-	// }
-
 	logs.Notice(content["uuid"]+" -- "+content["time"])
 
 	t, err := strconv.Atoi(content["time"])
     ticker = time.NewTicker(time.Duration(t) * time.Minute)
 	
     go func() {
+		var data map[string]map[string]string
 		for _ = range ticker.C {
-			logs.Notice("Sync this ruleset with all the nodes who use it")		
+			data,err = ndb.GetRulesFromRuleset(content["uuid"])
+			for x := range data{
+				values,err := ndb.GetRuleFilesByUniqueid(x)
+				if err != nil {
+					logs.Error("TimeSchedule Error GetRuleFilesByUniqueid values: %s", err)
+					break
+				}
+				for y := range values{
+					sourceFile,err := ndb.GetRuleFilesByUniqueid(values[y]["sourceFileUUID"])
+					if err != nil {
+						logs.Error("TimeSchedule Error GetRuleFilesByUniqueid sourceFile: %s", err)
+						break
+					}
+					for z := range sourceFile{
+						rulesetMap := make(map[string]string)
+						sourceUUIDValue,err := ndb.GetRuleFilesValue(z,"sourceUUID")
+						if err != nil {
+							logs.Error("TimeSchedule Error GetRuleFilesValue sourceUUIDValue: %s", err)
+							break
+						}
+						finalData,err := ndb.GetAllDataRulesetDB(sourceUUIDValue)
+						if err != nil {
+							logs.Error("TimeSchedule Error GetAllDataRulesetDB finalData: %s", err)
+							break
+						}
+						for a,b := range finalData{
+							for b,_ := range b {
+								rulesetMap[b] = finalData[a][b]
+							}
+						}
+						if rulesetMap["isDownloaded"] == "false"{
+							err = rulesetSource.DownloadFile(rulesetMap)
+							if err != nil {
+								logs.Error("TimeSchedule Error Downloading: %s", err)
+								break
+							}
+						}else if rulesetMap["isDownloaded"] == "true"{
+							err = rulesetSource.OverwriteDownload(rulesetMap)
+							if err != nil {
+								logs.Error("TimeSchedule Error Downloading: %s", err)
+								break
+							}							
+						}	
+					}
+				}				
+			}
+			//overwrite files for this ruleset
+			for d := range data{
+				if content["update"] == "overwrite" {
+					err = rulesetSource.OverwriteRuleFile(d)
+					if err != nil {
+						logs.Error("TimeSchedule Error OverwriteRuleFile ruleset: %s", err)
+						break
+					}
+				}else if content["update"] == "add-lines" {
+					err = rulesetSource.AddNewLinesToRuleset(d)
+					if err != nil {
+						logs.Error("TimeSchedule Error AddNewLinesToRuleset ruleset: %s", err)
+						break
+					}
+				}
+
+			}
+
+			//synchronize
 			err = node.SyncRulesetToAllNodes(content)
 			if err != nil {
 				logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
 				break
 			}
+			logs.Notice("Ruleset synchronized")		
+
 		}
     }()
 

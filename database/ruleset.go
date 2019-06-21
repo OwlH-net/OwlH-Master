@@ -105,7 +105,7 @@ func UpdateRuleFiles(uuid string, param string, value string)(err error){
 	return nil
 }
 
-func GetRulesetSourceValue(uuid string, param string)(path string, err error){
+func GetRulesetSourceValue(uuid string, param string)(val string, err error){
 	var value string
 	sql := "select ruleset_value from ruleset where ruleset_uniqueid='"+uuid+"' and ruleset_param = '"+param+"';"
 	rows, err := Rdb.Query(sql)
@@ -142,7 +142,7 @@ func GetAllCustomRulesetDB()(path []string, err error){
 	return customData,nil
 }
 
-func GetAllDataCustomRulesetDB(uuid string)(path map[string]map[string]string, err error){
+func GetAllDataRulesetDB(uuid string)(path map[string]map[string]string, err error){
 	var customData = map[string]map[string]string{}
     var uniqid string
     var param string
@@ -151,12 +151,12 @@ func GetAllDataCustomRulesetDB(uuid string)(path map[string]map[string]string, e
 	sql := "select ruleset_uniqueid, ruleset_param, ruleset_value from ruleset where ruleset_uniqueid='"+uuid+"'";
 	rows, err := Rdb.Query(sql)
 	if err != nil {
-		logs.Error("GetAllCustomRuleset Rdb.Query Error : %s", err.Error())
+		logs.Error("GetAllDataRulesetDB Rdb.Query Error : %s", err.Error())
 		return nil, err
 	}
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
-            logs.Error("GetAllCustomRuleset -- Query return error: %s", err.Error())
+            logs.Error("GetAllDataRulesetDB -- Query return error: %s", err.Error())
             return nil, err
 		}
         if customData[uniqid] == nil { customData[uniqid] = map[string]string{}}
