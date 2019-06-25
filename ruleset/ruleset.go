@@ -814,13 +814,11 @@ func SaveRulesetData(anode map[string]string)(err error) {
 
 func TimeSchedule(content map[string]string)(err error) {
 	secondsLeft,err := CheckTimeDiff(content)	
-	logs.Info(strconv.Itoa(secondsLeft)+" - Seconds Left")
 	if err != nil {
 		logs.Error("TimeSchedule failed checking time difference: %s", err)
 		return err
 	}
 	dataSchedule,err := ndb.GetScheduleByUniqueid(content["uuid"])
-	logs.Error(dataSchedule)
 	if len(dataSchedule) == 0 {
 		for key := range content {
 			err = ndb.InsertRulesetSchedule(content["uuid"], key, content[key])
@@ -831,21 +829,20 @@ func TimeSchedule(content map[string]string)(err error) {
 		}
 	}
 	dataSchedule,err = ndb.GetScheduleByUniqueid(content["uuid"])
-	logs.Warn(dataSchedule)
 		
 	//create map from hashmap
-	mapSchedule := make(map[string]string)
-	for e,s := range dataSchedule{
-		for s,_ := range s{
-		mapSchedule[e]=dataSchedule[e][s]
-		}
-	}
-	logs.Warn(mapSchedule)
-
+	// mapSchedule := make(map[string]string)
+	// for e,s := range dataSchedule{
+	// 	for s,_ := range s{
+	// 		mapSchedule[e]=dataSchedule[e][s]
+	// 	}
+	// }
+	
 	//First update
+	logs.Warn(strconv.Itoa(secondsLeft))
 	if secondsLeft >= 0{
 		time.Sleep(time.Duration(secondsLeft) * time.Second)
-		err = TickerUpdate(mapSchedule)
+		err = TickerUpdate(dataSchedule)
 		if err != nil {
 			logs.Error("TimeSchedule failed At first update: %s", err)
 			return err
@@ -854,13 +851,14 @@ func TimeSchedule(content map[string]string)(err error) {
 		return errors.New("User's date and time is older than the current time. Can't update...")
 	}
 	
-	t, err := strconv.Atoi(mapSchedule["schedule"])
+	t, err := strconv.Atoi(dataSchedule["schedule"])
+	logs.Warn(t)
 	ticker = time.NewTicker(time.Duration(t) * time.Minute)
 	
 	go func() {
 		for _ = range ticker.C {
-			logs.Info(mapSchedule)
-			err = TickerUpdate(mapSchedule)
+			logs.Info(dataSchedule)
+			err = TickerUpdate(dataSchedule)
 			if err != nil {
 				logs.Error("TimeSchedule Error Updating into a Ticker: %s", err)
 				break

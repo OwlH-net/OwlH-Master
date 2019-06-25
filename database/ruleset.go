@@ -268,12 +268,11 @@ func GetRuleFilesByUniqueid(uuid string)(data map[string]map[string]string, err 
 	return allRuleDetails, nil
 }
 
-func GetScheduleByUniqueid(uuid string)(data map[string]map[string]string, err error){
-	var allRuleDetails = map[string]map[string]string{}
-	var uniqid string
+func GetScheduleByUniqueid(uuid string)(data map[string]string, err error){
+	var allRuleDetails = map[string]string{}
     var param string
     var value string
-	sql := "select schedule_uniqueid, schedule_param, schedule_value from ruleset_schedule where schedule_uniqueid='"+uuid+"';"
+	sql := "select schedule_param, schedule_value from ruleset_schedule where schedule_uniqueid='"+uuid+"';"
 	rows, err := Rdb.Query(sql)
 	if err != nil {
 		logs.Error("Rdb.Query GetScheduleByUniqueid Error : %s", err.Error())
@@ -281,18 +280,16 @@ func GetScheduleByUniqueid(uuid string)(data map[string]map[string]string, err e
 	}
 	defer rows.Close()
 	for rows.Next() {
-		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+		if err = rows.Scan(&param, &value); err != nil {
 			logs.Error("GetScheduleByUniqueid rows.Scan: %s", err.Error())
 			return nil, err
 		}
-		if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
-		allRuleDetails[uniqid][param]=value
+		allRuleDetails[param]=value
 	} 
 	return allRuleDetails, nil
 }
 
 func InsertRulesetSchedule(uuid string, key string, value string) (err error) {
-	logs.Debug(uuid+" - "+key+" - "+value)
     if Rdb == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
