@@ -96,7 +96,6 @@ func DownloadFile(filepath string, url string)(err error){
         return err
     }
     defer resp.Body.Close()
-	logs.Notice(resp)
 	// Create the file
 	out, err := os.Create(filepath)
 	if err != nil {

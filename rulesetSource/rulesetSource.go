@@ -762,7 +762,6 @@ func OverwriteRuleFile(uuid string)(err error){
 			}
 		}
 	}
-	logs.Info("File Overwrited succesfully")
 	return nil
 }
 

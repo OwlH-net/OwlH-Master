@@ -39,3 +39,9 @@ CREATE TABLE rule_files (
     rule_param text NOT NULL,
     rule_value text NOT NULL
  );
+CREATE TABLE ruleset_schedule (
+    schedule_id integer PRIMARY KEY AUTOINCREMENT,
+    schedule_uniqueid text NOT NULL,
+    schedule_param text NOT NULL,
+    schedule_value text NOT NULL
+ );

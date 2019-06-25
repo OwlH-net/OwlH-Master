@@ -813,94 +813,67 @@ func SaveRulesetData(anode map[string]string)(err error) {
 }
 
 func TimeSchedule(content map[string]string)(err error) {
-	logs.Notice(content["uuid"]+" -- "+content["time"])
-
-	t, err := strconv.Atoi(content["time"])
-    ticker = time.NewTicker(time.Duration(t) * time.Minute)
-	
-    go func() {
-		var data map[string]map[string]string
-		for _ = range ticker.C {
-			data,err = ndb.GetRulesFromRuleset(content["uuid"])
-			for x := range data{
-				values,err := ndb.GetRuleFilesByUniqueid(x)
-				if err != nil {
-					logs.Error("TimeSchedule Error GetRuleFilesByUniqueid values: %s", err)
-					break
-				}
-				for y := range values{
-					sourceFile,err := ndb.GetRuleFilesByUniqueid(values[y]["sourceFileUUID"])
-					if err != nil {
-						logs.Error("TimeSchedule Error GetRuleFilesByUniqueid sourceFile: %s", err)
-						break
-					}
-					for z := range sourceFile{
-						rulesetMap := make(map[string]string)
-						sourceUUIDValue,err := ndb.GetRuleFilesValue(z,"sourceUUID")
-						if err != nil {
-							logs.Error("TimeSchedule Error GetRuleFilesValue sourceUUIDValue: %s", err)
-							break
-						}
-						finalData,err := ndb.GetAllDataRulesetDB(sourceUUIDValue)
-						if err != nil {
-							logs.Error("TimeSchedule Error GetAllDataRulesetDB finalData: %s", err)
-							break
-						}
-						for a,b := range finalData{
-							for b,_ := range b {
-								rulesetMap[b] = finalData[a][b]
-							}
-						}
-						if rulesetMap["isDownloaded"] == "false"{
-							err = rulesetSource.DownloadFile(rulesetMap)
-							if err != nil {
-								logs.Error("TimeSchedule Error Downloading: %s", err)
-								break
-							}
-						}else if rulesetMap["isDownloaded"] == "true"{
-							err = rulesetSource.OverwriteDownload(rulesetMap)
-							if err != nil {
-								logs.Error("TimeSchedule Error Downloading: %s", err)
-								break
-							}							
-						}	
-					}
-				}				
-			}
-			//overwrite files for this ruleset
-			for d := range data{
-				if content["update"] == "overwrite" {
-					err = rulesetSource.OverwriteRuleFile(d)
-					if err != nil {
-						logs.Error("TimeSchedule Error OverwriteRuleFile ruleset: %s", err)
-						break
-					}
-				}else if content["update"] == "add-lines" {
-					err = rulesetSource.AddNewLinesToRuleset(d)
-					if err != nil {
-						logs.Error("TimeSchedule Error AddNewLinesToRuleset ruleset: %s", err)
-						break
-					}
-				}
-
-			}
-
-			//synchronize
-			err = node.SyncRulesetToAllNodes(content)
+	secondsLeft,err := CheckTimeDiff(content)	
+	logs.Info(strconv.Itoa(secondsLeft)+" - Seconds Left")
+	if err != nil {
+		logs.Error("TimeSchedule failed checking time difference: %s", err)
+		return err
+	}
+	dataSchedule,err := ndb.GetScheduleByUniqueid(content["uuid"])
+	logs.Error(dataSchedule)
+	if len(dataSchedule) == 0 {
+		for key := range content {
+			err = ndb.InsertRulesetSchedule(content["uuid"], key, content[key])
 			if err != nil {
-				logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
+				logs.Error("TimeSchedule failed inserting new data: %s", err)
+				return err
+			}
+		}
+	}
+	dataSchedule,err = ndb.GetScheduleByUniqueid(content["uuid"])
+	logs.Warn(dataSchedule)
+		
+	//create map from hashmap
+	mapSchedule := make(map[string]string)
+	for e,s := range dataSchedule{
+		for s,_ := range s{
+		mapSchedule[e]=dataSchedule[e][s]
+		}
+	}
+	logs.Warn(mapSchedule)
+
+	//First update
+	if secondsLeft >= 0{
+		time.Sleep(time.Duration(secondsLeft) * time.Second)
+		err = TickerUpdate(mapSchedule)
+		if err != nil {
+			logs.Error("TimeSchedule failed At first update: %s", err)
+			return err
+		}
+	}else {
+		return errors.New("User's date and time is older than the current time. Can't update...")
+	}
+	
+	t, err := strconv.Atoi(mapSchedule["schedule"])
+	ticker = time.NewTicker(time.Duration(t) * time.Minute)
+	
+	go func() {
+		for _ = range ticker.C {
+			logs.Info(mapSchedule)
+			err = TickerUpdate(mapSchedule)
+			if err != nil {
+				logs.Error("TimeSchedule Error Updating into a Ticker: %s", err)
 				break
 			}
-			logs.Notice("Ruleset synchronized")		
-
 		}
-    }()
-
+	}()
+		
 	return err
 }
 
-func StopTimeSchedule(content map[string]string)(err error) {
-	logs.Error(content["uuid"]+" -- "+content["time"])
+
+func StopTimeSchedule(content map[string]string)(err error){
+	logs.Error(content["uuid"])
    	ticker.Stop()
 
 	logs.Error("Timer stopped")
@@ -908,4 +881,106 @@ func StopTimeSchedule(content map[string]string)(err error) {
 	logs.Error("Timer stopped")
     
 	return nil
+}
+
+func TickerUpdate(content map[string]string)(err error){
+	data,err := ndb.GetRulesFromRuleset(content["uuid"])
+	for x := range data{
+		values,err := ndb.GetRuleFilesByUniqueid(x)
+		if err != nil {
+			logs.Error("TimeSchedule Error GetRuleFilesByUniqueid values: %s", err)
+			break
+		}
+		for y := range values{
+			sourceFile,err := ndb.GetRuleFilesByUniqueid(values[y]["sourceFileUUID"])
+			if err != nil {
+				logs.Error("TimeSchedule Error GetRuleFilesByUniqueid sourceFile: %s", err)
+				break
+			}
+			for z := range sourceFile{
+				rulesetMap := make(map[string]string)
+				sourceUUIDValue,err := ndb.GetRuleFilesValue(z,"sourceUUID")
+				if err != nil {
+					logs.Error("TimeSchedule Error GetRuleFilesValue sourceUUIDValue: %s", err)
+					break
+				}
+				finalData,err := ndb.GetAllDataRulesetDB(sourceUUIDValue)
+				if err != nil {
+					logs.Error("TimeSchedule Error GetAllDataRulesetDB finalData: %s", err)
+					break
+				}
+				for a,b := range finalData{
+					for b,_ := range b {
+						rulesetMap[b] = finalData[a][b]
+					}
+				}
+				if rulesetMap["isDownloaded"] == "false"{
+					err = rulesetSource.DownloadFile(rulesetMap)
+					if err != nil {
+						logs.Error("TimeSchedule Error Downloading: %s", err)
+						break
+					}
+				}else if rulesetMap["isDownloaded"] == "true"{
+					err = rulesetSource.OverwriteDownload(rulesetMap)
+					if err != nil {
+						logs.Error("TimeSchedule Error Downloading: %s", err)
+						break
+					}							
+				}	
+			}
+		}				
+	}
+	//overwrite files for this ruleset
+	for d := range data{
+		if content["update"] == "overwrite" {
+			err = rulesetSource.OverwriteRuleFile(d)
+			if err != nil {
+				logs.Error("TimeSchedule Error OverwriteRuleFile ruleset: %s", err)
+				break
+			}
+		}else if content["update"] == "add-lines" {
+			err = rulesetSource.AddNewLinesToRuleset(d)
+			if err != nil {
+				logs.Error("TimeSchedule Error AddNewLinesToRuleset ruleset: %s", err)
+				break
+			}
+		}
+
+	}
+
+	//synchronize
+	err = node.SyncRulesetToAllNodes(content)
+	if err != nil {
+		logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
+	}
+	logs.Notice("Ruleset synchronized "+content["uuid"])	
+	
+	return nil
+}
+
+func CheckTimeDiff(content map[string]string)(t int, err error){
+	dt := time.Now()
+	currentYear := dt.Year()
+	currentMonth := dt.Month()
+	currentDay := dt.Day()
+	currentHour := dt.Hour() 
+	currentMinute := dt.Minute()
+	currentSecond := dt.Second()
+	
+	year,err := strconv.Atoi(content["year"])
+	month,err := strconv.Atoi(content["month"])
+	day,err := strconv.Atoi(content["day"])
+	hour,err := strconv.Atoi(content["hour"])
+	minute,err := strconv.Atoi(content["minute"])
+	dUser := time.Date(year,time.Month(month),day,hour,minute, 0, 0, time.Local)
+	dCurrent := time.Date(currentYear,time.Month(currentMonth),currentDay,currentHour,currentMinute, currentSecond, 0, time.Local)
+	diff := dUser.Sub(dCurrent)
+	secondsLeft := int(diff.Seconds())
+
+	if err != nil {
+		logs.Error("CheckTimeDiff Error strconv to Integer: %s", err)
+		return 0,err
+	}
+
+	return secondsLeft,nil
 }

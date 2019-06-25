@@ -353,7 +353,7 @@ func (n *RulesetController) SaveRulesetData() {
 // @router /timeSchedule [put]
 func (n *RulesetController) TimeSchedule() { 
     var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	err := models.TimeSchedule(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
