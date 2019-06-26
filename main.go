@@ -8,6 +8,7 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     "owlhmaster/dispatcher"
+    "owlhmaster/scheduler"
     "owlhmaster/utils"
 )
 
@@ -39,7 +40,7 @@ func main() {
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
 	//Application version
-	logs.Error("Version: 0.8.190625.0935")
+	logs.Error("Version: 0.8.190626.0916")
 
 	//Init database connection
     ndb.Conn()
@@ -51,6 +52,8 @@ func main() {
 	
 	//Init dispatcher at master
     go dispatcher.Init()
+	//Init scheduler at master
+    go scheduler.Init()
 	
 	//Beego API documentation
     if beego.BConfig.RunMode == "dev" {

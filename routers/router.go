@@ -49,6 +49,11 @@ func init() {
 				&controllers.CollectorController{},
 			),
 		),	
+		beego.NSNamespace("/scheduler",
+			beego.NSInclude(
+				&controllers.SchedulerController{},
+			),
+		),	
 	)
 	beego.AddNamespace(ns)
 }

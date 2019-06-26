@@ -18,8 +18,20 @@ import (
 	"time"
 	"strings"
 	"crypto/md5"
+	"fmt"
+	"crypto/rand"
 	"encoding/hex"
 )
+
+func Generate()(uuid string)  {
+	b := make([]byte, 16)
+	_, err := rand.Read(b)
+	if err != nil {
+		logs.Info(err)
+	}
+	uuid = fmt.Sprintf("%x-%x-%x-%x-%x",b[0:4], b[4:6], b[6:8], b[8:10], b[10:])
+	return uuid
+}
 
 //Read main.conf and return a map data
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
@@ -274,4 +286,14 @@ func VerifyPathExists(path string)(stauts string){
 	}else{
 		return "true"
 	}
+}
+
+func EpochTime(date string)(epoch int64, err error){
+	t, err := time.Parse("2006-01-02T15:04:05.000Z", date)
+	if err != nil {
+		logs.Error("Error creating epoch time: %s", err.Error())
+		return -1,err
+	}
+	secs := t.Unix()
+	return secs, nil
 }
