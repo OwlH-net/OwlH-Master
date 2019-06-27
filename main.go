@@ -40,7 +40,7 @@ func main() {
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
 	//Application version
-	logs.Error("Version: 0.8.190626.0916")
+	logs.Error("Version: 0.8.190627.0918")
 
 	//Init database connection
     ndb.Conn()

@@ -11,38 +11,69 @@ import (
 )
 
 func Init() {
-	for RunScheduler() {
-        logs.Info("Scheduler Running")
-    }
+	schedulerConf := map[string]map[string]string{}
+	schedulerConf["scheduler"] = map[string]string{}
+	schedulerConf["scheduler"]["minutes"] = ""
+	schedulerConf["scheduler"]["status"] = ""
+	schedulerConf,_ = utils.GetConf(schedulerConf)
+	minutes := schedulerConf["scheduler"]["minutes"]
+	status := schedulerConf["scheduler"]["status"]
+
+	for status == "enabled"{
+		logs.Info("LOOP")
+		RunScheduler()
+		for {			
+			time.Sleep(time.Second*60)
+			_, currentMinutes, _ := time.Now().Clock()
+			confMinutes,_ := strconv.Atoi(minutes)
+
+			if currentMinutes % confMinutes == 0 {
+				logs.Warn("Mod == 0")
+				break
+			}
+		}
+		logs.Info("Scheduler Running")
+	}
 }
 
-func RunScheduler() bool {
+//update task if their time is out
+func RunScheduler() bool {	
+	// location,_ := time.LoadLocation("Europe/Rome")
+	location,_ := time.LoadLocation("Europe/Madrid")
+	t1 := time.Now().In(location).Unix()
+	t2 := strconv.FormatInt(t1, 10)
+	logs.Debug(t2)
+
+
 	t := time.Now().Unix()
 	currentTime := strconv.FormatInt(t, 10)
 	tasks,err := CheckTasks()	
 	if err != nil {
 		logs.Error("Error RunScheduler checking tasks: %s", err.Error())
-		// return false
 	}
-	content := make(map[string]string)
-	for j,k := range tasks {		
-		content["taskUUID"] = j
-		for k,_ := range k {		
-			content[k] = tasks[j][k]
+	for j,k := range tasks {
+		logs.Info(k["nextEpoch"]+" -- "+currentTime)
+		if k["nextEpoch"] <= currentTime{
+			err = TaskUpdater(k)
+			if err != nil {
+				logs.Error("Error RunScheduler TaskUpdater: %s", err.Error())	
+			}
+
+			//calculate next epoch
+			dbTime,_ := strconv.Atoi(k["period"])
+			nextEpoch,_ := strconv.Atoi(k["nextEpoch"])
+			s := strconv.Itoa(nextEpoch + dbTime)
+
+			//update next epoch
+			err = ndb.UpdateScheduler(j, "nextEpoch", s)
+
+			logs.Notice("EPOCH updated")
 		}
 	}
-	if content["time"] <= currentTime{
-		err = TaskUpdater(content)
-		if err != nil {
-			logs.Error("Error RunScheduler TaskUpdater: %s", err.Error())
-			// return false
-		}
-		logs.Notice("Tasks updated")
-	}
-	time.Sleep(time.Second*20)
 	return true
 }
 
+//return all the enabled tasks
 func CheckTasks()(tasksEnabled map[string]map[string]string, err error){
 	tasks,err := ndb.GetAllScheduler()
 	if err != nil {
@@ -65,8 +96,10 @@ func CheckTasks()(tasksEnabled map[string]map[string]string, err error){
 
 func SchedulerTask(content map[string]string)(err error){
 	taskUUID,err := ndb.GetSchedulerByValue(content["uuid"])
+	logs.Info(taskUUID)
 	if taskUUID == "" {
 		timeEpoch,err := utils.EpochTime(content["year"]+"-"+content["month"]+"-"+content["day"]+"T"+content["hour"]+":"+content["minute"]+":00.000Z")
+		logs.Notice(strconv.FormatInt(timeEpoch, 10))
 		if err != nil {
 			logs.Error("Error RunScheduler epoch time: %s", err.Error())
 			return err
@@ -74,10 +107,15 @@ func SchedulerTask(content map[string]string)(err error){
 		newUUID := utils.Generate()
 		err = ndb.InsertScheduler(newUUID, "type", content["type"])
 		err = ndb.InsertScheduler(newUUID, "update", content["update"])
-		err = ndb.InsertScheduler(newUUID, "time", content["schedule"])
+		err = ndb.InsertScheduler(newUUID, "period", content["period"])
 		err = ndb.InsertScheduler(newUUID, "uuid", content["uuid"])
-		err = ndb.InsertScheduler(newUUID, "nextEpoch", strconv.FormatInt(timeEpoch+300, 10))
-		err = ndb.InsertScheduler(newUUID, "status", content["status"])
+		err = ndb.InsertScheduler(newUUID, "nextEpoch", strconv.FormatInt(timeEpoch, 10))
+		err = ndb.InsertScheduler(newUUID, "status", content["status"])		
+		// err = TaskUpdater(content)
+		if err != nil {
+			logs.Error("Error SchedulerTask TaskUpdater after first update: %s", err.Error())
+			return err
+		}
 		logs.Notice("Task added")
 	}else{
 		err = ndb.UpdateScheduler(taskUUID, "status", "enabled")
@@ -166,16 +204,6 @@ func TaskUpdater(content map[string]string)(err error){
 	if err != nil {
 		logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
 	}
-
-	//update next time update
-	dbTime,_ := strconv.ParseInt(content["time"], 10, 64)
-	currentTime := time.Now().Unix()
-	s := strconv.FormatInt(currentTime+dbTime, 10)
-	logs.Debug(s)
-	logs.Debug(s)
-	logs.Debug(s)
-	logs.Debug(s)
-	err = ndb.UpdateScheduler(content["taskUUID"], "time", s)
 
 	logs.Notice("Ruleset synchronized "+content["uuid"])	
 	return nil
