@@ -38,13 +38,6 @@ func Init() {
 
 //update task if their time is out
 func RunScheduler() bool {	
-	// location,_ := time.LoadLocation("Europe/Rome")
-	location,_ := time.LoadLocation("Europe/Madrid")
-	t1 := time.Now().In(location).Unix()
-	t2 := strconv.FormatInt(t1, 10)
-	logs.Debug(t2)
-
-
 	t := time.Now().Unix()
 	currentTime := strconv.FormatInt(t, 10)
 	tasks,err := CheckTasks()	
@@ -57,8 +50,8 @@ func RunScheduler() bool {
 			err = TaskUpdater(k)
 			if err != nil {
 				logs.Error("Error RunScheduler TaskUpdater: %s", err.Error())	
-			}
-
+				continue
+			}else{
 			//calculate next epoch
 			dbTime,_ := strconv.Atoi(k["period"])
 			nextEpoch,_ := strconv.Atoi(k["nextEpoch"])
@@ -66,8 +59,12 @@ func RunScheduler() bool {
 
 			//update next epoch
 			err = ndb.UpdateScheduler(j, "nextEpoch", s)
-
+			if err != nil {
+				logs.Error("Error RunScheduler UpdateScheduler updating next EPOCH time: %s", err.Error())	
+				continue
+			}
 			logs.Notice("EPOCH updated")
+			}
 		}
 	}
 	return true
@@ -96,10 +93,8 @@ func CheckTasks()(tasksEnabled map[string]map[string]string, err error){
 
 func SchedulerTask(content map[string]string)(err error){
 	taskUUID,err := ndb.GetSchedulerByValue(content["uuid"])
-	logs.Info(taskUUID)
 	if taskUUID == "" {
-		timeEpoch,err := utils.EpochTime(content["year"]+"-"+content["month"]+"-"+content["day"]+"T"+content["hour"]+":"+content["minute"]+":00.000Z")
-		logs.Notice(strconv.FormatInt(timeEpoch, 10))
+		timeEpoch,err := utils.EpochTime(content["year"]+"-"+content["month"]+"-"+content["day"]+"T"+content["hour"]+":"+content["minute"]+":00")
 		if err != nil {
 			logs.Error("Error RunScheduler epoch time: %s", err.Error())
 			return err
@@ -111,7 +106,6 @@ func SchedulerTask(content map[string]string)(err error){
 		err = ndb.InsertScheduler(newUUID, "uuid", content["uuid"])
 		err = ndb.InsertScheduler(newUUID, "nextEpoch", strconv.FormatInt(timeEpoch, 10))
 		err = ndb.InsertScheduler(newUUID, "status", content["status"])		
-		// err = TaskUpdater(content)
 		if err != nil {
 			logs.Error("Error SchedulerTask TaskUpdater after first update: %s", err.Error())
 			return err
@@ -135,30 +129,35 @@ func StopTask(content map[string]string)(err error){
 }
 
 func TaskUpdater(content map[string]string)(err error){
+	logs.Info("Inside TASKUPDATER: "+content["uuid"])
 	data,err := ndb.GetRulesFromRuleset(content["uuid"])
 	for x := range data{
 		values,err := ndb.GetRuleFilesByUniqueid(x)
 		if err != nil {
 			logs.Error("TimeSchedule Error GetRuleFilesByUniqueid values: %s", err)
-			break
+			// break
+			return err
 		}
 		for y := range values{
 			sourceFile,err := ndb.GetRuleFilesByUniqueid(values[y]["sourceFileUUID"])
 			if err != nil {
 				logs.Error("TimeSchedule Error GetRuleFilesByUniqueid sourceFile: %s", err)
-				break
+				// break
+				return err
 			}
 			for z := range sourceFile{
 				rulesetMap := make(map[string]string)
 				sourceUUIDValue,err := ndb.GetRuleFilesValue(z,"sourceUUID")
 				if err != nil {
 					logs.Error("TimeSchedule Error GetRuleFilesValue sourceUUIDValue: %s", err)
-					break
+					// break
+					return err
 				}
 				finalData,err := ndb.GetAllDataRulesetDB(sourceUUIDValue)
 				if err != nil {
 					logs.Error("TimeSchedule Error GetAllDataRulesetDB finalData: %s", err)
-					break
+					// break
+					return err
 				}
 				for a,b := range finalData{
 					for b,_ := range b {
@@ -169,13 +168,15 @@ func TaskUpdater(content map[string]string)(err error){
 					err = rulesetSource.DownloadFile(rulesetMap)
 					if err != nil {
 						logs.Error("TimeSchedule Error Downloading: %s", err)
-						break
+						// break
+						return err
 					}
 				}else if rulesetMap["isDownloaded"] == "true"{
 					err = rulesetSource.OverwriteDownload(rulesetMap)
 					if err != nil {
 						logs.Error("TimeSchedule Error Downloading: %s", err)
-						break
+						// break
+						return err
 					}							
 				}	
 			}
@@ -187,13 +188,15 @@ func TaskUpdater(content map[string]string)(err error){
 			err = rulesetSource.OverwriteRuleFile(d)
 			if err != nil {
 				logs.Error("TimeSchedule Error OverwriteRuleFile ruleset: %s", err)
-				break
+				// break
+				return err
 			}
 		}else if content["update"] == "add-lines" {
 			err = rulesetSource.AddNewLinesToRuleset(d)
 			if err != nil {
 				logs.Error("TimeSchedule Error AddNewLinesToRuleset ruleset: %s", err)
-				break
+				// break
+				return err
 			}
 		}
 
@@ -203,6 +206,7 @@ func TaskUpdater(content map[string]string)(err error){
 	err = node.SyncRulesetToAllNodes(content)
 	if err != nil {
 		logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
+		return err
 	}
 
 	logs.Notice("Ruleset synchronized "+content["uuid"])	

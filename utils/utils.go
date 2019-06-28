@@ -289,12 +289,8 @@ func VerifyPathExists(path string)(stauts string){
 }
 
 func EpochTime(date string)(epoch int64, err error){
-	logs.Warn(date)
-	t, err := time.Parse("2006-01-02T15:04:05.000Z", date)
-	if err != nil {
-		logs.Error("Error creating epoch time: %s", err.Error())
-		return -1,err
-	}
-	secs := t.UTC().Unix()
-	return secs, nil
+	t1 := time.Now() 
+	t2,_ := time.ParseInLocation("2006-01-02T15:04:05", date, t1.Location())
+
+	return t2.Unix(), nil
 }
