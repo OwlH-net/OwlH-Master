@@ -92,6 +92,7 @@ func (n *RulesetController) GetRulesetRules() {
     }else{
 		n.Data["json"] = rulesets
 	}
+
     n.ServeJSON()
 }
 
