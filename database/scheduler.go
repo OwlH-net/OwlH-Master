@@ -52,9 +52,9 @@ func GetSchedulerByUniqueid(uuid string)(data map[string]map[string]string, err 
 	return allScheduleDetails, nil
 }
 
-func GetSchedulerByValue(uuid string)(data string, err error){
+func GetSchedulerByValue(val string)(data string, err error){
     var value string
-	sql := "select scheduler_uniqueid from scheduler where scheduler_value='"+uuid+"';"
+	sql := "select scheduler_uniqueid from scheduler where scheduler_value='"+val+"';"
 	rows, err := Rdb.Query(sql)
 	if err != nil {
 		logs.Error("Rdb.Query GetSchedulerByValue Error : %s", err.Error())

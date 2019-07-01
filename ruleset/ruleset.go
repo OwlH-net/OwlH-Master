@@ -188,8 +188,23 @@ func GetAllRulesets() (rulesets map[string]map[string]string, err error) {
 				}
 				if allrulesets[uniqid] == nil { allrulesets[uniqid] = map[string]string{}}
 				allrulesets[uniqid][param]=value
+
+				//add scheduler status
+				schedulerUUID,err := ndb.GetSchedulerByValue(uniqid)
+				if err != nil {
+					logs.Error("GetAllRulesets GetSchedulerByValue: %s", err.Error())
+					return nil, err
+				}
+				schedulerData,err := ndb.GetSchedulerByUniqueid(schedulerUUID)
+				if err != nil {
+					logs.Error("GetAllRulesets GetSchedulerByUniqueid: %s", err.Error())
+					return nil, err
+				}
+				allrulesets[uniqid]["status"] = schedulerData[schedulerUUID]["status"]
+
 			} 
-    }
+	}	
+
 	return allrulesets, nil
 }
 

@@ -20,7 +20,6 @@ func Init() {
 	status := schedulerConf["scheduler"]["status"]
 
 	for status == "enabled"{
-		logs.Info("LOOP")
 		RunScheduler()
 		for {			
 			time.Sleep(time.Second*60)
@@ -28,7 +27,6 @@ func Init() {
 			confMinutes,_ := strconv.Atoi(minutes)
 
 			if currentMinutes % confMinutes == 0 {
-				logs.Warn("Mod == 0")
 				break
 			}
 		}
@@ -45,7 +43,6 @@ func RunScheduler() bool {
 		logs.Error("Error RunScheduler checking tasks: %s", err.Error())
 	}
 	for j,k := range tasks {
-		logs.Info(k["nextEpoch"]+" -- "+currentTime)
 		if k["nextEpoch"] <= currentTime{
 			err = TaskUpdater(k)
 			if err != nil {
@@ -95,6 +92,7 @@ func SchedulerTask(content map[string]string)(err error){
 	taskUUID,err := ndb.GetSchedulerByValue(content["uuid"])
 	if taskUUID == "" {
 		timeEpoch,err := utils.EpochTime(content["year"]+"-"+content["month"]+"-"+content["day"]+"T"+content["hour"]+":"+content["minute"]+":00")
+		logs.Warn(timeEpoch)
 		if err != nil {
 			logs.Error("Error RunScheduler epoch time: %s", err.Error())
 			return err
@@ -129,7 +127,6 @@ func StopTask(content map[string]string)(err error){
 }
 
 func TaskUpdater(content map[string]string)(err error){
-	logs.Info("Inside TASKUPDATER: "+content["uuid"])
 	data,err := ndb.GetRulesFromRuleset(content["uuid"])
 	for x := range data{
 		values,err := ndb.GetRuleFilesByUniqueid(x)
@@ -212,130 +209,3 @@ func TaskUpdater(content map[string]string)(err error){
 	logs.Notice("Ruleset synchronized "+content["uuid"])	
 	return nil
 }
-
-
-
-// func TimeSchedule(content map[string]string)(err error) {
-// 	secondsLeft,err := CheckTimeDiff(content)	
-// 	if err != nil {
-// 		logs.Error("TimeSchedule failed checking time difference: %s", err)
-// 		return err
-// 	}
-// 	exists,err := CheckScheduleExists(content["uuid"])
-// 	if err != nil {
-// 		logs.Error("TimeSchedule failed retrieving data dataSchedule: %s", err)
-// 		return err
-// 	}
-// 	if !exists {
-// 		err = ndb.InsertRulesetSchedule(content["uuid"], "secondsLeft", secondsLeft)
-// 		if err != nil {
-// 			logs.Error("TimeSchedule failed inserting time difference: %s", err)
-// 			return err
-// 		}
-// 		for key := range content {
-// 			err = ndb.InsertRulesetSchedule(content["uuid"], key, content[key])
-// 		}
-// 	}else{
-// 		err = UpdateSchedule(content["uuid"], "secondsLeft", secondsLeft)
-// 		if err != nil {
-// 			logs.Error("TimeSchedule failed inserting time difference: %s", err)
-// 			return err
-// 		}
-// 	}
-
-// 	for RunSchedule() {
-// 		logs.Warn("Executing Schedule")
-// 	}
-		
-// 	// //First update
-// 	// if secondsLeft >= 0{
-// 	// 	time.Sleep(time.Duration(secondsLeft) * time.Second)
-// 	// 	err = TickerUpdate(dataSchedule)
-// 	// 	if err != nil {
-// 	// 		logs.Error("TimeSchedule failed At first update: %s", err)
-// 	// 		return err
-// 	// 	}
-// 	// }else {
-// 	// 	return errors.New("User's date and time is older than the current time. Can't update...")
-// 	// }
-	
-// 	// t, err := strconv.Atoi(dataSchedule["schedule"])
-// 	// // ticker = time.NewTicker(time.Duration(t) * time.Minute)
-// 	// ticker = time.NewTicker(15 * time.Second)
-	
-// 	// go func() {
-// 	// 	for e := range ticker.C {
-// 	// 		logs.Debug(c)
-// 	// 		logs.Info(dataSchedule)
-// 	// 		err = TickerUpdate(dataSchedule)
-// 	// 		if err != nil {
-// 	// 			logs.Error("TimeSchedule Error Updating into a Ticker: %s", err)
-// 	// 			break
-// 	// 		}
-// 	// 	}
-// 	// }()
-		
-// 	return err
-// }
-
-// func RunSchedule()(status bool){
-// 	ruleset := Ruleset{}
-// 	identifier := UUID{}
-// 	list := ListOfRulesetsSchedule{}
-// 	content,err := ndb.GetScheduleByUniqueid(content["uuid"])
-// 	for x := range content{
-// 		if content[x]["status"] == "enabled" {
-// 			identifier.uuid = x
-// 			ruleset.hour = content[x]["hour"]
-// 			ruleset.minute = content[x]["minute"]
-// 			ruleset.day = content[x]["day"]
-// 			ruleset.month = content[x]["month"]
-// 			ruleset.year = content[x]["year"]
-// 			ruleset.update = content[x]["update"]
-// 			ruleset.schedule = content[x]["schedule"]
-// 			ruleset.secondsLeft = content[x]["secondsLeft"]
-// 			identifier.ruleset = ruleset
-// 			list.uuid = identifier
-// 		}
-// 	}
-// }
-
-// func StopTimeSchedule(content map[string]string)(err error){
-// 	logs.Error(content["uuid"])
-//    	ticker.Stop()
-
-// 	logs.Error("Timer stopped")
-// 	logs.Error("Timer stopped")
-// 	logs.Error("Timer stopped")
-    
-// 	return nil
-// }
-
-
-
-// func CheckTimeDiff(content map[string]string)(t int, err error){
-// 	dt := time.Now()
-// 	currentYear := dt.Year()
-// 	currentMonth := dt.Month()
-// 	currentDay := dt.Day()
-// 	currentHour := dt.Hour() 
-// 	currentMinute := dt.Minute()
-// 	currentSecond := dt.Second()
-	
-// 	year,err := strconv.Atoi(content["year"])
-// 	month,err := strconv.Atoi(content["month"])
-// 	day,err := strconv.Atoi(content["day"])
-// 	hour,err := strconv.Atoi(content["hour"])
-// 	minute,err := strconv.Atoi(content["minute"])
-// 	dUser := time.Date(year,time.Month(month),day,hour,minute, 0, 0, time.Local)
-// 	dCurrent := time.Date(currentYear,time.Month(currentMonth),currentDay,currentHour,currentMinute, currentSecond, 0, time.Local)
-// 	diff := dUser.Sub(dCurrent)
-// 	secondsLeft := int(diff.Seconds())
-
-// 	if err != nil {
-// 		logs.Error("CheckTimeDiff Error strconv to Integer: %s", err)
-// 		return 0,err
-// 	}
-
-// 	return secondsLeft,nil
-// }
