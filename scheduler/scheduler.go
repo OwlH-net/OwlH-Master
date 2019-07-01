@@ -89,10 +89,11 @@ func CheckTasks()(tasksEnabled map[string]map[string]string, err error){
 }
 
 func SchedulerTask(content map[string]string)(err error){
+	t := time.Now().Unix()
+	currentTime := strconv.FormatInt(t, 10)
 	taskUUID,err := ndb.GetSchedulerByValue(content["uuid"])
+	timeEpoch,err := utils.EpochTime(content["year"]+"-"+content["month"]+"-"+content["day"]+"T"+content["hour"]+":"+content["minute"]+":00")
 	if taskUUID == "" {
-		timeEpoch,err := utils.EpochTime(content["year"]+"-"+content["month"]+"-"+content["day"]+"T"+content["hour"]+":"+content["minute"]+":00")
-		logs.Warn(timeEpoch)
 		if err != nil {
 			logs.Error("Error RunScheduler epoch time: %s", err.Error())
 			return err
@@ -108,38 +109,86 @@ func SchedulerTask(content map[string]string)(err error){
 			logs.Error("Error SchedulerTask TaskUpdater after first update: %s", err.Error())
 			return err
 		}
+		//INSERT LOG
+		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task added for ruleset "+content["uuid"]+". Next epoch time is "+strconv.FormatInt(timeEpoch, 10))
+		if err != nil {
+			logs.Error("Error inserting Log: %s", err.Error())
+			return err
+		}
 		logs.Notice("Task added")
 	}else{
 		err = ndb.UpdateScheduler(taskUUID, "status", "enabled")
+		if err != nil {
+			logs.Error("Error UpdateScheduler task: %s", err.Error())
+			return err
+		}
+
+		//INSERT LOG
+		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task Updated: status == Enabled")
+		if err != nil {
+			logs.Error("Error inserting Log: %s", err.Error())
+			return err
+		}
 		logs.Notice("Task updated")
 	}
 	return nil
 }
 
 func StopTask(content map[string]string)(err error){
+
+	t := time.Now().Unix()
+	currentTime := strconv.FormatInt(t, 10)
+
 	taskUUID,err := ndb.GetSchedulerByValue(content["uuid"])
 	err = ndb.UpdateScheduler(taskUUID, "status", "disabled")
 	if err != nil {
 		logs.Error("Error StopTask UpdateScheduler: %s", err.Error())
+		//INSERT LOG
+		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR: "+ err.Error())
+		if err != nil {
+			logs.Error("Error inserting Log: %s", err.Error())
+			return err
+		}
 		return err
 	}
+	//INSERT LOG
+	err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task Updated: status == Disabled")
+	if err != nil {
+		logs.Error("Error inserting Log: %s", err.Error())
+		return err
+	}	
 	return nil
 }
 
 func TaskUpdater(content map[string]string)(err error){
+	
+	t := time.Now().Unix()
+	currentTime := strconv.FormatInt(t, 10)
+
 	data,err := ndb.GetRulesFromRuleset(content["uuid"])
 	for x := range data{
 		values,err := ndb.GetRuleFilesByUniqueid(x)
 		if err != nil {
 			logs.Error("TimeSchedule Error GetRuleFilesByUniqueid values: %s", err)
-			// break
+			//INSERT LOG
+			err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR: "+ err.Error())
+			if err != nil {
+				logs.Error("Error inserting Log: %s", err.Error())
+				return err
+			}
+			
 			return err
 		}
 		for y := range values{
 			sourceFile,err := ndb.GetRuleFilesByUniqueid(values[y]["sourceFileUUID"])
 			if err != nil {
 				logs.Error("TimeSchedule Error GetRuleFilesByUniqueid sourceFile: %s", err)
-				// break
+				//INSERT LOG
+				err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR: "+ err.Error())
+				if err != nil {
+					logs.Error("Error inserting Log: %s", err.Error())
+					return err
+				}
 				return err
 			}
 			for z := range sourceFile{
@@ -147,13 +196,23 @@ func TaskUpdater(content map[string]string)(err error){
 				sourceUUIDValue,err := ndb.GetRuleFilesValue(z,"sourceUUID")
 				if err != nil {
 					logs.Error("TimeSchedule Error GetRuleFilesValue sourceUUIDValue: %s", err)
-					// break
+					//INSERT LOG
+					err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR: "+ err.Error())
+					if err != nil {
+						logs.Error("Error inserting Log: %s", err.Error())
+						return err
+					}
 					return err
 				}
 				finalData,err := ndb.GetAllDataRulesetDB(sourceUUIDValue)
 				if err != nil {
 					logs.Error("TimeSchedule Error GetAllDataRulesetDB finalData: %s", err)
-					// break
+					//INSERT LOG
+					err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR: "+ err.Error())
+					if err != nil {
+						logs.Error("Error inserting Log: %s", err.Error())
+						return err
+					}
 					return err
 				}
 				for a,b := range finalData{
@@ -165,14 +224,24 @@ func TaskUpdater(content map[string]string)(err error){
 					err = rulesetSource.DownloadFile(rulesetMap)
 					if err != nil {
 						logs.Error("TimeSchedule Error Downloading: %s", err)
-						// break
+						//INSERT LOG
+						err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR Downloading: "+ err.Error())
+						if err != nil {
+							logs.Error("Error inserting Log: %s", err.Error())
+							return err
+						}
 						return err
 					}
 				}else if rulesetMap["isDownloaded"] == "true"{
 					err = rulesetSource.OverwriteDownload(rulesetMap)
 					if err != nil {
-						logs.Error("TimeSchedule Error Downloading: %s", err)
-						// break
+						logs.Error("TimeSchedule Error Overwriting: %s", err)
+						//INSERT LOG
+						err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR Overwriting: "+ err.Error())
+						if err != nil {
+							logs.Error("Error inserting Log: %s", err.Error())
+							return err
+						}
 						return err
 					}							
 				}	
@@ -185,27 +254,46 @@ func TaskUpdater(content map[string]string)(err error){
 			err = rulesetSource.OverwriteRuleFile(d)
 			if err != nil {
 				logs.Error("TimeSchedule Error OverwriteRuleFile ruleset: %s", err)
-				// break
+				//INSERT LOG
+				err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR Overwriting file content: "+ err.Error())
+				if err != nil {
+					logs.Error("Error inserting Log: %s", err.Error())
+					return err
+				}
 				return err
 			}
 		}else if content["update"] == "add-lines" {
 			err = rulesetSource.AddNewLinesToRuleset(d)
 			if err != nil {
 				logs.Error("TimeSchedule Error AddNewLinesToRuleset ruleset: %s", err)
-				// break
+				//INSERT LOG
+				err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR adding new lines to file content: "+ err.Error())
+				if err != nil {
+					logs.Error("Error inserting Log: %s", err.Error())
+					return err
+				}
 				return err
 			}
 		}
-
 	}
 
 	//synchronize
 	err = node.SyncRulesetToAllNodes(content)
 	if err != nil {
 		logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
+		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR synchronizing: "+ err.Error())
+		if err != nil {
+			logs.Error("Error inserting Log: %s", err.Error())
+			return err
+		}
 		return err
 	}
 
+	err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task synchronized for ruleset "+content["uuid"])
+	if err != nil {
+		logs.Error("Error inserting Log: %s", err.Error())
+		return err
+	}
 	logs.Notice("Ruleset synchronized "+content["uuid"])	
 	return nil
 }

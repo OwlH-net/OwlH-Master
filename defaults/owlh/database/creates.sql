@@ -45,3 +45,10 @@ CREATE TABLE scheduler (
     scheduler_param text NOT NULL,
     scheduler_value text NOT NULL
  );
+ CREATE TABLE scheduler_log (
+    log_id integer PRIMARY KEY AUTOINCREMENT,
+    log_uniqueid text NOT NULL,
+    log_param text NOT NULL,
+    log_value text NOT NULL
+ );
+

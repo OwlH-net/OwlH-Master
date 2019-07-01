@@ -267,3 +267,39 @@ func GetRuleFilesByUniqueid(uuid string)(data map[string]map[string]string, err 
 	} 
 	return allRuleDetails, nil
 }
+
+func DeleteRulesetByUniqueid(uuid string)(err error){
+	deleteRulesetQuery, err := Rdb.Prepare("delete from ruleset where ruleset_uniqueid = ?;")
+	_, err = deleteRulesetQuery.Exec(&uuid)
+	defer deleteRulesetQuery.Close()
+    if err != nil {
+		logs.Error("DB DeleteRulese/deleteRulesetQueryt -> ERROR on table Ruleset...")
+        return errors.New("DB DeleteRuleset/deleteRulesetQuery -> ERROR on table Ruleset...")
+	}
+	return nil
+}
+
+func DeleteRulesetNodeByUniqueid(uuid string)(err error){
+	deleteRulesetNodeQuery, err := Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
+	_, err = deleteRulesetNodeQuery.Exec(&uuid)
+	defer deleteRulesetNodeQuery.Close()
+    if err != nil {
+		logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+        return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+	}
+	return nil
+}
+
+func DeleteRuleFilesByUuid(uuid string)(err error){
+	DeleteUUIDPrepare, err := Rdb.Prepare("delete from rule_files where rule_uniqueid = ?")
+	if err != nil {
+		logs.Error("DeleteRulese Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
+		return err
+	}
+	_, err = DeleteUUIDPrepare.Exec(&uuid)
+	if err != nil {
+		logs.Error("DeleteRulese deleting a ruleset source -> %s", err.Error())
+		return err
+	}
+	return nil
+}

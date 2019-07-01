@@ -72,8 +72,8 @@ func GetSchedulerByValue(val string)(data string, err error){
 
 func InsertScheduler(uuid string, key string, value string) (err error) {
     if Rdb == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
+        logs.Error("no access to database InsertScheduler")
+        return errors.New("no access to database InsertScheduler")
     }
     stmt, err := Rdb.Prepare("insert into scheduler (scheduler_uniqueid, scheduler_param, scheduler_value) values (?,?,?);")
     if err != nil {
@@ -99,6 +99,92 @@ func UpdateScheduler(uuid string, param string, value string)(err error){
 	if (err != nil){
 		logs.Error("UpdateSchedule UPDATE error-- "+err.Error())
 		return err
+	}
+	return nil
+}
+
+//select by uuid
+func GetSchedulerLogByUniqueid(uuid string)(data map[string]map[string]string, err error){
+	var allScheduleLogDetails = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+	sql := "select log_uniqueid, log_param, log_value from scheduler_log where log_uniqueid='"+uuid+"';"
+	rows, err := Rdb.Query(sql)
+	if err != nil {
+		logs.Error("Rdb.Query GetSchedulerLogByUniqueid Error : %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+			logs.Error("GetSchedulerLogByUniqueid rows.Scan: %s", err.Error())
+			return nil, err
+		}
+		if allScheduleLogDetails[uniqid] == nil { allScheduleLogDetails[uniqid] = map[string]string{}}
+		allScheduleLogDetails[uniqid][param]=value
+	} 
+	return allScheduleLogDetails, nil
+}
+
+//select *
+func GetSchedulerLogByValue(val string)(data map[string]map[string]string, err error){
+	var allScheduleLogDetails = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+	sql := "select log_uniqueid, log_param, log_value from scheduler_log where log_value='"+val+"';"
+	rows, err := Rdb.Query(sql)
+	if err != nil {
+		logs.Error("Rdb.Query GetScheduleByUniqueid Error : %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+			logs.Error("GetScheduleByUniqueid rows.Scan: %s", err.Error())
+			return nil, err
+		}
+		if allScheduleLogDetails[uniqid] == nil { allScheduleLogDetails[uniqid] = map[string]string{}}
+		allScheduleLogDetails[uniqid][param]=value
+	} 
+	return allScheduleLogDetails, nil
+}
+
+//insert
+func InsertSchedulerLog(uuid string, key string, value string) (err error) {
+    if Rdb == nil {
+        logs.Error("no access to database InsertSchedulerLog")
+        return errors.New("no access to database InsertSchedulerLog")
+    }
+    stmt, err := Rdb.Prepare("insert into scheduler_log (log_uniqueid, log_param, log_value) values (?,?,?);")
+    if err != nil {
+        logs.Error("InsertSchedulerLog Prepare -> %s", err.Error())
+        return err
+    }
+    _, err = stmt.Exec(&uuid, &key, &value)
+    if err != nil {
+        logs.Error("InsertSchedulerLog Execute -> %s", err.Error())
+        return err
+    }
+    return nil
+}
+
+//delete
+func DeleteSchedulerLog(uuid string)(err error){
+	if Rdb == nil {
+        logs.Error("no access to database DeleteSchedulerLog")
+        return errors.New("no access to database DeleteSchedulerLog")
+    }
+	sourceSQL, err := Rdb.Prepare("delete from scheduler_log where log_uniqueid = ?")
+    if err != nil {
+        logs.Error("Error DeleteSchedulerLog Prepare delete a file -> %s", err.Error())
+        return err
+	}
+    _, err = sourceSQL.Exec(&uuid)
+    if err != nil {
+        logs.Error("Error DeleteSchedulerLog deleting a file -> %s", err.Error())
+        return err
 	}
 	return nil
 }

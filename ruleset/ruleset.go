@@ -478,23 +478,40 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
 	localRulesets,err = utils.GetConf(localRulesets)
 	localRulesetFiles := localRulesets["ruleset"]["localRulesets"]
 
-	//delete ruleset
-	deleteRulesetQuery, err := ndb.Rdb.Prepare("delete from ruleset where ruleset_uniqueid = ?;")
-	_, err = deleteRulesetQuery.Exec(&uuid)
-	defer deleteRulesetQuery.Close()
-    if err != nil {
-		logs.Error("DB DeleteRulese/deleteRulesetQueryt -> ERROR on table Ruleset...")
-        return errors.New("DB DeleteRuleset/deleteRulesetQuery -> ERROR on table Ruleset...")
+	//delete LOG for scheduler
+	err = ndb.DeleteSchedulerLog(uuid)
+	if err != nil {
+		logs.Error("Error deleting LOG DeleteSchedulerLog: "+err.Error())
+        return err
 	}
 
-	//delete a node ruleset
-	deleteRulesetNodeQuery, err := ndb.Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
-	_, err = deleteRulesetNodeQuery.Exec(&uuid)
-	defer deleteRulesetNodeQuery.Close()
-    if err != nil {
-		logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
-        return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+	//delete ruleset
+	err = ndb.DeleteRulesetByUniqueid(uuid)
+	if err != nil {
+		logs.Error("DeleteRulesetByUniqueid -> ERROR deleting ruleset: "+err.Error())
+        return err
 	}
+	// deleteRulesetQuery, err := ndb.Rdb.Prepare("delete from ruleset where ruleset_uniqueid = ?;")
+	// _, err = deleteRulesetQuery.Exec(&uuid)
+	// defer deleteRulesetQuery.Close()
+    // if err != nil {
+	// 	logs.Error("DB DeleteRulese/deleteRulesetQueryt -> ERROR on table Ruleset...")
+    //     return errors.New("DB DeleteRuleset/deleteRulesetQuery -> ERROR on table Ruleset...")
+	// }
+
+	//delete a node ruleset
+	err = ndb.DeleteRulesetNodeByUniqueid(uuid)
+	if err != nil {
+		logs.Error("DeleteRulesetNodeByUniqueid -> ERROR deleting ruleset: "+err.Error())
+        return err
+	}
+	// deleteRulesetNodeQuery, err := ndb.Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
+	// _, err = deleteRulesetNodeQuery.Exec(&uuid)
+	// defer deleteRulesetNodeQuery.Close()
+    // if err != nil {
+	// 	logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+    //     return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+	// }
 
 	// //delete notes from every ruleset rule
 	// deleteRuleNoteQuery, err := ndb.Rdb.Prepare("delete from rule_note where ruleset_uniqueid = ?;")
@@ -527,16 +544,21 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
 		uuidArray = append(uuidArray, uniqueid)
 	}
 	for x := range uuidArray{
-		DeleteUUIDPrepare, err := ndb.Rdb.Prepare("delete from rule_files where rule_uniqueid = ?")
+		err = ndb.DeleteRuleFilesByUuid(uuidArray[x])
 		if err != nil {
-			logs.Error("DeleteRulese ndb.Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
+			logs.Error("DeleteRuleset ndb.Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
 			return err
 		}
-		_, err = DeleteUUIDPrepare.Exec(&uuidArray[x])
-		if err != nil {
-			logs.Error("DeleteRulese deleting a ruleset source -> %s", err.Error())
-			return err
-		}
+		// DeleteUUIDPrepare, err := ndb.Rdb.Prepare("delete from rule_files where rule_uniqueid = ?")
+		// if err != nil {
+		// 	logs.Error("DeleteRuleset ndb.Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
+		// 	return err
+		// }
+		// _, err = DeleteUUIDPrepare.Exec(&uuidArray[x])
+		// if err != nil {
+		// 	logs.Error("DeleteRuleset deleting a ruleset source -> %s", err.Error())
+		// 	return err
+		// }
 	}
 
     return nil

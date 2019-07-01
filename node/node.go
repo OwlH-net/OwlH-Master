@@ -92,7 +92,7 @@ func DeleteNode(nodeid string)(err error) {
     if err != nil {
         logs.Error("Execute nodes -> %s", err.Error())
         return err
-    }
+	}
     deleteRulesetNode, err := ndb.Rdb.Prepare("delete from ruleset_node where node_uniqueid = ?")
     if err != nil {
         logs.Error("Prepare ruleset_node -> %s", err.Error())
