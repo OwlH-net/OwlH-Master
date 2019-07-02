@@ -110,7 +110,7 @@ func SchedulerTask(content map[string]string)(err error){
 			return err
 		}
 		//INSERT LOG
-		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task added for ruleset "+content["uuid"]+". Next epoch time is "+strconv.FormatInt(timeEpoch, 10))
+		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task added. Next epoch = "+strconv.FormatInt(timeEpoch, 10)+". Update type = "+content["update"]+". Update period(in seconds) = "+content["period"]+". Status = "+content["status"])
 		if err != nil {
 			logs.Error("Error inserting Log: %s", err.Error())
 			return err
@@ -118,13 +118,16 @@ func SchedulerTask(content map[string]string)(err error){
 		logs.Notice("Task added")
 	}else{
 		err = ndb.UpdateScheduler(taskUUID, "status", "enabled")
+		err = ndb.UpdateScheduler(taskUUID, "update", content["update"])
+		err = ndb.UpdateScheduler(taskUUID, "period", content["period"])
+		err = ndb.UpdateScheduler(taskUUID, "nextEpoch", strconv.FormatInt(timeEpoch, 10))
 		if err != nil {
 			logs.Error("Error UpdateScheduler task: %s", err.Error())
 			return err
 		}
 
 		//INSERT LOG
-		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task Updated: status == Enabled")
+		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task Updated. Next epoch = "+strconv.FormatInt(timeEpoch, 10)+". Update type = "+content["update"]+". Update period(in seconds) = "+content["period"]+". Status = "+content["status"])
 		if err != nil {
 			logs.Error("Error inserting Log: %s", err.Error())
 			return err
@@ -296,4 +299,13 @@ func TaskUpdater(content map[string]string)(err error){
 	}
 	logs.Notice("Ruleset synchronized "+content["uuid"])	
 	return nil
+}
+
+func GetLog(uuid string) (logReg map[string]map[string]string ,err error) {
+	logValue,err := ndb.GetSchedulerLogByUniqueid(uuid)
+	if err != nil {
+		logs.Error("Error getting LOG: %s", err.Error())
+		return nil,err
+	}
+	return logValue,nil
 }

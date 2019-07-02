@@ -103,6 +103,25 @@ func UpdateScheduler(uuid string, param string, value string)(err error){
 	return nil
 }
 
+func DeleteScheduler(uuid string)(err error){
+	if Rdb == nil {
+        logs.Error("no access to database DeleteSchedulerLog")
+        return errors.New("no access to database DeleteSchedulerLog")
+    }
+	sourceSQL, err := Rdb.Prepare("delete from scheduler where scheduler_uniqueid = ?")
+    if err != nil {
+        logs.Error("Error DeleteScheduler Prepare delete a file -> %s", err.Error())
+        return err
+	}
+    _, err = sourceSQL.Exec(&uuid)
+    if err != nil {
+        logs.Error("Error DeleteScheduler deleting a file -> %s", err.Error())
+        return err
+	}
+	return nil
+}
+
+
 //select by uuid
 func GetSchedulerLogByUniqueid(uuid string)(data map[string]map[string]string, err error){
 	var allScheduleLogDetails = map[string]map[string]string{}

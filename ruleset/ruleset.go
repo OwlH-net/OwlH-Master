@@ -485,6 +485,18 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
         return err
 	}
 
+	//delete scheduler
+	schedulerUUID,err := ndb.GetSchedulerByValue(uuid)
+	if err != nil {
+		logs.Error("Error getting scheduler uuid GetSchedulerByValue: "+err.Error())
+        return err
+	}
+	err = ndb.DeleteScheduler(schedulerUUID)
+	if err != nil {
+		logs.Error("Error deleting scheduler uuid DeleteSchedulerLog: "+err.Error())
+        return err
+	}
+
 	//delete ruleset
 	err = ndb.DeleteRulesetByUniqueid(uuid)
 	if err != nil {
