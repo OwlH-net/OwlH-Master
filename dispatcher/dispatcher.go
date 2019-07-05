@@ -174,43 +174,55 @@ func getFileFromSrcFolders(folder string)(files []os.FileInfo, nofile bool) {
 }
 
 func dispatch(theList listOfNodesAndFolders) {
+	
     var bufferSize int64
     bufferSize = 10000
     
     var pool []string
     var alone []string
     for j:=0; j < len(theList.Nodes); j++ {
-        if theList.Nodes[j].Ntype == "pool" {
+        if theList.Nodes[j].Ntype == "pool" {			
             pool = append(pool, theList.Nodes[j].Pcappath)
         }
         if theList.Nodes[j].Ntype == "alone" {
             alone = append(alone, theList.Nodes[j].Pcappath)
         }
-    }
-    for i:=0; i < len(theList.Folders);i++ {
-        files, areFiles := getFileFromSrcFolders(theList.Folders[i].Fpath)
+	}
+		
+    for i:=0; i < len(theList.Folders); i++ {
+		files, areFiles := getFileFromSrcFolders(theList.Folders[i].Fpath)		
         if !areFiles{
             logs.Info("...waiting Files...")
             time.Sleep(time.Second*10)
             continue
         }
-        for _, file := range files {
+        for _, file := range files {					
             if latest == len(pool) {
                 latest = 0
             }
-            err := copyFileToNode(pool[latest], theList.Folders[i].Fpath,file.Name(), bufferSize)
+			err := copyFileToNode(pool[latest], theList.Folders[i].Fpath,file.Name(), bufferSize)
+			logs.Warn(pool[latest])
+			logs.Warn(theList.Folders[i].Fpath)
+			logs.Warn(file.Name())
             if err != nil {
-                continue
+				logs.Error("CopyFileToNode 1:"+err.Error())	
+				break
+                // continue
             }
             for k:=0; k < len(alone); k++ {
-                err = copyFileToNode(alone[k], theList.Folders[i].Fpath,file.Name(), bufferSize)
+				err = copyFileToNode(alone[k], theList.Folders[i].Fpath,file.Name(), bufferSize)
+				if err != nil {
+            	    logs.Error("CopyFileToNode 2:"+err.Error())	
+					break
+            	}
+				// continue
             }
-            if err != nil {
-                continue
-            }
+            // if err != nil {
+            //     continue
+            // }
             err = os.Remove(theList.Folders[i].Fpath+file.Name())
             if err != nil {
-                logs.Info("Error Removing =-> "+err.Error())
+                logs.Notice("Error Removing =-> "+err.Error())
                 return
             }
             latest += 1

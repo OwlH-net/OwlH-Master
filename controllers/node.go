@@ -19,7 +19,7 @@ type NodeController struct {
 // // @Success 200 {object} models.Node
 // // @Failure 403 :nid is empty
 // // @router /:nid [get]
-// func (n *NodeController) GetNode() { 
+// func (n *NodeController) GetNode() {
 //     nid := n.GetString(":nid")
 //     if nid != "" {
 //         nn, err := models.GetNode(nid)
@@ -93,7 +93,7 @@ func (n *NodeController) UpdateNode() {
 // @Failure 403 :nid is empty
 // @router /ping/:nid [get]
 // @router /:nid/ping [get]
-func (n *NodeController) GetPong() { 
+func (n *NodeController) GetPong() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
@@ -112,9 +112,9 @@ func (n *NodeController) GetPong() {
 // @Failure 403 :nid is empty
 // @router /suricata/:nid [get]
 // @router /:nid/suricata [get]
-func (n *NodeController) GetSuricata() { 
+func (n *NodeController) GetSuricata() {
     nid := n.GetString(":nid")
-    data,err := models.Suricata(nid)   
+    data,err := models.Suricata(nid)
     logs.Warn("GetSuricata")
     logs.Warn(data)
     n.Data["json"] = data
@@ -130,7 +130,7 @@ func (n *NodeController) GetSuricata() {
 // @Failure 403 :nid is empty
 // @router /zeek/:nid [get]
 // @router /:nid/zeek [get]
-func (n *NodeController) GetZeek() { 
+func (n *NodeController) GetZeek() {
     nid := n.GetString(":nid")
     data,err := models.Zeek(nid)
 
@@ -152,7 +152,7 @@ func (n *NodeController) GetZeek() {
 // @Failure 403 :nid is empty
 // @router /wazuh/:nid [get]
 // @router /:nid/wazuh [get]
-func (n *NodeController) GetWazuh() { 
+func (n *NodeController) GetWazuh() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
     data,err := models.Wazuh(nid)
@@ -172,7 +172,7 @@ func (n *NodeController) GetWazuh() {
 // @router /suricata/:nid/bpf [get]
 // @router /:nid/suricata/bpf [get]
 // @router /bpf/:nid [get]
-func (n *NodeController) GetSuricataBPF() { 
+func (n *NodeController) GetSuricataBPF() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
     if nid != "" {
@@ -194,7 +194,7 @@ func (n *NodeController) GetSuricataBPF() {
 // @router /suricata/:nid/bpf [put]
 // @router /:nid/suricata/bpf [put]
 // @router /bpf/:nid [put]
-func (n *NodeController) PutSuricataBPF() { 
+func (n *NodeController) PutSuricataBPF() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     nid := n.GetString(":nid")
@@ -213,7 +213,7 @@ func (n *NodeController) PutSuricataBPF() {
 // @Description Get full list of nodes
 // @Success 200 {object} models.Node
 // @router / [get]
-func (n *NodeController) GetAllNodes() { 
+func (n *NodeController) GetAllNodes() {
     nodes, err := models.GetAllNodes()
     n.Data["json"] = nodes
     if err != nil {
@@ -228,7 +228,7 @@ func (n *NodeController) GetAllNodes() {
 // @Failure 403 :nid is empty
 // @Success 200 {string} node deleted
 // @router /:nid [delete]
-func (n *NodeController) DeleteNode() { 
+func (n *NodeController) DeleteNode() {
     nid := n.Ctx.Input.Param(":nid")
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
@@ -245,7 +245,7 @@ func (n *NodeController) DeleteNode() {
 // @Description Send Ruleset file to node
 // @Success 200 {object} models.Node
 // @router /ruleset/set [put]
-func (n *NodeController) SyncRulesetToNode() { 
+func (n *NodeController) SyncRulesetToNode() {
 	anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	err := models.SyncRulesetToNode(anode)
@@ -257,10 +257,10 @@ func (n *NodeController) SyncRulesetToNode() {
 }
 
 // @Title GetNodeFile
-// @Description Get specific file from node and send to webpage 
+// @Description Get specific file from node and send to webpage
 // @Success 200 {object} models.Node
 // @router /loadfile/:uuid/:fileName [get]
-func (n *NodeController) GetNodeFile() { 
+func (n *NodeController) GetNodeFile() {
     logs.Info("Inside GetNodeFile")
     anode := make(map[string]string)
     anode["uuid"] = n.GetString(":uuid")
@@ -277,7 +277,7 @@ func (n *NodeController) GetNodeFile() {
 // @Description Set changed data on webpage to specific file in node.
 // @Success 200 {object} models.Node
 // @router /savefile [put]
-func (n *NodeController) SetNodeFile() { 
+func (n *NodeController) SetNodeFile() {
     anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.SetNodeFile(anode)
@@ -293,7 +293,7 @@ func (n *NodeController) SetNodeFile() {
 // @Description Send Ruleset file to node
 // @Success 200 {object} models.Node
 // @router /getAllFiles/:uuid [get]
-func (n *NodeController) GetAllFiles() { 
+func (n *NodeController) GetAllFiles() {
     uuid := n.GetString(":uuid")
     data, err := models.GetAllFiles(uuid)
     n.Data["json"] = data
@@ -307,7 +307,7 @@ func (n *NodeController) GetAllFiles() {
 // @Description Run suricata server
 // @Success 200 {object} models.Node
 // @router /RunSuricata/:uuid [put]
-func (n *NodeController) RunSuricata() { 
+func (n *NodeController) RunSuricata() {
 	uuid := n.GetString(":uuid")
 	data, err := models.RunSuricata(uuid)
 
@@ -322,7 +322,7 @@ func (n *NodeController) RunSuricata() {
 // @Description Stop suricata server
 // @Success 200 {object} models.Node
 // @router /StopSuricata/:uuid [put]
-func (n *NodeController) StopSuricata() { 
+func (n *NodeController) StopSuricata() {
     uuid := n.GetString(":uuid")
     data, err := models.StopSuricata(uuid)
     n.Data["json"] = data
@@ -336,7 +336,7 @@ func (n *NodeController) StopSuricata() {
 // @Description Run zeek server
 // @Success 200 {object} models.Node
 // @router /RunZeek/:uuid [put]
-func (n *NodeController) RunZeek() { 
+func (n *NodeController) RunZeek() {
     uuid := n.GetString(":uuid")
     data, err := models.RunZeek(uuid)
     n.Data["json"] = data
@@ -350,7 +350,7 @@ func (n *NodeController) RunZeek() {
 // @Description Stop zeek server
 // @Success 200 {object} models.Node
 // @router /StopZeek/:uuid [put]
-func (n *NodeController) StopZeek() { 
+func (n *NodeController) StopZeek() {
     uuid := n.GetString(":uuid")
     data, err := models.StopZeek(uuid)
     n.Data["json"] = data
@@ -364,7 +364,7 @@ func (n *NodeController) StopZeek() {
 // @Description Run wazuh server
 // @Success 200 {object} models.Node
 // @router /RunWazuh/:uuid [put]
-func (n *NodeController) RunWazuh() { 
+func (n *NodeController) RunWazuh() {
     uuid := n.GetString(":uuid")
     data, err := models.RunWazuh(uuid)
     n.Data["json"] = data
@@ -378,7 +378,7 @@ func (n *NodeController) RunWazuh() {
 // @Description Stop wazuh server
 // @Success 200 {object} models.Node
 // @router /StopWazuh/:uuid [put]
-func (n *NodeController) StopWazuh() { 
+func (n *NodeController) StopWazuh() {
     uuid := n.GetString(":uuid")
     data, err := models.StopWazuh(uuid)
     n.Data["json"] = data
@@ -394,7 +394,7 @@ func (n *NodeController) StopWazuh() {
 // @Failure 403 :nid is empty
 // @router /deploy/:nid [get]
 // @router /:nid/deploy [get]
-func (n *NodeController) DeployZeek() { 
+func (n *NodeController) DeployZeek() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
@@ -413,7 +413,7 @@ func (n *NodeController) DeployZeek() {
 // @Failure 403 :nid is empty
 // @router /ports/:nid [get]
 // @router /:nid/ports [get]
-func (n *NodeController) ShowPorts() { 
+func (n *NodeController) ShowPorts() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
@@ -431,7 +431,7 @@ func (n *NodeController) ShowPorts() {
 // @Success 200 {object} models.Node
 // @Failure 403 :uuid is empty
 // @router /ports/delete/:uuid [put]
-func (n *NodeController) DeletePorts() { 
+func (n *NodeController) DeletePorts() {
 	uuid := n.GetString(":uuid")
 	anode := make(map[string]string)
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -441,7 +441,7 @@ func (n *NodeController) DeletePorts() {
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "nid": uuid, "error": err.Error()}
 	}
-    
+
     n.ServeJSON()
 }
 
@@ -450,14 +450,14 @@ func (n *NodeController) DeletePorts() {
 // @Success 200 {object} models.Node
 // @Failure 403 :uuid is empty
 // @router /ports/deleteAll/:uuid [put]
-func (n *NodeController) DeleteAllPorts() { 
+func (n *NodeController) DeleteAllPorts() {
 	uuid := n.GetString(":uuid")
 	err := models.DeleteAllPorts(uuid)
 	n.Data["json"] = map[string]string{"ack": "true"}
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
 	}
-    
+
     n.ServeJSON()
 }
 
@@ -466,7 +466,7 @@ func (n *NodeController) DeleteAllPorts() {
 // @Success 200 {object} models.Node
 // @Failure 403 Error
 // @router /mode [put]
-func (n *NodeController) ChangeMode() { 
+func (n *NodeController) ChangeMode() {
 	anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 	err := models.ChangeMode(anode)
@@ -482,7 +482,7 @@ func (n *NodeController) ChangeMode() {
 // @Success 200 {object} models.Node
 // @Failure 403 Error
 // @router /status [put]
-func (n *NodeController) ChangeStatus() { 
+func (n *NodeController) ChangeStatus() {
 	anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
@@ -491,7 +491,7 @@ func (n *NodeController) ChangeStatus() {
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
 	}
-    
+
     n.ServeJSON()
 }
 
@@ -501,7 +501,7 @@ func (n *NodeController) ChangeStatus() {
 // @Failure 403 :nid is empty
 // @router /PingPorts/:nid [get]
 // @router /:nid/PingPorts [get]
-func (n *NodeController) PingPorts() { 
+func (n *NodeController) PingPorts() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
