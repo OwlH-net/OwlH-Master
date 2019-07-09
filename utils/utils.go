@@ -35,8 +35,7 @@ func Generate()(uuid string)  {
 
 //Read main.conf and return a map data
 func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
-    // confFilePath := "/etc/owlh/conf/main.conf"
-    confFilePath := "./conf/main.conf"
+    confFilePath := "conf/main.conf"
     jsonPathBpf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
         logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)

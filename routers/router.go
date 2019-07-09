@@ -14,6 +14,11 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
+		beego.NSNamespace("/home",
+			beego.NSInclude(
+				&controllers.HomeController{},
+			),
+		),
 		beego.NSNamespace("/master",
 			beego.NSInclude(
 				&controllers.MasterController{},
@@ -55,5 +60,6 @@ func init() {
 			),
 		),	
 	)
+
 	beego.AddNamespace(ns)
 }
