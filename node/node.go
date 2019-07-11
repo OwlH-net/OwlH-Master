@@ -429,6 +429,7 @@ func ShowPorts(uuid string)(data map[string]map[string]string, err error){
     }
 	return data,nil
 }
+
 func PingPorts(uuid string)(data map[string]map[string]string, err error){
     if ndb.Db == nil {
         logs.Error("PingPorts -- Can't acces to database")
@@ -655,6 +656,43 @@ func SyncRulesetToAllNodes(anode map[string]string)(err error){
 			return err
 		}
 	}
+	return nil
+}
+
+func PingAnalyzer(uuid string)(data map[string]string, err error){
+    if ndb.Db == nil {
+        logs.Error("PingAnalyzer -- Can't acces to database")
+        return data,errors.New("PingAnalyzer -- Can't acces to database")
+	}
 	
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("node/PingAnalyzer ERROR Obtaining Port and Ip: "+err.Error())
+        return data,err
+    }
+	data, err = nodeclient.PingAnalyzer(ipnid,portnid)
+	if err != nil {
+		logs.Error("node/PingAnalyzer ERROR http data request: "+err.Error())
+        return data,err
+    }
+	return data,nil
+}
+
+func ChangeAnalyzerStatus(anode map[string]string)(err error){
+    if ndb.Db == nil {
+        logs.Error("ChangeAnalyzerStatus -- Can't acces to database")
+        return errors.New("ChangeAnalyzerStatus -- Can't acces to database")
+	}
+	
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil {
+		logs.Error("node/ChangeAnalyzerStatus ERROR Obtaining Port and Ip: "+err.Error())
+        return err
+    }
+	err = nodeclient.ChangeAnalyzerStatus(ipnid,portnid,anode)
+	if err != nil {
+		logs.Error("node/ChangeAnalyzerStatus ERROR http data request: "+err.Error())
+        return err
+    }
 	return nil
 }

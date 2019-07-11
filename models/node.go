@@ -151,3 +151,13 @@ func ChangeStatus(anode map[string]string)(err error){
     err = node.ChangeStatus(anode)
     return err
 }
+
+func PingAnalyzer(uuid string)(data map[string]string, err error){
+    data, err = node.PingAnalyzer(uuid)
+    return data, err
+}
+
+func ChangeAnalyzerStatus(uuid map[string]string)(err error){
+    err = node.ChangeAnalyzerStatus(uuid)
+    return err
+}

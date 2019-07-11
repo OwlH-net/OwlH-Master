@@ -514,3 +514,37 @@ func (n *NodeController) PingPorts() {
 
     n.ServeJSON()
 }
+
+// @Title PingAnalyzer
+// @Description Ping node analyzer
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /PingAnalyzer/:uuid [get]
+// @router /:nid/PingAnalyzer [get]
+func (n *NodeController) PingAnalyzer() {
+	uuid := n.GetString(":uuid")
+	data, err := models.PingAnalyzer(uuid)
+	n.Data["json"] = data
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}
+
+// @Title ChangeAnalyzerStatus
+// @Description Ping node analyzer
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /analyzer [put]
+func (n *NodeController) ChangeAnalyzerStatus() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.ChangeAnalyzerStatus(anode)
+	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}

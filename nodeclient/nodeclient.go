@@ -638,3 +638,39 @@ func DeleteAllPorts(ipnid string, portnid string)(err error){
 	defer resp.Body.Close()
 	return nil
 }
+
+func PingAnalyzer(ipnid string, portnid string)(data map[string]string ,err error){
+	url := "https://"+ipnid+":"+portnid+"/node/analyzer/pingAnalyzer/"
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/PingAnalyzer ERROR connection through http new Request: "+err.Error())
+        return data,err
+    }
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error())
+        return data,err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error())
+        return data,err
+	}
+	
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func ChangeAnalyzerStatus(ipnid string, portnid string, anode map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/analyzer/changeAnalyzerStatus/"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/ChangeAnalyzerStatus ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}
