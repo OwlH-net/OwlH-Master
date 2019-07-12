@@ -223,6 +223,8 @@ func TaskUpdater(content map[string]string)(err error){
 						rulesetMap[b] = finalData[a][b]
 					}
 				}
+				if rulesetMap["sourceType"] == "custom"{continue}
+
 				if rulesetMap["isDownloaded"] == "false"{
 					err = rulesetSource.DownloadFile(rulesetMap)
 					if err != nil {

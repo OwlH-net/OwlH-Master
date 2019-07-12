@@ -453,6 +453,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 }
 
 func DownloadFile(data map[string]string) (err error) {
+
 	sourceDownload := map[string]map[string]string{}
 	sourceDownload["ruleset"] = map[string]string{}
 	sourceDownload["ruleset"]["sourceDownload"] = ""
@@ -464,6 +465,7 @@ func DownloadFile(data map[string]string) (err error) {
 		logs.Error("Error Getting path for download file from RulesetSource-> %s", err.Error())
 		return err
 	}
+
 	splitPath := strings.Split(value, "/")
 	pathSelected := splitPath[len(splitPath)-2]
 
@@ -478,7 +480,6 @@ func DownloadFile(data map[string]string) (err error) {
 			return err
 		}
 	
-		// err = utils.ExtractTarGz(data["path"], pathDownloaded, data["name"])
 		err = utils.ExtractTarGz(data["path"], pathDownloaded+pathSelected)
 		if err != nil {
 			logs.Error("Error unzipping file downloaded: "+err.Error())
