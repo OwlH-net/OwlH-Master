@@ -76,7 +76,12 @@ func (n *NodeController) DeployNode() {
 // @router / [put]
 func (n *NodeController) UpdateNode() {
     var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+	logs.Notice(n)
+	logs.Notice(n)
+	logs.Notice(n)
+
     err := models.UpdateNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {

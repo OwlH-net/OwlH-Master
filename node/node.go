@@ -269,7 +269,10 @@ func AddNode(n map[string]string) (err error) {
 }
 
 func UpdateNode(n map[string]string) (err error) {
-    logs.Info("UPDATE NODE -> IN name es -  %s", n["name"])
+    logs.Warn("UPDATE NODE -> IN name es -  %s", n["name"])
+    logs.Warn("UPDATE NODE -> IN name es -  %s", n["name"])
+    logs.Warn("UPDATE NODE -> IN name es -  %s", n["name"])
+    logs.Warn("UPDATE NODE -> IN name es -  %s", n["name"])
     var nodeKey string
 
     if _, ok := n["name"]; !ok {
