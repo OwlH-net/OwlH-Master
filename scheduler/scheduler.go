@@ -110,7 +110,7 @@ func SchedulerTask(content map[string]string)(err error){
 			return err
 		}
 		//INSERT LOG
-		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task added. Next epoch = "+strconv.FormatInt(timeEpoch, 10)+". Update type = "+content["update"]+". Update period(in seconds) = "+content["period"]+". Status = "+content["status"])
+		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task added. Next update = "+utils.HumanTime(timeEpoch)+". Update type = "+content["update"]+". Update period(in seconds) = "+content["period"]+". Status = "+content["status"])
 		if err != nil {
 			logs.Error("Error inserting Log: %s", err.Error())
 			return err
@@ -127,7 +127,7 @@ func SchedulerTask(content map[string]string)(err error){
 		}
 
 		//INSERT LOG
-		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task Updated. Next epoch = "+strconv.FormatInt(timeEpoch, 10)+". Update type = "+content["update"]+". Update period(in seconds) = "+content["period"]+". Status = "+content["status"])
+		err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task Updated. Next epoch = "+utils.HumanTime(timeEpoch)+". Update type = "+content["update"]+". Update period(in seconds) = "+content["period"]+". Status = "+content["status"])
 		if err != nil {
 			logs.Error("Error inserting Log: %s", err.Error())
 			return err

@@ -293,3 +293,7 @@ func EpochTime(date string)(epoch int64, err error){
 
 	return t2.Unix(), nil
 }
+
+func HumanTime(epoch int64)(date string){
+	return time.Unix(epoch , 0).String()
+}
