@@ -161,3 +161,13 @@ func ChangeAnalyzerStatus(uuid map[string]string)(err error){
     err = node.ChangeAnalyzerStatus(uuid)
     return err
 }
+
+func Deploy(anode map[string]string)(err error){
+    err = node.Deploy(anode)
+    return err
+}
+
+func CheckDeploy()(anode map[string]string){
+    anode = node.CheckDeploy()
+    return anode
+}

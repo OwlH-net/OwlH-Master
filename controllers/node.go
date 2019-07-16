@@ -553,3 +553,31 @@ func (n *NodeController) ChangeAnalyzerStatus() {
 
     n.ServeJSON()
 }
+
+// @Title Deploy
+// @Description deploy node elements
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /deploy [put]
+func (n *NodeController) Deploy() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.Deploy(anode)
+	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}
+
+// @Title CheckDeploy
+// @Description deploy node elements
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /deploy [get]
+func (n *NodeController) CheckDeploy() {
+	anode := models.CheckDeploy()
+	n.Data["json"] = anode
+    n.ServeJSON()
+}

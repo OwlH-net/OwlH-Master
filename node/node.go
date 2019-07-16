@@ -269,10 +269,6 @@ func AddNode(n map[string]string) (err error) {
 }
 
 func UpdateNode(n map[string]string) (err error) {
-    logs.Warn("UPDATE NODE -> IN name es -  %s", n["name"])
-    logs.Warn("UPDATE NODE -> IN name es -  %s", n["name"])
-    logs.Warn("UPDATE NODE -> IN name es -  %s", n["name"])
-    logs.Warn("UPDATE NODE -> IN name es -  %s", n["name"])
     var nodeKey string
 
     if _, ok := n["name"]; !ok {
@@ -698,4 +694,44 @@ func ChangeAnalyzerStatus(anode map[string]string)(err error){
         return err
     }
 	return nil
+}
+
+func Deploy(anode map[string]string)(err error){
+	if ndb.Db == nil {
+        logs.Error("Deploy -- Can't acces to database")
+        return errors.New("Deploy -- Can't acces to database")
+	}
+	
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil {
+		logs.Error("node/Deploy ERROR Obtaining Port and Ip: "+err.Error())
+        return err
+    }
+	err = nodeclient.Deploy(ipnid,portnid,anode)
+	if err != nil {
+		logs.Error("node/Deploy ERROR http data request: "+err.Error())
+        return err
+    }
+	return nil
+
+}
+
+func CheckDeploy()(anode map[string]string){
+	if ndb.Db == nil {
+        logs.Error("Deploy -- Can't acces to database")
+        return nil
+	}
+	
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil {
+		logs.Error("node/Deploy ERROR Obtaining Port and Ip: "+err.Error())
+        return nil
+    }
+	err = nodeclient.CheckDeploy(ipnid,portnid)
+	if err != nil {
+		logs.Error("node/Deploy ERROR http data request: "+err.Error())
+        return nil
+    }
+	return nil
+
 }

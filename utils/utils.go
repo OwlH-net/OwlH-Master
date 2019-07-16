@@ -297,3 +297,24 @@ func EpochTime(date string)(epoch int64, err error){
 func HumanTime(epoch int64)(date string){
 	return time.Unix(epoch , 0).String()
 }
+
+func BackupFullPath(path string) (err error) { 
+    t := time.Now()
+    destFolder := path+"-"+strconv.FormatInt(t.Unix(), 10)
+    cpCmd := exec.Command("cp", path, destFolder)
+    err = cpCmd.Run()
+    if err != nil{
+        logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error())
+        return err
+    }
+    return nil
+}
+
+func WriteNewDataOnFile(path string, data []byte)(err error){
+    err = ioutil.WriteFile(path, data, 0644)
+	if err != nil {
+        logs.Error("Error WriteNewData")
+		return err
+	}
+    return nil
+}

@@ -27,12 +27,6 @@ CREATE TABLE rule_note (
     note_date text NOT NULL,
     ruleNote text NOT NULL
  );
-CREATE TABLE groups (
-    group_id integer PRIMARY KEY AUTOINCREMENT,
-    group_uniqueid text NOT NULL,
-    group_param text NOT NULL,
-    group_value text NOT NULL
- );
 CREATE TABLE rule_files (
     rule_id integer PRIMARY KEY AUTOINCREMENT,
     rule_uniqueid text NOT NULL,
@@ -51,4 +45,15 @@ CREATE TABLE scheduler (
     log_param text NOT NULL,
     log_value text NOT NULL
  );
-
+ CREATE TABLE plugins (
+    plugin_id integer PRIMARY KEY AUTOINCREMENT,
+    plugin_uniqueid text NOT NULL,
+    plugin_param text NOT NULL,
+    plugin_value text NOT NULL
+ );
+CREATE TABLE groups (
+    group_id integer PRIMARY KEY AUTOINCREMENT,
+    group_uniqueid text NOT NULL,
+    group_param text NOT NULL,
+    group_value text NOT NULL
+ );

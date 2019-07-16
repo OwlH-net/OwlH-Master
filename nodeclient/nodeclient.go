@@ -674,3 +674,26 @@ func ChangeAnalyzerStatus(ipnid string, portnid string, anode map[string]string)
 	defer resp.Body.Close()
 	return nil
 }
+
+func Deploy(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/deploy"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/Deploy ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func CheckDeploy(ipData string, portData string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/deploy"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/CheckDeploy ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}

@@ -45,7 +45,8 @@ func main() {
 	//Init database connection
     ndb.Conn()
     ndb.RConn()
-	ndb.GConn()	
+	// ndb.GConn()	
+	ndb.MConn()	
 	
 	//Init dispatcher at master
     go dispatcher.Init()

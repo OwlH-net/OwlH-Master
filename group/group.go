@@ -34,11 +34,11 @@ func CreateGroup(n map[string]string) (err error) {
 }
 
 func DeleteGroup(groupId string) (err error) {
-	if ndb.Gdb == nil {
+	if ndb.Mdb == nil {
         logs.Error("DeleteGroup -- Can't acces to database")
         return errors.New("DeleteGroup -- Can't acces to database")
     }
-	stmt, err := ndb.Gdb.Prepare("delete from groups where group_uniqueid = ?")
+	stmt, err := ndb.Mdb.Prepare("delete from groups where group_uniqueid = ?")
     if err != nil {
         logs.Error("Prepare DeleteGroup -> %s", err.Error())
         return err
@@ -53,12 +53,12 @@ func DeleteGroup(groupId string) (err error) {
 }
 
 func groupExists(groupID string) (err error) {
-    if ndb.Gdb == nil {
+    if ndb.Mdb == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
     }
     sql := "SELECT * FROM groups where group_uniqueid = '"+groupID+"';"
-    rows, err := ndb.Gdb.Query(sql)
+    rows, err := ndb.Mdb.Query(sql)
     if err != nil {
         logs.Error("Error on query groupExist at group.go "+err.Error())
         return err
@@ -72,11 +72,11 @@ func groupExists(groupID string) (err error) {
 }
 
 func groupKeyInsert(nkey string, key string, value string) (err error) {
-    if ndb.Gdb == nil {
+    if ndb.Mdb == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
     }
-    stmt, err := ndb.Gdb.Prepare("insert into groups (group_uniqueid, group_param, group_value) values(?,?,?)")
+    stmt, err := ndb.Mdb.Prepare("insert into groups (group_uniqueid, group_param, group_value) values(?,?,?)")
     if err != nil {
         logs.Error("Prepare -> %s", err.Error())
         return err
@@ -94,14 +94,14 @@ func GetAllGroups()(groups map[string]map[string]string, err error){
     var uniqid string
     var param string
     var value string
-    if ndb.Gdb == nil {
+    if ndb.Mdb == nil {
         logs.Error("no access to database")
         return nil, errors.New("no access to database")
     }
     sql := "select group_uniqueid, group_param, group_value from groups;"
-    rows, err := ndb.Gdb.Query(sql)
+    rows, err := ndb.Mdb.Query(sql)
     if err != nil {
-        logs.Error("ndb.Gdb.Query Error : %s", err.Error())
+        logs.Error("ndb.Mdb.Query Error : %s", err.Error())
         return nil, err
     }
     for rows.Next() {
@@ -117,7 +117,7 @@ func GetAllGroups()(groups map[string]map[string]string, err error){
 
 func EditGroup(data map[string]string) (err error) { 
 	var groupid = data["groupid"]
-    if ndb.Gdb == nil {
+    if ndb.Mdb == nil {
         logs.Error("no access to database")
         return errors.New("no access to database")
 	}
@@ -138,7 +138,7 @@ func EditGroup(data map[string]string) (err error) {
 }
 
 func InsertGroup(param string, value string, groupid string)(err error){
-	editGroup, err := ndb.Gdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
+	editGroup, err := ndb.Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
 	if err != nil {
 		logs.Error("Prepare EditGroup-> %s", err.Error())
 		return err
