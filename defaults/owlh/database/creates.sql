@@ -57,3 +57,15 @@ CREATE TABLE groups (
     group_param text NOT NULL,
     group_value text NOT NULL
  );
+CREATE TABLE masterconfig (
+    config_id integer PRIMARY KEY AUTOINCREMENT,
+    config_uniqueid text NOT NULL,
+    config_param text NOT NULL,
+    config_value text NOT NULL
+ );
+CREATE TABLE dataflow (
+    flow_id integer PRIMARY KEY AUTOINCREMENT,
+    flow_uniqueid text NOT NULL,
+    flow_param text NOT NULL,
+    flow_value text NOT NULL
+ );

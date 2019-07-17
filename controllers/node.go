@@ -558,11 +558,11 @@ func (n *NodeController) ChangeAnalyzerStatus() {
 // @Description deploy node elements
 // @Success 200 {object} models.Node
 // @Failure 403 :uuid is empty
-// @router /deploy [put]
+// @router /deployNode [put]
 func (n *NodeController) Deploy() {
 	anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.Deploy(anode)
+	err := models.DeployNode(anode)
 	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
@@ -575,9 +575,59 @@ func (n *NodeController) Deploy() {
 // @Description deploy node elements
 // @Success 200 {object} models.Node
 // @Failure 403 :uuid is empty
-// @router /deploy [get]
+// @router /checkDeploy/:uuid [get]
 func (n *NodeController) CheckDeploy() {
-	anode := models.CheckDeploy()
+	uuid := n.GetString(":uuid")
+	anode := models.CheckDeploy(uuid)
 	n.Data["json"] = anode
+    n.ServeJSON()
+}
+
+// @Title ChangeDataflowValues
+// @Description Change node data flow values
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /changeDataflowValues [put]
+func (n *NodeController) ChangeDataflowValues() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.ChangeDataflowValues(anode)
+	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}
+
+// @Title LoadDataflowValues
+// @Description Load node data flow values
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /loadDataflowValues/:uuid [get]
+func (n *NodeController) LoadDataflowValues() {
+	uuid := n.GetString(":uuid")
+	data, err := models.LoadDataflowValues(uuid)
+	n.Data["json"] = data
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}
+
+// @Title LoadNetworkValues
+// @Description Load network data from network values
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /loadNetworkValues/:uuid [get]
+func (n *NodeController) LoadNetworkValues() {
+	uuid := n.GetString(":uuid")
+	data, err := models.LoadNetworkValues(uuid)
+	n.Data["json"] = data
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+	}
+
     n.ServeJSON()
 }

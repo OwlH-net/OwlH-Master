@@ -696,7 +696,7 @@ func ChangeAnalyzerStatus(anode map[string]string)(err error){
 	return nil
 }
 
-func Deploy(anode map[string]string)(err error){
+func DeployNode(anode map[string]string)(err error){
 	if ndb.Db == nil {
         logs.Error("Deploy -- Can't acces to database")
         return errors.New("Deploy -- Can't acces to database")
@@ -707,7 +707,7 @@ func Deploy(anode map[string]string)(err error){
 		logs.Error("node/Deploy ERROR Obtaining Port and Ip: "+err.Error())
         return err
     }
-	err = nodeclient.Deploy(ipnid,portnid,anode)
+	err = nodeclient.DeployNode(ipnid,portnid,anode)
 	if err != nil {
 		logs.Error("node/Deploy ERROR http data request: "+err.Error())
         return err
@@ -716,22 +716,67 @@ func Deploy(anode map[string]string)(err error){
 
 }
 
-func CheckDeploy()(anode map[string]string){
+func CheckDeploy(uuid string)(anode map[string]string){
 	if ndb.Db == nil {
-        logs.Error("Deploy -- Can't acces to database")
+        logs.Error("CheckDeploy -- Can't acces to database")
         return nil
+	}
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("node/CheckDeploy ERROR Obtaining Port and Ip: "+err.Error())
+        return nil
+	}
+	anode = nodeclient.CheckDeploy(ipnid,portnid)
+	if err != nil {
+		logs.Error("node/CheckDeploy ERROR http data request: "+err.Error())
+        return nil
+    }
+	return anode
+}
+
+func ChangeDataflowValues(anode map[string]string)(err error){
+	if ndb.Db == nil {
+        logs.Error("ChangeDataflowValues -- Can't acces to database")
+        return errors.New("ChangeDataflowValues -- Can't acces to database")
 	}
 	
 	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
 	if err != nil {
-		logs.Error("node/Deploy ERROR Obtaining Port and Ip: "+err.Error())
-        return nil
+		logs.Error("node/ChangeDataflowValues ERROR Obtaining Port and Ip: "+err.Error())
+        return err
     }
-	err = nodeclient.CheckDeploy(ipnid,portnid)
+	err = nodeclient.ChangeDataflowValues(ipnid,portnid,anode)
 	if err != nil {
-		logs.Error("node/Deploy ERROR http data request: "+err.Error())
-        return nil
+		logs.Error("node/ChangeDataflowValues ERROR http data request: "+err.Error())
+        return err
     }
 	return nil
+}
 
+func LoadDataflowValues(uuid string)(anode map[string]map[string]string, err error){
+	if ndb.Db == nil {
+        logs.Error("LoadDataflowValues -- Can't acces to database")
+        return nil,err
+	}
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/LoadDataflowValues ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+
+	anode,err = nodeclient.LoadDataflowValues(ipnid,portnid)
+	if err != nil { logs.Error("node/LoadDataflowValues ERROR http data request: "+err.Error()); return nil,err}
+
+	return anode,nil
+}
+
+func LoadNetworkValues(uuid string)(anode map[string]string, err error){
+	if ndb.Db == nil {
+        logs.Error("LoadNetworkValues -- Can't acces to database")
+        return nil,err
+	}
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/LoadNetworkValues ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+
+	anode,err = nodeclient.LoadNetworkValues(ipnid,portnid)
+	if err != nil { logs.Error("node/LoadNetworkValues ERROR http data request: "+err.Error()); return nil,err}
+
+	return anode,nil
 }

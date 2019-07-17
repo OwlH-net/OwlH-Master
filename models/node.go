@@ -162,12 +162,27 @@ func ChangeAnalyzerStatus(uuid map[string]string)(err error){
     return err
 }
 
-func Deploy(anode map[string]string)(err error){
-    err = node.Deploy(anode)
+func DeployNode(anode map[string]string)(err error){
+    err = node.DeployNode(anode)
     return err
 }
 
-func CheckDeploy()(anode map[string]string){
-    anode = node.CheckDeploy()
+func ChangeDataflowValues(anode map[string]string)(err error){
+    err = node.ChangeDataflowValues(anode)
+    return err
+}
+
+func CheckDeploy(uuid string)(anode map[string]string){
+    anode = node.CheckDeploy(uuid)
     return anode
+}
+
+func LoadDataflowValues(uuid string)(data map[string]map[string]string, err error){
+	data, err = node.LoadDataflowValues(uuid)
+    return data, err
+}
+
+func LoadNetworkValues(uuid string)(data map[string]string, err error){
+	data, err = node.LoadNetworkValues(uuid)
+    return data, err
 }
