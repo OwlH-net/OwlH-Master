@@ -234,7 +234,7 @@ func dispatch(theList listOfNodesAndFolders) {
 				if err != nil { logs.Error("CopyFileToNode cleaning pcap: "+err.Error())}
 				
 				err = os.Remove(theList.Folders[i].Fpath+file.Name())
-				if err != nil { logs.Notice("Error Removing =-> "+err.Error())}
+				if err != nil { logs.Error("Error Removing =-> "+err.Error())}
 			}
             latest += 1
         }

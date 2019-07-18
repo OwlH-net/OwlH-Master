@@ -1,9 +1,11 @@
 package master 
 
 import (
-    "github.com/astaxie/beego/logs"
+	"github.com/astaxie/beego/logs"
+    "github.com/google/gopacket/pcap"
 	"owlhmaster/utils"
 	"io/ioutil"
+	"os/exec"
 )
 
 //Obtain title for webpage from main.conf
@@ -70,4 +72,31 @@ func SaveFileContent(file map[string]string) (err error) {
 		return nil
 
     return err
+}
+
+func GetNetworkInterface()(values map[string]string, err error) {
+	data := make(map[string]string)
+	interfaces, err := pcap.FindAllDevs()
+	if err != nil {logs.Error("GetNetworkInterface Master pcap.FindAllDevs error: "+err.Error()); return nil,err}
+
+	for _, localInt := range interfaces {
+		data[localInt.Name] = localInt.Name
+	}
+
+	logs.Notice(data)
+
+	return data, err
+}
+
+func DeployMaster(anode map[string]string)(err error) {
+	loadData := map[string]map[string]string{}
+	loadData["deploy"] = map[string]string{}
+	loadData["deploy"][anode["value"]] = ""
+	loadData,err = utils.GetConf(loadData)
+	if err != nil { logs.Error("DeployMaster Error getting data from main.conf"); return err}
+	
+	_,err = exec.Command("bash", "-c", loadData["deploy"][anode["value"]]).Output()
+	if err != nil{logs.Error("DeployMaster Error deploying "+loadData["deploy"][anode["value"]]+": "+err.Error()); return err}
+	
+	return nil
 }

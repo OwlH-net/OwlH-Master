@@ -167,6 +167,11 @@ func DeployNode(anode map[string]string)(err error){
     return err
 }
 
+func UpdateNetworkInterface(anode map[string]string)(err error){
+    err = node.UpdateNetworkInterface(anode)
+    return err
+}
+
 func ChangeDataflowValues(anode map[string]string)(err error){
     err = node.ChangeDataflowValues(anode)
     return err

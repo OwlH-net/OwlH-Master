@@ -722,6 +722,18 @@ func ChangeDataflowValues(ipData string, portData string, anode map[string]strin
 	return nil
 }
 
+func UpdateNetworkInterface(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/net"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/UpdateNetworkInterface ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
 func LoadDataflowValues(ipData string, portData string)(data map[string]map[string]string, err error){
 	url := "https://"+ipData+":"+portData+"/node/dataflow/loadDataflowValues"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
@@ -763,11 +775,7 @@ func LoadNetworkValues(ipData string, portData string)(data map[string]string, e
 		logs.Error("LoadNetworkValues ERROR doing unmarshal JSON: "+err.Error())
         return nil,err
 	}
-	logs.Notice(data)
-	logs.Notice(data)
-	logs.Notice(data)
-	logs.Notice(data)
-	logs.Notice(data)
+
 	defer resp.Body.Close()
 	return data,nil
 }

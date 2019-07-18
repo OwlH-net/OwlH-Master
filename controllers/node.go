@@ -78,10 +78,6 @@ func (n *NodeController) UpdateNode() {
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 
-	logs.Notice(n)
-	logs.Notice(n)
-	logs.Notice(n)
-
     err := models.UpdateNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -630,4 +626,20 @@ func (n *NodeController) LoadNetworkValues() {
 	}
 
     n.ServeJSON()
+}
+
+// @Title UpdateNetworkInterface
+// @Description Get network values for master
+// @Param       body            body    models.Master     true            "body for master content"
+// @Success 200 {object} models.Master
+// @router /updateNetworkInterface [put]
+func (m *NodeController) UpdateNetworkInterface() {
+	anode := make(map[string]string)
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+    err := models.UpdateNetworkInterface(anode)
+	m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+    }
+    m.ServeJSON()
 }

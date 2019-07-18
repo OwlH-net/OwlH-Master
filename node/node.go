@@ -753,6 +753,25 @@ func ChangeDataflowValues(anode map[string]string)(err error){
 	return nil
 }
 
+func UpdateNetworkInterface(anode map[string]string)(err error){
+	if ndb.Db == nil {
+        logs.Error("UpdateNetworkInterface -- Can't acces to database")
+        return errors.New("UpdateNetworkInterface -- Can't acces to database")
+	}
+	
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil {
+		logs.Error("node/UpdateNetworkInterface ERROR Obtaining Port and Ip: "+err.Error())
+        return err
+    }
+	err = nodeclient.UpdateNetworkInterface(ipnid,portnid,anode)
+	if err != nil {
+		logs.Error("node/UpdateNetworkInterface ERROR http data request: "+err.Error())
+        return err
+    }
+	return nil
+}
+
 func LoadDataflowValues(uuid string)(anode map[string]map[string]string, err error){
 	if ndb.Db == nil {
         logs.Error("LoadDataflowValues -- Can't acces to database")
