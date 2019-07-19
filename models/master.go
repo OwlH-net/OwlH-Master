@@ -49,3 +49,13 @@ func DeployMaster(anode map[string]string)(err error) {
     err = master.DeployMaster(anode)
     return err
 }
+
+func UpdateMasterNetworkInterface(anode map[string]string)(err error) {
+    err = master.UpdateMasterNetworkInterface(anode)
+    return err
+}
+
+func LoadMasterNetworkValuesSelected()(data map[string]map[string]string ,err error) {
+    data,err = master.LoadMasterNetworkValuesSelected()
+    return data,err
+}

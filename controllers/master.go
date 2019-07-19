@@ -147,3 +147,35 @@ func (m *MasterController) DeployMaster() {
 	m.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
     m.ServeJSON()
 }
+
+// @Title UpdateMasterNetworkInterface
+// @Description Update Master interface value
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /updateMasterNetworkInterface [put]
+func (m *MasterController) UpdateMasterNetworkInterface() {
+	anode := make(map[string]string)
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+    err := models.UpdateMasterNetworkInterface(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+	}
+	
+	m.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
+    m.ServeJSON()
+}
+
+// @Title LoadMasterNetworkValuesSelected
+// @Description Get interface selected by user for master
+// @Param       body            body    models.Master     true            "body for master content"
+// @Success 200 {object} models.Master
+// @router /loadMasterNetworkValuesSelected [get]
+func (m *MasterController) LoadMasterNetworkValuesSelected() {	
+    data, err := models.LoadMasterNetworkValuesSelected()
+    m.Data["json"] = data
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+    }
+    m.ServeJSON()
+}

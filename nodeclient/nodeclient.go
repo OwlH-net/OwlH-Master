@@ -765,16 +765,27 @@ func LoadNetworkValues(ipData string, portData string)(data map[string]string, e
 		return nil,err
 	}
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {logs.Error("nodeclient/LoadNetworkValues ERROR reading request data: "+err.Error());return nil,err}
 
-	if err != nil {
-		logs.Error("nodeclient/LoadNetworkValues ERROR reading request data: "+err.Error())
-        return nil,err
-	}
 	err = json.Unmarshal(body, &data)
-    if err != nil {
-		logs.Error("LoadNetworkValues ERROR doing unmarshal JSON: "+err.Error())
-        return nil,err
+    if err != nil {logs.Error("LoadNetworkValues ERROR doing unmarshal JSON: "+err.Error());return nil,err}
+
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func LoadNetworkValuesSelected(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/net/values"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/LoadNetworkValuesSelected ERROR connection through http new Request: "+err.Error())
+		return nil,err
 	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {logs.Error("nodeclient/LoadNetworkValuesSelected ERROR reading request data: "+err.Error());return nil,err}
+
+	err = json.Unmarshal(body, &data)
+    if err != nil {logs.Error("LoadNetworkValuesSelected ERROR doing unmarshal JSON: "+err.Error());return nil,err}
 
 	defer resp.Body.Close()
 	return data,nil

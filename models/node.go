@@ -191,3 +191,8 @@ func LoadNetworkValues(uuid string)(data map[string]string, err error){
 	data, err = node.LoadNetworkValues(uuid)
     return data, err
 }
+
+func LoadNetworkValuesSelected(uuid string)(data map[string]map[string]string, err error){
+	data, err = node.LoadNetworkValuesSelected(uuid)
+    return data, err
+}

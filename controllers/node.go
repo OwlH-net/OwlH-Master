@@ -628,6 +628,22 @@ func (n *NodeController) LoadNetworkValues() {
     n.ServeJSON()
 }
 
+// @Title LoadNetworkValuesSelected
+// @Description Load network data from network values
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /loadNetworkValuesSelected/:uuid [get]
+func (n *NodeController) LoadNetworkValuesSelected() {
+	uuid := n.GetString(":uuid")
+	data, err := models.LoadNetworkValuesSelected(uuid)
+	n.Data["json"] = data
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}
+
 // @Title UpdateNetworkInterface
 // @Description Get network values for master
 // @Param       body            body    models.Master     true            "body for master content"

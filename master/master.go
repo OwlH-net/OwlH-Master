@@ -4,6 +4,7 @@ import (
 	"github.com/astaxie/beego/logs"
     "github.com/google/gopacket/pcap"
 	"owlhmaster/utils"
+	"owlhmaster/database"
 	"io/ioutil"
 	"os/exec"
 )
@@ -99,4 +100,16 @@ func DeployMaster(anode map[string]string)(err error) {
 	if err != nil{logs.Error("DeployMaster Error deploying "+loadData["deploy"][anode["value"]]+": "+err.Error()); return err}
 	
 	return nil
+}
+
+func UpdateMasterNetworkInterface(anode map[string]string)(err error) {
+	err = ndb.UpdateMasterNetworkInterface(anode)
+	if err != nil { logs.Error("master/UpdateMasterNetworkInterface Error updating interface selected: "+err.Error()); return err}
+    return nil
+}
+
+func LoadMasterNetworkValuesSelected()(data map[string]map[string]string ,err error) {
+    data,err = ndb.LoadMasterNetworkValuesSelected()
+	if err != nil { logs.Error("master/LoadMasterNetworkValuesSelected Error getting interface selected by user for Master: "+err.Error()); return nil,err}
+    return data,err
 }

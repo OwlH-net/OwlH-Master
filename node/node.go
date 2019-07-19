@@ -799,3 +799,17 @@ func LoadNetworkValues(uuid string)(anode map[string]string, err error){
 
 	return anode,nil
 }
+
+func LoadNetworkValuesSelected(uuid string)(anode map[string]map[string]string, err error){
+	if ndb.Db == nil {
+        logs.Error("LoadNetworkValuesSelected -- Can't acces to database")
+        return nil,err
+	}
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/LoadNetworkValuesSelected ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+
+	anode,err = nodeclient.LoadNetworkValuesSelected(ipnid,portnid)
+	if err != nil { logs.Error("node/LoadNetworkValuesSelected ERROR http data request: "+err.Error()); return nil,err}
+
+	return anode,nil
+}
