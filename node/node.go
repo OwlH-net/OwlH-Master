@@ -243,7 +243,8 @@ func nodeKeyInsert(nkey string, key string, value string) (err error) {
 }
 
 func AddNode(n map[string]string) (err error) {
-    logs.Info("ADD NODE -> IN")
+    logs.Info("ADD NODE")
+    logs.Info(n)
 	nodeKey := utils.Generate()
     if _, ok := n["name"]; !ok {
 		logs.Error("name empty: "+err.Error())
@@ -283,7 +284,7 @@ func UpdateNode(n map[string]string) (err error) {
         nodeKey = n["id"]
     }
     if err := nodeExists(nodeKey); err == nil {
-        return errors.New("Node desn't exist, must be created")
+        return errors.New("Node doesn't exist, must be created")
     }
     for key, value := range n {
         if id, _ := nodeKeyExists(nodeKey, key); id != 0 {

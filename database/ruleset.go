@@ -142,7 +142,7 @@ func GetAllCustomRulesetDB()(path []string, err error){
 	return customData,nil
 }
 
-func GetAllDataRulesetDB(uuid string)(path map[string]map[string]string, err error){
+func GetAllDataRulesetDB(uuid string)(data map[string]map[string]string, err error){
 	var customData = map[string]map[string]string{}
     var uniqid string
     var param string
