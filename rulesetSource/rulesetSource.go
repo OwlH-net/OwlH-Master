@@ -94,7 +94,8 @@ func CreateCustomRulesetSource(n map[string]string)(err error){
 	newUUID := utils.Generate()
 
 	nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)
-	n["path"] = path + nameWithoutSpaces +".rules"
+	nameFile := nameWithoutSpaces+".rules"
+	n["path"] = path + nameFile
 
 	if _, err := os.Stat(n["path"]); !os.IsNotExist(err) {
 		return errors.New("The custom file "+n["name"]+" already exists. Use other name for the new custom ruleset source.")
@@ -113,13 +114,14 @@ func CreateCustomRulesetSource(n map[string]string)(err error){
 	}
 	
 	md5,err := utils.CalculateMD5(n["path"])
+	if err != nil {return errors.New("Error Checking MD5 for CreateCustomRulesetSource.")}
 
 	//insert file into rule_files
 	uuid := utils.Generate()
 	err = ndb.InsertRulesetSourceRules(uuid, "name", n["name"])
 	err = ndb.InsertRulesetSourceRules(uuid, "path", n["path"])
 	err = ndb.InsertRulesetSourceRules(uuid, "sourceType", n["sourceType"])
-	err = ndb.InsertRulesetSourceRules(uuid, "file", nameWithoutSpaces +".rules")
+	err = ndb.InsertRulesetSourceRules(uuid, "fileName", nameFile)
 	err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
 	err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", newUUID)
 	err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")

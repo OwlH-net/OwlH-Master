@@ -458,7 +458,7 @@ func GetRuleNote(ruleGetNote map[string]string)(note string, err error){
 	err = row.Scan(&noteText)
 
     if err != nil {
-        logs.Error("DB GetNote -> Can't read query result: "+err.Error())
+        // logs.Error("DB GetNote -> Can't read query result: "+err.Error())
         return "", err
     }
     return noteText, nil
@@ -653,9 +653,8 @@ func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated []byte, er
 	}
 }
 
-//Get all rulesets from DB
+//Add new ruleset to locale ruleset
 func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err error) {
-
 	//check for duplicated rule SIDs
 	if duplicated,err = FindDuplicatedSIDs(data); duplicated != nil {
 		return duplicated, nil
@@ -679,7 +678,7 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
 	rulesetUUID := utils.Generate()
 	rulesetCreated := false
 	
-	for x := range data {
+	for x := range data {		
 		rulesetFolderName := strings.Replace(data[x]["rulesetName"], " ", "_", -1)
 		path := localFiles + rulesetFolderName + "/" + data[x]["fileName"]
 
@@ -708,12 +707,8 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
 		}
 
 		//add md5 for every file
-		
 		md5,err := utils.CalculateMD5(path)
-		if err != nil {
-			logs.Error("ruleset/AddNewRuleset -- Errorcalculating md5: %s", err.Error())
-			return nil,err
-		}
+		if err != nil {logs.Error("ruleset/AddNewRuleset -- Error calculating md5: %s", err.Error());return nil,err}
 
 		ruleFilesUUID := utils.Generate()
 		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "name", data[x]["rulesetName"])
@@ -725,6 +720,8 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
 		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "exists", "true")
 		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "isUpdated", "false")
 		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "md5", md5)
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceType", data[x]["sourceType"])
+		if err != nil {logs.Error("ruleset/AddNewRuleset -- Error Inserting Ruleset: %s", err.Error());return nil,err}
 	}
 
 	return nil,nil
@@ -812,32 +809,32 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
 				}
 			}
 		}
-
-		//select ruleset
-		dataDB,_ := ndb.GetAllDataRulesetDB(anode["ruleset"])
-		logs.Warn(dataDB)
-		datafileDB,_ := ndb.GetAllDataRulesetDB(anode["orig"])
-		logs.Warn(datafileDB)
-		//select rule file
-
-		//add destination custom ruleset to locale ruleset who clone rules.
-		// ruleFilesUUID := utils.Generate()
-		// err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "name", data[x]["rulesetName"])
-		// err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "path", path)
-		// err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "file", data[x]["fileName"])
-		// err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "type", "local")
-		// err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceUUID", rulesetUUID)
-		// err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceFileUUID", x)
-		// err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "exists", "true")
-		// err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "isUpdated", "false")
-		// err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "md5", md5)
-
-
-		if err != nil {
-			logs.Error("AddRulesToCustomRuleset -- Error inserting rules into custom ruleset: %s", err.Error())
-			return nil,err
-		}
 	}
+	// origData,err := ndb.GetRuleFilesByUniqueid(anode["orig"])
+	valuesCustom,_ := ndb.GetAllDataRulesetDB(anode["dest"])
+	for a,_ := range valuesCustom {
+		// for b,_ := range b {
+		// 	logs.Warn(b+" -- "+valuesCustom[a][b])
+		// }
+		md5,err := utils.CalculateMD5(valuesCustom[a]["path"])
+		if err != nil {logs.Error("ruleset/AddRulesToCustomRuleset -- Error calculating md5: %s", err.Error());return nil,err}
+	
+		//add destination custom ruleset to locale ruleset who clone rules.
+		ruleFilesUUID := utils.Generate()
+		logs.Notice(ruleFilesUUID)
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "name", valuesCustom[a]["name"])
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "path", valuesCustom[a]["path"])
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "file", valuesCustom[a]["fileName"])
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "type", "local")
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceUUID", anode["ruleset"])
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceFileUUID", anode["dest"])
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "exists", "true")
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "isUpdated", "false")
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "md5", md5)
+		err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceType", valuesCustom[a]["sourceType"])
+		if err != nil {logs.Error("AddRulesToCustomRuleset -- Error inserting custom ruleset into local ruleset: %s", err.Error()); return nil,err}
+	}
+
 
 	return rulesDuplicated, nil	
 }
