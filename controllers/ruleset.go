@@ -299,6 +299,20 @@ func (n *RulesetController) GetAllCustomRulesets() {
     n.ServeJSON()
 }
 
+// @Title SynchronizeAllRulesets
+// @Description Synchronize All Custom Rulesets
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /syncAllRulesets [put]
+func (n *RulesetController) SynchronizeAllRulesets() { 
+    err := models.SynchronizeAllRulesets()
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    n.ServeJSON()
+}
+
 
 // @Title AddRulesToCustomRuleset
 // @Description Add rules to custom ruleset

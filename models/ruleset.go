@@ -76,6 +76,11 @@ func SyncRulesetToAllNodes(anode map[string]string)(err error){
     return err
 }
 
+func SynchronizeAllRulesets()(err error){
+    err = ruleset.SynchronizeAllRulesets()
+    return err
+}
+
 func GetAllRuleData()(data map[string]map[string]string,err error) {
     data,err = ruleset.GetAllRuleData()
     return data,err

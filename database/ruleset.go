@@ -142,6 +142,26 @@ func GetAllCustomRulesetDB()(path []string, err error){
 	return customData,nil
 }
 
+func GetAllLocalRulesetDB()(path []string, err error){
+	var customData []string
+    var uniqid string
+
+	sql := "select ruleset_uniqueid from ruleset where ruleset_value='local' and ruleset_param='type'";
+	rows, err := Rdb.Query(sql)
+	if err != nil {
+		logs.Error("GetAllLocalRulesetDB Rdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	for rows.Next() {
+		if err = rows.Scan(&uniqid); err != nil {
+            logs.Error("GetAllLocalRulesetDB -- Query return error: %s", err.Error())
+            return nil, err
+		}
+		customData = append(customData, uniqid)
+	} 
+	return customData,nil
+}
+
 func GetAllDataRulesetDB(uuid string)(data map[string]map[string]string, err error){
 	var customData = map[string]map[string]string{}
     var uniqid string

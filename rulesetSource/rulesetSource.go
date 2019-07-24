@@ -85,10 +85,7 @@ func CreateCustomRulesetSource(n map[string]string)(err error){
 
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		err = os.MkdirAll(path, os.ModePerm)
-	}
-	if err != nil {
-		logs.Error("Error checking the path: "+err.Error())
-        return err
+		if err != nil {logs.Error("Error checking the path: "+err.Error()); return err}
 	}
 	
 	newUUID := utils.Generate()
@@ -96,6 +93,7 @@ func CreateCustomRulesetSource(n map[string]string)(err error){
 	nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)
 	nameFile := nameWithoutSpaces+".rules"
 	n["path"] = path + nameFile
+	n["fileName"] = nameFile
 
 	if _, err := os.Stat(n["path"]); !os.IsNotExist(err) {
 		return errors.New("The custom file "+n["name"]+" already exists. Use other name for the new custom ruleset source.")
@@ -108,9 +106,7 @@ func CreateCustomRulesetSource(n map[string]string)(err error){
 
 	for key, value := range n {
         err = ndb.RulesetSourceKeyInsert(newUUID, key, value)
-	}
-	if err != nil {
-        return errors.New("Error adding custom rule file data to database.")
+		if err != nil {return errors.New("Error adding custom rule file data to database.")}
 	}
 	
 	md5,err := utils.CalculateMD5(n["path"])

@@ -147,7 +147,7 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
 func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
 	values := make(map[string][]byte)
 	values["data"] = data
-	url := "https://"+ipData+":"+portData+"/node/suricata/retrieve"
+	url := "https://"+ipData+":"+portData+"/node/suricata/sync"
 	valuesJSON,err := json.Marshal(values)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
