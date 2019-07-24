@@ -19,7 +19,6 @@ type SchedulerController struct {
 func (n *SchedulerController) SchedulerTask() { 
     var anode map[string]string
 	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
-	logs.Warn(anode)
 	err := models.SchedulerTask(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {

@@ -84,8 +84,6 @@ func GetNetworkInterface()(values map[string]string, err error) {
 		data[localInt.Name] = localInt.Name
 	}
 
-	logs.Notice(data)
-
 	return data, err
 }
 
