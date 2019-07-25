@@ -3,7 +3,6 @@ package controllers
 import (
 	"owlhmaster/models"
 	"encoding/json"
-    "github.com/astaxie/beego/logs"
     "github.com/astaxie/beego"
 )
 
