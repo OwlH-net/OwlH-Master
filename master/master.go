@@ -6,6 +6,8 @@ import (
 	"owlhmaster/utils"
 	"owlhmaster/database"
 	"io/ioutil"
+	"os"
+	"errors"
 	"os/exec"
 )
 
@@ -110,4 +112,60 @@ func LoadMasterNetworkValuesSelected()(data map[string]map[string]string ,err er
     data,err = ndb.LoadMasterNetworkValuesSelected()
 	if err != nil { logs.Error("master/LoadMasterNetworkValuesSelected Error getting interface selected by user for Master: "+err.Error()); return nil,err}
     return data,err
+}
+
+func PingServiceMaster()(err error) {
+	masterService := map[string]map[string]string{}
+    masterService["service"] = map[string]string{}
+    masterService["service"]["dstPath"] = ""
+    masterService["service"]["file"] = ""
+	masterService,err = utils.GetConf(masterService)
+	if err != nil {logs.Error("master/PingServiceMaster -- Error GetConf service data: "+err.Error()); return err}
+	dstPath := masterService["service"]["dstPath"]
+	file := masterService["service"]["file"]
+
+	if _, err := os.Stat(dstPath+file); os.IsNotExist(err) {
+		return errors.New("Service don't exists")
+	}else{
+		logs.Info("OwlHmaster service already exists")
+		return nil
+	}
+}
+
+func DeployServiceMaster()(err error) {
+	masterService := map[string]map[string]string{}
+    masterService["service"] = map[string]string{}
+    masterService["service"]["dstPath"] = ""
+    masterService["service"]["file"] = ""
+    masterService["service"]["origPath"] = ""
+    masterService["service"]["reload"] = ""
+    masterService["service"]["enable"] = ""
+	masterService,err = utils.GetConf(masterService)
+	if err != nil {logs.Error("master/DeployServiceMaster -- Error GetConf service data: "+err.Error()); return err}
+	dstPath := masterService["service"]["dstPath"]
+	file := masterService["service"]["file"]
+	origPath := masterService["service"]["origPath"]
+	reload := masterService["service"]["reload"]
+	enable := masterService["service"]["enable"]
+
+	if _, err := os.Stat(dstPath+file); os.IsNotExist(err) {
+		// //copy file
+		err = utils.CopyFile(dstPath, origPath, file, 0)
+		if err != nil {logs.Error("master/Copy Error Copying file: "+err.Error()); return err}
+	
+		// //exec reload
+		_,err = exec.Command("bash", "-c", reload).Output()
+		if err != nil{logs.Error("DeployServiceMaster Error reload service: "+err.Error()); return err}
+
+		// //exec enable
+		_,err = exec.Command("bash", "-c", enable).Output()
+		if err != nil{logs.Error("DeployServiceMaster Error enabling service: "+err.Error()); return err}
+
+		// //return nil
+		logs.Info("OwlHmaster service deployed successfully!")
+		return nil
+	}else{
+		logs.Info("OwlHmaster service already exists")
+		return nil
+	}
 }

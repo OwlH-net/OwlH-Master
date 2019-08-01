@@ -59,3 +59,13 @@ func LoadMasterNetworkValuesSelected()(data map[string]map[string]string ,err er
     data,err = master.LoadMasterNetworkValuesSelected()
     return data,err
 }
+
+func PingServiceMaster()(err error) {
+    err = master.PingServiceMaster()
+    return err
+}
+
+func DeployServiceMaster()(err error) {
+    err = master.DeployServiceMaster()
+    return err
+}

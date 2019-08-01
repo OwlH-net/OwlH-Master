@@ -210,13 +210,41 @@ func (n *NodeController) PutSuricataBPF() {
     n.ServeJSON()
 }
 
-// @Title Get All Nodes
+// @Title GetAllNodes
 // @Description Get full list of nodes
 // @Success 200 {object} models.Node
 // @router / [get]
 func (n *NodeController) GetAllNodes() {
     nodes, err := models.GetAllNodes()
     n.Data["json"] = nodes
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetServiceStatus
+// @Description Get service status for a specific node
+// @Success 200 {object} models.Node
+// @router /pingservice/:uuid [get]
+func (n *NodeController) GetServiceStatus() {
+	uuid := n.GetString(":uuid")
+    err := models.GetServiceStatus(uuid)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeployService
+// @Description Get service status for a specific node
+// @Success 200 {object} models.Node
+// @router /deployservice/:uuid [put]
+func (n *NodeController) DeployService() {
+	uuid := n.GetString(":uuid")
+    err := models.DeployService(uuid)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

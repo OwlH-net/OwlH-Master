@@ -15,6 +15,7 @@ import (
 	"regexp"
 	"strconv"
 	"bufio"
+	"errors"
 	"time"
 	"strings"
 	"crypto/md5"
@@ -317,4 +318,52 @@ func WriteNewDataOnFile(path string, data []byte)(err error){
 		return err
 	}
     return nil
+}
+
+func CopyFile(dstfolder string, srcfolder string, file string, BUFFERSIZE int64) (err error) {
+	if BUFFERSIZE == 0{
+		BUFFERSIZE = 1000
+	}
+	sourceFileStat, err := os.Stat(srcfolder+file)
+    if err != nil {
+        logs.Error("Error checking file at CopyFile function" + err.Error())
+        return err
+	}
+    if !sourceFileStat.Mode().IsRegular() {
+        logs.Error("%s is not a regular file.", sourceFileStat)
+        return errors.New(sourceFileStat.Name()+" is not a regular file.")
+    } 
+    source, err := os.Open(srcfolder+file)
+    if err != nil {
+        return err
+    }
+    defer source.Close()
+    _, err = os.Stat(dstfolder+file)
+    if err == nil {
+        return errors.New("File "+dstfolder+file+" already exists.")
+    }
+    destination, err := os.Create(dstfolder+file)
+    if err != nil {
+        logs.Error("Error Create =-> "+err.Error())
+        return err
+    }
+    defer destination.Close()
+    logs.Info("copy file -> "+srcfolder+file)
+    logs.Info("to file -> "+dstfolder+file)
+    buf := make([]byte, BUFFERSIZE)
+    for {
+        n, err := source.Read(buf)
+        if err != nil && err != io.EOF {
+            logs.Error("Error no EOF=-> "+err.Error())
+            return err
+        }
+        if n == 0 {
+            break
+        }
+        if _, err := destination.Write(buf[:n]); err != nil {
+            logs.Error("Error Writing File: "+err.Error())
+            return err
+        }
+    }
+    return err
 }

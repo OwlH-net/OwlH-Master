@@ -172,6 +172,16 @@ func UpdateNetworkInterface(anode map[string]string)(err error){
     return err
 }
 
+func GetServiceStatus(uuid string)(err error){
+    err = node.GetServiceStatus(uuid)
+    return err
+}
+
+func DeployService(uuid string)(err error){
+    err = node.DeployService(uuid)
+    return err
+}
+
 func ChangeDataflowValues(anode map[string]string)(err error){
     err = node.ChangeDataflowValues(anode)
     return err

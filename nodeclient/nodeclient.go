@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "io/ioutil"
 	"encoding/json"
+	"errors"
 	"owlhmaster/utils"
 	"bytes"
 )
@@ -789,4 +790,50 @@ func LoadNetworkValuesSelected(ipData string, portData string)(data map[string]m
 
 	defer resp.Body.Close()
 	return data,nil
+}
+
+func GetServiceStatus(ip string, port string) (err error) {
+    logs.Info("NodeClient GetServiceStatus -> %s, %s", ip, port)
+	url := "https://"+ip+":"+port+"/node/ping/services"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+    if err != nil {
+		logs.Error("nodeClient/GetServiceStatus ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	body, _ := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	var raw map[string]interface{}
+	json.Unmarshal(body, &raw)
+	
+	if raw["ack"] == "false"{
+		return errors.New("Service don't exists")
+	}else if raw["ack"] == "true"{
+		return nil
+	}
+
+	return nil
+}
+
+func DeployService(ip string, port string) (err error) {
+    logs.Info("NodeClient DeployService -> %s, %s", ip, port)
+	url := "https://"+ip+":"+port+"/node/ping/deployservice"
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+    if err != nil {
+		logs.Error("nodeClient/DeployService ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	body, _ := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	var raw map[string]interface{}
+	json.Unmarshal(body, &raw)
+	
+	if raw["ack"] == "false"{
+		return errors.New("Service don't exists")
+	}else if raw["ack"] == "true"{
+		return nil
+	}
+
+	return nil
 }

@@ -359,6 +359,32 @@ func NodePing(uuid string) (err error) {
     return nil
 }
 
+func GetServiceStatus(uuid string) (err error) {
+	ipData,portData,err := ndb.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("node/GetServiceStatus ERROR getting node port/ip : "+err.Error())
+        return err
+	}	
+    err = nodeclient.GetServiceStatus(ipData,portData)
+    if err != nil {
+        return err
+    }
+    return nil
+}
+
+func DeployService(uuid string)(err error){
+	ipData,portData,err := ndb.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("node/DeployService ERROR getting node port/ip : "+err.Error())
+        return err
+	}	
+    err = nodeclient.DeployService(ipData,portData)
+    if err != nil {
+        return err
+    }
+    return nil
+}
+
 //Get specific file from node files
 func GetNodeFile(loadFile map[string]string) (data map[string]string, err error) {
 	ipData,portData,err := ndb.ObtainPortIp(loadFile["uuid"])

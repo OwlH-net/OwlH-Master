@@ -179,3 +179,31 @@ func (m *MasterController) LoadMasterNetworkValuesSelected() {
     }
     m.ServeJSON()
 }
+
+// @Title PingServiceMaster
+// @Description Get Master service status
+// @Param       body            body    models.Master     true            "body for master content"
+// @Success 200 {object} models.Master
+// @router /pingservice [get]
+func (m *MasterController) PingServiceMaster() {	
+    err := models.PingServiceMaster()
+    m.Data["json"] =  map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
+    }
+    m.ServeJSON()
+}
+
+// @Title DeployServiceMaster
+// @Description Deploy Master service
+// @Param       body            body    models.Master     true            "body for master content"
+// @Success 200 {object} models.Master
+// @router /deployservice [put]
+func (m *MasterController) DeployServiceMaster() {	
+    err := models.DeployServiceMaster()
+    m.Data["json"] =  map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
+    }
+    m.ServeJSON()
+}
