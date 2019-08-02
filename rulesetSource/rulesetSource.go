@@ -117,7 +117,7 @@ func CreateCustomRulesetSource(n map[string]string)(err error){
 	err = ndb.InsertRulesetSourceRules(uuid, "name", n["name"])
 	err = ndb.InsertRulesetSourceRules(uuid, "path", n["path"])
 	err = ndb.InsertRulesetSourceRules(uuid, "sourceType", n["sourceType"])
-	err = ndb.InsertRulesetSourceRules(uuid, "fileName", nameFile)
+	err = ndb.InsertRulesetSourceRules(uuid, "file", nameFile)
 	err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
 	err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", newUUID)
 	err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
@@ -335,6 +335,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 	sourceDownload["ruleset"] = map[string]string{}
 	sourceDownload["ruleset"]["sourceDownload"] = ""
 	sourceDownload,err = utils.GetConf(sourceDownload)
+	if err!=nil { logs.Error("Error getting main.conf from ruleset: "+err.Error()); return err}
 	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
 
 	splitPath := strings.Split(data["url"], "/")
@@ -361,20 +362,19 @@ func OverwriteDownload(data map[string]string) (err error) {
 		if err != nil {
 			logs.Error("Error unzipping file downloaded: "+err.Error())
 			err = os.RemoveAll(pathDownloaded+data["name"])
-			
+			if err!=nil { logs.Error("Error removing file OverwriteDownload: "+err.Error()); return err}
 			// update ruleset "exists" field
 			err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-			if err != nil {
-				logs.Error("UpdateRuleset Error from RulesetSource-> %s", err.Error())
-				return err
-			}
+			if err != nil {logs.Error("UpdateRuleset Error from RulesetSource-> %s", err.Error());return err}
 
 			return err
 		}
 	}
 
-	_ = ndb.UpdateRuleset(data["uuid"], "path", pathDownloaded + data["name"] + "/" + fileDownloaded)
-	_ = ndb.UpdateRuleset(data["uuid"], "url", data["url"])
+	err = ndb.UpdateRuleset(data["uuid"], "path", pathDownloaded + data["name"] + "/" + fileDownloaded)
+	if err!=nil { logs.Error("Error updating path OverwriteDownload: "+err.Error()); return err}
+	err = ndb.UpdateRuleset(data["uuid"], "url", data["url"])
+	if err!=nil { logs.Error("Error updating url OverwriteDownload: "+err.Error()); return err}
 
 	//get map with new files downloaded
 	err = filepath.Walk(pathDownloaded + data["name"],
@@ -387,9 +387,12 @@ func OverwriteDownload(data map[string]string) (err error) {
 		}
 		return nil
 	})
+	if err!=nil { logs.Error("Error getting map with new files downloaded OverwriteDownload: "+err.Error()); return err}
 
 	//Create map
 	dbFiles,err := ndb.GetRulesFromRuleset(data["uuid"])
+	if err!=nil { logs.Error("Error creating map OverwriteDownload: "+err.Error()); return err}
+
 	for y := range dbFiles { 
 		var values = make(map[string]string)
 		for z := range dbFiles[y] {
@@ -419,19 +422,13 @@ func OverwriteDownload(data map[string]string) (err error) {
 
 		if newFilesDB[w]["count"] == "0" {
 			err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "exists", "false")
-			if err != nil{
-				logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error())
-				return err
-			}
+			if err != nil{logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error());return err}
 		}
 		
 		if newFilesDB[w]["count"] == "1" {
 			//add md5 for every file
 			md5,err := utils.CalculateMD5(newFilesDB[w]["filePath"])
-			if err != nil{
-				logs.Error("OverwriteDownload Error calculating md5: "+err.Error())
-				return err
-			}
+			if err != nil{logs.Error("OverwriteDownload Error calculating md5: "+err.Error());return err}
 
 			uuid := utils.Generate()
 			err = ndb.InsertRulesetSourceRules(uuid, "name", data["name"])
@@ -442,6 +439,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 			err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
 			err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
 			err = ndb.InsertRulesetSourceRules(uuid, "md5", md5)
+			if err!=nil { logs.Error("Error inserting rules into ruleset source OverwriteDownload: "+err.Error()); return err}
 		}
 	}
 
@@ -456,13 +454,11 @@ func DownloadFile(data map[string]string) (err error) {
 	sourceDownload["ruleset"] = map[string]string{}
 	sourceDownload["ruleset"]["sourceDownload"] = ""
 	sourceDownload,err = utils.GetConf(sourceDownload)
+	if err!=nil { logs.Error("Error getting main.conf data DownloadFile : "+err.Error()); return err}
 	pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
 
 	value,err := ndb.GetRulesetSourceValue(data["uuid"], "path")
-	if err != nil {
-		logs.Error("Error Getting path for download file from RulesetSource-> %s", err.Error())
-		return err
-	}
+	if err != nil {logs.Error("Error Getting path for download file from RulesetSource-> %s", err.Error());return err}
 
 	splitPath := strings.Split(value, "/")
 	pathSelected := splitPath[len(splitPath)-2]
@@ -473,8 +469,10 @@ func DownloadFile(data map[string]string) (err error) {
 		err = utils.DownloadFile(data["path"], data["url"])
 		if err != nil {
 			logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
-			_ = os.RemoveAll(pathDownloaded+pathSelected)
-			_ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+			err= os.RemoveAll(pathDownloaded+pathSelected)
+			if err!=nil { logs.Error("Error removing files DownloadFile : "+err.Error()); return err}
+			err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+			if err!=nil { logs.Error("Error updating isDownloaded variable at DownloadFile : "+err.Error()); return err}
 			return err
 		}
 	
@@ -482,22 +480,18 @@ func DownloadFile(data map[string]string) (err error) {
 		if err != nil {
 			logs.Error("Error unzipping file downloaded: "+err.Error())
 			err = os.RemoveAll(pathDownloaded+pathSelected)
+			if err!=nil { logs.Error("Error getting main.conf data DownloadFile : "+err.Error()); return err}
 			return err
 		}
 
 		//insert into DB
 		ruleFiles, err := Details(data)
-		if err != nil{
-			logs.Error("DownloadFile Error getting rule files: "+err.Error())
-			return err
-		}
+		if err != nil{logs.Error("DownloadFile Error getting rule files: "+err.Error());return err}
+
 		for k,_ := range ruleFiles["files"] {
 			//add md5 for every file
 			md5,err := utils.CalculateMD5(ruleFiles["files"][k])
-			if err != nil{
-				logs.Error("DownloadFile Error calculating md5: "+err.Error())
-				return err
-			}
+			if err != nil{logs.Error("DownloadFile Error calculating md5: "+err.Error());return err}
 
 			uuid := utils.Generate()
 			err = ndb.InsertRulesetSourceRules(uuid, "name", data["name"])
@@ -508,18 +502,12 @@ func DownloadFile(data map[string]string) (err error) {
 			err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
 			err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
 			err = ndb.InsertRulesetSourceRules(uuid, "md5", md5)
-		}
-		if err != nil {
-			logs.Error("DownloadFile Error from RulesetSource-> %s", err.Error())
-			return err
+			if err != nil {logs.Error("DownloadFile Error from InsertRulesetSourceRules: "+ err.Error());return err}
 		}
 		
 		//update isDownlaoded at ruleset
 		err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "true")
-		if err != nil {
-			logs.Error("UpdateRuleset Error from RulesetSource-> %s", err.Error())
-			return err
-		}
+		if err != nil {logs.Error("UpdateRuleset Error from RulesetSource-> %s", err.Error());return err}
 
 	}else{
 		return errors.New("The folder "+data["name"]+" already exists. Use other name for the new ruleset source.")
@@ -531,22 +519,22 @@ func DownloadFile(data map[string]string) (err error) {
 
 func CompareFiles(uuid string) (mapData map[string]map[string]string, err error) {	
 	rulesetFile,err := ndb.GetRuleFilesByUniqueid(uuid)
+	if err!=nil { logs.Error("CompareFiles Error comparing files: "+err.Error()); return nil,err}
 	var sourcePath string
 	var rulesetPath string
 	for r := range rulesetFile {
 		rulesetPath = rulesetFile[r]["path"]
 		sourceFile,err := ndb.GetRuleFilesByUniqueid(rulesetFile[r]["sourceFileUUID"])
-		if err != nil {
-			logs.Error("CompareFiles failed getting sourceFileUUID data: %s", err)
-			return nil,err
-		}
+		if err != nil {logs.Error("CompareFiles failed getting sourceFileUUID data: %s", err);return nil,err}
 		for t := range sourceFile {
 			sourcePath = sourceFile[t]["path"]
 		}
 	}
 
 	fileOrig,err := utils.MapFromFile(sourcePath)
+	if err != nil {logs.Error("CompareFiles MapFromFile for origFile failed: %s", err);return nil,err}
 	fileDst,err := utils.MapFromFile(rulesetPath)
+	if err != nil {logs.Error("CompareFiles MapFromFile for fileDst failed: %s", err);return nil,err}
 
 	var returnMap = make(map[string]map[string]string)
 	lineExist := false
