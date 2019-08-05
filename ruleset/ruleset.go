@@ -512,10 +512,7 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
 	rules,err := ndb.GetRulesFromRuleset(uuid)
 	if err != nil {logs.Error("GetRulesFromRuleset -> ERROR getting all rule_files for delete local ruleset: "+err.Error());return err}
 	
-	logs.Notice(rules)
-
 	for sourceUUID := range rules{
-		logs.Warn(rules)
 		err = ndb.DeleteRuleFilesByUuid(sourceUUID)
 		if err != nil {logs.Error("DeleteRuleFilesByUuid -> ERROR deleting all local ruleset rule files associated: "+err.Error());return err}
 	}
