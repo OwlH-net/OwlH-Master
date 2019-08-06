@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "io/ioutil"
 	"encoding/json"
+	"errors"
 	"owlhmaster/utils"
 	"bytes"
 )
@@ -51,7 +52,7 @@ func Suricata(ip string, port string) (data map[string]bool, err error ) {
     if err != nil {
 		logs.Error("nodeClient/Suricata -- ERROR JSON unmarshal: "+err.Error())
         return nil,err
-    }
+	}
     return data,nil
 }
 
@@ -110,6 +111,9 @@ func Stap(ip string, port string, uuid string) (data map[string]bool, err error 
     logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
 	
+	// data[status ] = resp.status
+	// data[data] = restp.body 
+	 
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
     if err != nil {
@@ -141,10 +145,10 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
 	return rData,nil;
 }
 
-func SetRuleset(ipData string, portData string, data []byte)(err error){
+func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
 	values := make(map[string][]byte)
 	values["data"] = data
-	url := "https://"+ipData+":"+portData+"/node/suricata/retrieve"
+	url := "https://"+ipData+":"+portData+"/node/suricata/sync"
 	valuesJSON,err := json.Marshal(values)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
@@ -484,4 +488,352 @@ func EditStapServer(ip string, port string, data map[string]string)(err error){
 	}
     defer resp.Body.Close()
     return nil
+}
+
+func PlayCollector(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/collector/play"
+	_,err = utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/playCollector ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	return nil
+}
+func StopCollector(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/collector/stop"
+	_,err = utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/StopCollector ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	return nil
+}
+func ShowCollector(ipnid string, portnid string)(data string, err error){
+	url := "https://"+ipnid+":"+portnid+"/node/collector/show"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/ShowCollector ERROR connection through http new Request: "+err.Error())
+        return "",err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/ShowCollector ERROR reading request data: "+err.Error())
+        return "",err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("ShowCollector ERROR doing unmarshal JSON: "+err.Error())
+        return "",err
+	}
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func DeployZeek(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/DeployZeek"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/DeployZeek ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func ShowPorts(ipnid string, portnid string)(data map[string]map[string]string ,err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/ShowPorts ERROR connection through http new Request: "+err.Error())
+        return data,err
+    }
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/ShowPorts ERROR reading request data: "+err.Error())
+        return data,err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("ShowPorts ERROR doing unmarshal JSON: "+err.Error())
+        return data,err
+	}
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func PingPorts(ipnid string, portnid string)(data map[string]map[string]string ,err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/PingPorts/"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/PingPorts ERROR connection through http new Request: "+err.Error())
+        return data,err
+    }
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error())
+        return data,err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error())
+        return data,err
+	}
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func ChangeMode(ipnid string, portnid string, mode string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/mode"
+	values := make(map[string]string)
+    values["mode"] = mode
+	valuesJSON,err := json.Marshal(values)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/ChangeMode ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}
+
+func ChangeStatus(ipnid string, portnid string, status string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/status"
+	values := make(map[string]string)
+    values["status"] = status
+	valuesJSON,err := json.Marshal(values)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/ChangeStatus ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}
+
+func DeletePorts(ipnid string, portnid string, ports map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/delete"
+ 
+	valuesJSON,err := json.Marshal(ports)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/DeletePorts ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}
+
+func DeleteAllPorts(ipnid string, portnid string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/deleteAll"
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/DeleteAllPorts ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}
+
+func PingAnalyzer(ipnid string, portnid string)(data map[string]string ,err error){
+	url := "https://"+ipnid+":"+portnid+"/node/analyzer/pingAnalyzer/"
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/PingAnalyzer ERROR connection through http new Request: "+err.Error())
+        return data,err
+    }
+
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error())
+        return data,err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error())
+        return data,err
+	}
+	
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func ChangeAnalyzerStatus(ipnid string, portnid string, anode map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/analyzer/changeAnalyzerStatus/"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/ChangeAnalyzerStatus ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	defer resp.Body.Close()
+	return nil
+}
+
+func DeployNode(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/deploy"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/Deploy ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func CheckDeploy(ipData string, portData string)(data map[string]string){
+	url := "https://"+ipData+":"+portData+"/node/deploy"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/CheckDeploy ERROR connection through http new Request: "+err.Error())
+		return nil
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error())
+        return nil
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error())
+        return nil
+	}
+	
+	defer resp.Body.Close()
+	return data
+}
+
+func ChangeDataflowValues(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/dataflow/changeDataflowValues"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/ChangeDataflowValues ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func UpdateNetworkInterface(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/net"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/UpdateNetworkInterface ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func LoadDataflowValues(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/dataflow/loadDataflowValues"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/LoadDataflowValues ERROR connection through http new Request: "+err.Error())
+		return nil,err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/LoadDataflowValues ERROR reading request data: "+err.Error())
+        return nil,err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("LoadDataflowValues ERROR doing unmarshal JSON: "+err.Error())
+        return nil,err
+	}
+	
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func LoadNetworkValues(ipData string, portData string)(data map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/net/"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/LoadNetworkValues ERROR connection through http new Request: "+err.Error())
+		return nil,err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {logs.Error("nodeclient/LoadNetworkValues ERROR reading request data: "+err.Error());return nil,err}
+
+	err = json.Unmarshal(body, &data)
+    if err != nil {logs.Error("LoadNetworkValues ERROR doing unmarshal JSON: "+err.Error());return nil,err}
+
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func LoadNetworkValuesSelected(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/net/values"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/LoadNetworkValuesSelected ERROR connection through http new Request: "+err.Error())
+		return nil,err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {logs.Error("nodeclient/LoadNetworkValuesSelected ERROR reading request data: "+err.Error());return nil,err}
+
+	err = json.Unmarshal(body, &data)
+    if err != nil {logs.Error("LoadNetworkValuesSelected ERROR doing unmarshal JSON: "+err.Error());return nil,err}
+
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func GetServiceStatus(ip string, port string) (err error) {
+    logs.Info("NodeClient GetServiceStatus -> %s, %s", ip, port)
+	url := "https://"+ip+":"+port+"/node/ping/services"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+    if err != nil {
+		logs.Error("nodeClient/GetServiceStatus ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	body, _ := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	var raw map[string]interface{}
+	json.Unmarshal(body, &raw)
+	
+	if raw["ack"] == "false"{
+		return errors.New("Service don't exists")
+	}else if raw["ack"] == "true"{
+		return nil
+	}
+
+	return nil
+}
+
+func DeployService(ip string, port string) (err error) {
+    logs.Info("NodeClient DeployService -> %s, %s", ip, port)
+	url := "https://"+ip+":"+port+"/node/ping/deployservice"
+	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+    if err != nil {
+		logs.Error("nodeClient/DeployService ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+	body, _ := ioutil.ReadAll(resp.Body)
+	defer resp.Body.Close()
+
+	var raw map[string]interface{}
+	json.Unmarshal(body, &raw)
+	
+	if raw["ack"] == "false"{
+		return errors.New("Service don't exists")
+	}else if raw["ack"] == "true"{
+		return nil
+	}
+
+	return nil
 }

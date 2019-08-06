@@ -92,6 +92,7 @@ func (n *RulesetController) GetRulesetRules() {
     }else{
 		n.Data["json"] = rulesets
 	}
+
     n.ServeJSON()
 }
 
@@ -224,6 +225,168 @@ func (n *RulesetController) DeleteNode() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &rulesetDelete)
     err := models.DeleteRuleset(rulesetDelete)
 	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SyncRulesetToAllNodes
+// @Description synchronize Ruleset to all nodes using it
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /synchronize [put]
+func (n *RulesetController) SyncRulesetToAllNodes() { 
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	
+    err := models.SyncRulesetToAllNodes(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+	
+    n.ServeJSON()
+}
+
+// @Title GetAllRuleData
+// @Description Get all data from rule data
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /getAllRuleData [get]
+func (n *RulesetController) GetAllRuleData() { 
+    data,err := models.GetAllRuleData()
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title AddNewRuleset
+// @Description Add new custom ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /addNewRuleset [put]
+func (n *RulesetController) AddNewRuleset() { 
+    var anode map[string]map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	duplicated,err := models.AddNewRuleset(anode)
+	
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}else {
+		if duplicated == nil {
+			n.Data["json"] = map[string]string{"ack": "true"}	
+		}else{
+			n.Data["json"] = string(duplicated)
+		}
+	}
+    n.ServeJSON()
+}
+
+// @Title GetAllCustomRulesets
+// @Description Get All Custom Rulesets
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /custom [get]
+func (n *RulesetController) GetAllCustomRulesets() { 
+    data,err := models.GetAllCustomRulesets()
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SynchronizeAllRulesets
+// @Description Synchronize All Custom Rulesets
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /syncAllRulesets [put]
+func (n *RulesetController) SynchronizeAllRulesets() { 
+    err := models.SynchronizeAllRulesets()
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+	}
+    n.ServeJSON()
+}
+
+
+// @Title AddRulesToCustomRuleset
+// @Description Add rules to custom ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /addRulesToCustom [put]
+func (n *RulesetController) AddRulesToCustomRuleset() { 
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    data, err := models.AddRulesToCustomRuleset(anode)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ReadRulesetData
+// @Description Add rules to custom ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /readRuleset/:uuid [put]
+func (n *RulesetController) ReadRulesetData() { 
+    uuid := n.GetString(":uuid")
+    data, err := models.ReadRulesetData(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveRulesetData
+// @Description Add rules to custom ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /saveRuleset/ [put]
+func (n *RulesetController) SaveRulesetData() { 
+    var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveRulesetData(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title TimeSchedule
+// @Description Add a time schedule for syncronize rulesets
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /timeSchedule [put]
+func (n *RulesetController) TimeSchedule() { 
+    var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.TimeSchedule(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopTimeSchedule
+// @Description Stop a current time schedule for syncronize rulesets
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /stopTimeSchedule [put]
+func (n *RulesetController) StopTimeSchedule() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.StopTimeSchedule(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

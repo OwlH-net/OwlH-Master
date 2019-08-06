@@ -39,4 +39,7 @@ func Conn() {
 func Close() {
 	Db.Close()
 	Rdb.Close()
+	Gdb.Close()
+	RSdb.Close()
+	Mdb.Close()
 }

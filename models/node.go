@@ -57,10 +57,10 @@ func DeleteNode(n string) (err error) {
     return err
 }
 
-func SetRuleset(nid string) (err error) {
-    err = node.SetRuleset(nid)
-    return err
-}
+// func SetRuleset(nid string) (err error) {
+//     err = node.SetRuleset(nid)
+//     return err
+// }
 
 func GetNodeFile(n map[string]string) (data map[string]string, err error) {
     data,err = node.GetNodeFile(n)
@@ -111,4 +111,98 @@ func StopWazuh(uuid string) (data string, err error) {
     logs.Info("StopWazuh status Node")
     data,err = node.StopWazuh(uuid)
     return data,err
+}
+
+func SyncRulesetToNode(anode map[string]string)(err error){
+    err = node.SyncRulesetToNode(anode)
+    return err
+}
+
+func DeployZeek(uuid string)(err error){
+    err = node.DeployZeek(uuid)
+    return err
+}
+
+func ShowPorts(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.ShowPorts(uuid)
+    return data, err
+}
+
+func DeletePorts(anode map[string]string, uuid string)(err error){
+    err = node.DeletePorts(anode, uuid)
+    return err
+}
+
+func DeleteAllPorts(uuid string)(err error){
+    err = node.DeleteAllPorts(uuid)
+    return err
+}
+
+func PingPorts(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.PingPorts(uuid)
+    return data, err
+}
+
+func ChangeMode(anode map[string]string)(err error){
+    err = node.ChangeMode(anode)
+    return err
+}
+func ChangeStatus(anode map[string]string)(err error){
+    err = node.ChangeStatus(anode)
+    return err
+}
+
+func PingAnalyzer(uuid string)(data map[string]string, err error){
+    data, err = node.PingAnalyzer(uuid)
+    return data, err
+}
+
+func ChangeAnalyzerStatus(uuid map[string]string)(err error){
+    err = node.ChangeAnalyzerStatus(uuid)
+    return err
+}
+
+func DeployNode(anode map[string]string)(err error){
+    err = node.DeployNode(anode)
+    return err
+}
+
+func UpdateNetworkInterface(anode map[string]string)(err error){
+    err = node.UpdateNetworkInterface(anode)
+    return err
+}
+
+func GetServiceStatus(uuid string)(err error){
+    err = node.GetServiceStatus(uuid)
+    return err
+}
+
+func DeployService(uuid string)(err error){
+    err = node.DeployService(uuid)
+    return err
+}
+
+func ChangeDataflowValues(anode map[string]string)(err error){
+    err = node.ChangeDataflowValues(anode)
+    return err
+}
+
+func CheckDeploy(uuid string)(anode map[string]string){
+    anode = node.CheckDeploy(uuid)
+    return anode
+}
+
+func LoadDataflowValues(uuid string)(data map[string]map[string]string, err error){
+	data, err = node.LoadDataflowValues(uuid)
+    return data, err
+}
+
+func LoadNetworkValues(uuid string)(data map[string]string, err error){
+	data, err = node.LoadNetworkValues(uuid)
+    return data, err
+}
+
+func LoadNetworkValuesSelected(uuid string)(data map[string]map[string]string, err error){
+	data, err = node.LoadNetworkValuesSelected(uuid)
+    return data, err
 }

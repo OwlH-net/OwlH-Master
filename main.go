@@ -8,11 +8,13 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     "owlhmaster/dispatcher"
+    "owlhmaster/scheduler"
     "owlhmaster/utils"
 )
 
 
 func main() {
+	//Configuration for the logger
 	var err error
 	loadDataLogger := map[string]map[string]string{}
 	loadDataLogger["logs"] = map[string]string{}
@@ -37,12 +39,21 @@ func main() {
 	logs.NewLogger(10000)
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
-	logs.Error("Version: 0.5.190415.0922")
+	//Application version
+	logs.Error("Version: 0.8.190702.0905")
 
+	//Init database connection
     ndb.Conn()
     ndb.RConn()
+	// ndb.GConn()	
+	ndb.MConn()	
+	
+	//Init dispatcher at master
     go dispatcher.Init()
-    
+	//Init scheduler at master
+    go scheduler.Init()
+	
+	//Beego API documentation
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"

@@ -14,6 +14,11 @@ import (
 
 func init() {
 	ns := beego.NewNamespace("/v1",
+		beego.NSNamespace("/home",
+			beego.NSInclude(
+				&controllers.HomeController{},
+			),
+		),
 		beego.NSNamespace("/master",
 			beego.NSInclude(
 				&controllers.MasterController{},
@@ -34,7 +39,27 @@ func init() {
 				&controllers.StapController{},
 			),
 		),
-		
+		beego.NSNamespace("/rulesetSource",
+			beego.NSInclude(
+				&controllers.RulesetSourceController{},
+			),
+		),
+		beego.NSNamespace("/group",
+			beego.NSInclude(
+				&controllers.GroupController{},
+			),
+		),	
+		beego.NSNamespace("/collector",
+			beego.NSInclude(
+				&controllers.CollectorController{},
+			),
+		),	
+		beego.NSNamespace("/scheduler",
+			beego.NSInclude(
+				&controllers.SchedulerController{},
+			),
+		),	
 	)
+
 	beego.AddNamespace(ns)
 }

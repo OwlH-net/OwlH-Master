@@ -1,0 +1,13 @@
+[Unit]
+Description=owlhmaster API service
+
+[Service]
+Type=simple
+EnvironmentFile=/usr/local/owlh/src/owlhmaster/conf/owlhmaster-init.conf
+ExecStart=/bin/sh -c '/usr/local/owlh/src/owlhmaster/owlhmaster > /dev/null 2>&1'
+Restart=on-failure
+RestartSec=5
+WorkingDirectory=/usr/local/owlh/src/owlhmaster
+
+[Install]
+WantedBy=multi-user.target
