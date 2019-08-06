@@ -839,3 +839,32 @@ func LoadNetworkValuesSelected(uuid string)(anode map[string]map[string]string, 
 
 	return anode,nil
 }
+
+func SaveSocketToNetwork(anode map[string]string)(err error){	
+	if ndb.Db == nil {
+        logs.Error("SaveSocketToNetwork -- Can't acces to database")
+        return err
+	}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveSocketToNetwork ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.SaveSocketToNetwork(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveSocketToNetwork ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+// func LoadSocketToNetwork(uuid string)(data map[string]map[string]string, err error){
+// 	if ndb.Db == nil {
+//         logs.Error("LoadSocketToNetwork -- Can't acces to database")
+//         return nil,err
+// 	}
+// 	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+// 	if err != nil { logs.Error("node/LoadSocketToNetwork ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+
+// 	anode,err = nodeclient.LoadSocketToNetwork(ipnid,portnid)
+// 	if err != nil { logs.Error("node/LoadSocketToNetwork ERROR http data request: "+err.Error()); return nil,err}
+
+// 	return anode,nil
+// }

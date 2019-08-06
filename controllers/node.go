@@ -687,3 +687,34 @@ func (m *NodeController) UpdateNetworkInterface() {
     }
     m.ServeJSON()
 }
+
+// @Title SaveSocketToNetwork
+// @Description save socket to network information
+// @Success 200 {object} models.Node
+// @router /saveSocketToNetwork [put]
+func (n *NodeController) SaveSocketToNetwork() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveSocketToNetwork(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// // @Title LoadSocketToNetwork
+// // @Description Load socket to network data from dataflow node values
+// // @Success 200 {object} models.Node
+// // @Failure 403 :uuid is empty
+// // @router /loadSocketToNetwork/:uuid [get]
+// func (n *NodeController) LoadSocketToNetwork() {
+// 	uuid := n.GetString(":uuid")
+// 	data, err := models.LoadSocketToNetwork(uuid)
+// 	n.Data["json"] = data
+// 	if err != nil {
+// 		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+// 	}
+
+//     n.ServeJSON()
+// }

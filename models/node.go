@@ -206,3 +206,13 @@ func LoadNetworkValuesSelected(uuid string)(data map[string]map[string]string, e
 	data, err = node.LoadNetworkValuesSelected(uuid)
     return data, err
 }
+
+func SaveSocketToNetwork(anode map[string]string)(err error){
+    err = node.SaveSocketToNetwork(anode)
+    return err
+}
+
+// func LoadSocketToNetwork(uuid string)(data map[string]map[string]string, err error){
+// 	data, err = node.LoadSocketToNetwork(uuid)
+//     return data, err
+// }

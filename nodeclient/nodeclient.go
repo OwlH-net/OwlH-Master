@@ -837,3 +837,32 @@ func DeployService(ip string, port string) (err error) {
 
 	return nil
 }
+
+func SaveSocketToNetwork(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/dataflow/saveSocketToNetwork"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/SaveSocketToNetwork ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+// func LoadSocketToNetwork(ipData string, portData string)(data map[string]map[string]string, err error){
+// 	url := "https://"+ipData+":"+portData+"/node/dataflow/loadSocketToNetwork"
+// 	resp,err := utils.NewRequestHTTP("GET", url, nil)
+// 	if err != nil {
+// 		logs.Error("nodeclient/LoadSocketToNetwork ERROR connection through http new Request: "+err.Error())
+// 		return nil,err
+// 	}
+// 	body, err := ioutil.ReadAll(resp.Body)
+// 	if err != nil {logs.Error("nodeclient/LoadSocketToNetwork ERROR reading request data: "+err.Error());return nil,err}
+
+// 	err = json.Unmarshal(body, &data)
+//     if err != nil {logs.Error("LoadSocketToNetwork ERROR doing unmarshal JSON: "+err.Error());return nil,err}
+
+// 	defer resp.Body.Close()
+// 	return data,nil
+// }
