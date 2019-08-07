@@ -212,7 +212,17 @@ func SaveSocketToNetwork(anode map[string]string)(err error){
     return err
 }
 
-// func LoadSocketToNetwork(uuid string)(data map[string]map[string]string, err error){
-// 	data, err = node.LoadSocketToNetwork(uuid)
-//     return data, err
-// }
+func SaveNewLocal(anode map[string]string)(err error){
+    err = node.SaveNewLocal(anode)
+    return err
+}
+
+func SaveVxLAN(anode map[string]string)(err error){
+    err = node.SaveVxLAN(anode)
+    return err
+}
+
+func SocketToNetworkList(uuid string)(data map[string]map[string]string, err error){
+	data, err = node.SocketToNetworkList(uuid)
+    return data, err
+}

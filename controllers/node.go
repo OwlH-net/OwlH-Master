@@ -703,18 +703,49 @@ func (n *NodeController) SaveSocketToNetwork() {
     n.ServeJSON()
 }
 
-// // @Title LoadSocketToNetwork
-// // @Description Load socket to network data from dataflow node values
-// // @Success 200 {object} models.Node
-// // @Failure 403 :uuid is empty
-// // @router /loadSocketToNetwork/:uuid [get]
-// func (n *NodeController) LoadSocketToNetwork() {
-// 	uuid := n.GetString(":uuid")
-// 	data, err := models.LoadSocketToNetwork(uuid)
-// 	n.Data["json"] = data
-// 	if err != nil {
-// 		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
-// 	}
 
-//     n.ServeJSON()
-// }
+// @Title SaveNewLocal
+// @Description save New local into dataflow at node
+// @Success 200 {object} models.Node
+// @router /saveNewLocal [put]
+func (n *NodeController) SaveNewLocal() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveNewLocal(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveVxLAN
+// @Description save VxLAN into dataflow at node
+// @Success 200 {object} models.Node
+// @router /saveVxLAN [put]
+func (n *NodeController) SaveVxLAN() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveVxLAN(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SocketToNetworkList
+// @Description Load node data flow values
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /socketToNetworkList/:uuid [get]
+func (n *NodeController) SocketToNetworkList() {
+	uuid := n.GetString(":uuid")
+	data, err := models.SocketToNetworkList(uuid)
+	n.Data["json"] = data
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}

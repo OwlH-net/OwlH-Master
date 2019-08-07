@@ -850,19 +850,49 @@ func SaveSocketToNetwork(ipData string, portData string, anode map[string]string
 	return nil
 }
 
-// func LoadSocketToNetwork(ipData string, portData string)(data map[string]map[string]string, err error){
-// 	url := "https://"+ipData+":"+portData+"/node/dataflow/loadSocketToNetwork"
-// 	resp,err := utils.NewRequestHTTP("GET", url, nil)
-// 	if err != nil {
-// 		logs.Error("nodeclient/LoadSocketToNetwork ERROR connection through http new Request: "+err.Error())
-// 		return nil,err
-// 	}
-// 	body, err := ioutil.ReadAll(resp.Body)
-// 	if err != nil {logs.Error("nodeclient/LoadSocketToNetwork ERROR reading request data: "+err.Error());return nil,err}
+func SaveNewLocal(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/dataflow/saveNewLocal"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/SaveNewLocal ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
 
-// 	err = json.Unmarshal(body, &data)
-//     if err != nil {logs.Error("LoadSocketToNetwork ERROR doing unmarshal JSON: "+err.Error());return nil,err}
+func SaveVxLAN(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/dataflow/saveVxLAN"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/SaveVxLAN ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
 
-// 	defer resp.Body.Close()
-// 	return data,nil
-// }
+func SocketToNetworkList(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/dataflow/socketToNetworkList"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {
+		logs.Error("nodeclient/SocketToNetworkList ERROR connection through http new Request: "+err.Error())
+		return nil,err
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+
+	if err != nil {
+		logs.Error("nodeclient/SocketToNetworkList ERROR reading request data: "+err.Error())
+        return nil,err
+	}
+	err = json.Unmarshal(body, &data)
+    if err != nil {
+		logs.Error("SocketToNetworkList ERROR doing unmarshal JSON: "+err.Error())
+        return nil,err
+	}
+	
+	defer resp.Body.Close()
+	return data,nil
+}

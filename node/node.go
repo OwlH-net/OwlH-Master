@@ -827,10 +827,8 @@ func LoadNetworkValues(uuid string)(anode map[string]string, err error){
 }
 
 func LoadNetworkValuesSelected(uuid string)(anode map[string]map[string]string, err error){
-	if ndb.Db == nil {
-        logs.Error("LoadNetworkValuesSelected -- Can't acces to database")
-        return nil,err
-	}
+	if ndb.Db == nil {logs.Error("LoadNetworkValuesSelected -- Can't acces to database");return nil,err}
+
 	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil { logs.Error("node/LoadNetworkValuesSelected ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
 
@@ -841,10 +839,7 @@ func LoadNetworkValuesSelected(uuid string)(anode map[string]map[string]string, 
 }
 
 func SaveSocketToNetwork(anode map[string]string)(err error){	
-	if ndb.Db == nil {
-        logs.Error("SaveSocketToNetwork -- Can't acces to database")
-        return err
-	}
+	if ndb.Db == nil {logs.Error("SaveSocketToNetwork -- Can't acces to database");return err}
 
 	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
 	if err != nil { logs.Error("node/SaveSocketToNetwork ERROR Obtaining Port and Ip: "+err.Error()); return err}
@@ -855,16 +850,40 @@ func SaveSocketToNetwork(anode map[string]string)(err error){
     return err
 }
 
-// func LoadSocketToNetwork(uuid string)(data map[string]map[string]string, err error){
-// 	if ndb.Db == nil {
-//         logs.Error("LoadSocketToNetwork -- Can't acces to database")
-//         return nil,err
-// 	}
-// 	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-// 	if err != nil { logs.Error("node/LoadSocketToNetwork ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+func SaveNewLocal(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("SaveNewLocal -- Can't acces to database");return err}
 
-// 	anode,err = nodeclient.LoadSocketToNetwork(ipnid,portnid)
-// 	if err != nil { logs.Error("node/LoadSocketToNetwork ERROR http data request: "+err.Error()); return nil,err}
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveNewLocal ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
-// 	return anode,nil
-// }
+	err = nodeclient.SaveNewLocal(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveNewLocal ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+func SaveVxLAN(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("SaveVxLAN -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveVxLAN ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.SaveVxLAN(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveVxLAN ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+func SocketToNetworkList(uuid string)(data map[string]map[string]string, err error){
+	if ndb.Db == nil {
+        logs.Error("SocketToNetworkList -- Can't acces to database")
+        return nil,err
+	}
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/SocketToNetworkList ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+
+	anode,err = nodeclient.SocketToNetworkList(ipnid,portnid)
+	if err != nil { logs.Error("node/SocketToNetworkList ERROR http data request: "+err.Error()); return nil,err}
+
+	return anode,nil
+}
