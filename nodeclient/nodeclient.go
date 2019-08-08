@@ -896,3 +896,27 @@ func SocketToNetworkList(ipData string, portData string)(data map[string]map[str
 	defer resp.Body.Close()
 	return data,nil
 }
+
+func SaveSocketToNetworkSelected(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/dataflow/saveSocketToNetworkSelected"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/SaveSocketToNetworkSelected ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func DeleteSocketToNetworkSelected(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/dataflow/deleteSocketToNetworkSelected"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/DeleteSocketToNetworkSelected ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}

@@ -226,3 +226,13 @@ func SocketToNetworkList(uuid string)(data map[string]map[string]string, err err
 	data, err = node.SocketToNetworkList(uuid)
     return data, err
 }
+
+func SaveSocketToNetworkSelected(anode map[string]string)(err error){
+	err = node.SaveSocketToNetworkSelected(anode)
+	return err
+}
+
+func DeleteSocketToNetworkSelected(anode map[string]string)(err error){
+	err = node.DeleteSocketToNetworkSelected(anode)
+	return err
+}

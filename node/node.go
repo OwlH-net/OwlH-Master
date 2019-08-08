@@ -882,8 +882,32 @@ func SocketToNetworkList(uuid string)(data map[string]map[string]string, err err
 	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil { logs.Error("node/SocketToNetworkList ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
 
-	anode,err = nodeclient.SocketToNetworkList(ipnid,portnid)
+	anode,err := nodeclient.SocketToNetworkList(ipnid,portnid)
 	if err != nil { logs.Error("node/SocketToNetworkList ERROR http data request: "+err.Error()); return nil,err}
 
 	return anode,nil
+}
+
+func SaveSocketToNetworkSelected(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("SaveSocketToNetworkSelected -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveSocketToNetworkSelected ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.SaveSocketToNetworkSelected(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveSocketToNetworkSelected ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+func DeleteSocketToNetworkSelected(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("DeleteSocketToNetworkSelected -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/DeleteSocketToNetworkSelected ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.DeleteSocketToNetworkSelected(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/DeleteSocketToNetworkSelected ERROR http data request: "+err.Error()); return err}
+
+    return err
 }

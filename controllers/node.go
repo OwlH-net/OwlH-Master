@@ -749,3 +749,33 @@ func (n *NodeController) SocketToNetworkList() {
 
     n.ServeJSON()
 }
+
+// @Title SaveSocketToNetworkSelected
+// @Description Save socket to network selected
+// @Success 200 {object} models.Node
+// @router /saveSocketToNetworkSelected [put]
+func (n *NodeController) SaveSocketToNetworkSelected() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveSocketToNetworkSelected(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteSocketToNetworkSelected
+// @Description Save socket to network selected
+// @Success 200 {object} models.Node
+// @router /deleteSocketToNetworkSelected [delete]
+func (n *NodeController) DeleteSocketToNetworkSelected() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.DeleteSocketToNetworkSelected(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
