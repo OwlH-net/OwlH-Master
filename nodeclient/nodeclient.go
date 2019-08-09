@@ -909,12 +909,12 @@ func SaveSocketToNetworkSelected(ipData string, portData string, anode map[strin
 	return nil
 }
 
-func DeleteSocketToNetworkSelected(ipData string, portData string, anode map[string]string)(err error){
-	url := "https://"+ipData+":"+portData+"/node/dataflow/deleteSocketToNetworkSelected"
+func DeleteDataFlowValueSelected(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/dataflow/deleteDataFlowValueSelected"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
-		logs.Error("nodeclient/DeleteSocketToNetworkSelected ERROR connection through http new Request: "+err.Error())
+		logs.Error("nodeclient/DeleteDataFlowValueSelected ERROR connection through http new Request: "+err.Error())
 		return err
 	}
 	defer resp.Body.Close()

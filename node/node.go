@@ -900,14 +900,14 @@ func SaveSocketToNetworkSelected(anode map[string]string)(err error){
     return err
 }
 
-func DeleteSocketToNetworkSelected(anode map[string]string)(err error){
-	if ndb.Db == nil {logs.Error("DeleteSocketToNetworkSelected -- Can't acces to database");return err}
+func DeleteDataFlowValueSelected(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("DeleteDataFlowValueSelected -- Can't acces to database");return err}
 
 	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
-	if err != nil { logs.Error("node/DeleteSocketToNetworkSelected ERROR Obtaining Port and Ip: "+err.Error()); return err}
+	if err != nil { logs.Error("node/DeleteDataFlowValueSelected ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
-	err = nodeclient.DeleteSocketToNetworkSelected(ipnid,portnid,anode)
-	if err != nil { logs.Error("node/DeleteSocketToNetworkSelected ERROR http data request: "+err.Error()); return err}
+	err = nodeclient.DeleteDataFlowValueSelected(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/DeleteDataFlowValueSelected ERROR http data request: "+err.Error()); return err}
 
     return err
 }

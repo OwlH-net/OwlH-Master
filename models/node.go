@@ -232,7 +232,7 @@ func SaveSocketToNetworkSelected(anode map[string]string)(err error){
 	return err
 }
 
-func DeleteSocketToNetworkSelected(anode map[string]string)(err error){
-	err = node.DeleteSocketToNetworkSelected(anode)
+func DeleteDataFlowValueSelected(anode map[string]string)(err error){
+	err = node.DeleteDataFlowValueSelected(anode)
 	return err
 }
