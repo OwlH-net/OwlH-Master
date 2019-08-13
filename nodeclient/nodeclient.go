@@ -842,11 +842,20 @@ func SaveSocketToNetwork(ipData string, portData string, anode map[string]string
 	url := "https://"+ipData+":"+portData+"/node/dataflow/saveSocketToNetwork"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/SaveSocketToNetwork ERROR connection through http new Request: "+err.Error())
-		return err
-	}
+	if err != nil { logs.Error("nodeclient/SaveSocketToNetwork ERROR connection through http new Request: "+err.Error()); return err}
+	
+	body, _ := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
+	var raw map[string]interface{}
+	json.Unmarshal(body, &raw)
+	
+	if raw["ack"] == "false"{
+		return errors.New("Name used. Use other name.")
+	}else if raw["ack"] == "true"{
+		return nil
+	}
+	
+
 	return nil
 }
 
@@ -854,11 +863,19 @@ func SaveNewLocal(ipData string, portData string, anode map[string]string)(err e
 	url := "https://"+ipData+":"+portData+"/node/dataflow/saveNewLocal"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/SaveNewLocal ERROR connection through http new Request: "+err.Error())
-		return err
-	}
+	if err != nil {logs.Error("nodeclient/SaveNewLocal ERROR connection through http new Request: "+err.Error()); return err}
+
+	body, _ := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
+	var raw map[string]interface{}
+	json.Unmarshal(body, &raw)
+	
+	if raw["ack"] == "false"{
+		return errors.New("Name used. Use other name.")
+	}else if raw["ack"] == "true"{
+		return nil
+	}
+
 	return nil
 }
 
@@ -866,11 +883,19 @@ func SaveVxLAN(ipData string, portData string, anode map[string]string)(err erro
 	url := "https://"+ipData+":"+portData+"/node/dataflow/saveVxLAN"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/SaveVxLAN ERROR connection through http new Request: "+err.Error())
-		return err
-	}
+	if err != nil { logs.Error("nodeclient/SaveVxLAN ERROR connection through http new Request: "+err.Error()); return err}
+
+	body, _ := ioutil.ReadAll(resp.Body)
 	defer resp.Body.Close()
+	var raw map[string]interface{}
+	json.Unmarshal(body, &raw)
+	
+	if raw["ack"] == "false"{
+		return errors.New("Name used. Use other name.")
+	}else if raw["ack"] == "true"{
+		return nil
+	}
+
 	return nil
 }
 
