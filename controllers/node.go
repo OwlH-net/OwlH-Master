@@ -779,3 +779,18 @@ func (n *NodeController) DeleteDataFlowValueSelected() {
     }
     n.ServeJSON()
 }
+
+// @Title GetNodeMonitor
+// @Description Get node monitor status
+// @Success 200 {object} models.Node
+// @router /pingmonitor/:uuid [get]
+func (n *NodeController) GetNodeMonitor() {
+	uuid := n.GetString(":uuid")
+    data, err := models.GetNodeMonitor(uuid)
+	n.Data["json"] = data
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

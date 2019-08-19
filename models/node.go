@@ -236,3 +236,8 @@ func DeleteDataFlowValueSelected(anode map[string]string)(err error){
 	err = node.DeleteDataFlowValueSelected(anode)
 	return err
 }
+
+func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
+    data, err = node.GetNodeMonitor(uuid)
+    return data, err
+}

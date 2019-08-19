@@ -911,3 +911,16 @@ func DeleteDataFlowValueSelected(anode map[string]string)(err error){
 
     return err
 }
+
+
+func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
+	if ndb.Db == nil { logs.Error("GetNodeMonitor -- Can't acces to database"); return data,err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/GetNodeMonitor ERROR Obtaining Port and Ip: "+err.Error()); return data,err}
+
+	data,err = nodeclient.GetNodeMonitor(ipnid,portnid)
+	if err != nil { logs.Error("node/GetNodeMonitor ERROR http data request: "+err.Error()); return data,err}
+
+	return data,nil
+}

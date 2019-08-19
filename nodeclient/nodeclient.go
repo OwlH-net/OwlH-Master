@@ -945,3 +945,18 @@ func DeleteDataFlowValueSelected(ipData string, portData string, anode map[strin
 	defer resp.Body.Close()
 	return nil
 }
+
+func GetNodeMonitor(ipData string, portData string)(data map[string]interface{}, err error){
+	url := "https://"+ipData+":"+portData+"/node/monitor/"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil { logs.Error("nodeclient/GetNodeMonitor ERROR connection through http new Request: "+err.Error()); return data,err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/GetNodeMonitor ERROR reading request data: "+err.Error()); return data,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/GetNodeMonitor ERROR doing unmarshal JSON: "+err.Error()); return data,err}
+
+	defer resp.Body.Close()
+	return data,nil
+}
