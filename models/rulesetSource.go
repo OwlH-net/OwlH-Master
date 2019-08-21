@@ -1,7 +1,8 @@
 package models 
 
 import (
-    "owlhmaster/rulesetSource"
+	"owlhmaster/rulesetSource"
+	"github.com/astaxie/beego/logs"
 )
 
 func CreateRulesetSource(data map[string]string) (err error) {
@@ -35,12 +36,18 @@ func DeleteRulesetFile(uuid string) (err error) {
 }
 
 func DownloadFile(data map[string]string) (err error) {
-    err = rulesetSource.DownloadFile(data)
+	err = rulesetSource.DownloadFile(data)
+	logs.Notice(err)
+	logs.Notice(err)
+	logs.Notice(err)
     return err
 }
 
 func OverwriteDownload(data map[string]string) (err error) {
-    err = rulesetSource.OverwriteDownload(data)
+	err = rulesetSource.OverwriteDownload(data)
+	logs.Notice(err)
+	logs.Notice(err)
+	logs.Notice(err)
     return err
 }
 

@@ -381,7 +381,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 
 		err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"])
 		if err != nil {
-			logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
+			logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
 			_ = os.RemoveAll(pathDownloaded+data["name"])
 
 			// update ruleset "exists" field
@@ -394,10 +394,10 @@ func OverwriteDownload(data map[string]string) (err error) {
 		if err != nil {
 			logs.Error("Error unzipping file downloaded: "+err.Error())
 			err = os.RemoveAll(pathDownloaded+data["name"])
-			if err!=nil { logs.Error("Error removing file OverwriteDownload: "+err.Error()); return err}
+			if err!=nil { logs.Error("Error removing file OverwriteDownload due to download: "+err.Error()); return err}
 			// update ruleset "exists" field
 			err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-			if err != nil {logs.Error("UpdateRuleset Error from RulesetSource-> %s", err.Error());return err}
+			if err != nil {logs.Error("UpdateRuleset Error from RulesetSource  due to download-> %s", err.Error());return err}
 
 			return err
 		}
@@ -501,10 +501,10 @@ func DownloadFile(data map[string]string) (err error) {
 		err = utils.DownloadFile(data["path"], data["url"])
 		if err != nil {
 			logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
-			err= os.RemoveAll(pathDownloaded+pathSelected)
-			if err!=nil { logs.Error("Error removing files DownloadFile : "+err.Error()); return err}
-			err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-			if err!=nil { logs.Error("Error updating isDownloaded variable at DownloadFile : "+err.Error()); return err}
+			_ = os.RemoveAll(pathDownloaded+pathSelected)
+			// if err!=nil { logs.Error("Error removing files DownloadFile due to download error: "+err.Error()); return err}
+			_ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+			// if err!=nil { logs.Error("Error updating isDownloaded variable at DownloadFile due to download error: "+err.Error()); return err}
 			return err
 		}
 	
