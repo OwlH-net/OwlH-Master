@@ -373,35 +373,36 @@ func OverwriteDownload(data map[string]string) (err error) {
 	splitPath := strings.Split(data["url"], "/")
 	fileDownloaded := splitPath[len(splitPath)-1]
 
-	_ = os.RemoveAll(pathDownloaded+data["name"])
+	// _ = os.RemoveAll(pathDownloaded+data["name"])
 
 	//download file
 	if _, err := os.Stat(pathDownloaded+data["name"]); os.IsNotExist(err) {
 		os.MkdirAll(pathDownloaded+data["name"], os.ModePerm)
-
-		err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"])
-		if err != nil {
-			logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
-			_ = os.RemoveAll(pathDownloaded+data["name"])
-
-			// update ruleset "exists" field
-			_ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-			return err
-		}
-	
-		// err = utils.ExtractTarGz(data["path"], pathDownloaded, data["name"])
-		err = utils.ExtractTarGz(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
-		if err != nil {
-			logs.Error("Error unzipping file downloaded: "+err.Error())
-			err = os.RemoveAll(pathDownloaded+data["name"])
-			if err!=nil { logs.Error("Error removing file OverwriteDownload due to download: "+err.Error()); return err}
-			// update ruleset "exists" field
-			err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-			if err != nil {logs.Error("UpdateRuleset Error from RulesetSource  due to download-> %s", err.Error());return err}
-
-			return err
-		}
 	}
+
+	err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"])
+	if err != nil {
+		logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
+		// _ = os.RemoveAll(pathDownloaded+data["name"])
+
+		// update ruleset "exists" field
+		// _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+		return err
+	}
+
+	// err = utils.ExtractTarGz(data["path"], pathDownloaded, data["name"])
+	err = utils.ExtractTarGz(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
+	if err != nil {
+		logs.Error("Error unzipping file downloaded: "+err.Error())
+		// err = os.RemoveAll(pathDownloaded+data["name"])
+		// if err!=nil { logs.Error("Error removing file OverwriteDownload due to download: "+err.Error()); return err}
+		// update ruleset "exists" field
+		// err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+		// if err != nil {logs.Error("UpdateRuleset Error from RulesetSource  due to download-> %s", err.Error());return err}
+
+		return err
+	}
+
 
 	err = ndb.UpdateRuleset(data["uuid"], "path", pathDownloaded + data["name"] + "/" + fileDownloaded)
 	if err!=nil { logs.Error("Error updating path OverwriteDownload: "+err.Error()); return err}
