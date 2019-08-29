@@ -1,7 +1,7 @@
 package controllers
 
 import (
-    "owlhmaster/models"
+    "owlhmaster/models"    
     "encoding/json"
 
     "github.com/astaxie/beego"
@@ -794,3 +794,39 @@ func (n *NodeController) GetNodeMonitor() {
     }
     n.ServeJSON()
 }
+
+// @Title AddSuricata
+// @Description Add new Suricata service
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /suricata/add [put]
+func (n *NodeController) AddSuricata() { 
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.AddSuricata(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("AddSuricata -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// // @Title GetSuricataServices
+// // @Description Get all Suricata services
+// // @Success 200 {object} models.ruleset
+// // @Failure 403 Connection Failure
+// // @router /suricata/get/:uuid [get]
+// func (n *NodeController) GetSuricataServices() { 
+//     uuid := n.GetString(":uuid")
+//     data,err := models.GetSuricataServices(uuid)
+//     n.Data["json"] = data
+//     logs.Notice(data)
+//     logs.Notice(data)
+//     logs.Notice(data)
+//     if err != nil {
+//         logs.Info("GetSuricataServices -> error: %s", err.Error())
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }

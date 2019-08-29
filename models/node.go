@@ -241,3 +241,13 @@ func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
     data, err = node.GetNodeMonitor(uuid)
     return data, err
 }
+
+func AddSuricata(anode map[string]string)(err error){
+    err = node.AddSuricata(anode)
+    return err
+}
+
+func GetSuricataServices(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.GetSuricataServices(uuid)
+    return data, err
+}

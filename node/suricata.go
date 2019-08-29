@@ -96,3 +96,27 @@ func StopSuricata(uuid string)(data string, err error){
     }
 	return data,nil
 }
+
+func AddSuricata(anode map[string]string)( err error){
+    if ndb.Db == nil {logs.Error("AddSuricata -- Can't acces to database: "); return errors.New("AddSuricata -- Can't acces to database")}
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil {logs.Error("node/AddSuricata ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.AddSuricata(ipnid,portnid,anode)
+    if err != nil {logs.Error("nodeclient.AddSuricata error HTTP data request: "+err.Error()); return err}
+
+    return nil
+}
+
+func GetSuricataServices(uuid string)(data map[string]map[string]string, err error){
+    if ndb.Db == nil {logs.Error("GetSuricataServices -- Can't acces to database: "); return nil,errors.New("GetSuricataServices -- Can't acces to database")}
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil {logs.Error("node/GetSuricataServices ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+
+	data,err = nodeclient.GetSuricataServices(ipnid,portnid)
+    if err != nil {logs.Error("nodeclient.GetSuricataServices error HTTP data request: "+err.Error()); return nil,err}
+
+    return data,nil
+}
