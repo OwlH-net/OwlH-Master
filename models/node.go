@@ -251,3 +251,18 @@ func GetSuricataServices(uuid string)(data map[string]map[string]string, err err
     data, err = node.GetSuricataServices(uuid)
     return data, err
 }
+
+func GetMainconfData(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.GetMainconfData(uuid)
+    return data, err
+}
+
+func ChangeServiceStatus(anode map[string]string)(err error){
+    err = node.ChangeServiceStatus(anode)
+	return err
+}
+
+func ChangeMainServiceStatus(anode map[string]string)(err error){
+    err = node.ChangeMainServiceStatus(anode)
+    return err
+}

@@ -986,3 +986,42 @@ func GetSuricataServices(ipData string, portData string)(data map[string]map[str
 	defer resp.Body.Close()
 	return data,nil
 }
+
+func GetMainconfData(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/ping/mainconf"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil { logs.Error("nodeclient/GetMainconfData ERROR connection through http new Request: "+err.Error()); return data,err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/GetMainconfData ERROR reading request data: "+err.Error()); return data,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/GetMainconfData ERROR doing unmarshal JSON: "+err.Error()); return data,err}
+
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func ChangeServiceStatus(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/plugin/ChangeServiceStatus"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/ChangeServiceStatus ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func ChangeMainServiceStatus(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/plugin/ChangeMainServiceStatus"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/ChangeMainServiceStatus ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}

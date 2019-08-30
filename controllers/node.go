@@ -524,8 +524,6 @@ func (n *NodeController) ChangeStatus() {
     n.ServeJSON()
 }
 
-// func (n *NodeController) PingPorts() {}
-
 // @Title PingPluginsNode
 // @Description Get Ping from ports
 // @Success 200 {object} models.Node
@@ -543,6 +541,23 @@ func (n *NodeController) PingPluginsNode() {
         }
 	}
 
+    n.ServeJSON()
+}
+
+// @Title GetMainconfData
+// @Description Get Ping from ports
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /getMainconfData/:nid [get]
+// @router /:nid/getMainconfData [get]
+func (n *NodeController) GetMainconfData() {
+    nid := n.GetString(":nid")
+    data, err := models.GetMainconfData(nid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+	
     n.ServeJSON()
 }
 
@@ -814,21 +829,36 @@ func (n *NodeController) AddSuricata() {
     n.ServeJSON()
 }
 
-// // @Title GetSuricataServices
-// // @Description Get all Suricata services
-// // @Success 200 {object} models.ruleset
-// // @Failure 403 Connection Failure
-// // @router /suricata/get/:uuid [get]
-// func (n *NodeController) GetSuricataServices() { 
-//     uuid := n.GetString(":uuid")
-//     data,err := models.GetSuricataServices(uuid)
-//     n.Data["json"] = data
-//     logs.Notice(data)
-//     logs.Notice(data)
-//     logs.Notice(data)
-//     if err != nil {
-//         logs.Info("GetSuricataServices -> error: %s", err.Error())
-//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-//     }
-//     n.ServeJSON()
-// }
+// @Title ChangeServiceStatus
+// @Description Change a service status
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /ChangeServiceStatus [put]
+func (n *NodeController) ChangeServiceStatus() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.ChangeServiceStatus(anode)
+	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}
+
+// @Title ChangeMainServiceStatus
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /mainconfStatus [put]
+func (n *NodeController) ChangeMainServiceStatus() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.ChangeMainServiceStatus(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

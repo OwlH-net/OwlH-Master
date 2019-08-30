@@ -924,3 +924,39 @@ func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
 
 	return data,nil
 }
+
+func GetMainconfData(uuid string)(data map[string]map[string]string, err error){
+	if ndb.Db == nil { logs.Error("GetMainconfData -- Can't acces to database"); return data,err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/GetMainconfData ERROR Obtaining Port and Ip: "+err.Error()); return data,err}
+
+	data,err = nodeclient.GetMainconfData(ipnid,portnid)
+	if err != nil { logs.Error("node/GetMainconfData ERROR http data request: "+err.Error()); return data,err}
+
+	return data,nil
+}
+
+func ChangeServiceStatus(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("ChangeServiceStatus -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/ChangeServiceStatus ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.ChangeServiceStatus(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/ChangeServiceStatus ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+func ChangeMainServiceStatus(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("ChangeMainServiceStatus -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/ChangeMainServiceStatus ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.ChangeMainServiceStatus(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/ChangeMainServiceStatus ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
