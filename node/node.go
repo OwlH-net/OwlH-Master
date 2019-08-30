@@ -456,20 +456,20 @@ func ShowPorts(uuid string)(data map[string]map[string]string, err error){
 	return data,nil
 }
 
-func PingPorts(uuid string)(data map[string]map[string]string, err error){
+func PingPluginsNode(uuid string)(data map[string]map[string]string, err error){
     if ndb.Db == nil {
-        logs.Error("PingPorts -- Can't acces to database")
-        return data,errors.New("PingPorts -- Can't acces to database")
+        logs.Error("PingPluginsNode -- Can't acces to database")
+        return data,errors.New("PingPluginsNode -- Can't acces to database")
 	}
 	
 	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
-		logs.Error("node/PingPorts ERROR Obtaining Port and Ip: "+err.Error())
+		logs.Error("node/PingPluginsNode ERROR Obtaining Port and Ip: "+err.Error())
         return data,err
     }
-	data, err = nodeclient.PingPorts(ipnid,portnid)
+	data, err = nodeclient.PingPluginsNode(ipnid,portnid)
 	if err != nil {
-		logs.Error("node/PingPorts ERROR http data request: "+err.Error())
+		logs.Error("node/PingPluginsNode ERROR http data request: "+err.Error())
         return data,err
     }
 	return data,nil

@@ -565,23 +565,23 @@ func ShowPorts(ipnid string, portnid string)(data map[string]map[string]string ,
 	return data,nil
 }
 
-func PingPorts(ipnid string, portnid string)(data map[string]map[string]string ,err error){
-	url := "https://"+ipnid+":"+portnid+"/node/ports/PingPorts/"
+func PingPluginsNode(ipnid string, portnid string)(data map[string]map[string]string ,err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/PingPluginsNode/"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
 	if err != nil {
-		logs.Error("nodeclient/PingPorts ERROR connection through http new Request: "+err.Error())
+		logs.Error("nodeclient/PingPluginsNode ERROR connection through http new Request: "+err.Error())
         return data,err
     }
 
 	body, err := ioutil.ReadAll(resp.Body)
 
 	if err != nil {
-		logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error())
+		logs.Error("nodeclient/PingPluginsNode ERROR reading request data: "+err.Error())
         return data,err
 	}
 	err = json.Unmarshal(body, &data)
     if err != nil {
-		logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error())
+		logs.Error("PingPluginsNode ERROR doing unmarshal JSON: "+err.Error())
         return data,err
 	}
 	defer resp.Body.Close()

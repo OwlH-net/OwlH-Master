@@ -524,17 +524,19 @@ func (n *NodeController) ChangeStatus() {
     n.ServeJSON()
 }
 
-// @Title Ping Ports
+// func (n *NodeController) PingPorts() {}
+
+// @Title PingPluginsNode
 // @Description Get Ping from ports
 // @Success 200 {object} models.Node
 // @Failure 403 :nid is empty
-// @router /PingPorts/:nid [get]
-// @router /:nid/PingPorts [get]
-func (n *NodeController) PingPorts() {
+// @router /PingPluginsNode/:nid [get]
+// @router /:nid/PingPluginsNode [get]
+func (n *NodeController) PingPluginsNode() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
     if nid != "" {
-        data, err := models.PingPorts(nid)
+        data, err := models.PingPluginsNode(nid)
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}

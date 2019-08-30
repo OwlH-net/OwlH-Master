@@ -138,8 +138,8 @@ func DeleteAllPorts(uuid string)(err error){
     return err
 }
 
-func PingPorts(uuid string)(data map[string]map[string]string, err error){
-    data, err = node.PingPorts(uuid)
+func PingPluginsNode(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.PingPluginsNode(uuid)
     return data, err
 }
 
