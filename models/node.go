@@ -242,8 +242,8 @@ func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
     return data, err
 }
 
-func AddSuricata(anode map[string]string)(err error){
-    err = node.AddSuricata(anode)
+func AddPluginService(anode map[string]string)(err error){
+    err = node.AddPluginService(anode)
     return err
 }
 
@@ -264,5 +264,10 @@ func ChangeServiceStatus(anode map[string]string)(err error){
 
 func ChangeMainServiceStatus(anode map[string]string)(err error){
     err = node.ChangeMainServiceStatus(anode)
+    return err
+}
+
+func DeleteService(anode map[string]string)(err error){
+    err = node.DeleteService(anode)
     return err
 }

@@ -97,14 +97,14 @@ func StopSuricata(uuid string)(data string, err error){
 	return data,nil
 }
 
-func AddSuricata(anode map[string]string)( err error){
-    if ndb.Db == nil {logs.Error("AddSuricata -- Can't acces to database: "); return errors.New("AddSuricata -- Can't acces to database")}
+func AddPluginService(anode map[string]string)( err error){
+    if ndb.Db == nil {logs.Error("AddPluginService -- Can't acces to database: "); return errors.New("AddPluginService -- Can't acces to database")}
     
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
-	if err != nil {logs.Error("node/AddSuricata ERROR Obtaining Port and Ip: "+err.Error()); return err}
+	if err != nil {logs.Error("node/AddPluginService ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
-	err = nodeclient.AddSuricata(ipnid,portnid,anode)
-    if err != nil {logs.Error("nodeclient.AddSuricata error HTTP data request: "+err.Error()); return err}
+	err = nodeclient.AddPluginService(ipnid,portnid,anode)
+    if err != nil {logs.Error("nodeclient.AddPluginService error HTTP data request: "+err.Error()); return err}
 
     return nil
 }

@@ -566,7 +566,7 @@ func ShowPorts(ipnid string, portnid string)(data map[string]map[string]string ,
 }
 
 func PingPluginsNode(ipnid string, portnid string)(data map[string]map[string]string ,err error){
-	url := "https://"+ipnid+":"+portnid+"/node/ports/PingPluginsNode/"
+	url := "https://"+ipnid+":"+portnid+"/node/ping/PingPluginsNode/"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
 	if err != nil {
 		logs.Error("nodeclient/PingPluginsNode ERROR connection through http new Request: "+err.Error())
@@ -961,11 +961,11 @@ func GetNodeMonitor(ipData string, portData string)(data map[string]interface{},
 	return data,nil
 }
 
-func AddSuricata(ipData string, portData string, anode map[string]string)(err error){
-	url := "https://"+ipData+":"+portData+"/node/suricata/add"
+func AddPluginService(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/plugin/addService"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {logs.Error("nodeclient/AddSuricata ERROR connection through http new Request: "+err.Error());return err}
+	if err != nil {logs.Error("nodeclient/AddPluginService ERROR connection through http new Request: "+err.Error());return err}
 
 	defer resp.Body.Close()
 
@@ -1020,6 +1020,18 @@ func ChangeMainServiceStatus(ipData string, portData string, anode map[string]st
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
 		logs.Error("nodeclient/ChangeMainServiceStatus ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func DeleteService(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/plugin/deleteService"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/DeleteService ERROR connection through http new Request: "+err.Error())
 		return err
 	}
 	defer resp.Body.Close()

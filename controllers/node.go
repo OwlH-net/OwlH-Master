@@ -525,22 +525,20 @@ func (n *NodeController) ChangeStatus() {
 }
 
 // @Title PingPluginsNode
-// @Description Get Ping from ports
+// @Description Get Ping from plugins
 // @Success 200 {object} models.Node
 // @Failure 403 :nid is empty
 // @router /PingPluginsNode/:nid [get]
 // @router /:nid/PingPluginsNode [get]
 func (n *NodeController) PingPluginsNode() {
     nid := n.GetString(":nid")
-    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
-    if nid != "" {
-        data, err := models.PingPluginsNode(nid)
-        n.Data["json"] = data
-        if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
-        }
-	}
+    data, err := models.PingPluginsNode(nid)
+    n.Data["json"] = data
 
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+    }
+    
     n.ServeJSON()
 }
 
@@ -812,18 +810,18 @@ func (n *NodeController) GetNodeMonitor() {
     n.ServeJSON()
 }
 
-// @Title AddSuricata
+// @Title AddPluginService
 // @Description Add new Suricata service
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
-// @router /suricata/add [put]
-func (n *NodeController) AddSuricata() { 
+// @router /add [put]
+func (n *NodeController) AddPluginService() { 
     anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.AddSuricata(anode)
+    err := models.AddPluginService(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
-        logs.Info("AddSuricata -> error: %s", err.Error())
+        logs.Info("AddPluginService -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -862,3 +860,21 @@ func (n *NodeController) ChangeMainServiceStatus() {
     }
     n.ServeJSON()
 }
+
+// @Title DeleteService
+// @Description delete service
+// @Success 200 {object} models.Node
+// @router /deleteService [delete]
+func (n *NodeController) DeleteService() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.DeleteService(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
