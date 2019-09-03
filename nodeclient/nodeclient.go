@@ -190,12 +190,8 @@ func GetNodeFile(ipData string, portData string, loadFile map[string]string)(rDa
 	return rData, nil
 }
 
-func PutSuricataBPF(ipnid string, portnid string, jsonnid string, jsonbpf string)(err error){
-	// //create json with nid y bpf 
-    values := make(map[string]string)
-    values["nid"] = jsonnid
-	values["bpf"] = jsonbpf
-	valuesJSON,err := json.Marshal(values)
+func PutSuricataBPF(ipnid string, portnid string, anode map[string]string)(err error){
+	valuesJSON,err := json.Marshal(anode)
 	url := "https://"+ipnid+":"+portnid+"/node/suricata/bpf"
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
@@ -206,22 +202,22 @@ func PutSuricataBPF(ipnid string, portnid string, jsonnid string, jsonbpf string
 	return  nil
 }
 
-func GetSuricataBPF(ipnid string, portnid string)(bpf string, err error){
-	url := "https://"+ipnid+":"+portnid+"/node/suricata/bpf"
-	resp,err := utils.NewRequestHTTP("GET", url, nil)
-	if err != nil {
-		logs.Error("nodeclient/GetNodeFile ERROR connection through http new Request: "+err.Error())
-		return "", err
-	}
-	responseData, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		logs.Error("nodeclient/GetNodeFile ERROR reading file: "+err.Error())
-		return "", err
-	}
-    json.Unmarshal(responseData, &bpf)
-	defer resp.Body.Close()
-	return bpf, nil
-}
+// func GetSuricataBPF(ipnid string, portnid string)(bpf string, err error){
+// 	url := "https://"+ipnid+":"+portnid+"/node/suricata/bpf"
+// 	resp,err := utils.NewRequestHTTP("GET", url, nil)
+// 	if err != nil {
+// 		logs.Error("nodeclient/GetNodeFile ERROR connection through http new Request: "+err.Error())
+// 		return "", err
+// 	}
+// 	responseData, err := ioutil.ReadAll(resp.Body)
+// 	if err != nil {
+// 		logs.Error("nodeclient/GetNodeFile ERROR reading file: "+err.Error())
+// 		return "", err
+// 	}
+//     json.Unmarshal(responseData, &bpf)
+// 	defer resp.Body.Close()
+// 	return bpf, nil
+// }
 
 func RunSuricata(ipnid string, portnid string)(data string, err error){
 	url := "https://"+ipnid+":"+portnid+"/node/suricata/RunSuricata"
@@ -1032,6 +1028,18 @@ func DeleteService(ipData string, portData string, anode map[string]string)(err 
 	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {
 		logs.Error("nodeclient/DeleteService ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
+func SaveSuricataInterface(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/plugin/SaveSuricataInterface"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/SaveSuricataInterface ERROR connection through http new Request: "+err.Error())
 		return err
 	}
 	defer resp.Body.Close()

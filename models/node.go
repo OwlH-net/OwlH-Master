@@ -41,10 +41,10 @@ func Wazuh(n string) (data  map[string]bool, err error) {
     return data,err
 }
 
-func GetSuricataBPF(n string) (data string, err error) {
-    data,err = node.GetSuricataBPF(n)
-    return data,err
-}
+// func GetSuricataBPF(n string) (data string, err error) {
+//     data,err = node.GetSuricataBPF(n)
+//     return data,err
+// }
 
 func PutSuricataBPF(n map[string]string) (err error) {
     err = node.PutSuricataBPF(n)
@@ -269,5 +269,10 @@ func ChangeMainServiceStatus(anode map[string]string)(err error){
 
 func DeleteService(anode map[string]string)(err error){
     err = node.DeleteService(anode)
+    return err
+}
+
+func SaveSuricataInterface(anode map[string]string)(err error){
+    err = node.SaveSuricataInterface(anode)
     return err
 }
