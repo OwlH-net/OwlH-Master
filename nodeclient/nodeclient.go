@@ -999,13 +999,14 @@ func GetMainconfData(ipData string, portData string)(data map[string]map[string]
 }
 
 func ChangeServiceStatus(ipData string, portData string, anode map[string]string)(err error){
+	logs.Notice(anode)
+	logs.Notice(anode)
+	logs.Notice(anode)
 	url := "https://"+ipData+":"+portData+"/node/plugin/ChangeServiceStatus"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/ChangeServiceStatus ERROR connection through http new Request: "+err.Error())
-		return err
-	}
+	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR connection through http new Request: "+err.Error()); return err}
+
 	defer resp.Body.Close()
 	return nil
 }

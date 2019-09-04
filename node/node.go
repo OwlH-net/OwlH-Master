@@ -219,26 +219,18 @@ func nodeKeyUpdate(id int, nkey string, key string, value string) (err error) {
 }
 
 func nodeKeyInsert(nkey string, key string, value string) (err error) {
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-    }
+    if ndb.Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
+    
     stmt, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values(?,?,?)")
-    if err != nil {
-        logs.Error("Prepare -> %s", err.Error())
-        return err
-    }
+    if err != nil { logs.Error("Prepare -> %s", err.Error()); return err}
+
     _, err = stmt.Exec(&nkey, &key, &value)
-    if err != nil {
-        logs.Error("Execute -> %s", err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Execute -> %s", err.Error()); return err}
+
     logs.Info("nkey from node.go to stap.go-->"+nkey)
     _,err = stap.Stap(nkey)
-    if err != nil {
-        logs.Error("Error creating node stap status from nodeKeyInsert at node.go -> %s", err.Error())
-        return err
-    }
+    if err != nil { logs.Error("Error creating node stap status from nodeKeyInsert at node.go -> %s", err.Error()); return err}
+
     return nil
 }
 
