@@ -999,13 +999,24 @@ func GetMainconfData(ipData string, portData string)(data map[string]map[string]
 }
 
 func ChangeServiceStatus(ipData string, portData string, anode map[string]string)(err error){
-	logs.Notice(anode)
-	logs.Notice(anode)
-	logs.Notice(anode)
+	var data interface{}
 	url := "https://"+ipData+":"+portData+"/node/plugin/ChangeServiceStatus"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR connection through http new Request: "+err.Error()); return err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR reading request data: "+err.Error()); return err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+logs.Notice(data)
+logs.Notice(data)
+logs.Notice(data)
+logs.Notice(data)
+logs.Notice(data)
+logs.Notice(data)
 
 	defer resp.Body.Close()
 	return nil
