@@ -1011,13 +1011,6 @@ func ChangeServiceStatus(ipData string, portData string, anode map[string]string
 	err = json.Unmarshal(body, &data)
     if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
 
-logs.Notice(data)
-logs.Notice(data)
-logs.Notice(data)
-logs.Notice(data)
-logs.Notice(data)
-logs.Notice(data)
-
 	defer resp.Body.Close()
 	return nil
 }
