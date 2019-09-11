@@ -276,3 +276,13 @@ func SaveSuricataInterface(anode map[string]string)(err error){
     err = node.SaveSuricataInterface(anode)
     return err
 }
+
+func DeployStapService(anode map[string]string)(err error){
+    err = node.DeployStapService(anode)
+    return err
+}
+
+func ModifyStapValues(anode map[string]string)(err error){
+    err = node.ModifyStapValues(anode)
+    return err
+}

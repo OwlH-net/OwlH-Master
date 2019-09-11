@@ -976,3 +976,27 @@ func SaveSuricataInterface(anode map[string]string)(err error){
 
 	return nil
 }
+
+func DeployStapService(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("DeployStapService -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/DeployStapService ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.DeployStapService(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/DeployStapService ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func ModifyStapValues(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("ModifyStapValues -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/ModifyStapValues ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.ModifyStapValues(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/ModifyStapValues ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}

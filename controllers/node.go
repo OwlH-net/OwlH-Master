@@ -887,3 +887,37 @@ func (n *NodeController) SaveSuricataInterface() {
     }
     n.ServeJSON()
 }
+
+// @Title DeployStapService
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /deployStapService [put]
+func (n *NodeController) DeployStapService() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.DeployStapService(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ModifyStapValues
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /modifyStapValues [put]
+func (n *NodeController) ModifyStapValues() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.ModifyStapValues(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
