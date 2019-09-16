@@ -905,6 +905,23 @@ func (n *NodeController) DeployStapService() {
     n.ServeJSON()
 }
 
+// @Title StopStapService
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /stopStapService [put]
+func (n *NodeController) StopStapService() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.StopStapService(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
 // @Title ModifyStapValues
 // @Description Change mainconf db values
 // @Success 200 {object} models.Node

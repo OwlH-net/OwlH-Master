@@ -3,6 +3,7 @@ package controllers
 import (
 	"owlhmaster/models"
 	"github.com/astaxie/beego"
+	"github.com/astaxie/beego/logs"
 	"encoding/json"
 )
 
@@ -206,4 +207,117 @@ func (m *MasterController) DeployServiceMaster() {
         m.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
     }
     m.ServeJSON()
+}
+
+// @Title AddPluginServiceMaster
+// @Description Add new stap service at master
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /add [put]
+func (n *MasterController) AddPluginServiceMaster() { 
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.AddPluginServiceMaster(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Error("AddPluginServiceMaster -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteServiceMaster
+// @Description delete a specific plugin service
+// @router /deleteService [delete]
+func (n *MasterController) DeleteServiceMaster() {
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.DeleteServiceMaster(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ModifyStapValuesMaster
+// @Description delete a specific plugin service
+// @router /modifyStapValues [put]
+func (n *MasterController) ModifyStapValuesMaster() {
+	var anode map[string]string
+	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.ModifyStapValuesMaster(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title UpdateMasterStapInterface
+// @Description Update master STAP interfaces
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /updateMasterStapInterface [put]
+func (n *MasterController) UpdateMasterStapInterface() { 
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.UpdateMasterStapInterface(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Error("UpdateMasterStapInterface -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title setBPF
+// @Description Set new STAP BPF
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /setbpf [put]
+func (n *MasterController) SetBPF() { 
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.SetBPF(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Error("SetBPF -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeployStapServiceMaster
+// @Description Deploy a Master STAP service
+// @Success 200 {object} models.Master
+// @router /deployStapServiceMaster [put]
+func (n *MasterController) DeployStapServiceMaster() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.DeployStapServiceMaster(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopStapServiceMaster
+// @Description Stop a Master STAP service
+// @Success 200 {object} models.Master
+// @router /stopStapServiceMaster [put]
+func (n *MasterController) StopStapServiceMaster() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.StopStapServiceMaster(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
 }

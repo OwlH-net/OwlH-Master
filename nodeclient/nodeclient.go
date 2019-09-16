@@ -1063,6 +1063,18 @@ func DeployStapService(ipData string, portData string, anode map[string]string)(
 	return nil
 }
 
+func StopStapService(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/plugin/stopStapService"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/StopStapService ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
+}
+
 func ModifyStapValues(ipData string, portData string, anode map[string]string)(err error){
 	url := "https://"+ipData+":"+portData+"/node/plugin/modifyStapValues"
 	valuesJSON,err := json.Marshal(anode)

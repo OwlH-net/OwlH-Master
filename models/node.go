@@ -282,6 +282,11 @@ func DeployStapService(anode map[string]string)(err error){
     return err
 }
 
+func StopStapService(anode map[string]string)(err error){
+    err = node.StopStapService(anode)
+    return err
+}
+
 func ModifyStapValues(anode map[string]string)(err error){
     err = node.ModifyStapValues(anode)
     return err

@@ -69,3 +69,38 @@ func DeployServiceMaster()(err error) {
     err = master.DeployServiceMaster()
     return err
 }
+
+func AddPluginServiceMaster(anode map[string]string)(err error){
+    err = master.AddPluginServiceMaster(anode)
+    return err
+}
+
+func DeleteServiceMaster(anode map[string]string)(err error){
+    err = master.DeleteServiceMaster(anode)
+    return err
+}
+
+func ModifyStapValuesMaster(anode map[string]string)(err error){
+    err = master.ModifyStapValuesMaster(anode)
+    return err
+}
+
+func UpdateMasterStapInterface(anode map[string]string)(err error){
+    err = master.UpdateMasterStapInterface(anode)
+    return err
+}
+
+func SetBPF(anode map[string]string)(err error){
+    err = master.SetBPF(anode)
+    return err
+}
+
+func DeployStapServiceMaster(anode map[string]string)(err error){
+    err = master.DeployStapServiceMaster(anode)
+    return err
+}
+
+func StopStapServiceMaster(anode map[string]string)(err error){
+    err = master.StopStapServiceMaster(anode)
+    return err
+}

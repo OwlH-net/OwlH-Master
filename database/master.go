@@ -149,3 +149,59 @@ func LoadMasterNetworkValuesSelected()(path map[string]map[string]string, err er
 	} 
 	return pingData,nil
 }
+
+func InsertPluginService(uuid string, param string, value string)(err error){
+	updateAnalyzerNode, err := Mdb.Prepare("insert into plugins(plugin_uniqueid, plugin_param, plugin_value) values (?,?,?);")
+	if (err != nil){ logs.Error("InsertPluginService INSERT prepare error: "+err.Error()); return err}
+
+	_, err = updateAnalyzerNode.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("InsertPluginService INSERT exec error: "+err.Error()); return err}
+
+	defer updateAnalyzerNode.Close()
+	
+	return nil
+}
+
+func DeleteServiceMaster(uuid string)(err error){
+	DeleteService, err := Mdb.Prepare("delete from plugins where plugin_uniqueid = ?;")
+	if (err != nil){ logs.Error("DeleteServiceMaster UPDATE prepare error: "+err.Error()); return err}
+
+	_, err = DeleteService.Exec(&uuid)
+	if (err != nil){ logs.Error("DeleteServiceMaster exec error: "+err.Error()); return err}
+
+	defer DeleteService.Close()
+	
+	return nil
+}
+
+func UpdatePluginValueMaster(uuid string, param string, value string)(err error){
+	UpdatePluginValue, err := Mdb.Prepare("update plugins set plugin_value = ? where plugin_uniqueid = ? and plugin_param = ?;")
+	if (err != nil){ logs.Error("UpdatePluginValueMaster UPDATE prepare error: "+err.Error()); return err}
+
+	_, err = UpdatePluginValue.Exec(&value, &uuid, &param)
+	if (err != nil){ logs.Error("UpdatePluginValueMaster UPDATE exec error: "+err.Error()); return err}
+
+	defer UpdatePluginValue.Close()
+	
+	return nil
+}
+
+func GetPlugins()(path map[string]map[string]string, err error){
+	var serviceValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+	rowsQuery, err := Mdb.Query("select plugin_uniqueid, plugin_param, plugin_value from plugins;")
+	if err != nil {
+		logs.Error("GetPlugins Mdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rowsQuery.Close()
+	for rowsQuery.Next() {
+		if err = rowsQuery.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetPlugins -- Query return error: %s", err.Error()); return nil, err}
+
+		if serviceValues[uniqid] == nil { serviceValues[uniqid] = map[string]string{}}
+		serviceValues[uniqid][param]=value
+	} 
+	return serviceValues,nil
+}
