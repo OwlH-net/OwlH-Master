@@ -1055,10 +1055,22 @@ func DeployStapService(ipData string, portData string, anode map[string]string)(
 	url := "https://"+ipData+":"+portData+"/node/plugin/deployStapService"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/DeployStapService ERROR connection through http new Request: "+err.Error())
-		return err
+	if err != nil {logs.Error("nodeclient/DeployStapService ERROR connection through http new Request: "+err.Error()); return err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR reading request data: "+err.Error()); return err}
+	
+	data := make(map[string]string)
+	err = json.Unmarshal(body, &data)
+	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+	if data["ack"] == "false"{
+		defer resp.Body.Close()
+		return errors.New(data["error"])
 	}
+	logs.Notice(data)
+	logs.Notice(data)
+	logs.Notice(data)
+
 	defer resp.Body.Close()
 	return nil
 }
@@ -1067,10 +1079,23 @@ func StopStapService(ipData string, portData string, anode map[string]string)(er
 	url := "https://"+ipData+":"+portData+"/node/plugin/stopStapService"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/StopStapService ERROR connection through http new Request: "+err.Error())
-		return err
+	if err != nil {logs.Error("nodeclient/StopStapService ERROR connection through http new Request: "+err.Error()); return err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR reading request data: "+err.Error()); return err}
+	
+	data := make(map[string]string)
+	err = json.Unmarshal(body, &data)
+	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+	if data["ack"] == "false"{
+		defer resp.Body.Close()
+		return errors.New(data["error"])
 	}
+	logs.Notice(data)
+	logs.Notice(data)
+	logs.Notice(data)
+
+
 	defer resp.Body.Close()
 	return nil
 }
@@ -1079,10 +1104,20 @@ func ModifyStapValues(ipData string, portData string, anode map[string]string)(e
 	url := "https://"+ipData+":"+portData+"/node/plugin/modifyStapValues"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/ModifyStapValues ERROR connection through http new Request: "+err.Error())
-		return err
+	if err != nil {logs.Error("nodeclient/ModifyStapValues ERROR connection through http new Request: "+err.Error()); return err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR reading request data: "+err.Error()); return err}
+	
+	data := make(map[string]string)
+	err = json.Unmarshal(body, &data)
+	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+	if data["ack"] == "false"{
+		defer resp.Body.Close()
+		return errors.New(data["error"])
 	}
+
+
 	defer resp.Body.Close()
 	return nil
 }
