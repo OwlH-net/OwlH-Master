@@ -572,13 +572,11 @@ func SyncRulesetToNode(anode map[string]string)(err error){
 	}
 	//read lines by ruleset uuid
 	data, err := CreateNewRuleFile(rulesetUUID)
+    if err != nil {logs.Error("nodeclient.SetRuleset ERROR creating a nunique ruleset file: "+err.Error()); return err}
 
 	//send lines to node
 	err = nodeclient.SyncRulesetToNode(ipData,portData,data)
-	if err != nil {
-		logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error())
-		return err
-	}
+	if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
 
 	return nil
 }
@@ -620,8 +618,9 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
 			}
 			file, err := os.Open(rulePath)
 			if err != nil {
-				logs.Error("File reading error: %s", err.Error())
-				return nil, err
+				logs.Error("File reading error: %s .Skipping file.", err.Error())
+                continue
+				// return nil, err
 			}
 			scanner := bufio.NewScanner(file)
 			for scanner.Scan(){
