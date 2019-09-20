@@ -963,6 +963,19 @@ func AddPluginService(ipData string, portData string, anode map[string]string)(e
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
 	if err != nil {logs.Error("nodeclient/AddPluginService ERROR connection through http new Request: "+err.Error());return err}
 
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {logs.Error("nodeclient/AddPluginService ERROR reading request data: "+err.Error()); return err}
+
+	data := make(map[string]string)
+	err = json.Unmarshal(body, &data)
+	if err != nil { logs.Error("nodeclient/AddPluginService ERROR doing unmarshal JSON: "+err.Error()); return err}
+	if data["ack"] == "false"{
+		defer resp.Body.Close()
+		return errors.New(data["error"])
+	}
+
+
+
 	defer resp.Body.Close()
 
 	return nil
@@ -1091,10 +1104,6 @@ func StopStapService(ipData string, portData string, anode map[string]string)(er
 		defer resp.Body.Close()
 		return errors.New(data["error"])
 	}
-	logs.Notice(data)
-	logs.Notice(data)
-	logs.Notice(data)
-
 
 	defer resp.Body.Close()
 	return nil
