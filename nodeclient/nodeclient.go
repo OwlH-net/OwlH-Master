@@ -638,7 +638,7 @@ func DeleteAllPorts(ipnid string, portnid string)(err error){
 
 func PingAnalyzer(ipnid string, portnid string)(data map[string]string ,err error){
 	url := "https://"+ipnid+":"+portnid+"/node/analyzer/pingAnalyzer/"
-	resp,err := utils.NewRequestHTTP("PUT", url, nil)
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
 	if err != nil {
 		logs.Error("nodeclient/PingAnalyzer ERROR connection through http new Request: "+err.Error())
         return data,err
@@ -656,6 +656,9 @@ func PingAnalyzer(ipnid string, portnid string)(data map[string]string ,err erro
         return data,err
 	}
 	
+	logs.Warn("Analyzer data from nodeclient")
+	logs.Warn(data)
+
 	defer resp.Body.Close()
 	return data,nil
 }

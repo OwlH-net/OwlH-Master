@@ -560,7 +560,9 @@ func (n *NodeController) GetMainconfData() {
 // @router /:nid/PingAnalyzer [get]
 func (n *NodeController) PingAnalyzer() {
 	uuid := n.GetString(":uuid")
-	data, err := models.PingAnalyzer(uuid)
+    data, err := models.PingAnalyzer(uuid)
+    logs.Notice("PingAnalizer data")
+    logs.Notice(data)
 	n.Data["json"] = data
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
