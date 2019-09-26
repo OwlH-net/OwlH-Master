@@ -429,6 +429,26 @@ func (n *NodeController) DeployZeek() {
     n.ServeJSON()
 }
 
+// @Title PingPorts
+// @Description Get Ping from ports
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /PingPorts/:nid [get]
+// @router /:nid/PingPorts [get]
+func (n *NodeController) PingPorts() {
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
+    if nid != "" {
+        data, err := models.PingPorts(nid)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+        }
+	}
+
+    n.ServeJSON()
+}
+
 // @Title ShowPorts
 // @Description Get ports from knownports
 // @Success 200 {object} models.Node

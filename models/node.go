@@ -291,3 +291,8 @@ func ModifyStapValues(anode map[string]string)(err error){
     err = node.ModifyStapValues(anode)
     return err
 }
+
+func PingPorts(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.PingPorts(uuid)
+    return data, err
+}

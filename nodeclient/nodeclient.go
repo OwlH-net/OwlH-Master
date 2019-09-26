@@ -598,6 +598,20 @@ func ChangeMode(ipnid string, portnid string, mode string)(err error){
 	return nil
 }
 
+func PingPorts(ipnid string, portnid string)(data map[string]map[string]string ,err error){
+	url := "https://"+ipnid+":"+portnid+"/node/ports/PingPorts/"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/PingPorts ERROR connection through http new Request: "+err.Error());return data,err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return data,err}
+	err = json.Unmarshal(body, &data)
+	if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return data,err}
+	
+	defer resp.Body.Close()
+	return data,nil
+}
+
 func ChangeStatus(ipnid string, portnid string, status string)(err error){
 	url := "https://"+ipnid+":"+portnid+"/node/ports/status"
 	values := make(map[string]string)
@@ -972,10 +986,10 @@ func AddPluginService(ipData string, portData string, anode map[string]string)(e
 	data := make(map[string]string)
 	err = json.Unmarshal(body, &data)
 	if err != nil { logs.Error("nodeclient/AddPluginService ERROR doing unmarshal JSON: "+err.Error()); return err}
-	if data["ack"] == "false"{
+/*	if data["ack"] == "false"{
 		defer resp.Body.Close()
 		return errors.New(data["error"])
-	}
+	} */
 
 
 
@@ -1009,6 +1023,10 @@ func GetMainconfData(ipData string, portData string)(data map[string]map[string]
 	
 	err = json.Unmarshal(body, &data)
     if err != nil { logs.Error("nodeclient/GetMainconfData ERROR doing unmarshal JSON: "+err.Error()); return data,err}
+/*	if data["ack"] == "false"{
+		defer resp.Body.Close()
+		return errors.New(data["error"])
+	} */
 
 	defer resp.Body.Close()
 	return data,nil
@@ -1026,6 +1044,10 @@ func ChangeServiceStatus(ipData string, portData string, anode map[string]string
 	
 	err = json.Unmarshal(body, &data)
     if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+/*	if data["ack"] == "false"{
+		defer resp.Body.Close()
+		return errors.New(data["error"])
+	} */
 
 	defer resp.Body.Close()
 	return nil
@@ -1035,10 +1057,18 @@ func ChangeMainServiceStatus(ipData string, portData string, anode map[string]st
 	url := "https://"+ipData+":"+portData+"/node/plugin/ChangeMainServiceStatus"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/ChangeMainServiceStatus ERROR connection through http new Request: "+err.Error())
-		return err
-	}
+	if err != nil {logs.Error("nodeclient/ChangeMainServiceStatus ERROR connection through http new Request: "+err.Error()); return err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/ChangeMainServiceStatus ERROR reading request data: "+err.Error()); return err}
+	
+	data := make(map[string]string)
+	err = json.Unmarshal(body, &data)
+	if err != nil { logs.Error("nodeclient/ChangeMainServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+/*	if data["ack"] == "false"{
+		defer resp.Body.Close()
+		return errors.New(data["error"])
+	} */
 	defer resp.Body.Close()
 	return nil
 }
@@ -1047,10 +1077,18 @@ func DeleteService(ipData string, portData string, anode map[string]string)(err 
 	url := "https://"+ipData+":"+portData+"/node/plugin/deleteService"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/DeleteService ERROR connection through http new Request: "+err.Error())
-		return err
-	}
+	if err != nil {logs.Error("nodeclient/DeleteService ERROR connection through http new Request: "+err.Error()); return err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/DeleteService ERROR reading request data: "+err.Error()); return err}
+	
+	data := make(map[string]string)
+	err = json.Unmarshal(body, &data)
+	if err != nil { logs.Error("nodeclient/DeleteService ERROR doing unmarshal JSON: "+err.Error()); return err}
+/*	if data["ack"] == "false"{
+		defer resp.Body.Close()
+		return errors.New(data["error"])
+	} */
 	defer resp.Body.Close()
 	return nil
 }
@@ -1059,10 +1097,19 @@ func SaveSuricataInterface(ipData string, portData string, anode map[string]stri
 	url := "https://"+ipData+":"+portData+"/node/plugin/SaveSuricataInterface"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-	if err != nil {
-		logs.Error("nodeclient/SaveSuricataInterface ERROR connection through http new Request: "+err.Error())
-		return err
-	}
+	if err != nil {logs.Error("nodeclient/SaveSuricataInterface ERROR connection through http new Request: "+err.Error()); return err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/SaveSuricataInterface ERROR reading request data: "+err.Error()); return err}
+	
+	data := make(map[string]string)
+	err = json.Unmarshal(body, &data)
+	if err != nil { logs.Error("nodeclient/SaveSuricataInterface ERROR doing unmarshal JSON: "+err.Error()); return err}
+/*	if data["ack"] == "false"{
+		defer resp.Body.Close()
+		return errors.New(data["error"])
+	} */
+
 	defer resp.Body.Close()
 	return nil
 }
@@ -1079,13 +1126,10 @@ func DeployStapService(ipData string, portData string, anode map[string]string)(
 	data := make(map[string]string)
 	err = json.Unmarshal(body, &data)
 	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
-	if data["ack"] == "false"{
+/*	if data["ack"] == "false"{
 		defer resp.Body.Close()
 		return errors.New(data["error"])
-	}
-	logs.Notice(data)
-	logs.Notice(data)
-	logs.Notice(data)
+	} */
 
 	defer resp.Body.Close()
 	return nil
@@ -1103,10 +1147,10 @@ func StopStapService(ipData string, portData string, anode map[string]string)(er
 	data := make(map[string]string)
 	err = json.Unmarshal(body, &data)
 	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
-	if data["ack"] == "false"{
+/*	if data["ack"] == "false"{
 		defer resp.Body.Close()
 		return errors.New(data["error"])
-	}
+	} */
 
 	defer resp.Body.Close()
 	return nil
@@ -1124,10 +1168,10 @@ func ModifyStapValues(ipData string, portData string, anode map[string]string)(e
 	data := make(map[string]string)
 	err = json.Unmarshal(body, &data)
 	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
-	if data["ack"] == "false"{
+/*	if data["ack"] == "false"{
 		defer resp.Body.Close()
 		return errors.New(data["error"])
-	}
+	} */
 
 
 	defer resp.Body.Close()
