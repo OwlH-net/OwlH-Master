@@ -82,20 +82,20 @@ func PingFlow()(path map[string]map[string]string, err error){
 	return pingData,nil
 }
 
-func ChangePluginStatus(anode map[string]string) (err error) {	
-	updatePluginMaster, err := Mdb.Prepare("update plugins set plugin_value = ? where plugin_uniqueid = ? and plugin_param = ?;")
-	if (err != nil){
-		logs.Error("ChangePluginStatus UPDATE prepare error : "+err.Error())
-		return err
-	}
-	_, err = updatePluginMaster.Exec(anode["value"], anode["uuid"], anode["param"])
-	defer updatePluginMaster.Close()
-	if (err != nil){
-		logs.Error("ChangePluginStatus UPDATE error: "+err.Error())
-		return err
-	}
-	return nil
-}
+// func ChangePluginStatus(anode map[string]string) (err error) {	
+// 	updatePluginMaster, err := Mdb.Prepare("update plugins set plugin_value = ? where plugin_uniqueid = ? and plugin_param = ?;")
+// 	if (err != nil){
+// 		logs.Error("ChangePluginStatus UPDATE prepare error : "+err.Error())
+// 		return err
+// 	}
+// 	_, err = updatePluginMaster.Exec(anode["value"], anode["uuid"], anode["param"])
+// 	defer updatePluginMaster.Close()
+// 	if (err != nil){
+// 		logs.Error("ChangePluginStatus UPDATE error: "+err.Error())
+// 		return err
+// 	}
+// 	return nil
+// }
 
 func ChangeDataflowStatus(anode map[string]string) (err error) {
 	updateDataflowMaster, err := Mdb.Prepare("update dataflow set flow_value = ? where flow_uniqueid = ? and flow_param = ?;")

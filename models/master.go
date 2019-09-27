@@ -31,7 +31,12 @@ func PingFlow() (data map[string]map[string]string, err error) {
 }
 
 func ChangePluginStatus(anode map[string]string) (err error) {
-    err = ndb.ChangePluginStatus(anode)
+    err = ndb.UpdatePluginValueMaster(anode["uuid"], anode["param"], anode["value"])
+    return err
+}
+
+func SaveStapInterface(anode map[string]string) (err error) {
+    err = master.SaveStapInterface(anode)
     return err
 }
 

@@ -8,6 +8,7 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     "owlhmaster/dispatcher"
+    "owlhmaster/master"
     "owlhmaster/scheduler"
 	"owlhmaster/utils"
 	"os"
@@ -60,6 +61,9 @@ func main() {
 	// ndb.GConn()	
 	ndb.MConn()	
 	
+	//CheckServicesStatus
+	master.CheckServicesStatus()
+
 	//Init dispatcher at master
     go dispatcher.Init()
 	//Init scheduler at master

@@ -101,6 +101,22 @@ func (m *MasterController) ChangePluginStatus() {
     m.ServeJSON()
 }
 
+// @Title SaveStapInterface
+// @Description Save new interface from master stap or plugins
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /saveStapInterface [put]
+func (m *MasterController) SaveStapInterface() {
+	anode := make(map[string]string)
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+    err := models.SaveStapInterface(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+    }
+    m.ServeJSON()
+}
+
 // @Title ChangeDataflowStatus
 // @Description Change plugin status
 // @Param body body models.Master true "body for master content"
