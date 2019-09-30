@@ -70,61 +70,93 @@ func CreateRulesetSource(n map[string]string) (err error) {
     return nil
 }
 
-func CreateCustomRulesetSource(n map[string]string)(err error){
+func CreateCustomRulesetSource(n map[string]string)(err error){	
+	logs.Notice(n)
 	if n["name"] == "" {
         return errors.New("Name is empty")
 	}
 	if n["desc"] == "" {
         return errors.New("Description is empty")
 	}
-	customRulesets := map[string]map[string]string{}
-	customRulesets["ruleset"] = map[string]string{}
-	customRulesets["ruleset"]["customRulesets"] = ""
-	customRulesets,err = utils.GetConf(customRulesets)
-	path := customRulesets["ruleset"]["customRulesets"]
+	if n["url"] != "" {
+		if _, err := os.Stat(n["url"]); os.IsNotExist(err) {
+			return errors.New("Custom file path don't exists.")
+		}
 
-	if _, err := os.Stat(path); os.IsNotExist(err) {
-		err = os.MkdirAll(path, os.ModePerm)
-		if err != nil {logs.Error("Error checking the path: "+err.Error()); return err}
-	}
+		newUUID := utils.Generate()
+		splitPath := strings.Split(n["url"], "/")
+		nameFile := splitPath[len(splitPath)-1]
+
+		n["path"]= n["url"]
+		for key, value := range n {
+			err = ndb.RulesetSourceKeyInsert(newUUID, key, value)
+			if err != nil {return errors.New("Error adding existing custom rule file data into database.")}
+		}
+
+		md5,err := utils.CalculateMD5(n["url"])
+		if err != nil {return errors.New("Error Checking MD5 for CreateCustomRulesetSource.")}
+
+		//insert file into rule_files
+		uuid := utils.Generate()
+		err = ndb.InsertRulesetSourceRules(uuid, "name", n["name"])//
+		err = ndb.InsertRulesetSourceRules(uuid, "path", n["url"])//
+		err = ndb.InsertRulesetSourceRules(uuid, "sourceType", n["sourceType"])//
+		err = ndb.InsertRulesetSourceRules(uuid, "type", "source")//
+		err = ndb.InsertRulesetSourceRules(uuid, "file", nameFile)
+		err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", newUUID)//
+		err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")//
+		err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")//
+		err = ndb.InsertRulesetSourceRules(uuid, "md5", md5)//
+		if err != nil {return errors.New("Error adding existing custom rule file data to database.")}
+
+	}else{
+		customRulesets := map[string]map[string]string{}
+		customRulesets["ruleset"] = map[string]string{}
+		customRulesets["ruleset"]["customRulesets"] = ""
+		customRulesets,err = utils.GetConf(customRulesets)
+		path := customRulesets["ruleset"]["customRulesets"]
 	
-	newUUID := utils.Generate()
-
-	nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)
-	nameFile := nameWithoutSpaces+".rules"
-	n["path"] = path + nameFile
-	n["fileName"] = nameFile
-
-	if _, err := os.Stat(n["path"]); !os.IsNotExist(err) {
-		return errors.New("The custom file "+n["name"]+" already exists. Use other name for the new custom ruleset source.")
-	}
-
-	err = ioutil.WriteFile(n["path"], []byte(""), 0755)
-    if err != nil {
-        return errors.New("Can't create the custom rule file.")
-	}
-
-	for key, value := range n {
-        err = ndb.RulesetSourceKeyInsert(newUUID, key, value)
+		if _, err := os.Stat(path); os.IsNotExist(err) {
+			err = os.MkdirAll(path, os.ModePerm)
+			if err != nil {logs.Error("Error checking path: "+err.Error()); return err}
+		}
+		
+		newUUID := utils.Generate()
+	
+		nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)
+		nameFile := nameWithoutSpaces+".rules"
+		n["path"] = path + nameFile
+		n["fileName"] = nameFile
+	
+		if _, err := os.Stat(n["path"]); !os.IsNotExist(err) {
+			return errors.New("The custom file "+n["name"]+" already exists. Use other name for the new custom ruleset source.")
+		}
+	
+		err = ioutil.WriteFile(n["path"], []byte(""), 0755)
+		if err != nil {
+			return errors.New("Can't create the custom rule file.")
+		}
+	
+		for key, value := range n {
+			err = ndb.RulesetSourceKeyInsert(newUUID, key, value)
+			if err != nil {return errors.New("Error adding custom rule file data to database.")}
+		}
+		
+		md5,err := utils.CalculateMD5(n["path"])
+		if err != nil {return errors.New("Error Checking MD5 for CreateCustomRulesetSource.")}
+	
+		//insert file into rule_files
+		uuid := utils.Generate()
+		err = ndb.InsertRulesetSourceRules(uuid, "name", n["name"])
+		err = ndb.InsertRulesetSourceRules(uuid, "path", n["path"])
+		err = ndb.InsertRulesetSourceRules(uuid, "sourceType", n["sourceType"])
+		err = ndb.InsertRulesetSourceRules(uuid, "file", nameFile)
+		err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
+		err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", newUUID)
+		err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
+		err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
+		err = ndb.InsertRulesetSourceRules(uuid, "md5", md5)
 		if err != nil {return errors.New("Error adding custom rule file data to database.")}
-	}
-	
-	md5,err := utils.CalculateMD5(n["path"])
-	if err != nil {return errors.New("Error Checking MD5 for CreateCustomRulesetSource.")}
-
-	//insert file into rule_files
-	uuid := utils.Generate()
-	err = ndb.InsertRulesetSourceRules(uuid, "name", n["name"])
-	err = ndb.InsertRulesetSourceRules(uuid, "path", n["path"])
-	err = ndb.InsertRulesetSourceRules(uuid, "sourceType", n["sourceType"])
-	err = ndb.InsertRulesetSourceRules(uuid, "file", nameFile)
-	err = ndb.InsertRulesetSourceRules(uuid, "type", "source")
-	err = ndb.InsertRulesetSourceRules(uuid, "sourceUUID", newUUID)
-	err = ndb.InsertRulesetSourceRules(uuid, "exists", "true")
-	err = ndb.InsertRulesetSourceRules(uuid, "isUpdated", "false")
-	err = ndb.InsertRulesetSourceRules(uuid, "md5", md5)
-	if err != nil {
-        return errors.New("Error adding custom rule file data to database.")
 	}
 	
     return nil
@@ -341,35 +373,36 @@ func OverwriteDownload(data map[string]string) (err error) {
 	splitPath := strings.Split(data["url"], "/")
 	fileDownloaded := splitPath[len(splitPath)-1]
 
-	_ = os.RemoveAll(pathDownloaded+data["name"])
+	// _ = os.RemoveAll(pathDownloaded+data["name"])
 
 	//download file
 	if _, err := os.Stat(pathDownloaded+data["name"]); os.IsNotExist(err) {
 		os.MkdirAll(pathDownloaded+data["name"], os.ModePerm)
-
-		err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"])
-		if err != nil {
-			logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
-			_ = os.RemoveAll(pathDownloaded+data["name"])
-
-			// update ruleset "exists" field
-			_ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-			return err
-		}
-	
-		// err = utils.ExtractTarGz(data["path"], pathDownloaded, data["name"])
-		err = utils.ExtractTarGz(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
-		if err != nil {
-			logs.Error("Error unzipping file downloaded: "+err.Error())
-			err = os.RemoveAll(pathDownloaded+data["name"])
-			if err!=nil { logs.Error("Error removing file OverwriteDownload: "+err.Error()); return err}
-			// update ruleset "exists" field
-			err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-			if err != nil {logs.Error("UpdateRuleset Error from RulesetSource-> %s", err.Error());return err}
-
-			return err
-		}
 	}
+
+	err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"])
+	if err != nil {
+		logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
+		// _ = os.RemoveAll(pathDownloaded+data["name"])
+
+		// update ruleset "exists" field
+		// _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+		return err
+	}
+
+	// err = utils.ExtractTarGz(data["path"], pathDownloaded, data["name"])
+	err = utils.ExtractTarGz(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
+	if err != nil {
+		logs.Error("Error unzipping file downloaded: "+err.Error())
+		// err = os.RemoveAll(pathDownloaded+data["name"])
+		// if err!=nil { logs.Error("Error removing file OverwriteDownload due to download: "+err.Error()); return err}
+		// update ruleset "exists" field
+		// err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+		// if err != nil {logs.Error("UpdateRuleset Error from RulesetSource  due to download-> %s", err.Error());return err}
+
+		return err
+	}
+
 
 	err = ndb.UpdateRuleset(data["uuid"], "path", pathDownloaded + data["name"] + "/" + fileDownloaded)
 	if err!=nil { logs.Error("Error updating path OverwriteDownload: "+err.Error()); return err}
@@ -469,10 +502,10 @@ func DownloadFile(data map[string]string) (err error) {
 		err = utils.DownloadFile(data["path"], data["url"])
 		if err != nil {
 			logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
-			err= os.RemoveAll(pathDownloaded+pathSelected)
-			if err!=nil { logs.Error("Error removing files DownloadFile : "+err.Error()); return err}
-			err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-			if err!=nil { logs.Error("Error updating isDownloaded variable at DownloadFile : "+err.Error()); return err}
+			_ = os.RemoveAll(pathDownloaded+pathSelected)
+			// if err!=nil { logs.Error("Error removing files DownloadFile due to download error: "+err.Error()); return err}
+			_ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+			// if err!=nil { logs.Error("Error updating isDownloaded variable at DownloadFile due to download error: "+err.Error()); return err}
 			return err
 		}
 	

@@ -1,7 +1,7 @@
 package controllers
 
 import (
-    "owlhmaster/models"
+    "owlhmaster/models"    
     "encoding/json"
 
     "github.com/astaxie/beego"
@@ -166,46 +166,39 @@ func (n *NodeController) GetWazuh() {
     n.ServeJSON()
 }
 
-// @Title GetSuricata BPF
-// @Description Get Suricata BPF from node
-// @Success 200 {object} models.Node
-// @Failure 403 :nid is empty
-// @router /suricata/:nid/bpf [get]
-// @router /:nid/suricata/bpf [get]
-// @router /bpf/:nid [get]
-func (n *NodeController) GetSuricataBPF() {
-    nid := n.GetString(":nid")
-    n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
-    if nid != "" {
-        data,err := models.GetSuricataBPF(nid)
-        n.Data["json"] = map[string]string{"bpf": data}
-        if err != nil {
-			logs.Error("Can't get Suricata status" + err.Error())
-            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
-        }
-    }
-    n.ServeJSON()
-}
+// // @Title GetSuricata BPF
+// // @Description Get Suricata BPF from node
+// // @Success 200 {object} models.Node
+// // @Failure 403 :nid is empty
+// // @router /suricata/:nid/bpf [get]
+// // @router /:nid/suricata/bpf [get]
+// func (n *NodeController) GetSuricataBPF() {
+//     nid := n.GetString(":nid")
+//     data,err := models.GetSuricataBPF(nid)
+//     n.Data["json"] = data
+    
+//     if err != nil {
+//         logs.Error("Can't get Suricata status" + err.Error())
+//         n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
+//     }
+    
+//     n.ServeJSON()
+// }
 
 
 // @Title PutSuricataBPF
 // @Description Set BPF to node
 // @Success 200 {object} models.Node
 // @Failure 403 :nid is empty
-// @router /suricata/:nid/bpf [put]
-// @router /:nid/suricata/bpf [put]
-// @router /bpf/:nid [put]
+// @router /suricata/bpf [put]
 func (n *NodeController) PutSuricataBPF() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    nid := n.GetString(":nid")
-    n.Data["json"] = map[string]string{"status": "false", "error": "There is no BPF"}
-    if nid != "" {
-        err := models.PutSuricataBPF(anode)
-        n.Data["json"] = map[string]string{"status": "true"}
-        if err != nil {
-            n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
-        }
+    err := models.PutSuricataBPF(anode)
+    n.Data["json"] = map[string]string{"status": "true"}
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"status": "false", "error": err.Error()}
     }
     n.ServeJSON()
 }
@@ -436,6 +429,26 @@ func (n *NodeController) DeployZeek() {
     n.ServeJSON()
 }
 
+// @Title PingPorts
+// @Description Get Ping from ports
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /PingPorts/:nid [get]
+// @router /:nid/PingPorts [get]
+func (n *NodeController) PingPorts() {
+    nid := n.GetString(":nid")
+    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
+    if nid != "" {
+        data, err := models.PingPorts(nid)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+        }
+	}
+
+    n.ServeJSON()
+}
+
 // @Title ShowPorts
 // @Description Get ports from knownports
 // @Success 200 {object} models.Node
@@ -524,23 +537,38 @@ func (n *NodeController) ChangeStatus() {
     n.ServeJSON()
 }
 
-// @Title Ping Ports
+// @Title PingPluginsNode
+// @Description Get Ping from plugins
+// @Success 200 {object} models.Node
+// @Failure 403 :nid is empty
+// @router /PingPluginsNode/:nid [get]
+// @router /:nid/PingPluginsNode [get]
+func (n *NodeController) PingPluginsNode() {
+    nid := n.GetString(":nid")
+    data, err := models.PingPluginsNode(nid)
+    n.Data["json"] = data
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title GetMainconfData
 // @Description Get Ping from ports
 // @Success 200 {object} models.Node
 // @Failure 403 :nid is empty
-// @router /PingPorts/:nid [get]
-// @router /:nid/PingPorts [get]
-func (n *NodeController) PingPorts() {
+// @router /getMainconfData/:nid [get]
+// @router /:nid/getMainconfData [get]
+func (n *NodeController) GetMainconfData() {
     nid := n.GetString(":nid")
-    n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
-    if nid != "" {
-        data, err := models.PingPorts(nid)
-        n.Data["json"] = data
-        if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
-        }
-	}
-
+    data, err := models.GetMainconfData(nid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+	
     n.ServeJSON()
 }
 
@@ -552,7 +580,9 @@ func (n *NodeController) PingPorts() {
 // @router /:nid/PingAnalyzer [get]
 func (n *NodeController) PingAnalyzer() {
 	uuid := n.GetString(":uuid")
-	data, err := models.PingAnalyzer(uuid)
+    data, err := models.PingAnalyzer(uuid)
+    logs.Notice("PingAnalizer data")
+    logs.Notice(data)
 	n.Data["json"] = data
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
@@ -686,4 +716,247 @@ func (m *NodeController) UpdateNetworkInterface() {
         m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
     }
     m.ServeJSON()
+}
+
+// @Title SaveSocketToNetwork
+// @Description save socket to network information
+// @Success 200 {object} models.Node
+// @router /saveSocketToNetwork [put]
+func (n *NodeController) SaveSocketToNetwork() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveSocketToNetwork(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+
+// @Title SaveNewLocal
+// @Description save New local into dataflow at node
+// @Success 200 {object} models.Node
+// @router /saveNewLocal [put]
+func (n *NodeController) SaveNewLocal() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveNewLocal(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveVxLAN
+// @Description save VxLAN into dataflow at node
+// @Success 200 {object} models.Node
+// @router /saveVxLAN [put]
+func (n *NodeController) SaveVxLAN() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveVxLAN(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SocketToNetworkList
+// @Description Load node data flow values
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /socketToNetworkList/:uuid [get]
+func (n *NodeController) SocketToNetworkList() {
+	uuid := n.GetString(":uuid")
+	data, err := models.SocketToNetworkList(uuid)
+	n.Data["json"] = data
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}
+
+// @Title SaveSocketToNetworkSelected
+// @Description Save socket to network selected
+// @Success 200 {object} models.Node
+// @router /saveSocketToNetworkSelected [put]
+func (n *NodeController) SaveSocketToNetworkSelected() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SaveSocketToNetworkSelected(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteDataFlowValueSelected
+// @Description Delete dataflow value selected
+// @Success 200 {object} models.Node
+// @router /deleteDataFlowValueSelected [delete]
+func (n *NodeController) DeleteDataFlowValueSelected() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.DeleteDataFlowValueSelected(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetNodeMonitor
+// @Description Get node monitor status
+// @Success 200 {object} models.Node
+// @router /pingmonitor/:uuid [get]
+func (n *NodeController) GetNodeMonitor() {
+	uuid := n.GetString(":uuid")
+    data, err := models.GetNodeMonitor(uuid)
+	n.Data["json"] = data
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title AddPluginService
+// @Description Add new Suricata service
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /add [put]
+func (n *NodeController) AddPluginService() { 
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.AddPluginService(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        logs.Info("AddPluginService -> error: %s", err.Error())
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ChangeServiceStatus
+// @Description Change a service status
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /ChangeServiceStatus [put]
+func (n *NodeController) ChangeServiceStatus() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.ChangeServiceStatus(anode)
+	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
+	if err != nil {
+		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
+	}
+
+    n.ServeJSON()
+}
+
+// @Title ChangeMainServiceStatus
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /mainconfStatus [put]
+func (n *NodeController) ChangeMainServiceStatus() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.ChangeMainServiceStatus(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteService
+// @Description delete service
+// @Success 200 {object} models.Node
+// @router /deleteService [delete]
+func (n *NodeController) DeleteService() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.DeleteService(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveSuricataInterface
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /saveSuricataInterface [put]
+func (n *NodeController) SaveSuricataInterface() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.SaveSuricataInterface(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeployStapService
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /deployStapService [put]
+func (n *NodeController) DeployStapService() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.DeployStapService(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title StopStapService
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /stopStapService [put]
+func (n *NodeController) StopStapService() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.StopStapService(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ModifyStapValues
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /modifyStapValues [put]
+func (n *NodeController) ModifyStapValues() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.ModifyStapValues(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
 }

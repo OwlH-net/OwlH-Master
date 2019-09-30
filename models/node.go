@@ -41,10 +41,10 @@ func Wazuh(n string) (data  map[string]bool, err error) {
     return data,err
 }
 
-func GetSuricataBPF(n string) (data string, err error) {
-    data,err = node.GetSuricataBPF(n)
-    return data,err
-}
+// func GetSuricataBPF(n string) (data string, err error) {
+//     data,err = node.GetSuricataBPF(n)
+//     return data,err
+// }
 
 func PutSuricataBPF(n map[string]string) (err error) {
     err = node.PutSuricataBPF(n)
@@ -138,8 +138,8 @@ func DeleteAllPorts(uuid string)(err error){
     return err
 }
 
-func PingPorts(uuid string)(data map[string]map[string]string, err error){
-    data, err = node.PingPorts(uuid)
+func PingPluginsNode(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.PingPluginsNode(uuid)
     return data, err
 }
 
@@ -204,5 +204,95 @@ func LoadNetworkValues(uuid string)(data map[string]string, err error){
 
 func LoadNetworkValuesSelected(uuid string)(data map[string]map[string]string, err error){
 	data, err = node.LoadNetworkValuesSelected(uuid)
+    return data, err
+}
+
+func SaveSocketToNetwork(anode map[string]string)(err error){
+    err = node.SaveSocketToNetwork(anode)
+    return err
+}
+
+func SaveNewLocal(anode map[string]string)(err error){
+    err = node.SaveNewLocal(anode)
+    return err
+}
+
+func SaveVxLAN(anode map[string]string)(err error){
+    err = node.SaveVxLAN(anode)
+    return err
+}
+
+func SocketToNetworkList(uuid string)(data map[string]map[string]string, err error){
+	data, err = node.SocketToNetworkList(uuid)
+    return data, err
+}
+
+func SaveSocketToNetworkSelected(anode map[string]string)(err error){
+	err = node.SaveSocketToNetworkSelected(anode)
+	return err
+}
+
+func DeleteDataFlowValueSelected(anode map[string]string)(err error){
+	err = node.DeleteDataFlowValueSelected(anode)
+	return err
+}
+
+func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
+    data, err = node.GetNodeMonitor(uuid)
+    return data, err
+}
+
+func AddPluginService(anode map[string]string)(err error){
+    err = node.AddPluginService(anode)
+    return err
+}
+
+func GetSuricataServices(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.GetSuricataServices(uuid)
+    return data, err
+}
+
+func GetMainconfData(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.GetMainconfData(uuid)
+    return data, err
+}
+
+func ChangeServiceStatus(anode map[string]string)(err error){
+    err = node.ChangeServiceStatus(anode)
+	return err
+}
+
+func ChangeMainServiceStatus(anode map[string]string)(err error){
+    err = node.ChangeMainServiceStatus(anode)
+    return err
+}
+
+func DeleteService(anode map[string]string)(err error){
+    err = node.DeleteService(anode)
+    return err
+}
+
+func SaveSuricataInterface(anode map[string]string)(err error){
+    err = node.SaveSuricataInterface(anode)
+    return err
+}
+
+func DeployStapService(anode map[string]string)(err error){
+    err = node.DeployStapService(anode)
+    return err
+}
+
+func StopStapService(anode map[string]string)(err error){
+    err = node.StopStapService(anode)
+    return err
+}
+
+func ModifyStapValues(anode map[string]string)(err error){
+    err = node.ModifyStapValues(anode)
+    return err
+}
+
+func PingPorts(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.PingPorts(uuid)
     return data, err
 }

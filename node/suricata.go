@@ -21,42 +21,32 @@ func Suricata(n string) (data map[string]bool, err error) {
     return data,nil
 }
 
-func GetSuricataBPF(n string)(bpf string, err error) {
-    if ndb.Db == nil {
-        logs.Error("GetSuricataBPF -- Can't acces to database: "+err.Error())
-        return "", err
-	}
-	ipnid,portnid,err := ndb.ObtainPortIp(n)
-	if err != nil {
-		logs.Error("node/GetSuricataBPF ERROR Obtaining Port and Ip: "+err.Error())
-        return "",err
-    }
-	bpf,err = nodeclient.GetSuricataBPF(ipnid,portnid)
-    if err != nil {
-        logs.Error("nodeclient.GetSuricataBPF error HTTP data request: "+err.Error())
-        return "",err
-	}
-    return bpf, nil
-}
+// func GetSuricataBPF(n string)(bpf string, err error) {
+//     if ndb.Db == nil {
+//         logs.Error("GetSuricataBPF -- Can't acces to database: "+err.Error())
+//         return "", err
+// 	}
+// 	ipnid,portnid,err := ndb.ObtainPortIp(n)
+// 	if err != nil {
+// 		logs.Error("node/GetSuricataBPF ERROR Obtaining Port and Ip: "+err.Error())
+//         return "",err
+//     }
+// 	bpf,err = nodeclient.GetSuricataBPF(ipnid,portnid)
+//     if err != nil {
+//         logs.Error("nodeclient.GetSuricataBPF error HTTP data request: "+err.Error())
+//         return "",err
+// 	}
+//     return bpf, nil
+// }
 
 func PutSuricataBPF(n map[string]string)(err error) {
-    if ndb.Db == nil {
-        logs.Error("PutSuricataBPF -- Can't acces to database: ")
-        return errors.New("PutSuricataBPF -- Can't acces to database")
-    }
-    jsonnid := n["nid"]
-    jsonbpf := n["bpf"]
-    ipnid,portnid,err := ndb.ObtainPortIp(jsonnid)
-	if err != nil {
-		logs.Error("node/PutSuricataBPF ERROR Obtaining Port and Ip: "+err.Error())
-        return err
-    }
+    if ndb.Db == nil { logs.Error("PutSuricataBPF -- Can't acces to database: "); return errors.New("PutSuricataBPF -- Can't acces to database")}
 
-	err = nodeclient.PutSuricataBPF(ipnid,portnid,jsonnid,jsonbpf)
-    if err != nil {
-        logs.Error("nodeclient.PutSuricataBPF error HTTP data request: "+err.Error())
-        return err
-	}
+    ipnid,portnid,err := ndb.ObtainPortIp(n["uuid"])
+	if err != nil {logs.Error("node/PutSuricataBPF ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.PutSuricataBPF(ipnid,portnid,n)
+    if err != nil { logs.Error("nodeclient.PutSuricataBPF error HTTP data request: "+err.Error()); return err}
 
     return nil
 }
@@ -95,4 +85,28 @@ func StopSuricata(uuid string)(data string, err error){
         return "",err
     }
 	return data,nil
+}
+
+func AddPluginService(anode map[string]string)( err error){
+    if ndb.Db == nil {logs.Error("AddPluginService -- Can't acces to database: "); return errors.New("AddPluginService -- Can't acces to database")}
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil {logs.Error("node/AddPluginService ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.AddPluginService(ipnid,portnid,anode)
+    if err != nil {logs.Error("nodeclient.AddPluginService error HTTP data request: "+err.Error()); return err}
+
+    return nil
+}
+
+func GetSuricataServices(uuid string)(data map[string]map[string]string, err error){
+    if ndb.Db == nil {logs.Error("GetSuricataServices -- Can't acces to database: "); return nil,errors.New("GetSuricataServices -- Can't acces to database")}
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil {logs.Error("node/GetSuricataServices ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+
+	data,err = nodeclient.GetSuricataServices(ipnid,portnid)
+    if err != nil {logs.Error("nodeclient.GetSuricataServices error HTTP data request: "+err.Error()); return nil,err}
+
+    return data,nil
 }

@@ -8,12 +8,25 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     "owlhmaster/dispatcher"
+    "owlhmaster/master"
     "owlhmaster/scheduler"
-    "owlhmaster/utils"
+	"owlhmaster/utils"
+	"os"
+	"bufio"
+	"strings"
+	"runtime"
 )
 
 
 func main() {
+	//operative system values
+	data:=OperativeSystemValues()
+	for x := range data {
+		if (x == "ID" || x == "ID_LIKE" || x == "VERSION_ID"){
+			logs.Info(x +" -- "+data[x])
+		}
+	}
+	
 	//Configuration for the logger
 	var err error
 	loadDataLogger := map[string]map[string]string{}
@@ -48,6 +61,9 @@ func main() {
 	// ndb.GConn()	
 	ndb.MConn()	
 	
+	//CheckServicesStatus
+	master.CheckServicesStatus()
+
 	//Init dispatcher at master
     go dispatcher.Init()
 	//Init scheduler at master
@@ -70,6 +86,24 @@ func main() {
     beego.Run()
 }
 
-
-
-
+func OperativeSystemValues()(values map[string]string){
+	if (runtime.GOOS == "linux"){
+		logs.Info("============"+runtime.GOOS+"============")
+		var OSmap = make(map[string]string)
+		file, err := os.Open("/etc/os-release")
+		if err != nil {logs.Error("No os-release file")}
+		defer file.Close()
+		
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			if (scanner.Text() != ""){
+				sidsSplit := strings.Split(scanner.Text(), "=")
+				str := strings.Replace(sidsSplit[1], "\"", "", -1)
+				OSmap[sidsSplit[0]] = str
+			}			
+		}
+		return OSmap
+	}else{
+		return nil
+	}
+}

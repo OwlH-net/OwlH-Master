@@ -219,26 +219,18 @@ func nodeKeyUpdate(id int, nkey string, key string, value string) (err error) {
 }
 
 func nodeKeyInsert(nkey string, key string, value string) (err error) {
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-    }
+    if ndb.Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
+    
     stmt, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values(?,?,?)")
-    if err != nil {
-        logs.Error("Prepare -> %s", err.Error())
-        return err
-    }
+    if err != nil { logs.Error("Prepare -> %s", err.Error()); return err}
+
     _, err = stmt.Exec(&nkey, &key, &value)
-    if err != nil {
-        logs.Error("Execute -> %s", err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Execute -> %s", err.Error()); return err}
+
     logs.Info("nkey from node.go to stap.go-->"+nkey)
     _,err = stap.Stap(nkey)
-    if err != nil {
-        logs.Error("Error creating node stap status from nodeKeyInsert at node.go -> %s", err.Error())
-        return err
-    }
+    if err != nil { logs.Error("Error creating node stap status from nodeKeyInsert at node.go -> %s", err.Error()); return err}
+
     return nil
 }
 
@@ -456,20 +448,20 @@ func ShowPorts(uuid string)(data map[string]map[string]string, err error){
 	return data,nil
 }
 
-func PingPorts(uuid string)(data map[string]map[string]string, err error){
+func PingPluginsNode(uuid string)(data map[string]map[string]string, err error){
     if ndb.Db == nil {
-        logs.Error("PingPorts -- Can't acces to database")
-        return data,errors.New("PingPorts -- Can't acces to database")
+        logs.Error("PingPluginsNode -- Can't acces to database")
+        return data,errors.New("PingPluginsNode -- Can't acces to database")
 	}
 	
 	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {
-		logs.Error("node/PingPorts ERROR Obtaining Port and Ip: "+err.Error())
+		logs.Error("node/PingPluginsNode ERROR Obtaining Port and Ip: "+err.Error())
         return data,err
     }
-	data, err = nodeclient.PingPorts(ipnid,portnid)
+	data, err = nodeclient.PingPluginsNode(ipnid,portnid)
 	if err != nil {
-		logs.Error("node/PingPorts ERROR http data request: "+err.Error())
+		logs.Error("node/PingPluginsNode ERROR http data request: "+err.Error())
         return data,err
     }
 	return data,nil
@@ -555,6 +547,25 @@ func DeleteAllPorts(uuid string)(err error){
 	return nil
 }
 
+func PingPorts(uuid string)(data map[string]map[string]string, err error){
+    if ndb.Db == nil {
+        logs.Error("PingPorts -- Can't acces to database")
+        return data,errors.New("PingPorts -- Can't acces to database")
+	}
+	
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil {
+		logs.Error("node/PingPorts ERROR Obtaining Port and Ip: "+err.Error())
+        return data,err
+    }
+	data, err = nodeclient.PingPorts(ipnid,portnid)
+	if err != nil {
+		logs.Error("node/PingPorts ERROR http data request: "+err.Error())
+        return data,err
+    }
+	return data,nil
+}
+
 func SyncRulesetToNode(anode map[string]string)(err error){
 	uuid := anode["uuid"]
 	var rulesetUUID string
@@ -580,13 +591,11 @@ func SyncRulesetToNode(anode map[string]string)(err error){
 	}
 	//read lines by ruleset uuid
 	data, err := CreateNewRuleFile(rulesetUUID)
+    if err != nil {logs.Error("nodeclient.SetRuleset ERROR creating a nunique ruleset file: "+err.Error()); return err}
 
 	//send lines to node
 	err = nodeclient.SyncRulesetToNode(ipData,portData,data)
-	if err != nil {
-		logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error())
-		return err
-	}
+	if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
 
 	return nil
 }
@@ -628,8 +637,9 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
 			}
 			file, err := os.Open(rulePath)
 			if err != nil {
-				logs.Error("File reading error: %s", err.Error())
-				return nil, err
+				logs.Error("File reading error: %s .Skipping file.", err.Error())
+                continue
+				// return nil, err
 			}
 			scanner := bufio.NewScanner(file)
 			for scanner.Scan(){
@@ -827,10 +837,8 @@ func LoadNetworkValues(uuid string)(anode map[string]string, err error){
 }
 
 func LoadNetworkValuesSelected(uuid string)(anode map[string]map[string]string, err error){
-	if ndb.Db == nil {
-        logs.Error("LoadNetworkValuesSelected -- Can't acces to database")
-        return nil,err
-	}
+	if ndb.Db == nil {logs.Error("LoadNetworkValuesSelected -- Can't acces to database");return nil,err}
+
 	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil { logs.Error("node/LoadNetworkValuesSelected ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
 
@@ -838,4 +846,187 @@ func LoadNetworkValuesSelected(uuid string)(anode map[string]map[string]string, 
 	if err != nil { logs.Error("node/LoadNetworkValuesSelected ERROR http data request: "+err.Error()); return nil,err}
 
 	return anode,nil
+}
+
+func SaveSocketToNetwork(anode map[string]string)(err error){	
+	if ndb.Db == nil {logs.Error("SaveSocketToNetwork -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveSocketToNetwork ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.SaveSocketToNetwork(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveSocketToNetwork ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+func SaveNewLocal(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("SaveNewLocal -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveNewLocal ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.SaveNewLocal(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveNewLocal ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+func SaveVxLAN(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("SaveVxLAN -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveVxLAN ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.SaveVxLAN(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveVxLAN ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+func SocketToNetworkList(uuid string)(data map[string]map[string]string, err error){
+	if ndb.Db == nil {
+        logs.Error("SocketToNetworkList -- Can't acces to database")
+        return nil,err
+	}
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/SocketToNetworkList ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+
+	anode,err := nodeclient.SocketToNetworkList(ipnid,portnid)
+	if err != nil { logs.Error("node/SocketToNetworkList ERROR http data request: "+err.Error()); return nil,err}
+
+	return anode,nil
+}
+
+func SaveSocketToNetworkSelected(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("SaveSocketToNetworkSelected -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveSocketToNetworkSelected ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.SaveSocketToNetworkSelected(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveSocketToNetworkSelected ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+func DeleteDataFlowValueSelected(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("DeleteDataFlowValueSelected -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/DeleteDataFlowValueSelected ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.DeleteDataFlowValueSelected(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/DeleteDataFlowValueSelected ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+
+func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
+	if ndb.Db == nil { logs.Error("GetNodeMonitor -- Can't acces to database"); return data,err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/GetNodeMonitor ERROR Obtaining Port and Ip: "+err.Error()); return data,err}
+
+	data,err = nodeclient.GetNodeMonitor(ipnid,portnid)
+	if err != nil { logs.Error("node/GetNodeMonitor ERROR http data request: "+err.Error()); return data,err}
+
+	return data,nil
+}
+
+func GetMainconfData(uuid string)(data map[string]map[string]string, err error){
+	if ndb.Db == nil { logs.Error("GetMainconfData -- Can't acces to database"); return data,err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/GetMainconfData ERROR Obtaining Port and Ip: "+err.Error()); return data,err}
+
+	data,err = nodeclient.GetMainconfData(ipnid,portnid)
+	if err != nil { logs.Error("node/GetMainconfData ERROR http data request: "+err.Error()); return data,err}
+
+	return data,nil
+}
+
+func ChangeServiceStatus(anode map[string]string)(err error){
+	if ndb.Db == nil {logs.Error("ChangeServiceStatus -- Can't acces to database");return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/ChangeServiceStatus ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+	err = nodeclient.ChangeServiceStatus(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/ChangeServiceStatus ERROR http data request: "+err.Error()); return err}
+
+    return err
+}
+
+func ChangeMainServiceStatus(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("ChangeMainServiceStatus -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/ChangeMainServiceStatus ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.ChangeMainServiceStatus(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/ChangeMainServiceStatus ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func DeleteService(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("DeleteService -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/DeleteService ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.DeleteService(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/DeleteService ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func SaveSuricataInterface(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("SaveSuricataInterface -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveSuricataInterface ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.SaveSuricataInterface(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveSuricataInterface ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func DeployStapService(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("DeployStapService -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/DeployStapService ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.DeployStapService(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/DeployStapService ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func StopStapService(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("StopStapService -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/StopStapService ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.StopStapService(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/StopStapService ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func ModifyStapValues(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("ModifyStapValues -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/ModifyStapValues ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.ModifyStapValues(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/ModifyStapValues ERROR http data request: "+err.Error()); return err}
+
+	return nil
 }
