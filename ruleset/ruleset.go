@@ -854,3 +854,17 @@ func SynchronizeAllRulesets()(err error){
 	}
     return nil
 }
+
+func UpdateRule(anode map[string]string)(err error) {
+	
+	
+	path,err := ndb.GetRulesetPath(anode["uuid"])
+	logs.Notice(anode["line"])
+	logs.Notice(path)
+
+
+
+	//WriteNewDataOnFile
+
+   return nil
+}
