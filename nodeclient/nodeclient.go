@@ -1177,3 +1177,33 @@ func ModifyStapValues(ipData string, portData string, anode map[string]string)(e
 	defer resp.Body.Close()
 	return nil
 }
+
+func PingWazuhFiles(ipData string, portData string)(data map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/wazuh/pingWazuhFiles"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR connection through http new Request: "+err.Error()); return data,err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR reading request data: "+err.Error()); return data,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR doing unmarshal JSON: "+err.Error()); return data,err}
+	
+	// if data["ack"] == "false"{
+	// 	defer resp.Body.Close()
+	// 	return errors.New(data["error"])
+	// } 
+
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func DeleteWazuhFile(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/wazuh/deleteWazuhFile"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/DeleteWazuhFile ERROR connection through http new Request: "+err.Error()); return err}
+	
+	defer resp.Body.Close()
+	return nil
+}

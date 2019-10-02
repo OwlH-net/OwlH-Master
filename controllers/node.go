@@ -960,3 +960,35 @@ func (n *NodeController) ModifyStapValues() {
     }
     n.ServeJSON()
 }
+
+// @Title PingWazuhFiles
+// @Description Get Wazuh files
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /pingWazuhFiles/:uuid [get]
+func (n *NodeController) PingWazuhFiles() {
+    uuid := n.GetString(":uuid")
+    data,err := models.PingWazuhFiles(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteWazuhFile
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /deleteWazuhFile [delete]
+func (n *NodeController) DeleteWazuhFile() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.DeleteWazuhFile(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

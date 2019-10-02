@@ -856,15 +856,24 @@ func SynchronizeAllRulesets()(err error){
 }
 
 func UpdateRule(anode map[string]string)(err error) {
-	
-	
+
+	if anode["sid"] == "" {logs.Error("UpdateRule error checking SID numbers: SID number is nil"); return errors.New("Error checking SID numbers: SID number is nil")}
+	var numbers = regexp.MustCompile(`^[0-9]*$`)
+	sidValue := numbers.FindStringSubmatch(anode["sid"])
+	if sidValue == nil {logs.Error("UpdateRule error checking SID numbers: SID doesn't have only numbers"); return errors.New("Error checking SID numbers: SID doesn't have only numbers")}
+
 	path,err := ndb.GetRulesetPath(anode["uuid"])
-	logs.Notice(anode["line"])
+	if err != nil {logs.Error("UpdateRule/GetRulesetPath Error: "+err.Error()); return err}
+
+	anode["line"] = strings.Replace(anode["line"], "/", "\\/", -1)
 	logs.Notice(path)
+	logs.Notice(anode["sid"])
+	logs.Notice(anode["line"])
 
-
-
-	//WriteNewDataOnFile
+	cmd := "sed -i '/sid:"+anode["sid"]+"/s/.*/"+anode["line"]+"/' "+path+""
+	logs.Warn(cmd)
+	_, err = exec.Command("bash", "-c", cmd).Output()
+	if err != nil {logs.Error("UpdateRule Error: "+err.Error()); return err}
 
    return nil
 }
