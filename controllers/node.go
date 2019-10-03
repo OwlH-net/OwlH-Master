@@ -981,7 +981,7 @@ func (n *NodeController) PingWazuhFiles() {
 // @Success 200 {object} models.Node
 // @router /deleteWazuhFile [delete]
 func (n *NodeController) DeleteWazuhFile() {
-    anode := make(map[string]string)
+    anode := make(map[string]interface{})
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.DeleteWazuhFile(anode)
@@ -990,5 +990,7 @@ func (n *NodeController) DeleteWazuhFile() {
 	if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
+
+    
     n.ServeJSON()
 }

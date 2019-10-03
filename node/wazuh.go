@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "owlhmaster/database"
     "errors"
+    "fmt"
     "owlhmaster/nodeclient"
 )
 
@@ -62,10 +63,11 @@ func PingWazuhFiles(uuid string)(anode map[string]string, err error){
 	return anode,nil
 }
 
-func DeleteWazuhFile(anode map[string]string)(err error){
+func DeleteWazuhFile(anode map[string]interface{})(err error){
     if ndb.Db == nil {logs.Error("DeleteWazuhFile Error -- Can't acces to database: "); return errors.New("DeleteWazuhFile -- Can't acces to database")}
     
-    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    var uuid = fmt.Sprintf("%v", anode["uuid"])
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
 	if err != nil {logs.Error("DeleteWazuhFile ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
 	err = nodeclient.DeleteWazuhFile(ipnid,portnid,anode)

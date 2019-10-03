@@ -302,7 +302,7 @@ func PingWazuhFiles(uuid string)(anode map[string]string, err error){
     return anode,err
 }
 
-func DeleteWazuhFile(anode map[string]string)(err error){
+func DeleteWazuhFile(anode map[string]interface{})(err error){
     err = node.DeleteWazuhFile(anode)
     return err
 }

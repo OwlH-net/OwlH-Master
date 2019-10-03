@@ -1168,11 +1168,6 @@ func ModifyStapValues(ipData string, portData string, anode map[string]string)(e
 	data := make(map[string]string)
 	err = json.Unmarshal(body, &data)
 	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
-/*	if data["ack"] == "false"{
-		defer resp.Body.Close()
-		return errors.New(data["error"])
-	} */
-
 
 	defer resp.Body.Close()
 	return nil
@@ -1188,17 +1183,12 @@ func PingWazuhFiles(ipData string, portData string)(data map[string]string, err 
 	
 	err = json.Unmarshal(body, &data)
     if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR doing unmarshal JSON: "+err.Error()); return data,err}
-	
-	// if data["ack"] == "false"{
-	// 	defer resp.Body.Close()
-	// 	return errors.New(data["error"])
-	// } 
 
 	defer resp.Body.Close()
 	return data,nil
 }
 
-func DeleteWazuhFile(ipData string, portData string, anode map[string]string)(err error){
+func DeleteWazuhFile(ipData string, portData string, anode map[string]interface{})(err error){
 	url := "https://"+ipData+":"+portData+"/node/wazuh/deleteWazuhFile"
 	valuesJSON,err := json.Marshal(anode)
 	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
