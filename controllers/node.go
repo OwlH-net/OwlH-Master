@@ -971,7 +971,7 @@ func (n *NodeController) PingWazuhFiles() {
     data,err := models.PingWazuhFiles(uuid)
     n.Data["json"] = data
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+        n.Data["json"] = map[int]map[string]string{0:{"ack": "false", "uuid": uuid, "error": err.Error()}}
     }
     n.ServeJSON()
 }
@@ -991,6 +991,43 @@ func (n *NodeController) DeleteWazuhFile() {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
 
+    
+    n.ServeJSON()
+}
+
+// @Title AddWazuhFile
+// @Description Add wazuh files
+// @Success 200 {object} models.Node
+// @router /addWazuhFile [put]
+func (n *NodeController) AddWazuhFile() {
+    anode := make(map[string]interface{})
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.AddWazuhFile(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+
+    
+    n.ServeJSON()
+}
+
+// @Title LoadFileLastLines
+// @Description Add wazuh files
+// @Success 200 {object} models.Node
+// @router /wazuh/loadLines [put]
+func (n *NodeController) LoadFileLastLines() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    data,err := models.LoadFileLastLines(anode)
+	n.Data["json"] = data
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     
     n.ServeJSON()
 }

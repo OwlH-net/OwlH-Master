@@ -1173,7 +1173,7 @@ func ModifyStapValues(ipData string, portData string, anode map[string]string)(e
 	return nil
 }
 
-func PingWazuhFiles(ipData string, portData string)(data map[string]string, err error){
+func PingWazuhFiles(ipData string, portData string)(data map[int]map[string]string, err error){
 	url := "https://"+ipData+":"+portData+"/node/wazuh/pingWazuhFiles"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
 	if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR connection through http new Request: "+err.Error()); return data,err}
@@ -1196,4 +1196,30 @@ func DeleteWazuhFile(ipData string, portData string, anode map[string]interface{
 	
 	defer resp.Body.Close()
 	return nil
+}
+
+func AddWazuhFile(ipData string, portData string, anode map[string]interface{})(err error){
+	url := "https://"+ipData+":"+portData+"/node/wazuh/addWazuhFile"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/AddWazuhFile ERROR connection through http new Request: "+err.Error()); return err}
+	
+	defer resp.Body.Close()
+	return nil
+}
+
+func LoadFileLastLines(ipData string, portData string, anode map[string]string)(data map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/wazuh/loadFileLastLines"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/LoadFileLastLines ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+
+	defer resp.Body.Close()
+	return data, nil
 }

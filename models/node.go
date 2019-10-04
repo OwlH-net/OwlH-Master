@@ -297,7 +297,7 @@ func PingPorts(uuid string)(data map[string]map[string]string, err error){
     return data, err
 }
 
-func PingWazuhFiles(uuid string)(anode map[string]string, err error){
+func PingWazuhFiles(uuid string)(anode map[int]map[string]string, err error){
     anode,err = node.PingWazuhFiles(uuid)
     return anode,err
 }
@@ -305,4 +305,12 @@ func PingWazuhFiles(uuid string)(anode map[string]string, err error){
 func DeleteWazuhFile(anode map[string]interface{})(err error){
     err = node.DeleteWazuhFile(anode)
     return err
+}
+func AddWazuhFile(anode map[string]interface{})(err error){
+    err = node.AddWazuhFile(anode)
+    return err
+}
+func LoadFileLastLines(anode map[string]string)(data map[string]string, err error){
+    data,err = node.LoadFileLastLines(anode)
+    return data,err
 }
