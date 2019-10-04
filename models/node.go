@@ -310,7 +310,13 @@ func AddWazuhFile(anode map[string]interface{})(err error){
     err = node.AddWazuhFile(anode)
     return err
 }
+
 func LoadFileLastLines(anode map[string]string)(data map[string]string, err error){
     data,err = node.LoadFileLastLines(anode)
     return data,err
+}
+
+func SaveFileContentWazuh(anode map[string]string)(err error){
+    err = node.SaveFileContentWazuh(anode)
+    return err
 }

@@ -101,3 +101,16 @@ func LoadFileLastLines(anode map[string]string)(data map[string]string, err erro
 
     return data, nil
 }
+
+func SaveFileContentWazuh(anode map[string]string)(err error){
+    if ndb.Db == nil {logs.Error("SaveFileContentWazuh Error -- Can't acces to database: "); return errors.New("SaveFileContentWazuh -- Can't acces to database")}
+    
+    var uuid = fmt.Sprintf("%v", anode["uuid"])
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil {logs.Error("SaveFileContentWazuh ERROR Obtaining Port and Ip: "+err.Error()); return  err}
+
+	err = nodeclient.SaveFileContentWazuh(ipnid,portnid,anode)
+    if err != nil {logs.Error("SaveFileContentWazuh error HTTP data request: "+err.Error()); return  err}
+
+    return  nil
+}

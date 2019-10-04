@@ -1031,3 +1031,21 @@ func (n *NodeController) LoadFileLastLines() {
     
     n.ServeJSON()
 }
+
+// @Title SaveFileContentWazuh
+// @Description save wazuh file content
+// @Success 200 {object} models.Node
+// @router /wazuh/saveFileContentWazuh [put]
+func (n *NodeController) SaveFileContentWazuh() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.SaveFileContentWazuh(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
