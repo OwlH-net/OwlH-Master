@@ -581,8 +581,7 @@ func (n *NodeController) GetMainconfData() {
 func (n *NodeController) PingAnalyzer() {
 	uuid := n.GetString(":uuid")
     data, err := models.PingAnalyzer(uuid)
-    logs.Notice("PingAnalizer data")
-    logs.Notice(data)
+
 	n.Data["json"] = data
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
@@ -1047,5 +1046,21 @@ func (n *NodeController) SaveFileContentWazuh() {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     
+    n.ServeJSON()
+}
+
+// @Title ReloadFilesData
+// @Description get files data for wazuh and analyzer
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /reloadFilesData/:uuid [get]
+// @router /:nid/reloadFilesData [get]
+func (n *NodeController) ReloadFilesData() {
+	uuid := n.GetString(":uuid")
+    data, err := models.ReloadFilesData(uuid)
+
+	n.Data["json"] = data
+	if err != nil {n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}}
+
     n.ServeJSON()
 }

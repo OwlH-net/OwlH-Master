@@ -653,25 +653,13 @@ func DeleteAllPorts(ipnid string, portnid string)(err error){
 func PingAnalyzer(ipnid string, portnid string)(data map[string]string ,err error){
 	url := "https://"+ipnid+":"+portnid+"/node/analyzer/pingAnalyzer/"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
-	if err != nil {
-		logs.Error("nodeclient/PingAnalyzer ERROR connection through http new Request: "+err.Error())
-        return data,err
-    }
+	if err != nil {logs.Error("nodeclient/PingAnalyzer ERROR connection through http new Request: "+err.Error()); return data,err}
 
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error()); return data,err}
 
-	if err != nil {
-		logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error())
-        return data,err
-	}
 	err = json.Unmarshal(body, &data)
-    if err != nil {
-		logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error())
-        return data,err
-	}
-	
-	logs.Warn("Analyzer data from nodeclient")
-	logs.Warn(data)
+    if err != nil {logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error()); return data,err}
 
 	defer resp.Body.Close()
 	return data,nil
@@ -1232,4 +1220,19 @@ func SaveFileContentWazuh(ipData string, portData string, anode map[string]strin
 	
 	defer resp.Body.Close()
 	return nil
+}
+
+func ReloadFilesData(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/file/reloadFilesData"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/ReloadFilesData ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/ReloadFilesData ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/ReloadFilesData ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+
+	defer resp.Body.Close()
+	return data, nil
 }

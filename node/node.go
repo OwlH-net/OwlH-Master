@@ -1030,3 +1030,15 @@ func ModifyStapValues(anode map[string]string)(err error){
 
 	return nil
 }
+
+func ReloadFilesData(uuid string)(data map[string]map[string]string, err error){
+    if ndb.Db == nil { logs.Error("ReloadFilesData -- Can't acces to database"); return nil,err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/ReloadFilesData ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+    
+    data,err = nodeclient.ReloadFilesData(ipnid,portnid)
+	if err != nil { logs.Error("node/ReloadFilesData ERROR http data request: "+err.Error()); return nil,err}
+
+	return data,nil
+}

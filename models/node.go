@@ -320,3 +320,8 @@ func SaveFileContentWazuh(anode map[string]string)(err error){
     err = node.SaveFileContentWazuh(anode)
     return err
 }
+
+func ReloadFilesData(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.ReloadFilesData(uuid)
+    return data, err
+}

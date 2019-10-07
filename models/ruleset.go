@@ -122,6 +122,11 @@ func StopTimeSchedule(content map[string]string)(err error) {
 }
 
 func UpdateRule(anode map[string]string)(err error) {
-	 err = ruleset.UpdateRule(anode)
+    err = ruleset.UpdateRule(anode)
 	return err
+}
+
+func GetRulesetsBySearch(anode map[string]string)(data map[string]map[string]string, err error) {
+	data, err = ruleset.GetRulesetsBySearch(anode)
+	return data, err
 }

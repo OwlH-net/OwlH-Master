@@ -12,7 +12,7 @@ import(
     "owlhmaster/utils"
     "owlhmaster/node"
     "errors"
-    "database/sql"
+	"database/sql"
     "strings"
     "time"
 	"strconv"
@@ -871,4 +871,29 @@ func UpdateRule(anode map[string]string)(err error) {
 	if err != nil {logs.Error("UpdateRule Error: "+err.Error()); return err}
 
    return nil
+}
+
+func GetRulesetsBySearch(anode map[string]string)(data map[string]map[string]string, err error) {
+
+	var end = regexp.MustCompile(anode["search"])
+
+	values,err := ndb.GetRulesFromRuleset(anode["uuid"])
+	for x,_ := range values {	
+		file, err := os.Open(values[x]["path"])
+		if err != nil {logs.Error("GetRulesetsBySearch Error: "+err.Error()); return nil,err}
+
+		defer file.Close()
+
+		scanner := bufio.NewScanner(file)
+		for scanner.Scan() {
+			owlhEnd := end.FindStringSubmatch(scanner.Text())
+			if owlhEnd != nil {
+				logs.Notice(scanner.Text())
+				logs.Notice(owlhEnd)
+			}
+		}
+		if err := scanner.Err(); err != nil {logs.Error(err)}
+	}
+
+	return data, err
 }
