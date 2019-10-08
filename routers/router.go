@@ -24,6 +24,11 @@ func init() {
 				&controllers.MasterController{},
 			),
 		),
+		beego.NSNamespace("/search",
+			beego.NSInclude(
+				&controllers.SearchController{},
+			),
+		),
 		beego.NSNamespace("/node",
 			beego.NSInclude(
 				&controllers.NodeController{},

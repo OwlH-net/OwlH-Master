@@ -323,3 +323,26 @@ func DeleteRuleFilesByUuid(uuid string)(err error){
 	}
 	return nil
 }
+
+func GetAllRuleFiles()(data map[string]map[string]string, err error){
+	var allRuleDetails = map[string]map[string]string{}
+	var uniqid string
+    var param string
+    var value string
+	sql := "select rule_uniqueid, rule_param, rule_value from rule_files;"
+	rows, err := Rdb.Query(sql)
+	if err != nil {
+		logs.Error("GetAllRuleFiles Rdb.Query Error: %s", err.Error())
+		return nil, err
+	}
+	defer rows.Close()
+	for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil {
+			logs.Error("GetAllRuleFiles rows.Scan error: %s", err.Error())
+			return nil, err
+		}
+		if allRuleDetails[uniqid] == nil { allRuleDetails[uniqid] = map[string]string{}}
+		allRuleDetails[uniqid][param]=value
+	} 
+	return allRuleDetails, nil
+}
