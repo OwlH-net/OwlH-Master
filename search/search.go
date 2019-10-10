@@ -35,11 +35,14 @@ var RulesIndex []Rule = nil
 func GetRulesetsBySearch(anode map[string]string)(data []Rule, err error) {
 	logs.Debug(anode["rulesetName"])
 	var matchingRules []Rule = nil
+	var conunter int
 	var isSID = regexp.MustCompile(`(\d+)`)
 	sid := isSID.FindStringSubmatch(anode["search"])
+	
 	for w := range RulesIndex {
 		if sid != nil{
 			if strings.Contains(RulesIndex[w].Sid, anode["search"]){
+				conunter ++
 				currentRulesets := RulesIndex[w].Rulesets
 				if anode["rulesetName"] == ""{
 					// for z := range currentRulesets {
@@ -100,15 +103,18 @@ func GetRulesetsBySearch(anode map[string]string)(data []Rule, err error) {
 		}
 	}
 
-	for b := range matchingRules {
-		logs.Notice(matchingRules[b])
-	}
+	logs.Notice(conunter)
+
+	// for b := range matchingRules {
+	// 	logs.Notice(matchingRules[b])
+	// }
 
 	return matchingRules, err
 }
 
 func Init()(){
 	for {
+		RulesIndex = nil
 		exists := false
 		allRulesets,err := ndb.GetAllRuleFiles()
 		if err != nil {logs.Error("Search/Init error: %s", err.Error())}
@@ -138,8 +144,7 @@ func Init()(){
 				}
 			}
 		}
-		logs.Info(len(RulesIndex))
-		time.Sleep(5 * time.Minute)
 		logs.Info("Ruleset list has been updated.")
+		time.Sleep(5 * time.Minute)
 	}
 }
