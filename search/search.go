@@ -28,40 +28,48 @@ type Ruleset struct {
 	File      	string		`json:"file"`
 	Status    	string		`json:"status"`
 	Name    	string		`json:"name"`
+	Uuid    	string		`json:"uuid"`
 }
 var RulesIndex []Rule = nil
 
 func GetRulesetsBySearch(anode map[string]string)(data []Rule, err error) {
-	logs.Debug(anode)
+	logs.Debug(anode["rulesetName"])
 	var matchingRules []Rule = nil
 	var isSID = regexp.MustCompile(`(\d+)`)
 	sid := isSID.FindStringSubmatch(anode["search"])
 	for w := range RulesIndex {
 		if sid != nil{
 			if strings.Contains(RulesIndex[w].Sid, anode["search"]){
-				// matchingRules = append(matchingRules, RulesIndex[w])
 				currentRulesets := RulesIndex[w].Rulesets
-				for z := range currentRulesets {
-					if currentRulesets[z].Name == anode["rulesetName"]{
-						logs.Info(currentRulesets[z].Name)
+				if anode["rulesetName"] == ""{
+					// for z := range currentRulesets {
+						logs.Info(RulesIndex[w].Sid)
 						matchingRules = append(matchingRules, RulesIndex[w])
+					// }
+				}else{
+					logs.Warn(RulesIndex[w].Sid)
+					logs.Info(RulesIndex[w].Rulesets)
+					
+					for z := range currentRulesets {
+						if currentRulesets[z].Name == anode["rulesetName"]{
+							// if RulesIndex[w].Rulesets.Uuid != currentRulesets[z].Uuid{
+								logs.Info(currentRulesets[z].Name)
+								matchingRules = append(matchingRules, RulesIndex[w])
+							// }
+						}
 					}
 				}
-				// for s := range RulesIndex.Rulesets {
-				// 	logs.Notice(s)
-				// 	// logs.Notice(RulesIndex[w])
-				// 	Ruleset = append(Ruleset, RulesIndex[w])
-				// }
 			}
 		}else {
 			if strings.Contains(strings.ToLower(RulesIndex[w].Msg), strings.ToLower(anode["search"])){
 				currentRulesets := RulesIndex[w].Rulesets
-				for z := range currentRulesets {
-					if currentRulesets[z].Name == anode["rulesetName"]{
+				if anode["rulesetName"] == ""{
+					for z := range currentRulesets {
 						Rsets := Ruleset{}
 						Rsets.Name = currentRulesets[z].Name
 						Rsets.Status = currentRulesets[z].Status
 						Rsets.File = currentRulesets[z].File
+						Rsets.Uuid = currentRulesets[z].Uuid
 						
 						var NewRule Rule
 						NewRule.Sid = RulesIndex[w].Sid
@@ -70,12 +78,31 @@ func GetRulesetsBySearch(anode map[string]string)(data []Rule, err error) {
 
 						matchingRules = append(matchingRules, NewRule)
 					}
+				}else{
+					for z := range currentRulesets {
+						if currentRulesets[z].Name == anode["rulesetName"]{
+							Rsets := Ruleset{}
+							Rsets.Name = currentRulesets[z].Name
+							Rsets.Status = currentRulesets[z].Status
+							Rsets.File = currentRulesets[z].File
+							Rsets.Uuid = currentRulesets[z].Uuid
+
+							var NewRule Rule
+							NewRule.Sid = RulesIndex[w].Sid
+							NewRule.Msg = RulesIndex[w].Msg
+							NewRule.Rulesets = append(NewRule.Rulesets, Rsets) 
+	
+							matchingRules = append(matchingRules, NewRule)
+						}
+					}
 				}
 			}	
 		}
 	}
 
-	logs.Notice(matchingRules)
+	for b := range matchingRules {
+		logs.Notice(matchingRules[b])
+	}
 
 	return matchingRules, err
 }
@@ -91,8 +118,9 @@ func Init()(){
 			rset.File = allRulesets[x]["path"]
 			rset.Name = allRulesets[x]["name"]
 			for y := range currentRules {
-				rule := Rule{}
 				rset.Status = currentRules[y]["enabled"]
+				rset.Uuid = x
+				rule := Rule{}
 				rule.Rulesets = append(rule.Rulesets, rset)
 				rule.Sid = currentRules[y]["sid"]
 				rule.Msg = currentRules[y]["msg"]
@@ -110,7 +138,8 @@ func Init()(){
 				}
 			}
 		}
-		time.Sleep(60 * time.Minute)
+		logs.Info(len(RulesIndex))
+		time.Sleep(5 * time.Minute)
 		logs.Info("Ruleset list has been updated.")
 	}
 }

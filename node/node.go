@@ -1042,3 +1042,39 @@ func ReloadFilesData(uuid string)(data map[string]map[string]string, err error){
 
 	return data,nil
 }
+
+func AddMonitorFile(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("AddMonitorFile -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/AddMonitorFile ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.AddMonitorFile(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/AddMonitorFile ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func PingMonitorFiles(uuid string)(data map[string]map[string]string, err error){
+    if ndb.Db == nil { logs.Error("PingMonitorFiles -- Can't acces to database"); return nil,err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/PingMonitorFiles ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+    
+    data,err = nodeclient.PingMonitorFiles(ipnid,portnid)
+	if err != nil { logs.Error("node/PingMonitorFiles ERROR http data request: "+err.Error()); return nil,err}
+
+	return data,nil
+}
+
+func DeleteMonitorFile(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("DeleteMonitorFile -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/DeleteMonitorFile ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.DeleteMonitorFile(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/DeleteMonitorFile ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}

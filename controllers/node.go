@@ -1064,3 +1064,51 @@ func (n *NodeController) ReloadFilesData() {
 
     n.ServeJSON()
 }
+
+// @Title AddMonitorFile
+// @Description Add file to node monitor
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /monitor/addFile [post]
+func (n *NodeController) AddMonitorFile() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.AddMonitorFile(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title PingMonitorFiles
+// @Description get files and their data from monitor
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /monitor/pingMonitorFiles/:uuid [get]
+// @router /monitor/:nid/pingMonitorFiles [get]
+func (n *NodeController) PingMonitorFiles() {
+	uuid := n.GetString(":uuid")
+    data, err := models.PingMonitorFiles(uuid)
+
+	n.Data["json"] = data
+	if err != nil {n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}}
+
+    n.ServeJSON()
+}
+
+// @Title DeleteMonitorFile
+// @Description delete file from node monitor
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /monitor/deleteFile [delete]
+func (n *NodeController) DeleteMonitorFile() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.DeleteMonitorFile(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

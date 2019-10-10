@@ -1236,3 +1236,40 @@ func ReloadFilesData(ipData string, portData string)(data map[string]map[string]
 	defer resp.Body.Close()
 	return data, nil
 }
+
+func AddMonitorFile(ipuuid string,portuuid string, data map[string]string)(err error){
+	url := "https://"+ipuuid+":"+portuuid+"/node/monitor/addFile"
+	valuesJSON,err := json.Marshal(data)
+	if err != nil {logs.Error("nodeclient/AddMonitorFile Error Marshal new JSON data: "+err.Error()); return err}
+	resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/AddMonitorFile ERROR on the new HTTP request response: "+err.Error()); return err}
+	
+	defer resp.Body.Close()
+	return nil
+}
+
+func PingMonitorFiles(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/monitor/pingMonitorFiles"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/PingMonitorFiles ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/PingMonitorFiles ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/PingMonitorFiles ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+
+	defer resp.Body.Close()
+	return data, nil
+}
+
+func DeleteMonitorFile(ipuuid string,portuuid string, data map[string]string)(err error){
+	url := "https://"+ipuuid+":"+portuuid+"/node/monitor/deleteFile"
+	valuesJSON,err := json.Marshal(data)
+	if err != nil {logs.Error("nodeclient/DeleteMonitorFile Error Marshal new JSON data: "+err.Error()); return err}
+	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/DeleteMonitorFile ERROR on the new HTTP request response: "+err.Error()); return err}
+	
+	defer resp.Body.Close()
+	return nil
+}

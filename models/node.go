@@ -325,3 +325,34 @@ func ReloadFilesData(uuid string)(data map[string]map[string]string, err error){
     data, err = node.ReloadFilesData(uuid)
     return data, err
 }
+
+// curl -X POST \
+//   https://52.47.197.22:50002/node/monitor/addFile \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "path": "path"
+// }
+func AddMonitorFile(anode map[string]string)(err error){
+    err = node.AddMonitorFile(anode)
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/node/pingMonitorFiles/:uuid \
+func PingMonitorFiles(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.PingMonitorFiles(uuid)
+    return data, err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/node/monitor/deleteFile \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "file": "file"
+// }
+func DeleteMonitorFile(anode map[string]string)(err error){
+    err = node.DeleteMonitorFile(anode)
+    return err
+}
