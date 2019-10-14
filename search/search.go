@@ -4,10 +4,11 @@ import(
 	// "regexp"
     // "os"
 	// "os/exec"
-	// "encoding/json"
+	"encoding/json"
 	"owlhmaster/database"
 	"time"
     "owlhmaster/ruleset"
+    "owlhmaster/elk"
     // "errors"
 	// "database/sql"
     "strings"
@@ -149,13 +150,67 @@ func Init()(){
 }
 
 func BuildRuleIndex()(){
-	BuildRuleIndexElastic()
 	BuildRuleIndexLocal()
+	BuildRuleIndexElastic()
 }
 
 func BuildRuleIndexElastic()(){
+	var jsonRules []string
+	allRulesets,err := ndb.GetAllRuleFiles()
+	if err!=nil {logs.Error("BuildRuleIndexElastic Error getting all rule files: "+err.Error())}
 
+	for x,_ := range allRulesets {	
+		currentRules, err := ruleset.ReadRuleset(allRulesets[x]["path"])
+		if err!=nil {logs.Error("BuildRuleIndexElastic Error getting rule file content: "+err.Error())}
+
+		for r := range currentRules{
+			currentRuleData := make(map[string]string)
+			//regexp
+			var validID = regexp.MustCompile(`([^\(]+)\((.*)\)`)
+			sid := validID.FindStringSubmatch(currentRules[r]["raw"])
+
+			match := strings.Split(sid[1], " ")
+			currentRuleData["raw"] = 		currentRules[r]["raw"]
+			currentRuleData["status"] = 	currentRules[r]["enabled"]
+			currentRuleData["type"] = 		strings.Trim(match[0], "#")
+			currentRuleData["proto"] = 		match[1]
+			currentRuleData["srcip"] = 		match[2]
+			currentRuleData["srcport"] = 	match[3]
+			currentRuleData["direction"] = 	match[4]
+			currentRuleData["dstip"] = 		match[5]
+			currentRuleData["dstport"] = 	match[6]
+			currentRuleData["fileName"] = 	allRulesets[x]["path"]
+			currentRuleData["RulesetName"] =allRulesets[x]["name"]
+
+			matchContent := strings.Split(sid[2], ";")
+			for h := range matchContent{
+				if matchContent[h] == "" {continue}
+				if strings.Contains(matchContent[h], ":"){
+					keyValue := strings.Split(matchContent[h], ":")
+					keyValue[0] = strings.Replace(keyValue[0]," ","",-1)
+					if keyValue[0] == "" {continue}
+
+					if _, ok := currentRuleData[keyValue[0]]; ok {
+						currentRuleData[keyValue[0]] = currentRuleData[keyValue[0]]+" -- "+keyValue[1]
+					}else{
+						currentRuleData[keyValue[0]] = keyValue[1]
+					}
+				}else{
+					matchContent[h] = strings.Replace(matchContent[h]," ","",-1)
+					currentRuleData[matchContent[h]] = ""
+				}					
+			}
+			ruleElasticOutput, err := json.Marshal(currentRuleData)
+			if err!=nil {logs.Error("BuildRuleIndexElastic Error creating json file: "+err.Error())}
+	
+			jsonRules = append(jsonRules, string(ruleElasticOutput))
+		} 	
+	}
+
+	elk.Init(jsonRules)
+	logs.Info("Elastic data loaded")
 }
+
 
 func BuildRuleIndexLocal()(){
 	RulesIndex = nil

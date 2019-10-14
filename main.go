@@ -71,7 +71,7 @@ func main() {
     go scheduler.Init()
 	//Load all rulesets
     go search.Init()
-	
+
 	//Beego API documentation
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
