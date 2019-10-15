@@ -1273,3 +1273,23 @@ func DeleteMonitorFile(ipuuid string,portuuid string, data map[string]string)(er
 	defer resp.Body.Close()
 	return nil
 }
+
+func ChangeZeekMode(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/changeZeekMode"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/ChangeZeekMode ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func AddClusterValue(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/addClusterValue"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/AddClusterValue ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}

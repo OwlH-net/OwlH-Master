@@ -110,3 +110,15 @@ func GetSuricataServices(uuid string)(data map[string]map[string]string, err err
 
     return data,nil
 }
+
+func SaveSuricataInterface(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("SaveSuricataInterface -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SaveSuricataInterface ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.SaveSuricataInterface(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SaveSuricataInterface ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}

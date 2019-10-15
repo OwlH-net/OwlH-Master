@@ -356,3 +356,29 @@ func DeleteMonitorFile(anode map[string]string)(err error){
     err = node.DeleteMonitorFile(anode)
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/node/changeZeekMode \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "mode": "cluster"
+// }
+func ChangeZeekMode(anode map[string]string)(err error){
+    err = node.ChangeZeekMode(anode)
+    return err
+}
+
+// curl -X POST \
+//   https://52.47.197.22:50002/node/addClusterValue \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "type": "cluster"
+//     "host": "localhost"
+//     "interface": "eth0"
+// }
+func AddClusterValue(anode map[string]string)(err error){
+    err = node.AddClusterValue(anode)
+    return err
+}

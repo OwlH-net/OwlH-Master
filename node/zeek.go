@@ -77,3 +77,27 @@ func DeployZeek(uuid string)(err error){
     }
 	return nil
 }
+
+func ChangeZeekMode(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("ChangeZeekMode -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/ChangeZeekMode ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.ChangeZeekMode(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/ChangeZeekMode ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func AddClusterValue(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("AddClusterValue -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/AddClusterValue ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.AddClusterValue(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/AddClusterValue ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}

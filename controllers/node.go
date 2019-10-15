@@ -1112,3 +1112,37 @@ func (n *NodeController) DeleteMonitorFile() {
     }
     n.ServeJSON()
 }
+
+// @Title ChangeZeekMode
+// @Description Change Zeek mode
+// @Success 200 {object} models.Node
+// @router /zeek/changeZeekMode [put]
+func (n *NodeController) ChangeZeekMode() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.ChangeZeekMode(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title AddClusterValue
+// @Description Add cluster value for Zeek service
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /addClusterValue [post]
+func (n *NodeController) AddClusterValue() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.AddClusterValue(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

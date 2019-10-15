@@ -26,12 +26,15 @@ func WriteToELK(t string, cont int){
 	loadElk["elk"]["ip"] = ""
 	loadElk["elk"]["port"] = ""
 	loadElk["elk"]["indexName"] = ""
+	loadElk["elk"]["status"] = ""
 	loadElk,err := utils.GetConf(loadElk)
 	if err != nil {logs.Error("Elastic/WriteToELK error readding data from main.conf: "+err.Error()); return}
 	ip := loadElk["elk"]["ip"]
 	port := loadElk["elk"]["port"]
 	indexName := loadElk["elk"]["indexName"]
+	status := loadElk["elk"]["status"]
 
+	if status == "disabled" {return}
 
 	cfg := elk7.Config{
 		Addresses: []string{
@@ -41,7 +44,7 @@ func WriteToELK(t string, cont int){
 	es, err := elk7.NewClient(cfg)
 	if err != nil {logs.Error("Elastic search error: "+err.Error()); return}
 
-	logs.Info(t)
+	// logs.Info(t)
 	req := esapi.IndexRequest{
 		Index:      indexName,
 		DocumentID: "item"+string(cont),
@@ -59,15 +62,15 @@ func WriteToELK(t string, cont int){
 	defer res.Body.Close()
 
 	if res.IsError() {
-		logs.Info("[%s] Error indexing document ID=%d", res.Status(), 5)
+		logs.Error("[%s] Error indexing document ID=%d", res.Status(), 5)
 	} else {
 		// Deserialize the response into a map.
 		var r map[string]interface{}
 		if err := json.NewDecoder(res.Body).Decode(&r); err != nil {
-			  logs.Info("Error parsing the response body: %s", err)
+			  logs.Error("Error parsing the response body: %s", err)
 		} else {
 			  // Print the response status and indexed document version.
-			  logs.Info("[%s] %s; version=%d", res.Status(), r["result"], int(r["_version"].(float64)))
+			//   logs.Info("[%s] %s; version=%d", res.Status(), r["result"], int(r["_version"].(float64)))
 		}
 	}
 }

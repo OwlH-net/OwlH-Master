@@ -159,7 +159,8 @@ func BuildRuleIndexElastic()(){
 	allRulesets,err := ndb.GetAllRuleFiles()
 	if err!=nil {logs.Error("BuildRuleIndexElastic Error getting all rule files: "+err.Error())}
 
-	for x,_ := range allRulesets {	
+	for x,_ := range allRulesets {
+		if allRulesets[x]["type"] == "source" {continue}
 		currentRules, err := ruleset.ReadRuleset(allRulesets[x]["path"])
 		if err!=nil {logs.Error("BuildRuleIndexElastic Error getting rule file content: "+err.Error())}
 
@@ -208,13 +209,14 @@ func BuildRuleIndexElastic()(){
 	}
 
 	elk.Init(jsonRules)
-	logs.Info("Elastic data loaded")
+	logs.Notice("Elastic data loaded")
 }
 
 
 func BuildRuleIndexLocal()(){
 	RulesIndex = nil
 	exists := false
+	cont := 0
 	allRulesets,err := ndb.GetAllRuleFiles()
 	if err != nil {logs.Error("Search/Init error: %s", err.Error())}
 	for x,_ := range allRulesets {	
@@ -222,7 +224,7 @@ func BuildRuleIndexLocal()(){
 		currentRules, _ := ruleset.ReadRuleset(allRulesets[x]["path"])
 		rset.File = allRulesets[x]["path"]
 		rset.Name = allRulesets[x]["name"]
-		for y := range currentRules {				
+		for y := range currentRules {			
 			rset.Status = currentRules[y]["enabled"]
 			rset.Uuid = x
 			rule := Rule{}
@@ -241,8 +243,43 @@ func BuildRuleIndexLocal()(){
 			if !exists {
 				RulesIndex = append(RulesIndex, rule)
 			}
+			cont++
 		}
 	}
+	// nodes,err := ndb.GetAllNodes()
+	// for x,_ := range allRulesets {	
+	// 	for f := range nodes{
+	// 		currentRules, _ := ruleset.ReadRuleset(allRulesets[x]["path"])
+	// 		if allRulesets[x]["sourceUUID"] == f {
+	// 			rset := Ruleset{}
+	// 			nodeName,err := ndb.ObtainNodeName(nodes[f])
+	// 			rset.Node = append(rset.Node, nodeName)
+	// 			rule.Rulesets = append(rule.Rulesets, rset)
+	// 		}
+	// 		if RulesIndex[w].Sid == currentRules[w]["sid"]{	
+	// 			RulesIndex[w].Rulesets = append(RulesIndex[w].Rulesets, rset)
+	// 			exists=true
+	// 			break
+	// 		}
+	// 		for y := range currentRules {	
+	// 			for w,l := range RulesIndex {
+	// 				if contains(arr,nodeName){
+
+	// 				}
+
+	// 			}
+	// 			if !exists {
+	// 				RulesIndex = append(RulesIndex, rule)
+	// 			}
+
+	// 		}
+	// 	}
+
+	// }
+
+
+
+
 	logs.Info("Ruleset list loaded")
 }
 
