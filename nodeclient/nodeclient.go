@@ -1293,3 +1293,51 @@ func AddClusterValue(ipnid string, portnid string, data map[string]string)(err e
 	defer resp.Body.Close()
 	return nil
 }
+
+func PingCluster(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/zeek/pingCluster"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/PingCluster ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/PingCluster ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/PingCluster ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+	defer resp.Body.Close()
+
+	if data["error"] != nil {
+		return nil, errors.New(data["error"]["error"])
+	}
+	return data, nil
+}
+
+func EditClusterValue(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/editClusterValue"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/EditClusterValue ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func DeleteClusterValue(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/deleteClusterValue"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/DeleteClusterValue ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func SyncCluster(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/syncCluster"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/SyncCluster ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}

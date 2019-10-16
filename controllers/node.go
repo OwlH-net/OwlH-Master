@@ -1146,3 +1146,69 @@ func (n *NodeController) AddClusterValue() {
     }
     n.ServeJSON()
 }
+
+// @Title PingCluster
+// @Description Get all Zeek cluster elements
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /pingCluster/:uuid [get]
+func (n *NodeController) PingCluster() {
+    uuid := n.GetString(":uuid")
+	data,err := models.PingCluster(uuid)
+	n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title EditClusterValue
+// @Description Edit cluster value
+// @Success 200 {object} models.Node
+// @router /zeek/editClusterValue [put]
+func (n *NodeController) EditClusterValue() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.EditClusterValue(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title DeleteClusterValue
+// @Description Delete cluster value
+// @Success 200 {object} models.Node
+// @router /zeek/deleteClusterValue [delete]
+func (n *NodeController) DeleteClusterValue() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.DeleteClusterValue(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title SyncCluster
+// @Description Sync Zeek cluster
+// @Success 200 {object} models.Node
+// @router /zeek/syncCluster [put]
+func (n *NodeController) SyncCluster() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SyncCluster(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

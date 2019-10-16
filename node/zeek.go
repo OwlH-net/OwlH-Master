@@ -101,3 +101,51 @@ func AddClusterValue(anode map[string]string)(err error){
 
 	return nil
 }
+
+func PingCluster(uuid string)(data map[string]map[string]string, err error){
+    if ndb.Db == nil { logs.Error("PingCluster -- Can't acces to database"); return nil,err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/PingCluster ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+    
+    data,err = nodeclient.PingCluster(ipnid,portnid)
+	if err != nil { logs.Error("node/PingCluster ERROR http data request: "+err.Error()); return nil,err}
+
+	return data,nil
+}
+
+func EditClusterValue(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("EditClusterValue -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/EditClusterValue ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.EditClusterValue(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/EditClusterValue ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func DeleteClusterValue(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("DeleteClusterValue -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/DeleteClusterValue ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.DeleteClusterValue(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/DeleteClusterValue ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
+
+func SyncCluster(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("SyncCluster -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/SyncCluster ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.SyncCluster(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/SyncCluster ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}

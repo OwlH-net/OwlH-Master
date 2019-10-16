@@ -358,7 +358,7 @@ func DeleteMonitorFile(anode map[string]string)(err error){
 }
 
 // curl -X PUT \
-//   https://52.47.197.22:50002/node/changeZeekMode \
+//   https://52.47.197.22:50002/node/zeek/changeZeekMode \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -370,7 +370,7 @@ func ChangeZeekMode(anode map[string]string)(err error){
 }
 
 // curl -X POST \
-//   https://52.47.197.22:50002/node/addClusterValue \
+//   https://52.47.197.22:50002/node/zeek/addClusterValue \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -380,5 +380,51 @@ func ChangeZeekMode(anode map[string]string)(err error){
 // }
 func AddClusterValue(anode map[string]string)(err error){
     err = node.AddClusterValue(anode)
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/node/zeek/pingCluster/:uuid \
+// }
+func PingCluster(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.PingCluster(uuid)
+    return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/node/zeek/editClusterValue \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "type": "v",
+//     "host": "v",
+//     "interface": "cluster"
+// }
+func EditClusterValue(anode map[string]string)(err error){
+    err = node.EditClusterValue(anode)
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/node/zeek/deleteClusterValue \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "type": "v"
+// }
+func DeleteClusterValue(anode map[string]string)(err error){
+    err = node.DeleteClusterValue(anode)
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/node/zeek/syncCluster \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "type": "cluster"
+// }
+func SyncCluster(anode map[string]string)(err error){
+    err = node.SyncCluster(anode)
     return err
 }
