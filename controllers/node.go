@@ -1212,3 +1212,18 @@ func (n *NodeController) SyncCluster() {
     }
     n.ServeJSON()
 }
+
+// @Title GetChangeControlNode
+// @Description Get changeControl database values from node
+// @Success 200 {object} models.Collector
+// @Failure 403 body is empty
+// @router /changecontrol/:uuid [get]
+func (n *NodeController) GetChangeControlNode() {
+    uuid := n.GetString(":uuid")
+	data, err := models.GetChangeControlNode(uuid)
+	n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

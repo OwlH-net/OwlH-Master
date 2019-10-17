@@ -1341,3 +1341,21 @@ func SyncCluster(ipnid string, portnid string, data map[string]string)(err error
 	defer resp.Body.Close()
 	return nil
 }
+
+func GetChangeControlNode(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/changecontrol"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/GetChangeControlNode ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/GetChangeControlNode ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/GetChangeControlNode ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+	defer resp.Body.Close()
+
+	if data["error"] != nil {
+		return nil, errors.New(data["error"]["error"])
+	}
+	return data, nil
+}

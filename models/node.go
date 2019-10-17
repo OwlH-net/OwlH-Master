@@ -3,6 +3,7 @@ package models
 import (
     "github.com/astaxie/beego/logs"
     "owlhmaster/node"
+    "owlhmaster/changeControl"
 )
 
 func GetAllNodes() (anode *map[string]map[string]string, err error) {
@@ -12,7 +13,20 @@ func GetAllNodes() (anode *map[string]map[string]string, err error) {
 
 func AddNode(n map[string]string) (err error) {
     err = node.AddNode(n)
-    return err
+    if err!=nil { 
+        n["actionStatus"] = "error"
+        n["errorDescription"] = err.Error()
+    }else{
+        n["actionStatus"] = "success"
+    }
+    n["action"] = "POST"
+    n["actionDescription"] = "Add node"
+    var controlError error
+    controlError = changecontrol.InsertChangeControl(n)
+    if controlError!=nil { logs.Error("AddNode controlError: "+controlError.Error()) }
+    if err != nil {return err}
+
+    return nil
 }
 
 func UpdateNode(n map[string]string) (err error) {
@@ -327,7 +341,7 @@ func ReloadFilesData(uuid string)(data map[string]map[string]string, err error){
 }
 
 // curl -X POST \
-//   https://52.47.197.22:50002/node/monitor/addFile \
+//   https://52.47.197.22:50002/v1/node/monitor/addFile \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -339,14 +353,14 @@ func AddMonitorFile(anode map[string]string)(err error){
 }
 
 // curl -X GET \
-//   https://52.47.197.22:50002/node/pingMonitorFiles/:uuid \
+//   https://52.47.197.22:50002/v1/node/pingMonitorFiles/:uuid \
 func PingMonitorFiles(uuid string)(data map[string]map[string]string, err error){
     data, err = node.PingMonitorFiles(uuid)
     return data, err
 }
 
 // curl -X DELETE \
-//   https://52.47.197.22:50002/node/monitor/deleteFile \
+//   https://52.47.197.22:50002/v1/node/monitor/deleteFile \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -358,7 +372,7 @@ func DeleteMonitorFile(anode map[string]string)(err error){
 }
 
 // curl -X PUT \
-//   https://52.47.197.22:50002/node/zeek/changeZeekMode \
+//   https://52.47.197.22:50002/v1/node/zeek/changeZeekMode \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -370,7 +384,7 @@ func ChangeZeekMode(anode map[string]string)(err error){
 }
 
 // curl -X POST \
-//   https://52.47.197.22:50002/node/zeek/addClusterValue \
+//   https://52.47.197.22:50002/v1/node/zeek/addClusterValue \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -384,7 +398,7 @@ func AddClusterValue(anode map[string]string)(err error){
 }
 
 // curl -X GET \
-//   https://52.47.197.22:50002/node/zeek/pingCluster/:uuid \
+//   https://52.47.197.22:50002/v1/node/zeek/pingCluster/:uuid \
 // }
 func PingCluster(uuid string)(data map[string]map[string]string, err error){
     data, err = node.PingCluster(uuid)
@@ -392,7 +406,7 @@ func PingCluster(uuid string)(data map[string]map[string]string, err error){
 }
 
 // curl -X PUT \
-//   https://52.47.197.22:50002/node/zeek/editClusterValue \
+//   https://52.47.197.22:50002/v1/node/zeek/editClusterValue \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -406,7 +420,7 @@ func EditClusterValue(anode map[string]string)(err error){
 }
 
 // curl -X DELETE \
-//   https://52.47.197.22:50002/node/zeek/deleteClusterValue \
+//   https://52.47.197.22:50002/v1/node/zeek/deleteClusterValue \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -418,7 +432,7 @@ func DeleteClusterValue(anode map[string]string)(err error){
 }
 
 // curl -X PUT \
-//   https://52.47.197.22:50002/node/zeek/syncCluster \
+//   https://52.47.197.22:50002/v1/node/zeek/syncCluster \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -427,4 +441,12 @@ func DeleteClusterValue(anode map[string]string)(err error){
 func SyncCluster(anode map[string]string)(err error){
     err = node.SyncCluster(anode)
     return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/node/getChangeControlNode/:uuid \
+// }
+func GetChangeControlNode(uuid string)(data map[string]map[string]string, err error) {
+    data, err = node.GetChangeControlNode(uuid)
+    return data, err
 }

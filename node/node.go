@@ -1066,3 +1066,15 @@ func DeleteMonitorFile(anode map[string]string)(err error){
 
 	return nil
 }
+
+func GetChangeControlNode(uuid string)(data map[string]map[string]string, err error){
+    if ndb.Db == nil { logs.Error("GetChangeControlNode -- Can't acces to database"); return nil,err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+    
+    data,err = nodeclient.GetChangeControlNode(ipnid,portnid)
+	if err != nil { logs.Error("node/GetChangeControlNode ERROR http data request: "+err.Error()); return nil,err}
+
+	return data,nil
+}
