@@ -337,3 +337,34 @@ func (n *MasterController) StopStapServiceMaster() {
     }
     n.ServeJSON()
 }
+
+// @Title GetIncidents
+// @Description Get incidents for master
+// @Param       body            body    models.Master     true            "body for master content"
+// @Success 200 {object} models.Master
+// @router /incidents [get]
+func (m *MasterController) GetIncidents() {	
+    data,err := models.GetIncidents()
+    m.Data["json"] = data
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
+    }
+    m.ServeJSON()
+}
+
+// @Title PutIncident
+// @Description Add new incident
+// @Success 200 {object} models.Master
+// @router /incidents [post]
+func (n *MasterController) PutIncident() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.PutIncident(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

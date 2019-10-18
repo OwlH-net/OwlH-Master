@@ -237,3 +237,35 @@ func InsertChangeControl(uuid string, param string, value string)(err error){
 	
 	return nil
 }
+
+func GetIncidents()(path map[string]map[string]string, err error){
+	var serviceValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+	rowsQuery, err := Mdb.Query("select incidents_uniqueid, incidents_param, incidents_value from incidents;")
+	if err != nil {
+		logs.Error("GetIncidents Mdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rowsQuery.Close()
+	for rowsQuery.Next() {
+		if err = rowsQuery.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetIncidents -- Query return error: %s", err.Error()); return nil, err}
+
+		if serviceValues[uniqid] == nil { serviceValues[uniqid] = map[string]string{}}
+		serviceValues[uniqid][param]=value
+	} 
+	return serviceValues,nil
+}
+
+func PutIncident(uuid string, param string, value string)(err error){
+	PutIncidentValues, err := Mdb.Prepare("insert into incidents(incidents_uniqueid, incidents_param, incidents_value) values (?,?,?);")
+	if (err != nil){ logs.Error("PutIncident prepare error: "+err.Error()); return err}
+
+	_, err = PutIncidentValues.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("PutIncident exec error: "+err.Error()); return err}
+
+	defer PutIncidentValues.Close()
+	
+	return nil
+}

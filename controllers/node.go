@@ -1227,3 +1227,35 @@ func (n *NodeController) GetChangeControlNode() {
     }
     n.ServeJSON()
 }
+
+// @Title GetIncidentsNode
+// @Description Get incidents for node
+// @Param       body            body    models.Master     true            "body for master content"
+// @Success 200 {object} models.Master
+// @router /incidents/:uuid [get]
+func (m *NodeController) GetIncidentsNode() {	
+    uuid := m.GetString(":uuid")
+    data,err := models.GetIncidentsNode(uuid)
+    m.Data["json"] = data
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
+    }
+    m.ServeJSON()
+}
+
+// @Title PutIncidentNode
+// @Description Add new incident at node
+// @Success 200 {object} models.Master
+// @router /incidents [post]
+func (n *NodeController) PutIncidentNode() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.PutIncidentNode(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

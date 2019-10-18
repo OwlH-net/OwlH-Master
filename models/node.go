@@ -6,7 +6,7 @@ import (
     "owlhmaster/changeControl"
 )
 
-func GetAllNodes() (anode *map[string]map[string]string, err error) {
+func GetAllNodes() (anode map[string]map[string]string, err error) {
     anode, err = node.GetAllNodes()
     return anode, err
 }
@@ -21,9 +21,12 @@ func AddNode(n map[string]string) (err error) {
     }
     n["action"] = "POST"
     n["actionDescription"] = "Add node"
+    
+    //add incident
     var controlError error
     controlError = changecontrol.InsertChangeControl(n)
     if controlError!=nil { logs.Error("AddNode controlError: "+controlError.Error()) }
+
     if err != nil {return err}
 
     return nil
@@ -449,4 +452,26 @@ func SyncCluster(anode map[string]string)(err error){
 func GetChangeControlNode(uuid string)(data map[string]map[string]string, err error) {
     data, err = node.GetChangeControlNode(uuid)
     return data, err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/node/incidents \
+// }
+func GetIncidentsNode(uuid string)(data map[string]map[string]string, err error){
+    data,err = node.GetIncidentsNode(uuid)
+    return data,err
+}
+
+// curl -X POST \
+//   https://52.47.197.22:50002/v1/node/incidents \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "nodeuuid": "d",
+//     "uuid": "v",
+//     "param": "v",
+//     "value": "v",
+// }
+func PutIncidentNode(anode map[string]string)(err error){
+    err = node.PutIncidentNode(anode)
+    return err
 }

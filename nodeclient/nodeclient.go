@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"owlhmaster/utils"
+	"owlhmaster/database"
 	"bytes"
+	"time"
 )
 
 func init() {
@@ -18,20 +20,40 @@ func Echo() {
 }
 
 func PingNode(ip string, port string) (err error) {
-    logs.Info("NodeClient PingNode -> %s, %s", ip, port)
-	// url := "https://"+ip+":"+port+"/node/node"
 	url := "https://"+ip+":"+port+"/node/ping"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		//add incident
+		uuid := utils.Generate()
+		var controlError error
+		currentTime := time.Now()
+		timeFormated := currentTime.Format("2006-01-02T15:04:05")
+		controlError = ndb.PutIncident(uuid, "date", timeFormated)
+		controlError = ndb.PutIncident(uuid, "desc", "Thisa Master description")
+		controlError = ndb.PutIncident(uuid, "status", "new") // new, open, closed, delayed
+		controlError = ndb.PutIncident(uuid, "level", "info") // warning, info or danger
+		controlError = ndb.PutIncident(uuid, "NodeIp", ip) // warning, info or danger
+		controlError = ndb.PutIncident(uuid, "NodePort", port) // warning, info or danger
+		if controlError!=nil { logs.Error("PingNode error creating incident: "+controlError.Error()) }
+
 		logs.Error("nodeClient/PingNode ERROR connection through http new Request: "+err.Error())
-        return err
-    }
-    logs.Info("response Status:", resp.Status)
-    logs.Info("response Headers:", resp.Header)
-    body, _ := ioutil.ReadAll(resp.Body)
-    logs.Info("response Body:", string(body))
-    defer resp.Body.Close()
+		return err
+	}
+	
+	defer resp.Body.Close()
     return nil
+}
+
+func UpdateNodeData(ipData string, portData string, loadFile map[string]map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/ping/updateNode"
+	valuesJSON,err := json.Marshal(loadFile)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/UpdateNodeData ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
 }
 
 func Suricata(ip string, port string) (data map[string]bool, err error ) {
@@ -1358,4 +1380,32 @@ func GetChangeControlNode(ipData string, portData string)(data map[string]map[st
 		return nil, errors.New(data["error"]["error"])
 	}
 	return data, nil
+}
+
+func GetIncidentsNode(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/incidents"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/GetIncidentsNode ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/GetIncidentsNode ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/GetIncidentsNode ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+	defer resp.Body.Close()
+
+	if data["error"] != nil {
+		return nil, errors.New(data["error"]["error"])
+	}
+	return data, nil
+}
+
+func PutIncidentNode(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/incidents"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/PutIncidentNode ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
 }

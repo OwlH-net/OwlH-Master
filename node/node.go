@@ -136,6 +136,12 @@ func getNodeConf(nodeKey string)(conf map[string]string, err error) {
     return conf, nil
 }
 
+func GetAllNodes()(data map[string]map[string]string, err error){
+    allNodes,err := ndb.GetAllNodes()
+    if err != nil {logs.Error("Get all nodes error: "+err.Error()); return nil, err}
+    return allNodes,nil
+}
+
 func getAllNodesIp() (ips map[string]string, err error) {
     var uid string
     var ip string
@@ -255,9 +261,16 @@ func AddNode(n map[string]string) (err error) {
     for key, value := range n {
         err = nodeKeyInsert(nodeKey, key, value)
     }
-    if err != nil {
-        return err
-    }
+    if err != nil {return err}
+
+    //update node
+    nodeValues, err := ndb.GetAllNodesById(n["uuid"])
+    if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}	
+    ipnid,portnid,err := ndb.ObtainPortIp(n["uuid"])
+	if err != nil { logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    err = nodeclient.UpdateNodeData(ipnid,portnid, nodeValues)
+    if err != nil {logs.Error("Error updating node data")}
+
     return nil
 }
 
@@ -285,9 +298,16 @@ func UpdateNode(n map[string]string) (err error) {
             err = nodeKeyInsert(nodeKey, key, value)
         }
     }
-    if err != nil {
-        return err
-    }
+    if err != nil {return err}
+
+    //update node
+    nodeValues, err := ndb.GetAllNodesById(n["uuid"])
+    if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}
+    ipnid,portnid,err := ndb.ObtainPortIp(n["uuid"])
+	if err != nil { logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: "+err.Error()); return err}	
+    err = nodeclient.UpdateNodeData(ipnid,portnid, nodeValues)
+    if err != nil {logs.Error("Error updating node data")}
+
     return nil
 }
 
@@ -311,43 +331,19 @@ func getNodeIpbyName(n string)(ip string, err error) {
     return "", errors.New("There is no IP for given node name")
 }
 
-func GetAllNodes() (nodes *map[string]map[string]string, err error) {
-    var allnodes = map[string]map[string]string{}
-    var uniqid string
-    var param string
-    var value string
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return nil, errors.New("no access to database")
-    }
-    sql := "select node_uniqueid, node_param, node_value from nodes;"
-    rows, err := ndb.Db.Query(sql)
-    if err != nil {
-        logs.Error("ndb.Db.Query Error : %s", err.Error())
-        return nil, err
-    }
-    for rows.Next() {
-        if err = rows.Scan(&uniqid, &param, &value); err != nil {
-            logs.Error("GetAllNodes rows.Scan: %s", err.Error())
-            return nil, err
-        }
-        logs.Info ("uniqid: %s, param: %s, value: %s", uniqid,param,value)
-        if allnodes[uniqid] == nil { allnodes[uniqid] = map[string]string{}}
-        allnodes[uniqid][param]=value
-    } 
-    return &allnodes, nil
-}
-
 func NodePing(uuid string) (err error) {
 	ipData,portData,err := ndb.ObtainPortIp(uuid)
-	if err != nil {
-		logs.Error("node/NodePing ERROR getting node port/ip : "+err.Error())
-        return err
-	}	
+    if err != nil {logs.Error("node/NodePing ERROR getting node port/ip: "+err.Error()); return err}	
+    
+    nodeValues, err := ndb.GetAllNodesById(uuid)
+    if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}	
+
+    err = nodeclient.UpdateNodeData(ipData,portData, nodeValues)
+    if err != nil {logs.Error("Error updating node data")}
+
     err = nodeclient.PingNode(ipData,portData)
-    if err != nil {
-        return err
-    }
+    if err != nil {return err}
+
     return nil
 }
 
@@ -1077,4 +1073,28 @@ func GetChangeControlNode(uuid string)(data map[string]map[string]string, err er
 	if err != nil { logs.Error("node/GetChangeControlNode ERROR http data request: "+err.Error()); return nil,err}
 
 	return data,nil
+}
+
+func GetIncidentsNode(uuid string)(data map[string]map[string]string, err error){
+    if ndb.Db == nil { logs.Error("GetIncidentsNode -- Can't acces to database"); return nil,err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+	if err != nil { logs.Error("node/GetIncidentsNode ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+    
+    data,err = nodeclient.GetIncidentsNode(ipnid,portnid)
+	if err != nil { logs.Error("node/GetIncidentsNode ERROR http data request: "+err.Error()); return nil,err}
+
+	return data,nil
+}
+
+func PutIncidentNode(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("PutIncidentNode -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/PutIncidentNode ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.PutIncidentNode(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/PutIncidentNode ERROR http data request: "+err.Error()); return err}
+
+	return nil
 }
