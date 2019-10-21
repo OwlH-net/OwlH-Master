@@ -1259,3 +1259,20 @@ func (n *NodeController) PutIncidentNode() {
     }
     n.ServeJSON()
 }
+
+// @Title ChangeSuricataTable
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /plugin/changeSuricataTable [put]
+func (n *NodeController) ChangeSuricataTable() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.ChangeSuricataTable(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

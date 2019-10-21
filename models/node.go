@@ -475,3 +475,15 @@ func PutIncidentNode(anode map[string]string)(err error){
     err = node.PutIncidentNode(anode)
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/plugin/changeSuricataTable \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "status": "v"
+// }
+func ChangeSuricataTable(anode map[string]string)(err error){
+    err = node.ChangeSuricataTable(anode)
+    return err
+}

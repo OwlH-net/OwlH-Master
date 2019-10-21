@@ -122,3 +122,15 @@ func SaveSuricataInterface(anode map[string]string)(err error){
 
 	return nil
 }
+
+func ChangeSuricataTable(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("ChangeSuricataTable -- Can't acces to database"); return err}
+
+	ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+	if err != nil { logs.Error("node/ChangeSuricataTable ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.ChangeSuricataTable(ipnid,portnid,anode)
+	if err != nil { logs.Error("node/ChangeSuricataTable ERROR http data request: "+err.Error()); return err}
+
+	return nil
+}
