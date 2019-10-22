@@ -269,3 +269,83 @@ func PutIncident(uuid string, param string, value string)(err error){
 	
 	return nil
 }
+
+func GetAllGroups()(groups map[string]map[string]string, err error){
+	var allgroups = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+	if Mdb == nil { logs.Error("no access to database"); return nil, err}
+	
+    sql := "select group_uniqueid, group_param, group_value from groups;"
+    rows, err := Mdb.Query(sql)
+	if err != nil { logs.Error("Mdb.Query Error : %s", err.Error()); return nil, err}
+	
+    for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetAllGroups rows.Scan: %s", err.Error()); return nil, err}
+		
+        if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+        allgroups[uniqid][param]=value
+	} 
+    return allgroups, nil
+}
+
+func GroupExists(uuid string) (err error) {
+	if Mdb == nil {logs.Error("no access to database"); return err}
+	
+    sql := "SELECT * FROM groups where group_uniqueid = '"+uuid+"';"
+    rows, err := Mdb.Query(sql)
+	if err != nil {logs.Error("Error on query groupExist at group.go "+err.Error()); return err}
+	
+    defer rows.Close()
+    if rows.Next() {
+        return err
+    } else {
+        return nil
+    }
+}
+
+func DeleteGroup(uuid string) (err error) {
+	if Mdb == nil { logs.Error("DeleteGroup -- Can't acces to database"); return err}
+
+	stmt, err := Mdb.Prepare("delete from groups where group_uniqueid = ?")
+	if err != nil {logs.Error("Prepare DeleteGroup -> %s", err.Error()); return err}
+	
+    _, err = stmt.Exec(&uuid)
+    if err != nil {logs.Error("Execute DeleteGroup -> %s", err.Error()); return err}
+
+	return nil
+}
+
+func InsertGroup(uuid string, param string, value string)(err error){
+	if Mdb == nil {logs.Error("no access to database"); return err}
+	insertGroup, err := Mdb.Prepare("insert into groups(group_uniqueid, group_param, group_value) values(?,?,?);")
+	if err != nil {logs.Error("Prepare InsertGroup-> %s", err.Error()); return err}
+
+	_, err = insertGroup.Exec(&uuid, &param, &value)
+	if err != nil {logs.Error("Execute InsertGroup-> %s", err.Error()); return err}
+
+	return nil
+}
+
+func UpdateGroupData(uuid string, param string, value string)(err error){
+	if Mdb == nil {logs.Error("no access to database"); return err}
+	updateGroup, err := Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
+	if err != nil {logs.Error("Prepare UpdateGroupData-> %s", err.Error()); return err}
+
+	_, err = updateGroup.Exec(&value, &param, &uuid)
+	if err != nil {logs.Error("Execute UpdateGroupData-> %s", err.Error()); return err}
+
+	return nil
+}
+
+func InsertGroupNodes(uuid string, param string, value string)(err error){
+	if Mdb == nil {logs.Error("no access to database"); return err}
+	insertGroupnodesValues, err := Mdb.Prepare("insert into groupnodes(gn_uniqueid, gn_param, gn_value) values(?,?,?);")
+	if err != nil {logs.Error("Prepare InsertGroupNodes-> %s", err.Error()); return err}
+
+	_, err = insertGroupnodesValues.Exec(&uuid, &param, &value)
+	if err != nil {logs.Error("Execute InsertGroupNodes-> %s", err.Error()); return err}
+
+	return nil
+}
