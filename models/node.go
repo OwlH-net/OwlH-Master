@@ -3,16 +3,33 @@ package models
 import (
     "github.com/astaxie/beego/logs"
     "owlhmaster/node"
+    "owlhmaster/changeControl"
 )
 
-func GetAllNodes() (anode *map[string]map[string]string, err error) {
+func GetAllNodes() (anode map[string]map[string]string, err error) {
     anode, err = node.GetAllNodes()
     return anode, err
 }
 
 func AddNode(n map[string]string) (err error) {
     err = node.AddNode(n)
-    return err
+    if err!=nil { 
+        n["actionStatus"] = "error"
+        n["errorDescription"] = err.Error()
+    }else{
+        n["actionStatus"] = "success"
+    }
+    n["action"] = "POST"
+    n["actionDescription"] = "Add node"
+    
+    //add incident
+    var controlError error
+    controlError = changecontrol.InsertChangeControl(n)
+    if controlError!=nil { logs.Error("AddNode controlError: "+controlError.Error()) }
+
+    if err != nil {return err}
+
+    return nil
 }
 
 func UpdateNode(n map[string]string) (err error) {
@@ -295,4 +312,178 @@ func ModifyStapValues(anode map[string]string)(err error){
 func PingPorts(uuid string)(data map[string]map[string]string, err error){
     data, err = node.PingPorts(uuid)
     return data, err
+}
+
+func PingWazuhFiles(uuid string)(anode map[int]map[string]string, err error){
+    anode,err = node.PingWazuhFiles(uuid)
+    return anode,err
+}
+
+func DeleteWazuhFile(anode map[string]interface{})(err error){
+    err = node.DeleteWazuhFile(anode)
+    return err
+}
+func AddWazuhFile(anode map[string]interface{})(err error){
+    err = node.AddWazuhFile(anode)
+    return err
+}
+
+func LoadFileLastLines(anode map[string]string)(data map[string]string, err error){
+    data,err = node.LoadFileLastLines(anode)
+    return data,err
+}
+
+func SaveFileContentWazuh(anode map[string]string)(err error){
+    err = node.SaveFileContentWazuh(anode)
+    return err
+}
+
+func ReloadFilesData(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.ReloadFilesData(uuid)
+    return data, err
+}
+
+// curl -X POST \
+//   https://52.47.197.22:50002/v1/node/monitor/addFile \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "path": "path"
+// }
+func AddMonitorFile(anode map[string]string)(err error){
+    err = node.AddMonitorFile(anode)
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/node/pingMonitorFiles/:uuid \
+func PingMonitorFiles(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.PingMonitorFiles(uuid)
+    return data, err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/node/monitor/deleteFile \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "file": "file"
+// }
+func DeleteMonitorFile(anode map[string]string)(err error){
+    err = node.DeleteMonitorFile(anode)
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/zeek/changeZeekMode \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "mode": "cluster"
+// }
+func ChangeZeekMode(anode map[string]string)(err error){
+    err = node.ChangeZeekMode(anode)
+    return err
+}
+
+// curl -X POST \
+//   https://52.47.197.22:50002/v1/node/zeek/addClusterValue \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "type": "cluster"
+//     "host": "localhost"
+//     "interface": "eth0"
+// }
+func AddClusterValue(anode map[string]string)(err error){
+    err = node.AddClusterValue(anode)
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/node/zeek/pingCluster/:uuid \
+// }
+func PingCluster(uuid string)(data map[string]map[string]string, err error){
+    data, err = node.PingCluster(uuid)
+    return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/zeek/editClusterValue \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "type": "v",
+//     "host": "v",
+//     "interface": "cluster"
+// }
+func EditClusterValue(anode map[string]string)(err error){
+    err = node.EditClusterValue(anode)
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/node/zeek/deleteClusterValue \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "type": "v"
+// }
+func DeleteClusterValue(anode map[string]string)(err error){
+    err = node.DeleteClusterValue(anode)
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/zeek/syncCluster \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "type": "cluster"
+// }
+func SyncCluster(anode map[string]string)(err error){
+    err = node.SyncCluster(anode)
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/node/getChangeControlNode/:uuid \
+// }
+func GetChangeControlNode(uuid string)(data map[string]map[string]string, err error) {
+    data, err = node.GetChangeControlNode(uuid)
+    return data, err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/node/incidents \
+// }
+func GetIncidentsNode(uuid string)(data map[string]map[string]string, err error){
+    data,err = node.GetIncidentsNode(uuid)
+    return data,err
+}
+
+// curl -X POST \
+//   https://52.47.197.22:50002/v1/node/incidents \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "nodeuuid": "d",
+//     "uuid": "v",
+//     "param": "v",
+//     "value": "v",
+// }
+func PutIncidentNode(anode map[string]string)(err error){
+    err = node.PutIncidentNode(anode)
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/plugin/changeSuricataTable \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "status": "v"
+// }
+func ChangeSuricataTable(anode map[string]string)(err error){
+    err = node.ChangeSuricataTable(anode)
+    return err
 }

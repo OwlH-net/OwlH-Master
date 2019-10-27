@@ -581,8 +581,7 @@ func (n *NodeController) GetMainconfData() {
 func (n *NodeController) PingAnalyzer() {
 	uuid := n.GetString(":uuid")
     data, err := models.PingAnalyzer(uuid)
-    logs.Notice("PingAnalizer data")
-    logs.Notice(data)
+
 	n.Data["json"] = data
 	if err != nil {
 		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
@@ -953,6 +952,323 @@ func (n *NodeController) ModifyStapValues() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.ModifyStapValues(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title PingWazuhFiles
+// @Description Get Wazuh files
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /pingWazuhFiles/:uuid [get]
+func (n *NodeController) PingWazuhFiles() {
+    uuid := n.GetString(":uuid")
+    data,err := models.PingWazuhFiles(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[int]map[string]string{0:{"ack": "false", "uuid": uuid, "error": err.Error()}}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteWazuhFile
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /deleteWazuhFile [delete]
+func (n *NodeController) DeleteWazuhFile() {
+    anode := make(map[string]interface{})
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.DeleteWazuhFile(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+
+    
+    n.ServeJSON()
+}
+
+// @Title AddWazuhFile
+// @Description Add wazuh files
+// @Success 200 {object} models.Node
+// @router /addWazuhFile [put]
+func (n *NodeController) AddWazuhFile() {
+    anode := make(map[string]interface{})
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.AddWazuhFile(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+
+    
+    n.ServeJSON()
+}
+
+// @Title LoadFileLastLines
+// @Description Add wazuh files
+// @Success 200 {object} models.Node
+// @router /wazuh/loadLines [put]
+func (n *NodeController) LoadFileLastLines() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    data,err := models.LoadFileLastLines(anode)
+	n.Data["json"] = data
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title SaveFileContentWazuh
+// @Description save wazuh file content
+// @Success 200 {object} models.Node
+// @router /wazuh/saveFileContentWazuh [put]
+func (n *NodeController) SaveFileContentWazuh() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.SaveFileContentWazuh(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title ReloadFilesData
+// @Description get files data for wazuh and analyzer
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /reloadFilesData/:uuid [get]
+// @router /:nid/reloadFilesData [get]
+func (n *NodeController) ReloadFilesData() {
+	uuid := n.GetString(":uuid")
+    data, err := models.ReloadFilesData(uuid)
+
+	n.Data["json"] = data
+	if err != nil {n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}}
+
+    n.ServeJSON()
+}
+
+// @Title AddMonitorFile
+// @Description Add file to node monitor
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /monitor/addFile [post]
+func (n *NodeController) AddMonitorFile() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.AddMonitorFile(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title PingMonitorFiles
+// @Description get files and their data from monitor
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /monitor/pingMonitorFiles/:uuid [get]
+// @router /monitor/:nid/pingMonitorFiles [get]
+func (n *NodeController) PingMonitorFiles() {
+	uuid := n.GetString(":uuid")
+    data, err := models.PingMonitorFiles(uuid)
+
+	n.Data["json"] = data
+	if err != nil {n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}}
+
+    n.ServeJSON()
+}
+
+// @Title DeleteMonitorFile
+// @Description delete file from node monitor
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /monitor/deleteFile [delete]
+func (n *NodeController) DeleteMonitorFile() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.DeleteMonitorFile(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ChangeZeekMode
+// @Description Change Zeek mode
+// @Success 200 {object} models.Node
+// @router /zeek/changeZeekMode [put]
+func (n *NodeController) ChangeZeekMode() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.ChangeZeekMode(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title AddClusterValue
+// @Description Add cluster value for Zeek service
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /addClusterValue [post]
+func (n *NodeController) AddClusterValue() {
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.AddClusterValue(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title PingCluster
+// @Description Get all Zeek cluster elements
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /pingCluster/:uuid [get]
+func (n *NodeController) PingCluster() {
+    uuid := n.GetString(":uuid")
+	data,err := models.PingCluster(uuid)
+	n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title EditClusterValue
+// @Description Edit cluster value
+// @Success 200 {object} models.Node
+// @router /zeek/editClusterValue [put]
+func (n *NodeController) EditClusterValue() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.EditClusterValue(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title DeleteClusterValue
+// @Description Delete cluster value
+// @Success 200 {object} models.Node
+// @router /zeek/deleteClusterValue [delete]
+func (n *NodeController) DeleteClusterValue() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.DeleteClusterValue(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title SyncCluster
+// @Description Sync Zeek cluster
+// @Success 200 {object} models.Node
+// @router /zeek/syncCluster [put]
+func (n *NodeController) SyncCluster() {
+	anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+	err := models.SyncCluster(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetChangeControlNode
+// @Description Get changeControl database values from node
+// @Success 200 {object} models.Collector
+// @Failure 403 body is empty
+// @router /changecontrol/:uuid [get]
+func (n *NodeController) GetChangeControlNode() {
+    uuid := n.GetString(":uuid")
+	data, err := models.GetChangeControlNode(uuid)
+	n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetIncidentsNode
+// @Description Get incidents for node
+// @Param       body            body    models.Master     true            "body for master content"
+// @Success 200 {object} models.Master
+// @router /incidents/:uuid [get]
+func (m *NodeController) GetIncidentsNode() {	
+    uuid := m.GetString(":uuid")
+    data,err := models.GetIncidentsNode(uuid)
+    m.Data["json"] = data
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
+    }
+    m.ServeJSON()
+}
+
+// @Title PutIncidentNode
+// @Description Add new incident at node
+// @Success 200 {object} models.Master
+// @router /incidents [post]
+func (n *NodeController) PutIncidentNode() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.PutIncidentNode(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ChangeSuricataTable
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /plugin/changeSuricataTable [put]
+func (n *NodeController) ChangeSuricataTable() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.ChangeSuricataTable(anode)
 	n.Data["json"] = map[string]string{"ack": "true"}
 
 	if err != nil {

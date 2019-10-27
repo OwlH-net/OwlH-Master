@@ -205,3 +205,167 @@ func GetPlugins()(path map[string]map[string]string, err error){
 	} 
 	return serviceValues,nil
 }
+
+func GetChangeControl()(path map[string]map[string]string, err error){
+	var serviceValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+	rowsQuery, err := Mdb.Query("select control_uniqueid, control_param, control_value from changerecord;")
+	if err != nil {
+		logs.Error("GetChangeControl Mdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rowsQuery.Close()
+	for rowsQuery.Next() {
+		if err = rowsQuery.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetChangeControl -- Query return error: %s", err.Error()); return nil, err}
+
+		if serviceValues[uniqid] == nil { serviceValues[uniqid] = map[string]string{}}
+		serviceValues[uniqid][param]=value
+	} 
+	return serviceValues,nil
+}
+
+func InsertChangeControl(uuid string, param string, value string)(err error){
+	insertChangeControlValues, err := Mdb.Prepare("insert into changerecord(control_uniqueid, control_param, control_value) values (?,?,?);")
+	if (err != nil){ logs.Error("InsertChangeControl prepare error: "+err.Error()); return err}
+
+	_, err = insertChangeControlValues.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("InsertChangeControl exec error: "+err.Error()); return err}
+
+	defer insertChangeControlValues.Close()
+	
+	return nil
+}
+
+func GetIncidents()(path map[string]map[string]string, err error){
+	var serviceValues = map[string]map[string]string{}
+    var uniqid string
+    var param string
+	var value string
+	rowsQuery, err := Mdb.Query("select incidents_uniqueid, incidents_param, incidents_value from incidents;")
+	if err != nil {
+		logs.Error("GetIncidents Mdb.Query Error : %s", err.Error())
+		return nil, err
+	}
+	defer rowsQuery.Close()
+	for rowsQuery.Next() {
+		if err = rowsQuery.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetIncidents -- Query return error: %s", err.Error()); return nil, err}
+
+		if serviceValues[uniqid] == nil { serviceValues[uniqid] = map[string]string{}}
+		serviceValues[uniqid][param]=value
+	} 
+	return serviceValues,nil
+}
+
+func PutIncident(uuid string, param string, value string)(err error){
+	PutIncidentValues, err := Mdb.Prepare("insert into incidents(incidents_uniqueid, incidents_param, incidents_value) values (?,?,?);")
+	if (err != nil){ logs.Error("PutIncident prepare error: "+err.Error()); return err}
+
+	_, err = PutIncidentValues.Exec(&uuid, &param, &value)
+	if (err != nil){ logs.Error("PutIncident exec error: "+err.Error()); return err}
+
+	defer PutIncidentValues.Close()
+	
+	return nil
+}
+
+func GetAllGroups()(groups map[string]map[string]string, err error){
+	var allgroups = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+	if Mdb == nil { logs.Error("no access to database"); return nil, err}
+	
+    sql := "select group_uniqueid, group_param, group_value from groups;"
+    rows, err := Mdb.Query(sql)
+	if err != nil { logs.Error("Mdb.Query Error : %s", err.Error()); return nil, err}
+	
+    for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetAllGroups rows.Scan: %s", err.Error()); return nil, err}
+		
+        if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+        allgroups[uniqid][param]=value
+	} 
+    return allgroups, nil
+}
+
+func GroupExists(uuid string) (err error) {
+	if Mdb == nil {logs.Error("no access to database"); return err}
+	
+    sql := "SELECT * FROM groups where group_uniqueid = '"+uuid+"';"
+    rows, err := Mdb.Query(sql)
+	if err != nil {logs.Error("Error on query groupExist at group.go "+err.Error()); return err}
+	
+    defer rows.Close()
+    if rows.Next() {
+        return err
+    } else {
+        return nil
+    }
+}
+
+func DeleteGroup(uuid string) (err error) {
+	if Mdb == nil { logs.Error("DeleteGroup -- Can't acces to database"); return err}
+
+	stmt, err := Mdb.Prepare("delete from groups where group_uniqueid = ?")
+	if err != nil {logs.Error("Prepare DeleteGroup -> %s", err.Error()); return err}
+	
+    _, err = stmt.Exec(&uuid)
+    if err != nil {logs.Error("Execute DeleteGroup -> %s", err.Error()); return err}
+
+	return nil
+}
+
+func InsertGroup(uuid string, param string, value string)(err error){
+	if Mdb == nil {logs.Error("no access to database"); return err}
+	insertGroup, err := Mdb.Prepare("insert into groups(group_uniqueid, group_param, group_value) values(?,?,?);")
+	if err != nil {logs.Error("Prepare InsertGroup-> %s", err.Error()); return err}
+
+	_, err = insertGroup.Exec(&uuid, &param, &value)
+	if err != nil {logs.Error("Execute InsertGroup-> %s", err.Error()); return err}
+
+	return nil
+}
+
+func UpdateGroupData(uuid string, param string, value string)(err error){
+	if Mdb == nil {logs.Error("no access to database"); return err}
+	updateGroup, err := Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
+	if err != nil {logs.Error("Prepare UpdateGroupData-> %s", err.Error()); return err}
+
+	_, err = updateGroup.Exec(&value, &param, &uuid)
+	if err != nil {logs.Error("Execute UpdateGroupData-> %s", err.Error()); return err}
+
+	return nil
+}
+
+func InsertGroupNodes(uuid string, param string, value string)(err error){
+	if Mdb == nil {logs.Error("no access to database"); return err}
+	insertGroupnodesValues, err := Mdb.Prepare("insert into groupnodes(gn_uniqueid, gn_param, gn_value) values(?,?,?);")
+	if err != nil {logs.Error("Prepare InsertGroupNodes-> %s", err.Error()); return err}
+
+	_, err = insertGroupnodesValues.Exec(&uuid, &param, &value)
+	if err != nil {logs.Error("Execute InsertGroupNodes-> %s", err.Error()); return err}
+
+	return nil
+}
+
+func GetAllGroupNodes()(groups map[string]map[string]string, err error){
+	var allgroups = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+	if Mdb == nil { logs.Error("no access to database"); return nil, err}
+	
+    sql := "select gn_uniqueid, gn_param, gn_value from groupnodes;"
+    rows, err := Mdb.Query(sql)
+	if err != nil { logs.Error("Mdb.Query Error : %s", err.Error()); return nil, err}
+	
+    for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetAllGroupNodes rows.Scan: %s", err.Error()); return nil, err}
+		
+        if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+        allgroups[uniqid][param]=value
+	} 
+    return allgroups, nil
+}

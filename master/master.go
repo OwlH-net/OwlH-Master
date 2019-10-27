@@ -378,3 +378,17 @@ func SetBPF(anode map[string]string)(err error){
 
     return nil
 }
+
+func GetIncidents()(data map[string]map[string]string, err error){
+	data,err = ndb.GetIncidents()
+	if err!=nil{logs.Error("Error getting incidents from database: "+err.Error()); return nil,err}
+
+    return data,err
+}
+
+func PutIncident(anode map[string]string)(err error){
+	err = ndb.PutIncident(anode["uuid"], anode["param"], anode["value"])
+	if err!=nil{logs.Error("Error putting incidents into database: "+err.Error()); return err}
+
+    return nil
+}

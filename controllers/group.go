@@ -44,10 +44,10 @@ func (n *GroupController) GetAllGroups() {
 // @Title DeleteGroup
 // @Description delete a group
 // @Success 200 {object} models.Groups
-// @router /DeleteGroup/:groupID [put]
+// @router /DeleteGroup/:uuid [put]
 func (n *GroupController) DeleteGroup() { 
-	groupID := n.GetString(":groupID") 
-    err := models.DeleteGroup(groupID)
+	uuid := n.GetString(":uuid") 
+    err := models.DeleteGroup(uuid)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -56,14 +56,69 @@ func (n *GroupController) DeleteGroup() {
 }
 
 // @Title EditGroup
-// @Description edit a group
+// @Description edit a group information
 // @Success 200 {object} models.Groups
-// @router /EditGroup [put]
+// @router /editGroup [put]
 func (n *GroupController) EditGroup() { 
 	var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.EditGroup(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetAllNodesGroup
+// @Description Get full list of nodes
+// @Success 200 {object} models.Groups
+// @router /getAllNodesGroup [get]
+func (n *GroupController) GetAllNodesGroup() { 
+    groups, err := models.GetAllNodesGroup()
+    n.Data["json"] = groups
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title AddGroupNodes
+// @Description add nodes to a group
+// @Success 200 {object} models.Groups
+// @router /addGroupNodes [put]
+func (n *GroupController) AddGroupNodes() { 
+	var anode map[string]interface{}
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.AddGroupNodes(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}   
+
+// @Title PingGroupNodes
+// @Description Ping all group nodes
+// @Success 200 {object} models.Groups
+// @router /pingGroupNodes [get]
+func (n *GroupController) PingGroupNodes() { 
+    groups, err := models.PingGroupNodes()
+    n.Data["json"] = groups
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetNodeValues
+// @Description Get values for specific node
+// @Success 200 {object} models.Groups
+// @router /getNodeValues/:uuid [get]
+func (n *GroupController) GetNodeValues() { 
+    uuid := n.GetString(":uuid") 
+    groups, err := models.GetNodeValues(uuid)
+    n.Data["json"] = groups
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

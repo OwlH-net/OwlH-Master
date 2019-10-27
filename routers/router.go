@@ -24,6 +24,11 @@ func init() {
 				&controllers.MasterController{},
 			),
 		),
+		beego.NSNamespace("/search",
+			beego.NSInclude(
+				&controllers.SearchController{},
+			),
+		),
 		beego.NSNamespace("/node",
 			beego.NSInclude(
 				&controllers.NodeController{},
@@ -57,6 +62,11 @@ func init() {
 		beego.NSNamespace("/scheduler",
 			beego.NSInclude(
 				&controllers.SchedulerController{},
+			),
+		),	
+		beego.NSNamespace("/changecontrol",
+			beego.NSInclude(
+				&controllers.ChangecontrolController{},
 			),
 		),	
 	)

@@ -12,7 +12,7 @@ import(
     "owlhmaster/utils"
     "owlhmaster/node"
     "errors"
-    "database/sql"
+	"database/sql"
     "strings"
     "time"
 	"strconv"
@@ -58,12 +58,12 @@ func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
     data, err := os.Open(path)
     if err != nil {
         fmt.Println("File reading error", err)
-        return
+        // return
     }
 
     var validID = regexp.MustCompile(`sid:(\d+);`)
-    var ipfield = regexp.MustCompile(`^([^\(]+)\(`)
     var msgfield = regexp.MustCompile(`msg:\"([^"]+)\"`)
+    var ipfield = regexp.MustCompile(`^([^\(]+)\(`)
 	var enablefield = regexp.MustCompile(`^#`)
 
     scanner := bufio.NewScanner(data)
@@ -853,4 +853,22 @@ func SynchronizeAllRulesets()(err error){
 		if err != nil {logs.Error("Error SynchronizeAllRulesets: "+err.Error()); return err}
 	}
     return nil
+}
+
+func UpdateRule(anode map[string]string)(err error) {
+
+	if anode["sid"] == "" {logs.Error("UpdateRule error checking SID numbers: SID number is nil"); return errors.New("Error checking SID numbers: SID number is nil")}
+	var numbers = regexp.MustCompile(`^[0-9]*$`)
+	sidValue := numbers.FindStringSubmatch(anode["sid"])
+	if sidValue == nil {logs.Error("UpdateRule error checking SID numbers: SID doesn't have only numbers"); return errors.New("Error checking SID numbers: SID doesn't have only numbers")}
+
+	path,err := ndb.GetRulesetPath(anode["uuid"])
+	if err != nil {logs.Error("UpdateRule/GetRulesetPath Error: "+err.Error()); return err}
+
+	anode["line"] = strings.Replace(anode["line"], "/", "\\/", -1)
+	cmd := "sed -i '/sid:"+anode["sid"]+"/s/.*/"+anode["line"]+"/' "+path+""
+	_, err = exec.Command("bash", "-c", cmd).Output()
+	if err != nil {logs.Error("UpdateRule Error: "+err.Error()); return err}
+
+   return nil
 }

@@ -120,3 +120,8 @@ func StopTimeSchedule(content map[string]string)(err error) {
 	// err = ruleset.StopTimeSchedule(content)
 	return err
 }
+
+func UpdateRule(anode map[string]string)(err error) {
+    err = ruleset.UpdateRule(anode)
+	return err
+}

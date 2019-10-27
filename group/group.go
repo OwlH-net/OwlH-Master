@@ -5,11 +5,11 @@ import (
     "owlhmaster/database"
     "errors"
     "owlhmaster/utils"
+    "encoding/json"
 )
 
-
 func CreateGroup(n map[string]string) (err error) {
-	groupKey := utils.Generate()
+	uuid := utils.Generate()
     if _, ok := n["name"]; !ok {
 		logs.Error("name empty: "+err.Error())
         return errors.New("name empty")
@@ -19,134 +19,113 @@ func CreateGroup(n map[string]string) (err error) {
         return errors.New("desc empty")
     }
 
-    if err := groupExists(groupKey); err != nil {
-		logs.Error("Group exist: "+err.Error())
-        return errors.New("Group exist")
-    }
+    if err := ndb.GroupExists(uuid); err != nil {logs.Error("Group exist error: "+err.Error()); return err}
     
     for key, value := range n {
-        err = groupKeyInsert(groupKey, key, value)
+        err = ndb.InsertGroup(uuid, key, value); if err != nil {logs.Error("InsertGroup error: "+ err.Error()); return err}
     }
-    if err != nil {
-        return err
-    }
+    
+    if err != nil {logs.Error("Error creating group: "+err.Error()); return err}
     return nil
 }
 
-func DeleteGroup(groupId string) (err error) {
-	if ndb.Mdb == nil {
-        logs.Error("DeleteGroup -- Can't acces to database")
-        return errors.New("DeleteGroup -- Can't acces to database")
-    }
-	stmt, err := ndb.Mdb.Prepare("delete from groups where group_uniqueid = ?")
-    if err != nil {
-        logs.Error("Prepare DeleteGroup -> %s", err.Error())
-        return err
-    }
-    _, err = stmt.Exec(&groupId)
-    if err != nil {
-        logs.Error("Execute DeleteGroup -> %s", err.Error())
-        return err
-    }
+func DeleteGroup(uuid string) (err error) {
+    err = ndb.DeleteGroup(uuid)
+    if err != nil {logs.Error("DeleteGroup error: "+ err.Error()); return err}
 
-	return nil
-}
-
-func groupExists(groupID string) (err error) {
-    if ndb.Mdb == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-    }
-    sql := "SELECT * FROM groups where group_uniqueid = '"+groupID+"';"
-    rows, err := ndb.Mdb.Query(sql)
-    if err != nil {
-        logs.Error("Error on query groupExist at group.go "+err.Error())
-        return err
-    }
-    defer rows.Close()
-    if rows.Next() {
-        return errors.New("Group Exists " + groupID)
-    } else {
-        return nil
-    }
-}
-
-func groupKeyInsert(nkey string, key string, value string) (err error) {
-    if ndb.Mdb == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-    }
-    stmt, err := ndb.Mdb.Prepare("insert into groups (group_uniqueid, group_param, group_value) values(?,?,?)")
-    if err != nil {
-        logs.Error("Prepare -> %s", err.Error())
-        return err
-    }
-    _, err = stmt.Exec(&nkey, &key, &value)
-    if err != nil {
-        logs.Error("Execute -> %s", err.Error())
-        return err
-    }
     return nil
-}
-
-func GetAllGroups()(groups map[string]map[string]string, err error){
-	var allgroups = map[string]map[string]string{}
-    var uniqid string
-    var param string
-    var value string
-    if ndb.Mdb == nil {
-        logs.Error("no access to database")
-        return nil, errors.New("no access to database")
-    }
-    sql := "select group_uniqueid, group_param, group_value from groups;"
-    rows, err := ndb.Mdb.Query(sql)
-    if err != nil {
-        logs.Error("ndb.Mdb.Query Error : %s", err.Error())
-        return nil, err
-    }
-    for rows.Next() {
-        if err = rows.Scan(&uniqid, &param, &value); err != nil {
-            logs.Error("GetAllGroups rows.Scan: %s", err.Error())
-            return nil, err
-        }
-        if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
-        allgroups[uniqid][param]=value
-	} 
-    return allgroups, nil
 }
 
 func EditGroup(data map[string]string) (err error) { 
-	var groupid = data["groupid"]
-    if ndb.Mdb == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-	}
-	
-	for k,v := range data { 
-		if k == "groupid"{
-			continue
-		}else{
-			err = InsertGroup(k, v, groupid)
-			if err != nil {
-				logs.Error("Error inserting edit files to group")
-				return err
-			}
-		}
-	}
-	
+    err = ndb.UpdateGroupData(data["uuid"], "name", data["name"]); if err != nil {logs.Error("UpdateGroupData error name: "+ err.Error()); return err}
+    err = ndb.UpdateGroupData(data["uuid"], "desc", data["desc"]); if err != nil {logs.Error("UpdateGroupData error desc: "+ err.Error()); return err}
+    
     return nil
 }
 
-func InsertGroup(param string, value string, groupid string)(err error){
-	editGroup, err := ndb.Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
-	if err != nil {
-		logs.Error("Prepare EditGroup-> %s", err.Error())
-		return err
-	}
-	_, err = editGroup.Exec(&value, &param, &groupid)
-	if err != nil {
-		logs.Error("Execute EditGroup-> %s", err.Error())
-		return err
-	}
-	return nil
+// var Groups []Group
+type Group struct{
+    Uuid           string      `json:"guuid"`
+    Name           string      `json:"gname"`
+    Description    string      `json:"gdesc"`
+    Nodes          []Node
+}
+type Node struct {
+    Uuid    string      `json:"nuuid"`
+    Name    string      `json:"nname"`
+    Ip      string      `json:"nip"`
+}
+
+func GetAllGroups()(Groups []Group, err error){
+    allGroups, err := ndb.GetAllGroups()
+    if err != nil {logs.Error("GetAllGroups error: "+ err.Error()); return nil,err}
+
+    groupNodes, err := ndb.GetAllGroupNodes()
+    if err != nil {logs.Error("group/GetNodeValues ERROR getting all nodes: "+err.Error()); return nil,err}	
+
+    for gid := range allGroups{
+        gr := Group{}
+        gr.Uuid = gid
+        gr.Name = allGroups[gid]["name"]
+        gr.Description = allGroups[gid]["desc"]
+
+        for nid := range groupNodes{
+            if gid == groupNodes[nid]["groupid"]{
+                nodeValues, err := ndb.GetAllNodesById(groupNodes[nid]["nodesid"]); if err != nil {logs.Error("group/GetNodeValues ERROR getting node values: "+err.Error()); return nil,err}	
+                nd := Node{}
+                for b := range nodeValues{
+                    nd.Uuid = b
+                    nd.Name = nodeValues[b]["name"]
+                    nd.Ip = nodeValues[b]["ip"]
+                    gr.Nodes = append(gr.Nodes, nd)
+                }                  
+            }
+        }
+        Groups = append(Groups, gr)
+    }
+
+    logs.Notice(Groups)
+
+    return Groups, nil
+}
+
+func GetAllNodesGroup() (data map[string]map[string]string, err error) {
+    data, err = ndb.GetAllNodes()
+    if err != nil {logs.Error("GetAllNodesGroup error: "+ err.Error()); return nil,err}
+
+    return data, err
+}
+
+type GroupNode struct {
+	Uuid 	  	string		`json:"uuid"`
+	Nodes		[]string	`json:"nodes"`
+}
+
+func AddGroupNodes(data map[string]interface{}) (err error) {
+    var nodesList *GroupNode
+
+    LinesOutput, err := json.Marshal(data)
+    err = json.Unmarshal(LinesOutput, &nodesList)
+
+    
+    for x := range nodesList.Nodes{
+        uuid := utils.Generate()
+        err = ndb.InsertGroupNodes(uuid, "groupid", nodesList.Uuid); if err != nil {logs.Error("AddGroupNodes group uuid error: "+ err.Error()); return err}    
+        err = ndb.InsertGroupNodes(uuid, "nodesid", nodesList.Nodes[x]); if err != nil {logs.Error("AddGroupNodes nodes uuid error: "+ err.Error()); return err}    
+    }
+    return nil
+}
+
+func PingGroupNodes()(data map[string]map[string]string, err error) {
+    groups, err := ndb.GetAllGroupNodes()
+    if err != nil {logs.Error("GetAllGroups GetAllGroupNodes error: "+ err.Error()); return nil,err}
+
+    return groups, nil
+}
+
+func GetNodeValues(uuid string)(data map[string]map[string]string, err error) {
+    data, err = ndb.GetAllNodesById(uuid)
+    if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return nil,err}	
+
+    return data, nil
 }

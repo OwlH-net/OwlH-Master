@@ -9,6 +9,7 @@ import (
     "owlhmaster/database"
     "owlhmaster/dispatcher"
     "owlhmaster/master"
+    "owlhmaster/search"
     "owlhmaster/scheduler"
 	"owlhmaster/utils"
 	"os"
@@ -53,7 +54,7 @@ func main() {
 	logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
 	//Application version
-	logs.Error("Version: 0.8.190702.0905")
+	logs.Error("Version: 0.11.0.20191022")
 
 	//Init database connection
     ndb.Conn()
@@ -68,7 +69,9 @@ func main() {
     go dispatcher.Init()
 	//Init scheduler at master
     go scheduler.Init()
-	
+	//Load all rulesets
+    go search.Init()
+
 	//Beego API documentation
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true

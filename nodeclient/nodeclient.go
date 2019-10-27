@@ -6,7 +6,9 @@ import (
 	"encoding/json"
 	"errors"
 	"owlhmaster/utils"
+	"owlhmaster/database"
 	"bytes"
+	"time"
 )
 
 func init() {
@@ -18,20 +20,40 @@ func Echo() {
 }
 
 func PingNode(ip string, port string) (err error) {
-    logs.Info("NodeClient PingNode -> %s, %s", ip, port)
-	// url := "https://"+ip+":"+port+"/node/node"
 	url := "https://"+ip+":"+port+"/node/ping"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
+		//add incident
+		uuid := utils.Generate()
+		var controlError error
+		currentTime := time.Now()
+		timeFormated := currentTime.Format("2006-01-02T15:04:05")
+		controlError = ndb.PutIncident(uuid, "date", timeFormated)
+		controlError = ndb.PutIncident(uuid, "desc", "Thisa Master description")
+		controlError = ndb.PutIncident(uuid, "status", "new") // new, open, closed, delayed
+		controlError = ndb.PutIncident(uuid, "level", "info") // warning, info or danger
+		controlError = ndb.PutIncident(uuid, "NodeIp", ip) // warning, info or danger
+		controlError = ndb.PutIncident(uuid, "NodePort", port) // warning, info or danger
+		if controlError!=nil { logs.Error("PingNode error creating incident: "+controlError.Error()) }
+
 		logs.Error("nodeClient/PingNode ERROR connection through http new Request: "+err.Error())
-        return err
-    }
-    logs.Info("response Status:", resp.Status)
-    logs.Info("response Headers:", resp.Header)
-    body, _ := ioutil.ReadAll(resp.Body)
-    logs.Info("response Body:", string(body))
-    defer resp.Body.Close()
+		return err
+	}
+	
+	defer resp.Body.Close()
     return nil
+}
+
+func UpdateNodeData(ipData string, portData string, loadFile map[string]map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/ping/updateNode"
+	valuesJSON,err := json.Marshal(loadFile)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {
+		logs.Error("nodeclient/UpdateNodeData ERROR connection through http new Request: "+err.Error())
+		return err
+	}
+	defer resp.Body.Close()
+	return nil
 }
 
 func Suricata(ip string, port string) (data map[string]bool, err error ) {
@@ -653,25 +675,13 @@ func DeleteAllPorts(ipnid string, portnid string)(err error){
 func PingAnalyzer(ipnid string, portnid string)(data map[string]string ,err error){
 	url := "https://"+ipnid+":"+portnid+"/node/analyzer/pingAnalyzer/"
 	resp,err := utils.NewRequestHTTP("GET", url, nil)
-	if err != nil {
-		logs.Error("nodeclient/PingAnalyzer ERROR connection through http new Request: "+err.Error())
-        return data,err
-    }
+	if err != nil {logs.Error("nodeclient/PingAnalyzer ERROR connection through http new Request: "+err.Error()); return data,err}
 
 	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error()); return data,err}
 
-	if err != nil {
-		logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error())
-        return data,err
-	}
 	err = json.Unmarshal(body, &data)
-    if err != nil {
-		logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error())
-        return data,err
-	}
-	
-	logs.Warn("Analyzer data from nodeclient")
-	logs.Warn(data)
+    if err != nil {logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error()); return data,err}
 
 	defer resp.Body.Close()
 	return data,nil
@@ -1168,11 +1178,243 @@ func ModifyStapValues(ipData string, portData string, anode map[string]string)(e
 	data := make(map[string]string)
 	err = json.Unmarshal(body, &data)
 	if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
-/*	if data["ack"] == "false"{
-		defer resp.Body.Close()
-		return errors.New(data["error"])
-	} */
 
+	defer resp.Body.Close()
+	return nil
+}
+
+func PingWazuhFiles(ipData string, portData string)(data map[int]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/wazuh/pingWazuhFiles"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR connection through http new Request: "+err.Error()); return data,err}
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR reading request data: "+err.Error()); return data,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR doing unmarshal JSON: "+err.Error()); return data,err}
+
+	defer resp.Body.Close()
+	return data,nil
+}
+
+func DeleteWazuhFile(ipData string, portData string, anode map[string]interface{})(err error){
+	url := "https://"+ipData+":"+portData+"/node/wazuh/deleteWazuhFile"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/DeleteWazuhFile ERROR connection through http new Request: "+err.Error()); return err}
+	
+	defer resp.Body.Close()
+	return nil
+}
+
+func AddWazuhFile(ipData string, portData string, anode map[string]interface{})(err error){
+	url := "https://"+ipData+":"+portData+"/node/wazuh/addWazuhFile"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/AddWazuhFile ERROR connection through http new Request: "+err.Error()); return err}
+	
+	defer resp.Body.Close()
+	return nil
+}
+
+func LoadFileLastLines(ipData string, portData string, anode map[string]string)(data map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/wazuh/loadFileLastLines"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/LoadFileLastLines ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/LoadFileLastLines ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/LoadFileLastLines ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+
+	defer resp.Body.Close()
+	return data, nil
+}
+
+func SaveFileContentWazuh(ipData string, portData string, anode map[string]string)(err error){
+	url := "https://"+ipData+":"+portData+"/node/wazuh/saveFileContentWazuh"
+	valuesJSON,err := json.Marshal(anode)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/SaveFileContentWazuh ERROR connection through http new Request: "+err.Error()); return err}
+	
+	defer resp.Body.Close()
+	return nil
+}
+
+func ReloadFilesData(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/file/reloadFilesData"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/ReloadFilesData ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/ReloadFilesData ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/ReloadFilesData ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+
+	defer resp.Body.Close()
+	return data, nil
+}
+
+func AddMonitorFile(ipuuid string,portuuid string, data map[string]string)(err error){
+	url := "https://"+ipuuid+":"+portuuid+"/node/monitor/addFile"
+	valuesJSON,err := json.Marshal(data)
+	if err != nil {logs.Error("nodeclient/AddMonitorFile Error Marshal new JSON data: "+err.Error()); return err}
+	resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/AddMonitorFile ERROR on the new HTTP request response: "+err.Error()); return err}
+	
+	defer resp.Body.Close()
+	return nil
+}
+
+func PingMonitorFiles(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/monitor/pingMonitorFiles"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/PingMonitorFiles ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/PingMonitorFiles ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/PingMonitorFiles ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+
+	defer resp.Body.Close()
+	return data, nil
+}
+
+func DeleteMonitorFile(ipuuid string,portuuid string, data map[string]string)(err error){
+	url := "https://"+ipuuid+":"+portuuid+"/node/monitor/deleteFile"
+	valuesJSON,err := json.Marshal(data)
+	if err != nil {logs.Error("nodeclient/DeleteMonitorFile Error Marshal new JSON data: "+err.Error()); return err}
+	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/DeleteMonitorFile ERROR on the new HTTP request response: "+err.Error()); return err}
+	
+	defer resp.Body.Close()
+	return nil
+}
+
+func ChangeZeekMode(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/changeZeekMode"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/ChangeZeekMode ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func AddClusterValue(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/addClusterValue"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/AddClusterValue ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func PingCluster(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/zeek/pingCluster"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/PingCluster ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/PingCluster ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/PingCluster ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+	defer resp.Body.Close()
+
+	if data["error"] != nil {
+		return nil, errors.New(data["error"]["error"])
+	}
+	return data, nil
+}
+
+func EditClusterValue(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/editClusterValue"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/EditClusterValue ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func DeleteClusterValue(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/deleteClusterValue"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("DELETE", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/DeleteClusterValue ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func SyncCluster(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek/syncCluster"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/SyncCluster ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func GetChangeControlNode(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/changecontrol"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/GetChangeControlNode ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/GetChangeControlNode ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/GetChangeControlNode ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+	defer resp.Body.Close()
+
+	if data["error"] != nil {
+		return nil, errors.New(data["error"]["error"])
+	}
+	return data, nil
+}
+
+func GetIncidentsNode(ipData string, portData string)(data map[string]map[string]string, err error){
+	url := "https://"+ipData+":"+portData+"/node/incidents"
+	resp,err := utils.NewRequestHTTP("GET", url, nil)
+	if err != nil {logs.Error("nodeclient/GetIncidentsNode ERROR connection through http new Request: "+err.Error()); return nil, err}
+	
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil { logs.Error("nodeclient/GetIncidentsNode ERROR reading request data: "+err.Error()); return nil,err}
+	
+	err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/GetIncidentsNode ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+	defer resp.Body.Close()
+
+	if data["error"] != nil {
+		return nil, errors.New(data["error"]["error"])
+	}
+	return data, nil
+}
+
+func PutIncidentNode(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/incidents"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/PutIncidentNode ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func ChangeSuricataTable(ipnid string, portnid string, data map[string]string)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/plugin/changeSuricataTable"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/ChangeSuricataTable ERROR connection through http new Request: "+err.Error()); return err}
 
 	defer resp.Body.Close()
 	return nil

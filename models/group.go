@@ -19,7 +19,27 @@ func DeleteGroup(groupId string) (err error) {
     return err
 }
 
-func GetAllGroups() (data map[string]map[string]string, err error) {
-    data, err = group.GetAllGroups()
+func GetAllGroups() (Groups []group.Group, err error) {
+    Groups, err = group.GetAllGroups()
+    return Groups, err
+}
+
+func GetAllNodesGroup() (data map[string]map[string]string, err error) {
+    data, err = group.GetAllNodesGroup()
+    return data, err
+}
+
+func AddGroupNodes(data map[string]interface{}) (err error) {
+    err = group.AddGroupNodes(data)
+    return err
+}
+
+func PingGroupNodes() (data map[string]map[string]string, err error) {
+    data, err = group.PingGroupNodes()
+    return data, err
+}
+
+func GetNodeValues(uuid string)(data map[string]map[string]string, err error) {
+    data, err = group.GetNodeValues(uuid)
     return data, err
 }

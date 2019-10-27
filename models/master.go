@@ -109,3 +109,24 @@ func StopStapServiceMaster(anode map[string]string)(err error){
     err = master.StopStapServiceMaster(anode)
     return err
 }
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/incidents \
+// }
+func GetIncidents()(data map[string]map[string]string, err error){
+    data,err = master.GetIncidents()
+    return data,err
+}
+
+// curl -X POST \
+//   https://52.47.197.22:50002/v1/master/incidents \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "param": "v",
+//     "value": "v",
+// }
+func PutIncident(anode map[string]string)(err error){
+    err = master.PutIncident(anode)
+    return err
+}
