@@ -4,37 +4,37 @@ import (
     "owlhmaster/group"
 )
 
-func CreateGroup(data map[string]string) (err error) {
+func CreateGroup(data map[string]string)(err error) {
     err = group.CreateGroup(data)
     return err
 }
 
-func EditGroup(data map[string]string) (err error) {
+func EditGroup(data map[string]string)(err error) {
     err = group.EditGroup(data)
     return err
 }
 
-func DeleteGroup(groupId string) (err error) {
+func DeleteGroup(groupId string)(err error) {
     err = group.DeleteGroup(groupId)
     return err
 }
 
-func GetAllGroups() (Groups []group.Group, err error) {
+func GetAllGroups()(Groups []group.Group, err error) {
     Groups, err = group.GetAllGroups()
     return Groups, err
 }
 
-func GetAllNodesGroup() (data map[string]map[string]string, err error) {
-    data, err = group.GetAllNodesGroup()
+func GetAllNodesGroup(uuid string)(data map[string]map[string]string, err error) {
+    data, err = group.GetAllNodesGroup(uuid)
     return data, err
 }
 
-func AddGroupNodes(data map[string]interface{}) (err error) {
+func AddGroupNodes(data map[string]interface{})(err error) {
     err = group.AddGroupNodes(data)
     return err
 }
 
-func PingGroupNodes() (data map[string]map[string]string, err error) {
+func PingGroupNodes()(data map[string]map[string]string, err error) {
     data, err = group.PingGroupNodes()
     return data, err
 }
@@ -42,4 +42,9 @@ func PingGroupNodes() (data map[string]map[string]string, err error) {
 func GetNodeValues(uuid string)(data map[string]map[string]string, err error) {
     data, err = group.GetNodeValues(uuid)
     return data, err
+}
+
+func DeleteNodeGroup(uuid string)(err error) {
+    err = group.DeleteNodeGroup(uuid)
+    return err
 }

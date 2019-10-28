@@ -32,6 +32,15 @@ func CreateGroup(n map[string]string) (err error) {
 func DeleteGroup(uuid string) (err error) {
     err = ndb.DeleteGroup(uuid)
     if err != nil {logs.Error("DeleteGroup error: "+ err.Error()); return err}
+    
+    groupnodes,err := ndb.GetGroupNodesByValue(uuid)
+    if err != nil {logs.Error("DeleteGroup error groupnodes: "+ err.Error()); return err}
+
+    for x := range groupnodes{
+        logs.Debug(x)
+        err = ndb.DeleteNodeGroupById(x)
+        if err != nil {logs.Error("DeleteGroup error for uuid: "+x+": "+ err.Error()); return err}
+    }
 
     return nil
 }
@@ -51,6 +60,7 @@ type Group struct{
     Nodes          []Node
 }
 type Node struct {
+    Dbuuid    string    `json:"dbuuid"`
     Uuid    string      `json:"nuuid"`
     Name    string      `json:"nname"`
     Ip      string      `json:"nip"`
@@ -73,6 +83,7 @@ func GetAllGroups()(Groups []Group, err error){
             if gid == groupNodes[nid]["groupid"]{
                 nodeValues, err := ndb.GetAllNodesById(groupNodes[nid]["nodesid"]); if err != nil {logs.Error("group/GetNodeValues ERROR getting node values: "+err.Error()); return nil,err}	
                 nd := Node{}
+                nd.Dbuuid = nid
                 for b := range nodeValues{
                     nd.Uuid = b
                     nd.Name = nodeValues[b]["name"]
@@ -89,9 +100,22 @@ func GetAllGroups()(Groups []Group, err error){
     return Groups, nil
 }
 
-func GetAllNodesGroup() (data map[string]map[string]string, err error) {
+func GetAllNodesGroup(uuid string)(data map[string]map[string]string, err error) {
     data, err = ndb.GetAllNodes()
-    if err != nil {logs.Error("GetAllNodesGroup error: "+ err.Error()); return nil,err}
+    if err != nil {logs.Error("GetAllNodesGroup GetAllNodes error: "+ err.Error()); return nil,err}
+
+    groupNodes, err := ndb.GetAllGroupNodes()
+    if err != nil {logs.Error("GetAllNodesGroup GetAllGroupNodes error: "+ err.Error()); return nil,err}
+
+    // for x := range data {
+        for y := range groupNodes {
+            // logs.Debug(uuid)
+            // logs.Warn(groupNodes[y]["nodesid"])
+            if groupNodes[y]["groupid"] == uuid {
+                data[groupNodes[y]["nodesid"]]["checked"] = "true"
+            }
+        }
+    // }
 
     return data, err
 }
@@ -103,15 +127,26 @@ type GroupNode struct {
 
 func AddGroupNodes(data map[string]interface{}) (err error) {
     var nodesList *GroupNode
-
+    nodeExists := false;
     LinesOutput, err := json.Marshal(data)
     err = json.Unmarshal(LinesOutput, &nodesList)
 
-    
-    for x := range nodesList.Nodes{
-        uuid := utils.Generate()
-        err = ndb.InsertGroupNodes(uuid, "groupid", nodesList.Uuid); if err != nil {logs.Error("AddGroupNodes group uuid error: "+ err.Error()); return err}    
-        err = ndb.InsertGroupNodes(uuid, "nodesid", nodesList.Nodes[x]); if err != nil {logs.Error("AddGroupNodes nodes uuid error: "+ err.Error()); return err}    
+    groupNodes, err := ndb.GetAllGroupNodes()
+    if err != nil {logs.Error("GetAllGroupNodes GetAllGroupNodes error: "+ err.Error()); return err}
+
+    for x := range nodesList.Nodes{           
+        for y := range groupNodes{
+            if nodesList.Nodes[x] == groupNodes[y]["nodesid"] && nodesList.Uuid == groupNodes[y]["groupid"]{
+                nodeExists = true;
+                // continue
+            }
+        }
+        if !nodeExists{
+            uuid := utils.Generate()
+            err = ndb.InsertGroupNodes(uuid, "groupid", nodesList.Uuid); if err != nil {logs.Error("AddGroupNodes group uuid error: "+ err.Error()); return err}    
+            err = ndb.InsertGroupNodes(uuid, "nodesid", nodesList.Nodes[x]); if err != nil {logs.Error("AddGroupNodes nodes uuid error: "+ err.Error()); return err}    
+        }
+        nodeExists = false;
     }
     return nil
 }
@@ -128,4 +163,11 @@ func GetNodeValues(uuid string)(data map[string]map[string]string, err error) {
     if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return nil,err}	
 
     return data, nil
+}
+
+func DeleteNodeGroup(uuid string)(err error) {
+    err = ndb.DeleteNodeGroupById(uuid)
+    if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return err}	
+
+    return nil
 }

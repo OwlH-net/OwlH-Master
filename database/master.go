@@ -369,3 +369,35 @@ func GetAllGroupNodes()(groups map[string]map[string]string, err error){
 	} 
     return allgroups, nil
 }
+
+func DeleteNodeGroupById(uuid string) (err error) {
+	if Mdb == nil { logs.Error("DeleteNodeGroupById -- Can't acces to database"); return err}
+
+	stmt, err := Mdb.Prepare("delete from groupnodes where gn_uniqueid = ?")
+	if err != nil {logs.Error("Prepare DeleteNodeGroupById -> %s", err.Error()); return err}
+	
+    _, err = stmt.Exec(&uuid)
+    if err != nil {logs.Error("Execute DeleteNodeGroupById -> %s", err.Error()); return err}
+
+	return nil
+}
+
+func GetGroupNodesByValue(uuid string)(groups map[string]map[string]string, err error){
+	var allgroups = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+	if Mdb == nil { logs.Error("no access to database"); return nil, err}
+	
+    sql := "select gn_uniqueid, gn_param, gn_value from groupnodes where gn_value = '"+uuid+"';"
+    rows, err := Mdb.Query(sql)
+	if err != nil { logs.Error("Mdb.Query Error : %s", err.Error()); return nil, err}
+	
+    for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetGroupNodesByValue rows.Scan: %s", err.Error()); return nil, err}
+		
+        if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+        allgroups[uniqid][param]=value
+	} 
+    return allgroups, nil
+}

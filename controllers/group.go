@@ -73,9 +73,10 @@ func (n *GroupController) EditGroup() {
 // @Title GetAllNodesGroup
 // @Description Get full list of nodes
 // @Success 200 {object} models.Groups
-// @router /getAllNodesGroup [get]
+// @router /getAllNodesGroup/:uuid [get]
 func (n *GroupController) GetAllNodesGroup() { 
-    groups, err := models.GetAllNodesGroup()
+    uuid := n.GetString(":uuid") 
+    groups, err := models.GetAllNodesGroup(uuid)
     n.Data["json"] = groups
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -124,3 +125,17 @@ func (n *GroupController) GetNodeValues() {
     }
     n.ServeJSON()
 }
+
+// @Title DeleteNodeGroup
+// @Description add nodes to a group
+// @Success 200 {object} models.Groups
+// @router /deleteNodeGroup/:uuid [put]
+func (n *GroupController) DeleteNodeGroup() { 
+	uuid := n.GetString(":uuid") 
+    err := models.DeleteNodeGroup(uuid)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+} 
