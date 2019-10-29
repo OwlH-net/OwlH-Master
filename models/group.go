@@ -48,3 +48,8 @@ func DeleteNodeGroup(uuid string)(err error) {
     err = group.DeleteNodeGroup(uuid)
     return err
 }
+
+func ChangeGroupRuleset(data map[string]string)(err error) {
+    err = group.ChangeGroupRuleset(data)
+    return err
+}

@@ -401,3 +401,39 @@ func GetGroupNodesByValue(uuid string)(groups map[string]map[string]string, err 
 	} 
     return allgroups, nil
 }
+
+func UpdateGroupValue(uuid string, param string, value string) (err error) {
+	// updateGroup, err := Mdb.Prepare("insert or replace into groups (group_uniqueid, group_param, group_value) values (?,?,?);")
+	updateGroup, err := Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
+	if (err != nil){
+		logs.Error("updateGroup UPDATE prepare error: "+err.Error())
+		return err
+	}
+	_, err = updateGroup.Exec(&value, &param, &uuid)
+	defer updateGroup.Close()
+	if (err != nil){
+		logs.Error("updateGroup UPDATE error: "+err.Error())
+		return err
+	}
+	return nil
+}
+
+func GetAllGroupsBValue(val string)(groups map[string]map[string]string, err error){
+	var allgroups = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+	if Mdb == nil { logs.Error("no access to database"); return nil, err}
+	
+    sql := "select group_uniqueid, group_param, group_value from groups where group_value = '"+val+"';"
+    rows, err := Mdb.Query(sql)
+	if err != nil { logs.Error("Mdb.Query Error : %s", err.Error()); return nil, err}
+	
+    for rows.Next() {
+		if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetAllGroups rows.Scan: %s", err.Error()); return nil, err}
+		
+        if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+        allgroups[uniqid][param]=value
+	} 
+    return allgroups, nil
+}

@@ -517,6 +517,18 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
 		if err != nil {logs.Error("DeleteRuleFilesByUuid -> ERROR deleting all local ruleset rule files associated: "+err.Error());return err}
 	}
 
+	//update to nil group ruleset
+	rulesetsForGroups, err := ndb.GetAllGroupsBValue(uuid)
+	if err != nil {logs.Error("GetAllGroupsBValue -> ERROR getting all groups by ruleset uuid: "+err.Error()); return err}
+	
+	for y := range rulesetsForGroups {
+		err = ndb.UpdateGroupValue(y, "ruleset", "")
+		if err != nil {logs.Error("Error updating to null rulesets into group table: "+err.Error()); return err}
+		err = ndb.UpdateGroupValue(y, "rulesetID", "")
+		if err != nil {logs.Error("Error updating to null rulesetsID into group table: "+err.Error()); return err}
+	}
+
+
 	// uuidRules, err := ndb.Rdb.Query("select rule_uniqueid from rule_files where rule_value='"+uuid+"'")
 	// if err != nil {
 	// 	logs.Error("DeleteRulese ndb.Rdb.Query Error checking rule_uniqueid for rule_files: %s", err.Error())

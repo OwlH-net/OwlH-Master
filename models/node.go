@@ -487,3 +487,14 @@ func ChangeSuricataTable(anode map[string]string)(err error){
     err = node.ChangeSuricataTable(anode)
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/ruleset/syncGroups \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v"
+// }
+func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
+    err = node.SyncRulesetToAllGroupNodes(anode)
+    return err
+}

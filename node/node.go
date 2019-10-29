@@ -79,30 +79,28 @@ func findNode(s string) (id string, err error) {
 
 func DeleteNode(nodeid string)(err error) {
     logs.Info("NODE Delete -> IN")
-    if ndb.Db == nil {
-        logs.Error("No access to database")
-        return errors.New("No access to database")
-    }
+    if ndb.Db == nil {logs.Error("No access to database"); return errors.New("No access to database")}
+
+    //delete node from database
     stmt, err := ndb.Db.Prepare("delete from nodes where node_uniqueid = ?")
-    if err != nil {
-        logs.Error("Prepare nodes -> %s", err.Error())
-        return err
-    }
+    if err != nil {logs.Error("DeleteNode delete node Prepare nodes -> %s", err.Error()); return err}
     _, err = stmt.Exec(&nodeid)
-    if err != nil {
-        logs.Error("Execute nodes -> %s", err.Error())
-        return err
-	}
+    if err != nil {logs.Error("DeleteNode delete node Execute nodes -> %s", err.Error()); return err}
+    
+    //delete ruleset for this node
     deleteRulesetNode, err := ndb.Rdb.Prepare("delete from ruleset_node where node_uniqueid = ?")
-    if err != nil {
-        logs.Error("Prepare ruleset_node -> %s", err.Error())
-        return err
-    }
+    if err != nil {logs.Error("DeleteNode delete ruleset Prepare ruleset_node -> %s", err.Error()); return err}
     _, err = deleteRulesetNode.Exec(&nodeid)
-    if err != nil {
-        logs.Error("Execute ruleset_node -> %s", err.Error())
-        return err
+    if err != nil {logs.Error("DeleteNode delete ruleset Execute ruleset_node -> %s", err.Error()); return err}
+
+    //delete node for group
+    groupnodes,err := ndb.GetGroupNodesByValue(nodeid)
+    if err != nil {logs.Error("DeleteNode Execute ruleset_node -> %s", err.Error()); return err}
+    for x := range groupnodes{
+        err = ndb.DeleteNodeGroupById(x)
+        if err != nil {logs.Error("DeleteNode error for uuid: "+x+": "+ err.Error()); return err}
     }
+
     return nil
 }
 
@@ -1097,4 +1095,49 @@ func PutIncidentNode(anode map[string]string)(err error){
 	if err != nil { logs.Error("node/PutIncidentNode ERROR http data request: "+err.Error()); return err}
 
 	return nil
+}
+
+func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
+    logs.Notice(anode["uuid"])
+
+    allFiles:= make(map[string]map[string]string)
+
+    data,err := ndb.GetAllGroupsBValue(anode["uuid"])
+    if err != nil { logs.Error("node/GetAllGroupsBValue ERROR Obtaining Port and Ip for sync ruleset to all nodes for a group: "+err.Error()); return err}
+    for f := range data {
+        if data[f]["rulesetID"] == anode["uuid"]{
+            // ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+            // if err != nil { logs.Error("node/SyncRulesetToAllGroupNodes ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+            allSources,err := ndb.GetRulesFromRuleset(anode["uuid"])
+            if err != nil { logs.Error("node/SyncRulesetToAllGroupNodes ERROR getting path: "+err.Error()); return err}
+
+            for m := range allSources {
+                data,err := utils.MapFromFile(allSources[m]["path"])
+                if err != nil { logs.Error("node/SyncRulesetToAllGroupNodes ERROR getting map from path: "+err.Error()); return err}
+
+                for g := range allFiles{
+                    for x := range data {
+                        if g != x {
+                            content := make(map[string]string)
+                            content["Line"] = data[x]["Line"]
+                            allFiles[x]["Line"] = content["Line"]
+                        }
+                    }
+                }
+            }
+
+            logs.Debug(len(allFiles))
+            logs.Debug(len(allFiles))
+            logs.Debug(len(allFiles))
+            logs.Warn(allFiles)
+
+            // //send lines to node
+            // err = nodeclient.SyncRulesetToNode(ipnid,portnid,allFiles)
+            // if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
+        }
+    }
+
+    
+    return nil
 }

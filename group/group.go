@@ -21,7 +21,7 @@ func CreateGroup(n map[string]string) (err error) {
 
     if err := ndb.GroupExists(uuid); err != nil {logs.Error("Group exist error: "+err.Error()); return err}
     
-    for key, value := range n {
+    for key, value := range n {        
         err = ndb.InsertGroup(uuid, key, value); if err != nil {logs.Error("InsertGroup error: "+ err.Error()); return err}
     }
     
@@ -37,7 +37,6 @@ func DeleteGroup(uuid string) (err error) {
     if err != nil {logs.Error("DeleteGroup error groupnodes: "+ err.Error()); return err}
 
     for x := range groupnodes{
-        logs.Debug(x)
         err = ndb.DeleteNodeGroupById(x)
         if err != nil {logs.Error("DeleteGroup error for uuid: "+x+": "+ err.Error()); return err}
     }
@@ -56,6 +55,8 @@ func EditGroup(data map[string]string) (err error) {
 type Group struct{
     Uuid           string      `json:"guuid"`
     Name           string      `json:"gname"`
+    Ruleset        string    `json:"gruleset"`
+    RulesetID      string    `json:"grulesetID"`
     Description    string      `json:"gdesc"`
     Nodes          []Node
 }
@@ -78,6 +79,8 @@ func GetAllGroups()(Groups []Group, err error){
         gr.Uuid = gid
         gr.Name = allGroups[gid]["name"]
         gr.Description = allGroups[gid]["desc"]
+        gr.Ruleset = allGroups[gid]["ruleset"]
+        gr.RulesetID = allGroups[gid]["rulesetID"]
 
         for nid := range groupNodes{
             if gid == groupNodes[nid]["groupid"]{
@@ -95,8 +98,6 @@ func GetAllGroups()(Groups []Group, err error){
         Groups = append(Groups, gr)
     }
 
-    logs.Notice(Groups)
-
     return Groups, nil
 }
 
@@ -107,15 +108,11 @@ func GetAllNodesGroup(uuid string)(data map[string]map[string]string, err error)
     groupNodes, err := ndb.GetAllGroupNodes()
     if err != nil {logs.Error("GetAllNodesGroup GetAllGroupNodes error: "+ err.Error()); return nil,err}
 
-    // for x := range data {
-        for y := range groupNodes {
-            // logs.Debug(uuid)
-            // logs.Warn(groupNodes[y]["nodesid"])
-            if groupNodes[y]["groupid"] == uuid {
-                data[groupNodes[y]["nodesid"]]["checked"] = "true"
-            }
+    for y := range groupNodes {
+        if groupNodes[y]["groupid"] == uuid {
+            data[groupNodes[y]["nodesid"]]["checked"] = "true"
         }
-    // }
+    }
 
     return data, err
 }
@@ -138,7 +135,6 @@ func AddGroupNodes(data map[string]interface{}) (err error) {
         for y := range groupNodes{
             if nodesList.Nodes[x] == groupNodes[y]["nodesid"] && nodesList.Uuid == groupNodes[y]["groupid"]{
                 nodeExists = true;
-                // continue
             }
         }
         if !nodeExists{
@@ -170,4 +166,14 @@ func DeleteNodeGroup(uuid string)(err error) {
     if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return err}	
 
     return nil
+}
+
+func ChangeGroupRuleset(data map[string]string)(err error) {
+    err = ndb.UpdateGroupValue(data["uuid"], "ruleset", data["ruleset"])
+    if err != nil {logs.Error("group/ChangeGroupRuleset ERROR updating group data for ruleset: "+err.Error()); return err}	
+
+    err = ndb.UpdateGroupValue(data["uuid"], "rulesetID", data["rulesetID"])
+    if err != nil {logs.Error("group/ChangeGroupRuleset ERROR updating group data for rulesetID: "+err.Error()); return err}	
+
+    return err
 }

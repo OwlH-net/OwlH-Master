@@ -1276,3 +1276,20 @@ func (n *NodeController) ChangeSuricataTable() {
     }
     n.ServeJSON()
 }
+
+// @Title SyncRulesetToAllGroupNodes
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /ruleset/syncGroups [put]
+func (n *NodeController) SyncRulesetToAllGroupNodes() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.SyncRulesetToAllGroupNodes(anode)
+	n.Data["json"] = map[string]string{"ack": "true"}
+
+	if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

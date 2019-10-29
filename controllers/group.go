@@ -139,3 +139,17 @@ func (n *GroupController) DeleteNodeGroup() {
     }
     n.ServeJSON()
 } 
+
+// @Title ChangeGroupRuleset
+// @Description Change group ruleset
+// @Success 200 {object} models.Groups
+// @router /changeGroupRuleset [put]
+func (n *GroupController) ChangeGroupRuleset() { 
+	var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.ChangeGroupRuleset(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+}

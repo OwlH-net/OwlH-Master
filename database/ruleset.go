@@ -186,7 +186,7 @@ func GetAllDataRulesetDB(uuid string)(data map[string]map[string]string, err err
 }
 
 //Get a specific ruleset path
-func GetRulesetPath(uuid string) (n string, err error) {
+func GetRulesetPath(uuid string)(n string, err error) {
 	var path string
     if Rdb != nil {
         row := Rdb.QueryRow("SELECT rule_value FROM rule_files WHERE rule_uniqueid=$1 and rule_param=\"path\";",uuid)
@@ -346,24 +346,3 @@ func GetAllRuleFiles()(data map[string]map[string]string, err error){
 	} 
 	return allRuleDetails, nil
 }
-
-// func GetAllNodes()(data map[string]string, err error){
-// 	var ruleset string
-// 	var node string
-// 	values := make(map[string]string)
-// 	sql := "select ruleset_uniqueid, node_uniqueid from ruleset_node;"
-// 	rows, err := Rdb.Query(sql)
-// 	if err != nil {
-// 		logs.Error("GetAllNodes Rdb.Query Error: %s", err.Error())
-// 		return nil, err
-// 	}
-// 	defer rows.Close()
-// 	for rows.Next() {
-// 		if err = rows.Scan(&ruleset, &node); err != nil {
-// 			logs.Error("GetAllNodes rows.Scan error: %s", err.Error())
-// 			return nil, err
-// 		}
-// 		values[ruleset]=node
-// 	} 
-// 	return values, nil
-// }
