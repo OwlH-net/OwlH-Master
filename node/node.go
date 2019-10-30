@@ -8,7 +8,6 @@ import (
 	"os"
 	"bufio"
     "owlhmaster/nodeclient"
-    "owlhmaster/stap"
     "owlhmaster/utils"
     "regexp"
 )
