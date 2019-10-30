@@ -3,7 +3,6 @@ package controllers
 import (
     "owlhmaster/models"    
     "encoding/json"
-
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
 )
@@ -39,14 +38,29 @@ type NodeController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *NodeController) CreateNode() {
-    var anode map[string]string
+    var anode map[string]interface{}
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.AddNode(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
-    if err != nil {
-        logs.Error("NODE CREATE -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+
+    n.Data["json"] = map[string]string{"ack": "true"}
+    
+    if _,ok := anode["bulkmode"]; ok{
+        var bulk map[string][]map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &bulk)
+
+        for x := range bulk["newnodes"]{
+            models.AddNode(bulk["newnodes"][x])
+        }
+    }else{
+        var node map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &node)
+        err := models.AddNode(node)
+
+        if err != nil {
+            logs.Error("NODE CREATE -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
+    
     n.ServeJSON()
 }
 

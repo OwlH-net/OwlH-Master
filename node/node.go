@@ -678,10 +678,7 @@ func SyncRulesetToAllNodes(anode map[string]string)(err error){
 
 		//send lines to node
 		err = nodeclient.SyncRulesetToNode(ipData,portData,data)
-		if err != nil {
-			logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error())
-			return err
-		}
+		if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
 	}
 	return nil
 }
@@ -1096,13 +1093,15 @@ func PutIncidentNode(anode map[string]string)(err error){
 }
 
 func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
-
-    // allLines := make(map[string]map[string]string)
-
     nodesID,err := ndb.GetGroupNodesByUUID(anode["uuid"])
     if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all nodes for a groups: "+err.Error()); return err}
     
     for x := range nodesID {
+        //get node data by uuid
+        if ndb.Db == nil { logs.Error("PutIncidentNode -- Can't acces to database"); return err}
+        ipnid,portnid,err := ndb.ObtainPortIp(nodesID[x]["nodesid"])
+        if err != nil { logs.Error("node/PutIncidentNode ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
         //get all rulesets for this node
         allGroupsNodes,err := ndb.GetAllGroupNodes()
         if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all groupsnodes: "+err.Error()); return err}
@@ -1130,31 +1129,13 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
             }
         } 
 
-        AllEnabledLines,err := MergeAllFiles(rulePaths)
+        AllEnabledLines,err := utils.MergeAllFiles(rulePaths)
 
-        logs.Emergency(len(AllEnabledLines))
-        //send file to node
+        //send lines to node
+        err = nodeclient.SyncRulesetToNode(ipnid,portnid,AllEnabledLines)
+        if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
+
     }
 
     return nil
-}
-
-func MergeAllFiles(files []string)(content map[string]map[string]string, err error){
-    allFiles := make(map[string]map[string]string)
-    for x := range files {
-        //only enabled lines
-        lines,err := utils.MapFromFile(files[x])
-        if err != nil {logs.Error("MergeAllFiles/MapFromFile error creating map from file: "+err.Error()); return nil,err}
-        for y := range lines {
-            if lines[y]["Enabled"] == "Enabled" {
-                if allFiles[y] == nil { allFiles[y] = map[string]string{}}
-                for z := range allFiles {
-                    if y != z {
-		                allFiles[y] = lines[y]
-                    }
-                }
-            }
-        }
-    }
-    return allFiles, nil
 }

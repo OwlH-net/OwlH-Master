@@ -202,6 +202,31 @@ func MapFromFile(path string)(mapData map[string]map[string]string, err error){
 	return mapFile, nil
 }
 
+//merge some files thought their path
+func MergeAllFiles(files []string)(content []byte, err error){
+    allFiles := make(map[string]map[string]string)
+    for x := range files {
+        //only enabled lines
+        lines,err := MapFromFile(files[x])
+        if err != nil {logs.Error("MergeAllFiles/MapFromFile error creating map from file: "+err.Error()); return nil,err}
+        for y := range lines {
+            if lines[y]["Enabled"] == "Enabled" {
+                if allFiles[y] == nil { allFiles[y] = map[string]string{}}
+                for z := range allFiles {
+                    if y != z {
+		                allFiles[y] = lines[y]
+                    }
+                }
+            }
+        }
+	}
+	for r := range allFiles{
+		content = append(content, []byte(allFiles[r]["Line"])...)
+		content = append(content, []byte("\n")...)
+	}
+    return content, nil
+}
+
 //replace lines between 2 files selected
 func ReplaceLines(data map[string]string)(err error){
 	sourceDownload := map[string]map[string]string{}
