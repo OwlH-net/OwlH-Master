@@ -437,3 +437,32 @@ func GetAllGroupsBValue(val string)(groups map[string]map[string]string, err err
 	} 
     return allgroups, nil
 }
+
+func GetGroupNodesByUUID(uuid string)(groups map[string]map[string]string, err error){
+	var allgroups = map[string]map[string]string{}
+	var id string
+    var uniqid string
+    var param string
+    var value string
+	if Mdb == nil { logs.Error("no access to database"); return nil, err}
+	
+    sql := "select gn_uniqueid from groupnodes where gn_value = '"+uuid+"';"
+    rows, err := Mdb.Query(sql)
+	if err != nil { logs.Error("Mdb.Query Error : %s", err.Error()); return nil, err}
+	
+    for rows.Next() {
+		if err = rows.Scan(&id); err != nil { logs.Error("GetGroupNodesByUUID rows.Scan: %s", err.Error()); return nil, err}
+
+		sql := "select gn_uniqueid, gn_param, gn_value from groupnodes where gn_uniqueid = '"+id+"';"
+		rows, err := Mdb.Query(sql)
+		if err != nil { logs.Error("Mdb.Query Error : %s", err.Error()); return nil, err}
+		
+		for rows.Next() {
+			if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetGroupNodesByUUID rows.Scan: %s", err.Error()); return nil, err}
+			
+			if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+			allgroups[uniqid][param]=value
+		} 
+	} 
+    return allgroups, nil
+}

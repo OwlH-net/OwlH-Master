@@ -346,3 +346,17 @@ func GetAllRuleFiles()(data map[string]map[string]string, err error){
 	} 
 	return allRuleDetails, nil
 }
+
+func GetRulesetUUID(node string)(uuid string, err error){
+	sql := "select ruleset_uniqueid from ruleset_node where node_uniqueid='"+node+"';"
+	rows, err := Rdb.Query(sql)
+	if err != nil {
+		logs.Error("GetRulesetUUID Rdb.Query Error: %s", err.Error())
+		return "", err
+	}
+	defer rows.Close()
+	if rows.Next() {
+		if err = rows.Scan(&uuid); err != nil {logs.Error("GetRulesetUUID rows.Scan error: %s", err.Error()); return "", err}
+	} 
+	return uuid, nil
+}

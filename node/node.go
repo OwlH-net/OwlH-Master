@@ -262,12 +262,11 @@ func AddNode(n map[string]string) (err error) {
     if err != nil {return err}
 
     //update node
-    nodeValues, err := ndb.GetAllNodesById(n["uuid"])
+    nodeValues, err := ndb.GetAllNodesById(nodeKey)
     if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}	
-    ipnid,portnid,err := ndb.ObtainPortIp(n["uuid"])
+    ipnid,portnid,err := ndb.ObtainPortIp(nodeKey)
 	if err != nil { logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: "+err.Error()); return err}
-    err = nodeclient.UpdateNodeData(ipnid,portnid, nodeValues)
-    if err != nil {logs.Error("Error updating node data")}
+    go nodeclient.UpdateNodeData(ipnid,portnid, nodeValues)
 
     return nil
 }
@@ -1098,46 +1097,66 @@ func PutIncidentNode(anode map[string]string)(err error){
 }
 
 func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
-    logs.Notice(anode["uuid"])
 
-    allFiles:= make(map[string]map[string]string)
+    // allLines := make(map[string]map[string]string)
 
-    data,err := ndb.GetAllGroupsBValue(anode["uuid"])
-    if err != nil { logs.Error("node/GetAllGroupsBValue ERROR Obtaining Port and Ip for sync ruleset to all nodes for a group: "+err.Error()); return err}
-    for f := range data {
-        if data[f]["rulesetID"] == anode["uuid"]{
-            // ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
-            // if err != nil { logs.Error("node/SyncRulesetToAllGroupNodes ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    nodesID,err := ndb.GetGroupNodesByUUID(anode["uuid"])
+    if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all nodes for a groups: "+err.Error()); return err}
+    
+    for x := range nodesID {
+        //get all rulesets for this node
+        allGroupsNodes,err := ndb.GetAllGroupNodes()
+        if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all groupsnodes: "+err.Error()); return err}
 
-            allSources,err := ndb.GetRulesFromRuleset(anode["uuid"])
-            if err != nil { logs.Error("node/SyncRulesetToAllGroupNodes ERROR getting path: "+err.Error()); return err}
+        var rulesetsList []string
+        for y := range allGroupsNodes {
+            //get all ruleset id if this node is in this group
+            if allGroupsNodes[y]["nodesid"] == nodesID[x]["nodesid"] {
+                //get ruleset assigned to this group
+                allGroups,err := ndb.GetAllGroups()
+                if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all groups for get their rulesetID: "+err.Error()); return err}
 
-            for m := range allSources {
-                data,err := utils.MapFromFile(allSources[m]["path"])
-                if err != nil { logs.Error("node/SyncRulesetToAllGroupNodes ERROR getting map from path: "+err.Error()); return err}
-
-                for g := range allFiles{
-                    for x := range data {
-                        if g != x {
-                            content := make(map[string]string)
-                            content["Line"] = data[x]["Line"]
-                            allFiles[x]["Line"] = content["Line"]
-                        }
-                    }
+                groupsRuleset := allGroups[allGroupsNodes[y]["groupid"]]["rulesetID"]
+                rulesetsList = append(rulesetsList, groupsRuleset)
+            }
+        }
+        var rulePaths []string
+        for ruleID := range rulesetsList{
+            rules,err := ndb.GetAllRuleFiles()
+            if err != nil {logs.Error("SyncRulesetToAllGroupNodes/GetAllRuleFiles error getting all rule files: "+err.Error()); return err}
+            for r := range rules{
+                if rules[r]["sourceUUID"] == rulesetsList[ruleID]{
+                    rulePaths = append(rulePaths, rules[r]["path"])
                 }
             }
+        } 
 
-            logs.Debug(len(allFiles))
-            logs.Debug(len(allFiles))
-            logs.Debug(len(allFiles))
-            logs.Warn(allFiles)
+        AllEnabledLines,err := MergeAllFiles(rulePaths)
 
-            // //send lines to node
-            // err = nodeclient.SyncRulesetToNode(ipnid,portnid,allFiles)
-            // if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
-        }
+        logs.Emergency(AllEnabledLines)
+        //send file to node
     }
 
-    
     return nil
+}
+
+func MergeAllFiles(files []string)(content map[string]map[string]string, err error){
+    allFiles := make(map[string]map[string]string)
+    for x := range files {
+        //only enabled lines
+        lines,err := utils.MapFromFile(files[x])
+        if err != nil {logs.Error("MergeAllFiles/MapFromFile error creating map from file: "+err.Error()); return nil,err}
+        for y := range lines {
+            if lines[y]["Enabled"] == "Enabled" {
+                logs.Warn(lines[y])
+                // for z := range allFiles {
+                //     if allFiles[y] == nil { allFiles[y] = map[string]string{}}
+                //     if y != z {
+		        //         allFiles[y] = lines[y]
+                //     }
+                // }
+            }
+        }
+    }
+    return allFiles, nil
 }
