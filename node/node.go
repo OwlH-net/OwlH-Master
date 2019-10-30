@@ -231,9 +231,9 @@ func nodeKeyInsert(nkey string, key string, value string) (err error) {
     _, err = stmt.Exec(&nkey, &key, &value)
     if err != nil {logs.Error("Execute -> %s", err.Error()); return err}
 
-    logs.Info("nkey from node.go to stap.go-->"+nkey)
-    _,err = stap.Stap(nkey)
-    if err != nil { logs.Error("Error creating node stap status from nodeKeyInsert at node.go -> %s", err.Error()); return err}
+    // logs.Info("nkey from node.go to stap.go-->"+nkey)
+    // _,err = stap.Stap(nkey)
+    // if err != nil { logs.Error("Error creating node stap status from nodeKeyInsert at node.go -> %s", err.Error()); return err}
 
     return nil
 }
@@ -1133,7 +1133,7 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
 
         AllEnabledLines,err := MergeAllFiles(rulePaths)
 
-        logs.Emergency(AllEnabledLines)
+        logs.Emergency(len(AllEnabledLines))
         //send file to node
     }
 
@@ -1148,13 +1148,12 @@ func MergeAllFiles(files []string)(content map[string]map[string]string, err err
         if err != nil {logs.Error("MergeAllFiles/MapFromFile error creating map from file: "+err.Error()); return nil,err}
         for y := range lines {
             if lines[y]["Enabled"] == "Enabled" {
-                logs.Warn(lines[y])
-                // for z := range allFiles {
-                //     if allFiles[y] == nil { allFiles[y] = map[string]string{}}
-                //     if y != z {
-		        //         allFiles[y] = lines[y]
-                //     }
-                // }
+                if allFiles[y] == nil { allFiles[y] = map[string]string{}}
+                for z := range allFiles {
+                    if y != z {
+		                allFiles[y] = lines[y]
+                    }
+                }
             }
         }
     }
