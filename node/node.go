@@ -183,16 +183,12 @@ func nodeKeyExists(nodekey string, key string) (id int, err error) {
 }
 
 func nodeExists(nodeid string) (err error) {
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-    }
+    if ndb.Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
+
     sql := "SELECT * FROM nodes where node_uniqueid = '"+nodeid+"';"
     rows, err := ndb.Db.Query(sql)
-    if err != nil {
-        logs.Error(err.Error())
-        return err
-    }
+    if err != nil {logs.Error(err.Error()); return err}
+
     defer rows.Close()
     if rows.Next() {
         return errors.New("Node Exists " + nodeid)
@@ -250,15 +246,26 @@ func AddNode(n map[string]string) (err error) {
         return errors.New("ip empty")
     }
 
+    //check if exist some node whit the same uuid
     if err := nodeExists(nodeKey); err != nil {
-		logs.Error("node exist: "+err.Error())
-        return errors.New("name empty")
+		logs.Error("Node exists: "+err.Error())
+        return errors.New("Node exists: "+err.Error())
     }
     
+    //cehck if exists a node with the same ip and port
+    nodes,err:= ndb.GetAllNodes()
+    for id := range nodes {
+        if nodes[id]["ip"] == n["ip"]{
+            if nodes[id]["port"] == n["port"]{
+                return errors.New("There is already a node with the same IP and Port")
+            }
+        }
+    }
+
     for key, value := range n {
         err = nodeKeyInsert(nodeKey, key, value)
+        if err != nil {return err}
     }
-    if err != nil {return err}
 
     //update node
     nodeValues, err := ndb.GetAllNodesById(nodeKey)
@@ -284,9 +291,22 @@ func UpdateNode(n map[string]string) (err error) {
     } else {
         nodeKey = n["id"]
     }
+    //check if exists a node with the same uuid
     if err := nodeExists(nodeKey); err == nil {
         return errors.New("Node doesn't exist, must be created")
     }
+
+    //cehck if exists a node with the same ip and port
+    nodes,err:= ndb.GetAllNodes()
+    for id := range nodes {
+        if nodes[id]["ip"] == n["ip"]{
+            if nodes[id]["port"] == n["port"]{
+                return errors.New("There is already a node with the same IP and Port")
+            }
+        }
+    }
+
+    //update node
     for key, value := range n {
         if id, _ := nodeKeyExists(nodeKey, key); id != 0 {
             err = nodeKeyUpdate(id, nodeKey, key, value)
