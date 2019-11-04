@@ -22,6 +22,7 @@ import (
 	"fmt"
 	"crypto/rand"
 	"encoding/hex"
+	"sort"
 )
 
 func Generate()(uuid string)  {
@@ -391,4 +392,25 @@ func CopyFile(dstfolder string, srcfolder string, file string, BUFFERSIZE int64)
         }
     }
     return err
+}
+
+func SortHashMap(data map[string]map[string]string)(dataSorted map[string]map[string]string){
+	var val []string
+	sortedValues := make(map[string]map[string]string)
+	for x:=range data {
+		val = append(val, strings.ToLower(data[x]["name"]))
+	}
+	sort.Strings(val)
+
+	for z := range val{
+		for y := range data {
+			if strings.ToLower(val[z]) == strings.ToLower(data[y]["name"]) {
+				logs.Info("EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS ")
+				if sortedValues[y] == nil { sortedValues[y] = map[string]string{}}
+				sortedValues[y] = data[y]
+			}
+		}
+	}
+
+    return sortedValues
 }

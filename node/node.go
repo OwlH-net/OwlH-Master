@@ -136,6 +136,8 @@ func getNodeConf(nodeKey string)(conf map[string]string, err error) {
 func GetAllNodes()(data map[string]map[string]string, err error){
     allNodes,err := ndb.GetAllNodes()
     if err != nil {logs.Error("Get all nodes error: "+err.Error()); return nil, err}
+    //sort nodes by name
+    // data = utils.SortHashMap(allNodes)
     return allNodes,nil
 }
 

@@ -56,10 +56,7 @@ func ReadSID(sid map[string]string)(sidLine map[string]string ,err error){
 //Read ruleset rules data
 func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
     data, err := os.Open(path)
-    if err != nil {
-        fmt.Println("File reading error", err)
-        // return
-    }
+    if err != nil {fmt.Println("File reading error", err) }
 
     var validID = regexp.MustCompile(`sid:(\d+);`)
     var msgfield = regexp.MustCompile(`msg:\"([^"]+)\"`)

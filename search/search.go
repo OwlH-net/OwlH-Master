@@ -221,7 +221,8 @@ func BuildRuleIndexLocal()(){
 	if err != nil {logs.Error("Search/Init error: %s", err.Error())}
 	for x,_ := range allRulesets {	
 		rset := Ruleset{}
-		currentRules, _ := ruleset.ReadRuleset(allRulesets[x]["path"])
+		currentRules, err := ruleset.ReadRuleset(allRulesets[x]["path"])
+		if err!=nil {logs.Error("BuildRuleIndexLocal Error readding rulesets: "+err.Error())}
 		rset.File = allRulesets[x]["path"]
 		rset.Name = allRulesets[x]["name"]
 		for y := range currentRules {			
