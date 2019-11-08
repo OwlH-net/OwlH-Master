@@ -6,6 +6,7 @@ import (
     "errors"
     "owlhmaster/utils"
     "encoding/json"
+    "os"
 )
 
 func CreateGroup(n map[string]string) (err error) {
@@ -53,18 +54,22 @@ func EditGroup(data map[string]string) (err error) {
 
 // var Groups []Group
 type Group struct{
-    Uuid           string      `json:"guuid"`
-    Name           string      `json:"gname"`
-    Ruleset        string    `json:"gruleset"`
-    RulesetID      string    `json:"grulesetID"`
-    Description    string      `json:"gdesc"`
-    Nodes          []Node
+    Uuid             string      `json:"guuid"`
+    Name             string      `json:"gname"`
+    Ruleset          string      `json:"gruleset"`
+    RulesetID        string      `json:"grulesetID"`
+    Description      string      `json:"gdesc"`
+    MasterSuricata   string      `json:"mastersuricata"`
+    NodeSuricata     string      `json:"nodesuricata"`
+    MasterZeek       string      `json:"masterzeek"`
+    NodeZeek         string      `json:"nodezeek"`
+    Nodes            []Node
 }
 type Node struct {
-    Dbuuid    string    `json:"dbuuid"`
-    Uuid    string      `json:"nuuid"`
-    Name    string      `json:"nname"`
-    Ip      string      `json:"nip"`
+    Dbuuid           string      `json:"dbuuid"`
+    Uuid             string      `json:"nuuid"`
+    Name             string      `json:"nname"`
+    Ip               string      `json:"nip"`
 }
 
 func GetAllGroups()(Groups []Group, err error){
@@ -81,6 +86,10 @@ func GetAllGroups()(Groups []Group, err error){
         gr.Description = allGroups[gid]["desc"]
         gr.Ruleset = allGroups[gid]["ruleset"]
         gr.RulesetID = allGroups[gid]["rulesetID"]
+        gr.MasterSuricata = allGroups[gid]["mastersuricata"]
+        gr.NodeSuricata = allGroups[gid]["nodesuricata"]
+        gr.MasterZeek = allGroups[gid]["masterzeek"]
+        gr.NodeZeek = allGroups[gid]["nodezeek"]
 
         for nid := range groupNodes{
             if gid == groupNodes[nid]["groupid"]{
@@ -174,6 +183,26 @@ func ChangeGroupRuleset(data map[string]string)(err error) {
 
     err = ndb.UpdateGroupValue(data["uuid"], "rulesetID", data["rulesetID"])
     if err != nil {logs.Error("group/ChangeGroupRuleset ERROR updating group data for rulesetID: "+err.Error()); return err}	
+
+    return err
+}
+
+func ChangePaths(data map[string]string)(err error) {
+    if data["type"] == "suricata"{
+        if _, err := os.Stat(data["mastersuricata"]); os.IsNotExist(err) {logs.Error("Suricata master path doesn't exists: "+err.Error()); return errors.New("Suricata master path doesn't exists: "+err.Error())}
+        err = ndb.UpdateGroupValue(data["uuid"], "mastersuricata", data["mastersuricata"])
+        if err != nil {logs.Error("group/ChangePaths ERROR updating suricata master path: "+err.Error()); return err}	
+    
+        err = ndb.UpdateGroupValue(data["uuid"], "nodesuricata", data["nodesuricata"])
+        if err != nil {logs.Error("group/ChangePaths ERROR updating suricata node path: "+err.Error()); return err}	
+    }else{
+        if _, err := os.Stat(data["masterzeek"]); os.IsNotExist(err) {logs.Error("Zeek node path doesn't exists: "+err.Error()); return errors.New("Zeek master path doesn't exists: "+err.Error())}
+        err = ndb.UpdateGroupValue(data["uuid"], "masterzeek", data["masterzeek"])
+        if err != nil {logs.Error("group/ChangePaths ERROR updating zeek master path: "+err.Error()); return err}	
+    
+        err = ndb.UpdateGroupValue(data["uuid"], "nodezeek", data["nodezeek"])
+        if err != nil {logs.Error("group/ChangePaths ERROR updating zeek node path: "+err.Error()); return err}	
+    }
 
     return err
 }

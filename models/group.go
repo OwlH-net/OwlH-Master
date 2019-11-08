@@ -53,3 +53,8 @@ func ChangeGroupRuleset(data map[string]string)(err error) {
     err = group.ChangeGroupRuleset(data)
     return err
 }
+
+func ChangePaths(data map[string]string)(err error) {
+    err = group.ChangePaths(data)
+    return err
+}
