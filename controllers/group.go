@@ -155,14 +155,29 @@ func (n *GroupController) ChangeGroupRuleset() {
     n.ServeJSON()
 }
 
-// @Title ChangePaths
+// @Title ChangePathsGroups
 // @Description Change group paths
 // @Success 200 {object} models.Groups
 // @router /changePaths [put]
-func (n *GroupController) ChangePaths() { 
+func (n *GroupController) ChangePathsGroups() { 
 	var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.ChangePaths(anode)
+    err := models.ChangePathsGroups(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SyncPathGroup
+// @Description Change group paths
+// @Success 200 {object} models.Groups
+// @router /syncPathGroup [post]
+func (n *GroupController) SyncPathGroup() { 
+	var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.SyncPathGroup(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

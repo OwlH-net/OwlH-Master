@@ -54,7 +54,12 @@ func ChangeGroupRuleset(data map[string]string)(err error) {
     return err
 }
 
-func ChangePaths(data map[string]string)(err error) {
-    err = group.ChangePaths(data)
+func ChangePathsGroups(data map[string]string)(err error) {
+    err = group.ChangePathsGroups(data)
+    return err
+}
+
+func SyncPathGroup(data map[string]string)(err error) {
+    err = group.SyncPathGroup(data)
     return err
 }

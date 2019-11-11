@@ -23,6 +23,7 @@ import (
 	"crypto/rand"
 	"encoding/hex"
 	"sort"
+	"path/filepath"
 )
 
 func Generate()(uuid string)  {
@@ -413,4 +414,23 @@ func SortHashMap(data map[string]map[string]string)(dataSorted map[string]map[st
 	}
 
     return sortedValues
+}
+
+func ListFilepath(path string)(files map[string][]byte, err error){
+	pathMap:= make(map[string][]byte)
+	err = filepath.Walk(path,
+		func(file string, info os.FileInfo, err error) error {
+		if err != nil {return err}
+
+		if !info.IsDir() {
+			pathSplit := strings.Split(file, "/")
+			content, err := ioutil.ReadFile(file)
+			if err != nil {logs.Error("Error filepath walk: "+err.Error()); return err}
+			pathMap[pathSplit[len(pathSplit)-1]] = content
+		}
+		return nil
+	})
+	if err != nil {logs.Error("Error filepath walk: "+err.Error()); return nil, err}
+
+	return pathMap, nil
 }

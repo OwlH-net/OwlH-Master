@@ -5,6 +5,7 @@ import (
     "owlhmaster/database"
     "errors"
     "owlhmaster/utils"
+    "owlhmaster/nodeclient"
     "encoding/json"
     "os"
 )
@@ -187,22 +188,60 @@ func ChangeGroupRuleset(data map[string]string)(err error) {
     return err
 }
 
-func ChangePaths(data map[string]string)(err error) {
+func ChangePathsGroups(data map[string]string)(err error) {
     if data["type"] == "suricata"{
         if _, err := os.Stat(data["mastersuricata"]); os.IsNotExist(err) {logs.Error("Suricata master path doesn't exists: "+err.Error()); return errors.New("Suricata master path doesn't exists: "+err.Error())}
         err = ndb.UpdateGroupValue(data["uuid"], "mastersuricata", data["mastersuricata"])
         if err != nil {logs.Error("group/ChangePaths ERROR updating suricata master path: "+err.Error()); return err}	
-    
+        
         err = ndb.UpdateGroupValue(data["uuid"], "nodesuricata", data["nodesuricata"])
-        if err != nil {logs.Error("group/ChangePaths ERROR updating suricata node path: "+err.Error()); return err}	
+        if err != nil {logs.Error("group/ChangePaths ERROR updating suricata node path: "+err.Error()); return err}	    
     }else{
         if _, err := os.Stat(data["masterzeek"]); os.IsNotExist(err) {logs.Error("Zeek node path doesn't exists: "+err.Error()); return errors.New("Zeek master path doesn't exists: "+err.Error())}
         err = ndb.UpdateGroupValue(data["uuid"], "masterzeek", data["masterzeek"])
         if err != nil {logs.Error("group/ChangePaths ERROR updating zeek master path: "+err.Error()); return err}	
-    
+
         err = ndb.UpdateGroupValue(data["uuid"], "nodezeek", data["nodezeek"])
         if err != nil {logs.Error("group/ChangePaths ERROR updating zeek node path: "+err.Error()); return err}	
-    }
+    }    
 
     return err
+}
+
+func SyncPathGroup(data map[string]string)(err error) {
+    fileList := make(map[string]map[string][]byte)    
+    filesMap := make(map[string][]byte)
+    if data["type"] == "suricata"{
+        filesMap,err = utils.ListFilepath(data["mastersuricata"])
+        if err != nil {logs.Error("group/ChangePaths ERROR getting Suricata path and files for send to node: "+err.Error()); return err}	
+        if fileList[data["nodesuricata"]] == nil { fileList[data["nodesuricata"]] = map[string][]byte{}}
+        fileList[data["nodesuricata"]] = filesMap
+    }else{
+        filesMap,err = utils.ListFilepath(data["masterzeek"])
+        if err != nil {logs.Error("group/ChangePaths ERROR getting Zeek path and files for send to node: "+err.Error()); return err}	
+        if fileList[data["nodezeek"]] == nil { fileList[data["nodezeek"]] = map[string][]byte{}}
+        fileList[data["nodezeek"]] = filesMap
+    }
+
+    //get all node uuid
+    nodesID,err := ndb.GetGroupNodesByUUID(data["uuid"])
+    if err != nil {logs.Error("SyncPathGroup error getting all nodes for a groups: "+err.Error()); return err}
+
+    for uuid := range nodesID{
+        //get ip and port for node
+        if ndb.Db == nil { logs.Error("SyncPathGroup -- Can't acces to database"); return err}
+        ipnid,portnid,err := ndb.ObtainPortIp(nodesID[uuid]["nodesid"])
+        if err != nil { logs.Error("node/SyncPathGroup ERROR Obtaining Port and Ip: "+err.Error()); return err}
+        
+        //send to nodeclient all data
+        if data["type"] == "suricata"{
+            err = nodeclient.ChangeSuricataPathsGroups(ipnid,portnid,fileList)
+            if err != nil { logs.Error("node/SyncPathGroup ChangeSuricataPathsGroups ERROR http data request: "+err.Error()); return err}	
+        }else{
+            err = nodeclient.ChangeZeekPathsGroups(ipnid,portnid,fileList)
+            if err != nil { logs.Error("node/SyncPathGroup ChangeZeekPathsGroups ERROR http data request: "+err.Error()); return err}	
+        }
+    }
+    
+    return nil
 }

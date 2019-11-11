@@ -1419,3 +1419,23 @@ func ChangeSuricataTable(ipnid string, portnid string, data map[string]string)(e
 	defer resp.Body.Close()
 	return nil
 }
+
+func ChangeSuricataPathsGroups(ipnid string, portnid string, data map[string]map[string][]byte)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/suricata"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/ChangeSuricataPathsGroups ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
+
+func ChangeZeekPathsGroups(ipnid string, portnid string, data map[string]map[string][]byte)(err error){
+	url := "https://"+ipnid+":"+portnid+"/node/zeek"
+	valuesJSON,err := json.Marshal(data)
+	resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+	if err != nil {logs.Error("nodeclient/ChangeZeekPathsGroups ERROR connection through http new Request: "+err.Error()); return err}
+
+	defer resp.Body.Close()
+	return nil
+}
