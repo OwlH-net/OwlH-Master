@@ -9,7 +9,7 @@ func PlayCollector(uuid string) (err error) {
     return err
 }
 func StopCollector(uuid string) (err error) {
-	err = collector.StopCollector(uuid)
+    err = collector.StopCollector(uuid)
     return err
 }
 func ShowCollector(uuid string) (data string, err error) {

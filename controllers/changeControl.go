@@ -6,7 +6,7 @@ import (
 )
 
 type ChangecontrolController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title GetChangeControl
@@ -15,8 +15,8 @@ type ChangecontrolController struct {
 // @Failure 403 body is empty
 // @router / [get]
 func (n *ChangecontrolController) GetChangeControl() {
-	data, err := models.GetChangeControl()
-	n.Data["json"] = data
+    data, err := models.GetChangeControl()
+    n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }

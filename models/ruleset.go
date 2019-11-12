@@ -87,41 +87,41 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
 }
 
 func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err error) {
-	duplicated, err = ruleset.AddNewRuleset(data)
+    duplicated, err = ruleset.AddNewRuleset(data)
     return duplicated, err
 }
 
 func GetAllCustomRulesets()(data map[string]map[string]string,err error) {
-	data,err = ruleset.GetAllCustomRulesets()
-	return data,err
+    data,err = ruleset.GetAllCustomRulesets()
+    return data,err
 }
 
 func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string]string, err error) {
-	duplicatedRules, err = ruleset.AddRulesToCustomRuleset(anode)
-	return duplicatedRules, err
+    duplicatedRules, err = ruleset.AddRulesToCustomRuleset(anode)
+    return duplicatedRules, err
 }
 
 func ReadRulesetData(uuid string)(content map[string]string, err error) {
-	content, err = ruleset.ReadRulesetData(uuid)
-	return content, err
+    content, err = ruleset.ReadRulesetData(uuid)
+    return content, err
 }
 
 func SaveRulesetData(content map[string]string)(err error) {
-	err = ruleset.SaveRulesetData(content)
-	return err
+    err = ruleset.SaveRulesetData(content)
+    return err
 }
 
 func TimeSchedule(content map[string]string)(err error) {
-	// err = ruleset.TimeSchedule(content)
-	return err
+    // err = ruleset.TimeSchedule(content)
+    return err
 }
 
 func StopTimeSchedule(content map[string]string)(err error) {
-	// err = ruleset.StopTimeSchedule(content)
-	return err
+    // err = ruleset.StopTimeSchedule(content)
+    return err
 }
 
 func UpdateRule(anode map[string]string)(err error) {
     err = ruleset.UpdateRule(anode)
-	return err
+    return err
 }

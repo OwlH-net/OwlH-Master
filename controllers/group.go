@@ -8,7 +8,7 @@ import (
 )
 
 type GroupController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title CreateGroup
@@ -19,8 +19,8 @@ type GroupController struct {
 func (n *GroupController) CreateGroup() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.CreateGroup(anode)
-	n.Data["json"] = map[string]string{"ack": "true!"}
+    err := models.CreateGroup(anode)
+    n.Data["json"] = map[string]string{"ack": "true!"}
     if err != nil {
         logs.Error("GROUP CREATE -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -46,7 +46,7 @@ func (n *GroupController) GetAllGroups() {
 // @Success 200 {object} models.Groups
 // @router /DeleteGroup/:uuid [put]
 func (n *GroupController) DeleteGroup() { 
-	uuid := n.GetString(":uuid") 
+    uuid := n.GetString(":uuid") 
     err := models.DeleteGroup(uuid)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -60,7 +60,7 @@ func (n *GroupController) DeleteGroup() {
 // @Success 200 {object} models.Groups
 // @router /editGroup [put]
 func (n *GroupController) EditGroup() { 
-	var anode map[string]string
+    var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.EditGroup(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
@@ -89,7 +89,7 @@ func (n *GroupController) GetAllNodesGroup() {
 // @Success 200 {object} models.Groups
 // @router /addGroupNodes [put]
 func (n *GroupController) AddGroupNodes() { 
-	var anode map[string]interface{}
+    var anode map[string]interface{}
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.AddGroupNodes(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
@@ -131,7 +131,7 @@ func (n *GroupController) GetNodeValues() {
 // @Success 200 {object} models.Groups
 // @router /deleteNodeGroup/:uuid [put]
 func (n *GroupController) DeleteNodeGroup() { 
-	uuid := n.GetString(":uuid") 
+    uuid := n.GetString(":uuid") 
     err := models.DeleteNodeGroup(uuid)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -145,7 +145,7 @@ func (n *GroupController) DeleteNodeGroup() {
 // @Success 200 {object} models.Groups
 // @router /changeGroupRuleset [put]
 func (n *GroupController) ChangeGroupRuleset() { 
-	var anode map[string]string
+    var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.ChangeGroupRuleset(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
@@ -160,7 +160,7 @@ func (n *GroupController) ChangeGroupRuleset() {
 // @Success 200 {object} models.Groups
 // @router /changePaths [put]
 func (n *GroupController) ChangePathsGroups() { 
-	var anode map[string]string
+    var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.ChangePathsGroups(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
@@ -175,7 +175,7 @@ func (n *GroupController) ChangePathsGroups() {
 // @Success 200 {object} models.Groups
 // @router /syncPathGroup [post]
 func (n *GroupController) SyncPathGroup() { 
-	var anode map[string]string
+    var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.SyncPathGroup(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
@@ -190,7 +190,7 @@ func (n *GroupController) SyncPathGroup() {
 // @Success 200 {object} models.Groups
 // @router /updateGroupService [put]
 func (n *GroupController) UpdateGroupService() { 
-	var anode map[string]string
+    var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.UpdateGroupService(anode)
     n.Data["json"] = map[string]string{"ack": "true"}

@@ -41,8 +41,8 @@ func SaveStapInterface(anode map[string]string) (err error) {
 }
 
 func GetNetworkInterface()(data map[string]string, err error) {
-	data,err = master.GetNetworkInterface()
-	return data,err
+    data,err = master.GetNetworkInterface()
+    return data,err
 }
 
 func ChangeDataflowStatus(anode map[string]string) (err error) {

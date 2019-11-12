@@ -210,17 +210,17 @@ func CheckDeploy(uuid string)(anode map[string]string){
 }
 
 func LoadDataflowValues(uuid string)(data map[string]map[string]string, err error){
-	data, err = node.LoadDataflowValues(uuid)
+    data, err = node.LoadDataflowValues(uuid)
     return data, err
 }
 
 func LoadNetworkValues(uuid string)(data map[string]string, err error){
-	data, err = node.LoadNetworkValues(uuid)
+    data, err = node.LoadNetworkValues(uuid)
     return data, err
 }
 
 func LoadNetworkValuesSelected(uuid string)(data map[string]map[string]string, err error){
-	data, err = node.LoadNetworkValuesSelected(uuid)
+    data, err = node.LoadNetworkValuesSelected(uuid)
     return data, err
 }
 
@@ -240,18 +240,18 @@ func SaveVxLAN(anode map[string]string)(err error){
 }
 
 func SocketToNetworkList(uuid string)(data map[string]map[string]string, err error){
-	data, err = node.SocketToNetworkList(uuid)
+    data, err = node.SocketToNetworkList(uuid)
     return data, err
 }
 
 func SaveSocketToNetworkSelected(anode map[string]string)(err error){
-	err = node.SaveSocketToNetworkSelected(anode)
-	return err
+    err = node.SaveSocketToNetworkSelected(anode)
+    return err
 }
 
 func DeleteDataFlowValueSelected(anode map[string]string)(err error){
-	err = node.DeleteDataFlowValueSelected(anode)
-	return err
+    err = node.DeleteDataFlowValueSelected(anode)
+    return err
 }
 
 func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
@@ -276,7 +276,7 @@ func GetMainconfData(uuid string)(data map[string]map[string]string, err error){
 
 func ChangeServiceStatus(anode map[string]string)(err error){
     err = node.ChangeServiceStatus(anode)
-	return err
+    return err
 }
 
 func ChangeMainServiceStatus(anode map[string]string)(err error){

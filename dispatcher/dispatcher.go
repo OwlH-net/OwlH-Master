@@ -6,11 +6,11 @@ import (
     "io"
     "io/ioutil"
     "encoding/json"
-	"errors"
-	"strconv"
-	"github.com/astaxie/beego/logs"
-	"owlhmaster/utils"
-	"owlhmaster/database"
+    "errors"
+    "strconv"
+    "github.com/astaxie/beego/logs"
+    "owlhmaster/utils"
+    "owlhmaster/database"
 )
 
 type listOfNodesAndFolders struct {
@@ -34,62 +34,62 @@ var latest int
 var timeToken time.Time
 
 func Init() {
-	latest = 0
-	for {
-		pluginData,err := ndb.PingPlugins()
-		if err != nil {logs.Error("Error PingPlugins for check dispatcher status: %s", err.Error())}
-		if pluginData["dispatcher"]["status"] == "disabled"{
-			time.Sleep(time.Second * 30)
-			continue
-		}
-		nodesAndPcaps, err := loadNodesAndPcaps()
-		if err!= nil {
-			return
-		}
-		dispatch(nodesAndPcaps)
-	}
+    latest = 0
+    for {
+        pluginData,err := ndb.PingPlugins()
+        if err != nil {logs.Error("Error PingPlugins for check dispatcher status: %s", err.Error())}
+        if pluginData["dispatcher"]["status"] == "disabled"{
+            time.Sleep(time.Second * 30)
+            continue
+        }
+        nodesAndPcaps, err := loadNodesAndPcaps()
+        if err!= nil {
+            return
+        }
+        dispatch(nodesAndPcaps)
+    }
 }
 
 func GetKeepPcap()(status bool, err error){
-	loadData := map[string]map[string]string{}
-	loadData["dispatcher"] = map[string]string{}
-	loadData["dispatcher"]["keepPcap"] = ""
-	loadData,err = utils.GetConf(loadData)
-	keepPcacpStatus := loadData["dispatcher"]["keepPcap"]
-	if err != nil {logs.Error("Error GetKeepPcap importing from main.conf: "+err.Error()); return true, err}
-	
-	keepBool, err := strconv.ParseBool(keepPcacpStatus)
-	if err != nil {logs.Error("Error GetKeepPcap Parsing to bool: "+err.Error()); return true, err}
-	return keepBool, nil
+    loadData := map[string]map[string]string{}
+    loadData["dispatcher"] = map[string]string{}
+    loadData["dispatcher"]["keepPcap"] = ""
+    loadData,err = utils.GetConf(loadData)
+    keepPcacpStatus := loadData["dispatcher"]["keepPcap"]
+    if err != nil {logs.Error("Error GetKeepPcap importing from main.conf: "+err.Error()); return true, err}
+    
+    keepBool, err := strconv.ParseBool(keepPcacpStatus)
+    if err != nil {logs.Error("Error GetKeepPcap Parsing to bool: "+err.Error()); return true, err}
+    return keepBool, nil
 }
 
 func GetOutputQueue()(path string, err error){
-	loadData := map[string]map[string]string{}
-	loadData["dispatcher"] = map[string]string{}
-	loadData["dispatcher"]["outputQueue"] = ""
-	loadData,err = utils.GetConf(loadData)
-	outputQueuePath := loadData["dispatcher"]["outputQueue"]
-	if err != nil {logs.Error("Error GetOutputQueue importing from main.conf: "+err.Error()); return "", err}
-	
-	return outputQueuePath, nil
+    loadData := map[string]map[string]string{}
+    loadData["dispatcher"] = map[string]string{}
+    loadData["dispatcher"]["outputQueue"] = ""
+    loadData,err = utils.GetConf(loadData)
+    outputQueuePath := loadData["dispatcher"]["outputQueue"]
+    if err != nil {logs.Error("Error GetOutputQueue importing from main.conf: "+err.Error()); return "", err}
+    
+    return outputQueuePath, nil
 }
 
 func loadNodesAndPcaps()(nodes listOfNodesAndFolders, err error) {
-	t := listOfNodesAndFolders{}
-	loadData := map[string]map[string]string{}
-	loadData["dispatcher"] = map[string]string{}
-	loadData["dispatcher"]["nodesAndCaps"] = ""
-	loadData,err = utils.GetConf(loadData)
-	path := loadData["dispatcher"]["nodesAndCaps"]
-	if err != nil {
-		logs.Error("Error loadNodesAndPcaps importing from main.conf: "+err.Error())
-		return t, err
-	}
-	nodesFile, err := os.Open(path)
-	if err != nil {
-		logs.Error("Error loadNodesAndPcaps opening file : "+err.Error())
-		return t, err
-	}
+    t := listOfNodesAndFolders{}
+    loadData := map[string]map[string]string{}
+    loadData["dispatcher"] = map[string]string{}
+    loadData["dispatcher"]["nodesAndCaps"] = ""
+    loadData,err = utils.GetConf(loadData)
+    path := loadData["dispatcher"]["nodesAndCaps"]
+    if err != nil {
+        logs.Error("Error loadNodesAndPcaps importing from main.conf: "+err.Error())
+        return t, err
+    }
+    nodesFile, err := os.Open(path)
+    if err != nil {
+        logs.Error("Error loadNodesAndPcaps opening file : "+err.Error())
+        return t, err
+    }
     defer nodesFile.Close()
     byteValue, _ := ioutil.ReadAll(nodesFile)
     json.Unmarshal([]byte(byteValue), &t)
@@ -97,25 +97,25 @@ func loadNodesAndPcaps()(nodes listOfNodesAndFolders, err error) {
 }
 
 func GetDispatcherParam(param string)(result string){
-	loadData := map[string]map[string]string{}
-	loadData["dispatcher"] = map[string]string{}
-	loadData["dispatcher"][param] = ""
-	loadData,err := utils.GetConf(loadData)
-	if err != nil {
-		logs.Error("GetDispatcherParam Error getting param from main.conf: "+err.Error())
-		return "60"
-	}
-	return loadData["dispatcher"][param]
+    loadData := map[string]map[string]string{}
+    loadData["dispatcher"] = map[string]string{}
+    loadData["dispatcher"][param] = ""
+    loadData,err := utils.GetConf(loadData)
+    if err != nil {
+        logs.Error("GetDispatcherParam Error getting param from main.conf: "+err.Error())
+        return "60"
+    }
+    return loadData["dispatcher"][param]
 }
 
 func copyFileToNode(dstfolder string, srcfolder string, file string, BUFFERSIZE int64) (err error) {
-	sourceFileStat, err := os.Stat(srcfolder+file)
+    sourceFileStat, err := os.Stat(srcfolder+file)
     if err != nil {
         logs.Error("Error -> " + err.Error())
         return err
-	}
-	var timeout,_ = strconv.Atoi(GetDispatcherParam("olderTime"))
-    timeToken := time.Now().Add(time.Second*time.Duration(-timeout))	
+    }
+    var timeout,_ = strconv.Atoi(GetDispatcherParam("olderTime"))
+    timeToken := time.Now().Add(time.Second*time.Duration(-timeout))    
     if !sourceFileStat.ModTime().Before(timeToken) {
         return errors.New("Newer file")    
     }
@@ -185,57 +185,57 @@ func dispatch(theList listOfNodesAndFolders) {
     var pool []string
     var alone []string
     for j:=0; j < len(theList.Nodes); j++ {
-        if theList.Nodes[j].Ntype == "pool" {			
+        if theList.Nodes[j].Ntype == "pool" {            
             pool = append(pool, theList.Nodes[j].Pcappath)
         }
         if theList.Nodes[j].Ntype == "alone" {
             alone = append(alone, theList.Nodes[j].Pcappath)
         }
-	}
-		
+    }
+        
     for i:=0; i < len(theList.Folders); i++ {
-		KeepPcapStatus, err := GetKeepPcap()
-		if err != nil {logs.Error("Error GetKeepPcap at dispatch: "+err.Error())}
-		output, err := GetOutputQueue()
-		if err != nil {logs.Error("Error GetKeepPcap at dispatch: "+err.Error())}
+        KeepPcapStatus, err := GetKeepPcap()
+        if err != nil {logs.Error("Error GetKeepPcap at dispatch: "+err.Error())}
+        output, err := GetOutputQueue()
+        if err != nil {logs.Error("Error GetKeepPcap at dispatch: "+err.Error())}
 
-		files, areFiles := getFileFromSrcFolders(theList.Folders[i].Fpath)		
+        files, areFiles := getFileFromSrcFolders(theList.Folders[i].Fpath)        
         if !areFiles{
             logs.Info("...waiting Files...")
             time.Sleep(time.Second*10)
             continue
-		}
-		
-        for _, file := range files {					
+        }
+        
+        for _, file := range files {                    
             if latest == len(pool) {
                 latest = 0
-			}
+            }
 
-			err := copyFileToNode(pool[latest], theList.Folders[i].Fpath,file.Name(), bufferSize)
+            err := copyFileToNode(pool[latest], theList.Folders[i].Fpath,file.Name(), bufferSize)
             if err != nil {
-				break
+                break
             }
             for k:=0; k < len(alone); k++ {
-				logs.Notice("Copying file to node: "+alone[k])
-				err = copyFileToNode(alone[k], theList.Folders[i].Fpath,file.Name(), bufferSize)
-				if err != nil {
-            	    logs.Error("CopyFileToNode alone: "+err.Error())	
-					break
-            	}
+                logs.Notice("Copying file to node: "+alone[k])
+                err = copyFileToNode(alone[k], theList.Folders[i].Fpath,file.Name(), bufferSize)
+                if err != nil {
+                    logs.Error("CopyFileToNode alone: "+err.Error())    
+                    break
+                }
             }
 
-			if !KeepPcapStatus {
-				logs.Notice("Deleting file: "+file.Name())
-				err = os.Remove(theList.Folders[i].Fpath+file.Name())
-				if err != nil { logs.Notice("Error Removing =-> "+err.Error())}
-			}else{
-				logs.Notice("Keeping file: "+file.Name())
-				err := copyFileToNode(output, theList.Folders[i].Fpath,file.Name(), bufferSize)
-				if err != nil { logs.Error("CopyFileToNode cleaning pcap: "+err.Error())}
-				
-				err = os.Remove(theList.Folders[i].Fpath+file.Name())
-				if err != nil { logs.Error("Error Removing =-> "+err.Error())}
-			}
+            if !KeepPcapStatus {
+                logs.Notice("Deleting file: "+file.Name())
+                err = os.Remove(theList.Folders[i].Fpath+file.Name())
+                if err != nil { logs.Notice("Error Removing =-> "+err.Error())}
+            }else{
+                logs.Notice("Keeping file: "+file.Name())
+                err := copyFileToNode(output, theList.Folders[i].Fpath,file.Name(), bufferSize)
+                if err != nil { logs.Error("CopyFileToNode cleaning pcap: "+err.Error())}
+                
+                err = os.Remove(theList.Folders[i].Fpath+file.Name())
+                if err != nil { logs.Error("Error Removing =-> "+err.Error())}
+            }
             latest += 1
         }
     }

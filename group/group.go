@@ -11,13 +11,13 @@ import (
 )
 
 func CreateGroup(n map[string]string) (err error) {
-	uuid := utils.Generate()
+    uuid := utils.Generate()
     if _, ok := n["name"]; !ok {
-		logs.Error("name empty: "+err.Error())
+        logs.Error("name empty: "+err.Error())
         return errors.New("name empty")
     }
     if _, ok := n["desc"]; !ok {
-		logs.Error("desc empty: "+err.Error())
+        logs.Error("desc empty: "+err.Error())
         return errors.New("desc empty")
     }
 
@@ -83,7 +83,7 @@ func GetAllGroups()(Groups []Group, err error){
     if err != nil {logs.Error("GetAllGroups error: "+ err.Error()); return nil,err}
 
     groupNodes, err := ndb.GetAllGroupNodes()
-    if err != nil {logs.Error("group/GetNodeValues ERROR getting all nodes: "+err.Error()); return nil,err}	
+    if err != nil {logs.Error("group/GetNodeValues ERROR getting all nodes: "+err.Error()); return nil,err}    
 
     for gid := range allGroups{
         gr := Group{}
@@ -104,7 +104,7 @@ func GetAllGroups()(Groups []Group, err error){
 
         for nid := range groupNodes{
             if gid == groupNodes[nid]["groupid"]{
-                nodeValues, err := ndb.GetAllNodesById(groupNodes[nid]["nodesid"]); if err != nil {logs.Error("group/GetNodeValues ERROR getting node values: "+err.Error()); return nil,err}	
+                nodeValues, err := ndb.GetAllNodesById(groupNodes[nid]["nodesid"]); if err != nil {logs.Error("group/GetNodeValues ERROR getting node values: "+err.Error()); return nil,err}    
                 nd := Node{}
                 nd.Dbuuid = nid
                 for b := range nodeValues{
@@ -138,8 +138,8 @@ func GetAllNodesGroup(uuid string)(data map[string]map[string]string, err error)
 }
 
 type GroupNode struct {
-	Uuid 	  	string		`json:"uuid"`
-	Nodes		[]string	`json:"nodes"`
+    Uuid           string        `json:"uuid"`
+    Nodes        []string    `json:"nodes"`
 }
 
 func AddGroupNodes(data map[string]interface{}) (err error) {
@@ -176,24 +176,24 @@ func PingGroupNodes()(data map[string]map[string]string, err error) {
 
 func GetNodeValues(uuid string)(data map[string]map[string]string, err error) {
     data, err = ndb.GetAllNodesById(uuid)
-    if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return nil,err}	
+    if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return nil,err}    
 
     return data, nil
 }
 
 func DeleteNodeGroup(uuid string)(err error) {
     err = ndb.DeleteNodeGroupById(uuid)
-    if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return err}	
+    if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return err}    
 
     return nil
 }
 
 func ChangeGroupRuleset(data map[string]string)(err error) {
     err = ndb.UpdateGroupValue(data["uuid"], "ruleset", data["ruleset"])
-    if err != nil {logs.Error("group/ChangeGroupRuleset ERROR updating group data for ruleset: "+err.Error()); return err}	
+    if err != nil {logs.Error("group/ChangeGroupRuleset ERROR updating group data for ruleset: "+err.Error()); return err}    
 
     err = ndb.UpdateGroupValue(data["uuid"], "rulesetID", data["rulesetID"])
-    if err != nil {logs.Error("group/ChangeGroupRuleset ERROR updating group data for rulesetID: "+err.Error()); return err}	
+    if err != nil {logs.Error("group/ChangeGroupRuleset ERROR updating group data for rulesetID: "+err.Error()); return err}    
 
     return err
 }
@@ -202,17 +202,17 @@ func ChangePathsGroups(data map[string]string)(err error) {
     if data["type"] == "suricata"{
         if _, err := os.Stat(data["mastersuricata"]); os.IsNotExist(err) {logs.Error("Suricata master path doesn't exists: "+err.Error()); return errors.New("Suricata master path doesn't exists: "+err.Error())}
         err = ndb.UpdateGroupValue(data["uuid"], "mastersuricata", data["mastersuricata"])
-        if err != nil {logs.Error("group/ChangePaths ERROR updating suricata master path: "+err.Error()); return err}	
+        if err != nil {logs.Error("group/ChangePaths ERROR updating suricata master path: "+err.Error()); return err}    
         
         err = ndb.UpdateGroupValue(data["uuid"], "nodesuricata", data["nodesuricata"])
-        if err != nil {logs.Error("group/ChangePaths ERROR updating suricata node path: "+err.Error()); return err}	    
+        if err != nil {logs.Error("group/ChangePaths ERROR updating suricata node path: "+err.Error()); return err}        
     }else{
         if _, err := os.Stat(data["masterzeek"]); os.IsNotExist(err) {logs.Error("Zeek node path doesn't exists: "+err.Error()); return errors.New("Zeek master path doesn't exists: "+err.Error())}
         err = ndb.UpdateGroupValue(data["uuid"], "masterzeek", data["masterzeek"])
-        if err != nil {logs.Error("group/ChangePaths ERROR updating zeek master path: "+err.Error()); return err}	
+        if err != nil {logs.Error("group/ChangePaths ERROR updating zeek master path: "+err.Error()); return err}    
 
         err = ndb.UpdateGroupValue(data["uuid"], "nodezeek", data["nodezeek"])
-        if err != nil {logs.Error("group/ChangePaths ERROR updating zeek node path: "+err.Error()); return err}	
+        if err != nil {logs.Error("group/ChangePaths ERROR updating zeek node path: "+err.Error()); return err}    
     }    
 
     return err
@@ -223,12 +223,12 @@ func SyncPathGroup(data map[string]string)(err error) {
     filesMap := make(map[string][]byte)
     if data["type"] == "suricata"{
         filesMap,err = utils.ListFilepath(data["mastersuricata"])
-        if err != nil {logs.Error("group/ChangePaths ERROR getting Suricata path and files for send to node: "+err.Error()); return err}	
+        if err != nil {logs.Error("group/ChangePaths ERROR getting Suricata path and files for send to node: "+err.Error()); return err}    
         if fileList[data["nodesuricata"]] == nil { fileList[data["nodesuricata"]] = map[string][]byte{}}
         fileList[data["nodesuricata"]] = filesMap
     }else{
         filesMap,err = utils.ListFilepath(data["masterzeek"])
-        if err != nil {logs.Error("group/ChangePaths ERROR getting Zeek path and files for send to node: "+err.Error()); return err}	
+        if err != nil {logs.Error("group/ChangePaths ERROR getting Zeek path and files for send to node: "+err.Error()); return err}    
         if fileList[data["nodezeek"]] == nil { fileList[data["nodezeek"]] = map[string][]byte{}}
         fileList[data["nodezeek"]] = filesMap
     }
@@ -246,10 +246,10 @@ func SyncPathGroup(data map[string]string)(err error) {
         //send to nodeclient all data
         if data["type"] == "suricata"{
             err = nodeclient.ChangeSuricataPathsGroups(ipnid,portnid,fileList)
-            if err != nil { logs.Error("node/SyncPathGroup ChangeSuricataPathsGroups ERROR http data request: "+err.Error()); return err}	
+            if err != nil { logs.Error("node/SyncPathGroup ChangeSuricataPathsGroups ERROR http data request: "+err.Error()); return err}    
         }else{
             err = nodeclient.ChangeZeekPathsGroups(ipnid,portnid,fileList)
-            if err != nil { logs.Error("node/SyncPathGroup ChangeZeekPathsGroups ERROR http data request: "+err.Error()); return err}	
+            if err != nil { logs.Error("node/SyncPathGroup ChangeZeekPathsGroups ERROR http data request: "+err.Error()); return err}    
         }
     }
     
@@ -258,7 +258,7 @@ func SyncPathGroup(data map[string]string)(err error) {
 
 func UpdateGroupService(data map[string]string)(err error) {
     err = ndb.UpdateGroupValue(data["uuid"], data["param"], data["value"])
-    if err != nil {logs.Error("group/UpdateGroupService ERROR updating group data: "+err.Error()); return err}	
+    if err != nil {logs.Error("group/UpdateGroupService ERROR updating group data: "+err.Error()); return err}    
 
     return nil
 }

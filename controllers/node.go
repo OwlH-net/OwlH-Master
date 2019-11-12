@@ -8,7 +8,7 @@ import (
 )
 
 type NodeController struct {
-	beego.Controller
+    beego.Controller
 }
 
 
@@ -23,7 +23,7 @@ type NodeController struct {
 //     if nid != "" {
 //         nn, err := models.GetNode(nid)
 //         if err != nil {
-// 	        logs.Info("NODE -> Get Node Detail -> error: %s", err.Error())
+//             logs.Info("NODE -> Get Node Detail -> error: %s", err.Error())
 //             n.Data["json"] = err.Error()
 //         } else {
 //             n.Data["json"] = nn
@@ -76,7 +76,7 @@ func (n *NodeController) DeployNode() {
     nid := n.GetString(":nid")
     n.Data["json"] = map[string]string{"nid": nid, "state":"Success"}
     if nid == "" {
-    	n.Data["json"] = map[string]string{"nid": "", "state":"Failure"}
+        n.Data["json"] = map[string]string{"nid": "", "state":"Failure"}
         logs.Error("NODE DEPLOY -> error -> No Node ID")
     }
     n.ServeJSON()
@@ -90,7 +90,7 @@ func (n *NodeController) DeployNode() {
 // @router / [put]
 func (n *NodeController) UpdateNode() {
     var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 
     err := models.UpdateNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
@@ -235,7 +235,7 @@ func (n *NodeController) GetAllNodes() {
 // @Success 200 {object} models.Node
 // @router /pingservice/:uuid [get]
 func (n *NodeController) GetServiceStatus() {
-	uuid := n.GetString(":uuid")
+    uuid := n.GetString(":uuid")
     err := models.GetServiceStatus(uuid)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -249,7 +249,7 @@ func (n *NodeController) GetServiceStatus() {
 // @Success 200 {object} models.Node
 // @router /deployservice/:uuid [put]
 func (n *NodeController) DeployService() {
-	uuid := n.GetString(":uuid")
+    uuid := n.GetString(":uuid")
     err := models.DeployService(uuid)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
@@ -282,9 +282,9 @@ func (n *NodeController) DeleteNode() {
 // @Success 200 {object} models.Node
 // @router /ruleset/set [put]
 func (n *NodeController) SyncRulesetToNode() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.SyncRulesetToNode(anode)
+    err := models.SyncRulesetToNode(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -344,8 +344,8 @@ func (n *NodeController) GetAllFiles() {
 // @Success 200 {object} models.Node
 // @router /RunSuricata/:uuid [put]
 func (n *NodeController) RunSuricata() {
-	uuid := n.GetString(":uuid")
-	data, err := models.RunSuricata(uuid)
+    uuid := n.GetString(":uuid")
+    data, err := models.RunSuricata(uuid)
 
     n.Data["json"] = data
     if err != nil {
@@ -458,7 +458,7 @@ func (n *NodeController) PingPorts() {
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
         }
-	}
+    }
 
     n.ServeJSON()
 }
@@ -488,15 +488,15 @@ func (n *NodeController) ShowPorts() {
 // @Failure 403 :uuid is empty
 // @router /ports/delete/:uuid [put]
 func (n *NodeController) DeletePorts() {
-	uuid := n.GetString(":uuid")
-	anode := make(map[string]string)
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    uuid := n.GetString(":uuid")
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 
-	err := models.DeletePorts(anode,uuid)
-	n.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "nid": uuid, "error": err.Error()}
-	}
+    err := models.DeletePorts(anode,uuid)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "nid": uuid, "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -507,12 +507,12 @@ func (n *NodeController) DeletePorts() {
 // @Failure 403 :uuid is empty
 // @router /ports/deleteAll/:uuid [put]
 func (n *NodeController) DeleteAllPorts() {
-	uuid := n.GetString(":uuid")
-	err := models.DeleteAllPorts(uuid)
-	n.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
-	}
+    uuid := n.GetString(":uuid")
+    err := models.DeleteAllPorts(uuid)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -523,13 +523,13 @@ func (n *NodeController) DeleteAllPorts() {
 // @Failure 403 Error
 // @router /mode [put]
 func (n *NodeController) ChangeMode() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.ChangeMode(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    err := models.ChangeMode(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }
 
@@ -539,14 +539,14 @@ func (n *NodeController) ChangeMode() {
 // @Failure 403 Error
 // @router /status [put]
 func (n *NodeController) ChangeStatus() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
-	err := models.ChangeStatus(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    err := models.ChangeStatus(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -582,7 +582,7 @@ func (n *NodeController) GetMainconfData() {
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-	
+    
     n.ServeJSON()
 }
 
@@ -593,13 +593,13 @@ func (n *NodeController) GetMainconfData() {
 // @router /PingAnalyzer/:uuid [get]
 // @router /:nid/PingAnalyzer [get]
 func (n *NodeController) PingAnalyzer() {
-	uuid := n.GetString(":uuid")
+    uuid := n.GetString(":uuid")
     data, err := models.PingAnalyzer(uuid)
 
-	n.Data["json"] = data
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
-	}
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -610,13 +610,13 @@ func (n *NodeController) PingAnalyzer() {
 // @Failure 403 :uuid is empty
 // @router /analyzer [put]
 func (n *NodeController) ChangeAnalyzerStatus() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.ChangeAnalyzerStatus(anode)
-	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
-	}
+    err := models.ChangeAnalyzerStatus(anode)
+    n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -627,13 +627,13 @@ func (n *NodeController) ChangeAnalyzerStatus() {
 // @Failure 403 :uuid is empty
 // @router /deployNode [put]
 func (n *NodeController) Deploy() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.DeployNode(anode)
-	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
-	}
+    err := models.DeployNode(anode)
+    n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -644,9 +644,9 @@ func (n *NodeController) Deploy() {
 // @Failure 403 :uuid is empty
 // @router /checkDeploy/:uuid [get]
 func (n *NodeController) CheckDeploy() {
-	uuid := n.GetString(":uuid")
-	anode := models.CheckDeploy(uuid)
-	n.Data["json"] = anode
+    uuid := n.GetString(":uuid")
+    anode := models.CheckDeploy(uuid)
+    n.Data["json"] = anode
     n.ServeJSON()
 }
 
@@ -656,13 +656,13 @@ func (n *NodeController) CheckDeploy() {
 // @Failure 403 :uuid is empty
 // @router /changeDataflowValues [put]
 func (n *NodeController) ChangeDataflowValues() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.ChangeDataflowValues(anode)
-	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
-	}
+    err := models.ChangeDataflowValues(anode)
+    n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -673,12 +673,12 @@ func (n *NodeController) ChangeDataflowValues() {
 // @Failure 403 :uuid is empty
 // @router /loadDataflowValues/:uuid [get]
 func (n *NodeController) LoadDataflowValues() {
-	uuid := n.GetString(":uuid")
-	data, err := models.LoadDataflowValues(uuid)
-	n.Data["json"] = data
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
-	}
+    uuid := n.GetString(":uuid")
+    data, err := models.LoadDataflowValues(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -689,12 +689,12 @@ func (n *NodeController) LoadDataflowValues() {
 // @Failure 403 :uuid is empty
 // @router /loadNetworkValues/:uuid [get]
 func (n *NodeController) LoadNetworkValues() {
-	uuid := n.GetString(":uuid")
-	data, err := models.LoadNetworkValues(uuid)
-	n.Data["json"] = data
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
-	}
+    uuid := n.GetString(":uuid")
+    data, err := models.LoadNetworkValues(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -705,12 +705,12 @@ func (n *NodeController) LoadNetworkValues() {
 // @Failure 403 :uuid is empty
 // @router /loadNetworkValuesSelected/:uuid [get]
 func (n *NodeController) LoadNetworkValuesSelected() {
-	uuid := n.GetString(":uuid")
-	data, err := models.LoadNetworkValuesSelected(uuid)
-	n.Data["json"] = data
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
-	}
+    uuid := n.GetString(":uuid")
+    data, err := models.LoadNetworkValuesSelected(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -721,10 +721,10 @@ func (n *NodeController) LoadNetworkValuesSelected() {
 // @Success 200 {object} models.Master
 // @router /updateNetworkInterface [put]
 func (m *NodeController) UpdateNetworkInterface() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
     err := models.UpdateNetworkInterface(anode)
-	m.Data["json"] = map[string]string{"ack": "true"}
+    m.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
     }
@@ -736,9 +736,9 @@ func (m *NodeController) UpdateNetworkInterface() {
 // @Success 200 {object} models.Node
 // @router /saveSocketToNetwork [put]
 func (n *NodeController) SaveSocketToNetwork() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.SaveSocketToNetwork(anode)
+    err := models.SaveSocketToNetwork(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -752,9 +752,9 @@ func (n *NodeController) SaveSocketToNetwork() {
 // @Success 200 {object} models.Node
 // @router /saveNewLocal [put]
 func (n *NodeController) SaveNewLocal() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.SaveNewLocal(anode)
+    err := models.SaveNewLocal(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -767,9 +767,9 @@ func (n *NodeController) SaveNewLocal() {
 // @Success 200 {object} models.Node
 // @router /saveVxLAN [put]
 func (n *NodeController) SaveVxLAN() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.SaveVxLAN(anode)
+    err := models.SaveVxLAN(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -783,12 +783,12 @@ func (n *NodeController) SaveVxLAN() {
 // @Failure 403 :uuid is empty
 // @router /socketToNetworkList/:uuid [get]
 func (n *NodeController) SocketToNetworkList() {
-	uuid := n.GetString(":uuid")
-	data, err := models.SocketToNetworkList(uuid)
-	n.Data["json"] = data
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
-	}
+    uuid := n.GetString(":uuid")
+    data, err := models.SocketToNetworkList(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -798,9 +798,9 @@ func (n *NodeController) SocketToNetworkList() {
 // @Success 200 {object} models.Node
 // @router /saveSocketToNetworkSelected [put]
 func (n *NodeController) SaveSocketToNetworkSelected() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.SaveSocketToNetworkSelected(anode)
+    err := models.SaveSocketToNetworkSelected(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -813,9 +813,9 @@ func (n *NodeController) SaveSocketToNetworkSelected() {
 // @Success 200 {object} models.Node
 // @router /deleteDataFlowValueSelected [delete]
 func (n *NodeController) DeleteDataFlowValueSelected() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.DeleteDataFlowValueSelected(anode)
+    err := models.DeleteDataFlowValueSelected(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -828,11 +828,11 @@ func (n *NodeController) DeleteDataFlowValueSelected() {
 // @Success 200 {object} models.Node
 // @router /pingmonitor/:uuid [get]
 func (n *NodeController) GetNodeMonitor() {
-	uuid := n.GetString(":uuid")
+    uuid := n.GetString(":uuid")
     data, err := models.GetNodeMonitor(uuid)
-	n.Data["json"] = data
+    n.Data["json"] = data
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -861,13 +861,13 @@ func (n *NodeController) AddPluginService() {
 // @Failure 403 :uuid is empty
 // @router /ChangeServiceStatus [put]
 func (n *NodeController) ChangeServiceStatus() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.ChangeServiceStatus(anode)
-	n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
-	}
+    err := models.ChangeServiceStatus(anode)
+    n.Data["json"] = map[string]string{"ack": "true", "uuid": anode["uuid"]}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "uuid": anode["uuid"], "error": err.Error()}
+    }
 
     n.ServeJSON()
 }
@@ -881,9 +881,9 @@ func (n *NodeController) ChangeMainServiceStatus() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.ChangeMainServiceStatus(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -898,9 +898,9 @@ func (n *NodeController) DeleteService() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.DeleteService(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -915,9 +915,9 @@ func (n *NodeController) SaveSuricataInterface() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.SaveSuricataInterface(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -932,9 +932,9 @@ func (n *NodeController) DeployStapService() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.DeployStapService(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -949,9 +949,9 @@ func (n *NodeController) StopStapService() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.StopStapService(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -966,9 +966,9 @@ func (n *NodeController) ModifyStapValues() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.ModifyStapValues(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -998,9 +998,9 @@ func (n *NodeController) DeleteWazuhFile() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.DeleteWazuhFile(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
 
@@ -1017,9 +1017,9 @@ func (n *NodeController) AddWazuhFile() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.AddWazuhFile(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
 
@@ -1036,9 +1036,9 @@ func (n *NodeController) LoadFileLastLines() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     data,err := models.LoadFileLastLines(anode)
-	n.Data["json"] = data
+    n.Data["json"] = data
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     
@@ -1054,9 +1054,9 @@ func (n *NodeController) SaveFileContentWazuh() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.SaveFileContentWazuh(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     
@@ -1070,11 +1070,11 @@ func (n *NodeController) SaveFileContentWazuh() {
 // @router /reloadFilesData/:uuid [get]
 // @router /:nid/reloadFilesData [get]
 func (n *NodeController) ReloadFilesData() {
-	uuid := n.GetString(":uuid")
+    uuid := n.GetString(":uuid")
     data, err := models.ReloadFilesData(uuid)
 
-	n.Data["json"] = data
-	if err != nil {n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}}
+    n.Data["json"] = data
+    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}}
 
     n.ServeJSON()
 }
@@ -1087,8 +1087,8 @@ func (n *NodeController) ReloadFilesData() {
 func (n *NodeController) AddMonitorFile() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.AddMonitorFile(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    err := models.AddMonitorFile(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -1102,11 +1102,11 @@ func (n *NodeController) AddMonitorFile() {
 // @router /monitor/pingMonitorFiles/:uuid [get]
 // @router /monitor/:nid/pingMonitorFiles [get]
 func (n *NodeController) PingMonitorFiles() {
-	uuid := n.GetString(":uuid")
+    uuid := n.GetString(":uuid")
     data, err := models.PingMonitorFiles(uuid)
 
-	n.Data["json"] = data
-	if err != nil {n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}}
+    n.Data["json"] = data
+    if err != nil {n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}}
 
     n.ServeJSON()
 }
@@ -1119,8 +1119,8 @@ func (n *NodeController) PingMonitorFiles() {
 func (n *NodeController) DeleteMonitorFile() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.DeleteMonitorFile(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    err := models.DeleteMonitorFile(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -1136,9 +1136,9 @@ func (n *NodeController) ChangeZeekMode() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.ChangeZeekMode(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     
@@ -1153,8 +1153,8 @@ func (n *NodeController) ChangeZeekMode() {
 func (n *NodeController) AddClusterValue() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.AddClusterValue(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    err := models.AddClusterValue(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -1168,8 +1168,8 @@ func (n *NodeController) AddClusterValue() {
 // @router /pingCluster/:uuid [get]
 func (n *NodeController) PingCluster() {
     uuid := n.GetString(":uuid")
-	data,err := models.PingCluster(uuid)
-	n.Data["json"] = data
+    data,err := models.PingCluster(uuid)
+    n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -1185,9 +1185,9 @@ func (n *NodeController) EditClusterValue() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.EditClusterValue(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     
@@ -1203,9 +1203,9 @@ func (n *NodeController) DeleteClusterValue() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.DeleteClusterValue(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     
@@ -1217,9 +1217,9 @@ func (n *NodeController) DeleteClusterValue() {
 // @Success 200 {object} models.Node
 // @router /zeek/syncCluster [put]
 func (n *NodeController) SyncCluster() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.SyncCluster(anode)
+    err := models.SyncCluster(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1234,8 +1234,8 @@ func (n *NodeController) SyncCluster() {
 // @router /changecontrol/:uuid [get]
 func (n *NodeController) GetChangeControlNode() {
     uuid := n.GetString(":uuid")
-	data, err := models.GetChangeControlNode(uuid)
-	n.Data["json"] = data
+    data, err := models.GetChangeControlNode(uuid)
+    n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -1247,7 +1247,7 @@ func (n *NodeController) GetChangeControlNode() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /incidents/:uuid [get]
-func (m *NodeController) GetIncidentsNode() {	
+func (m *NodeController) GetIncidentsNode() {    
     uuid := m.GetString(":uuid")
     data,err := models.GetIncidentsNode(uuid)
     m.Data["json"] = data
@@ -1266,9 +1266,9 @@ func (n *NodeController) PutIncidentNode() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.PutIncidentNode(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -1283,9 +1283,9 @@ func (n *NodeController) ChangeSuricataTable() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.ChangeSuricataTable(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -1300,9 +1300,9 @@ func (n *NodeController) SyncRulesetToAllGroupNodes() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.SyncRulesetToAllGroupNodes(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()

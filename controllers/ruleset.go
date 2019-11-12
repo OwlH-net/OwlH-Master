@@ -1,15 +1,15 @@
 package controllers
 
 import (
-	"owlhmaster/models"
-	"encoding/json"
-	//"strconv"
-	"github.com/astaxie/beego"
+    "owlhmaster/models"
+    "encoding/json"
+    //"strconv"
+    "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
 )
 
 type RulesetController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title GetRules
@@ -18,13 +18,13 @@ type RulesetController struct {
 // @Failure 403 ruleset is empty
 // @router /default [get]
 func (n *RulesetController) GetRules(){ 
-	mstatus, err:= models.GetRules()
-	n.Data["json"] = mstatus
-	if err != nil {
+    mstatus, err:= models.GetRules()
+    n.Data["json"] = mstatus
+    if err != nil {
         logs.Info("GetRules -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-	n.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title GetRuleSID
@@ -39,13 +39,13 @@ func (n *RulesetController) GetRuleSID(){
     ruleSidPath["sid"] = sid
     ruleSidPath["uuid"] = uuid
     mstatus, err := models.GetRuleSID(ruleSidPath)
-	n.Data["json"] = mstatus
-	if err != nil {
+    n.Data["json"] = mstatus
+    if err != nil {
         logs.Info("GetRuleSID -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-	n.ServeJSON()
-	
+    n.ServeJSON()
+    
 }
 
 // @Title AddRuleset
@@ -73,9 +73,9 @@ func (n *RulesetController) GetAllRulesets() {
     rulesets, err := models.GetAllRulesets()
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}else{
-		n.Data["json"] = rulesets
-	}
+    }else{
+        n.Data["json"] = rulesets
+    }
     n.ServeJSON()
 }
 
@@ -85,13 +85,13 @@ func (n *RulesetController) GetAllRulesets() {
 // @router /rules/:uuid [get]
 // @router /:uuid/rules [get]
 func (n *RulesetController) GetRulesetRules() { 
-	uuid := n.GetString(":uuid")
-	rulesets, err := models.GetRulesetRules(uuid)
+    uuid := n.GetString(":uuid")
+    rulesets, err := models.GetRulesetRules(uuid)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }else{
-		n.Data["json"] = rulesets
-	}
+        n.Data["json"] = rulesets
+    }
 
     n.ServeJSON()
 }
@@ -119,12 +119,12 @@ func (n *RulesetController) SetRuleSelected() {
 // @router /get/:uuid [get]
 // @router /:uuid/get [get]
 func (n *RulesetController) GetRuleSelected() { 
-	uuid := n.GetString(":uuid")
-	rulesets, err := models.GetRuleSelected(uuid)
+    uuid := n.GetString(":uuid")
+    rulesets, err := models.GetRuleSelected(uuid)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }else{
-		n.Data["json"] = rulesets
+        n.Data["json"] = rulesets
     }
     logs.Info("GetRuleSelected: "+rulesets)
     n.ServeJSON()
@@ -137,12 +137,12 @@ func (n *RulesetController) GetRuleSelected() {
 // @router /:uuid/get/name [get]
 // @router /get/:uuid/name [get]
 func (n *RulesetController) GetRuleName() { 
-	uuid := n.GetString(":uuid")
-	name, err := models.GetRuleName(uuid)
+    uuid := n.GetString(":uuid")
+    name, err := models.GetRuleName(uuid)
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }else{
-		n.Data["json"] = name
+        n.Data["json"] = name
     }
     logs.Info("GetRuleName: "+name)
     n.ServeJSON()
@@ -221,10 +221,10 @@ func (n *RulesetController) SetRuleNote() {
 // @Failure 403 Connection failure
 // @router /deleteRuleset [delete]
 func (n *RulesetController) DeleteNode() { 
-	var rulesetDelete map[string]string
+    var rulesetDelete map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &rulesetDelete)
     err := models.DeleteRuleset(rulesetDelete)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -237,15 +237,15 @@ func (n *RulesetController) DeleteNode() {
 // @Failure 403 Connection Failure
 // @router /synchronize [put]
 func (n *RulesetController) SyncRulesetToAllNodes() { 
-	var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
     err := models.SyncRulesetToAllNodes(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
-	
+    }
+    
     n.ServeJSON()
 }
 
@@ -271,17 +271,17 @@ func (n *RulesetController) GetAllRuleData() {
 func (n *RulesetController) AddNewRuleset() { 
     var anode map[string]map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	duplicated,err := models.AddNewRuleset(anode)
-	
-	if err != nil {
-		n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}else {
-		if duplicated == nil {
-			n.Data["json"] = map[string]string{"ack": "true"}	
-		}else{
-			n.Data["json"] = string(duplicated)
-		}
-	}
+    duplicated,err := models.AddNewRuleset(anode)
+    
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else {
+        if duplicated == nil {
+            n.Data["json"] = map[string]string{"ack": "true"}    
+        }else{
+            n.Data["json"] = string(duplicated)
+        }
+    }
     n.ServeJSON()
 }
 
@@ -309,7 +309,7 @@ func (n *RulesetController) SynchronizeAllRulesets() {
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-	}
+    }
     n.ServeJSON()
 }
 
@@ -320,8 +320,8 @@ func (n *RulesetController) SynchronizeAllRulesets() {
 // @Failure 403 Connection Failure
 // @router /addRulesToCustom [put]
 func (n *RulesetController) AddRulesToCustomRuleset() { 
-	var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     data, err := models.AddRulesToCustomRuleset(anode)
     n.Data["json"] = data
     if err != nil {
@@ -352,8 +352,8 @@ func (n *RulesetController) ReadRulesetData() {
 // @router /saveRuleset/ [put]
 func (n *RulesetController) SaveRulesetData() { 
     var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.SaveRulesetData(anode)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.SaveRulesetData(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -368,8 +368,8 @@ func (n *RulesetController) SaveRulesetData() {
 // @router /timeSchedule [put]
 func (n *RulesetController) TimeSchedule() { 
     var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.TimeSchedule(anode)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.TimeSchedule(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -385,7 +385,7 @@ func (n *RulesetController) TimeSchedule() {
 func (n *RulesetController) StopTimeSchedule() { 
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.StopTimeSchedule(anode)
+    err := models.StopTimeSchedule(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -400,8 +400,8 @@ func (n *RulesetController) StopTimeSchedule() {
 // @router /updateRule [put]
 func (n *RulesetController) UpdateRule() { 
     var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.UpdateRule(anode)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.UpdateRule(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
