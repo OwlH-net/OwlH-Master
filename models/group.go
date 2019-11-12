@@ -59,6 +59,11 @@ func ChangePathsGroups(data map[string]string)(err error) {
     return err
 }
 
+func UpdateGroupService(data map[string]string)(err error) {
+    err = group.UpdateGroupService(data)
+    return err
+}
+
 func SyncPathGroup(data map[string]string)(err error) {
     err = group.SyncPathGroup(data)
     return err

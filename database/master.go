@@ -328,17 +328,6 @@ func InsertGroup(uuid string, param string, value string)(err error){
 	return nil
 }
 
-func UpdateGroupData(uuid string, param string, value string)(err error){
-	if Mdb == nil {logs.Error("no access to database"); return err}
-	updateGroup, err := Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
-	if err != nil {logs.Error("Prepare UpdateGroupData-> %s", err.Error()); return err}
-
-	_, err = updateGroup.Exec(&value, &param, &uuid)
-	if err != nil {logs.Error("Execute UpdateGroupData-> %s", err.Error()); return err}
-
-	return nil
-}
-
 func InsertGroupNodes(uuid string, param string, value string)(err error){
 	if Mdb == nil {logs.Error("no access to database"); return err}
 	insertGroupnodesValues, err := Mdb.Prepare("insert into groupnodes(gn_uniqueid, gn_param, gn_value) values(?,?,?);")
@@ -403,18 +392,15 @@ func GetGroupNodesByValue(uuid string)(groups map[string]map[string]string, err 
 }
 
 func UpdateGroupValue(uuid string, param string, value string) (err error) {
+	logs.Info(uuid+"   ->   "+param+"   ->   "+value)
 	// updateGroup, err := Mdb.Prepare("insert or replace into groups (group_uniqueid, group_param, group_value) values (?,?,?);")
 	updateGroup, err := Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
-	if (err != nil){
-		logs.Error("updateGroup UPDATE prepare error: "+err.Error())
-		return err
-	}
+	if (err != nil){logs.Error("updateGroup UPDATE prepare error: "+err.Error()); return err}
+
 	_, err = updateGroup.Exec(&value, &param, &uuid)
 	defer updateGroup.Close()
-	if (err != nil){
-		logs.Error("updateGroup UPDATE error: "+err.Error())
-		return err
-	}
+	if (err != nil){logs.Error("updateGroup UPDATE error: "+err.Error()); return err}
+	
 	return nil
 }
 

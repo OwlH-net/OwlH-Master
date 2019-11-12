@@ -184,3 +184,18 @@ func (n *GroupController) SyncPathGroup() {
     }
     n.ServeJSON()
 }
+
+// @Title UpdateGroupService
+// @Description Update gorup service value
+// @Success 200 {object} models.Groups
+// @router /updateGroupService [put]
+func (n *GroupController) UpdateGroupService() { 
+	var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.UpdateGroupService(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

@@ -47,8 +47,8 @@ func DeleteGroup(uuid string) (err error) {
 }
 
 func EditGroup(data map[string]string) (err error) { 
-    err = ndb.UpdateGroupData(data["uuid"], "name", data["name"]); if err != nil {logs.Error("UpdateGroupData error name: "+ err.Error()); return err}
-    err = ndb.UpdateGroupData(data["uuid"], "desc", data["desc"]); if err != nil {logs.Error("UpdateGroupData error desc: "+ err.Error()); return err}
+    err = ndb.UpdateGroupValue(data["uuid"], "name", data["name"]); if err != nil {logs.Error("UpdateGroupValue error name: "+ err.Error()); return err}
+    err = ndb.UpdateGroupValue(data["uuid"], "desc", data["desc"]); if err != nil {logs.Error("UpdateGroupValue error desc: "+ err.Error()); return err}
     
     return nil
 }
@@ -64,6 +64,11 @@ type Group struct{
     NodeSuricata     string      `json:"nodesuricata"`
     MasterZeek       string      `json:"masterzeek"`
     NodeZeek         string      `json:"nodezeek"`
+    Interface        string      `json:"interface"`
+    BPFFile          string      `json:"BPFfile"`
+    BPFRule          string      `json:"BPFrule"`
+    ConfigFile       string      `json:"configFile"`
+    CommandLine      string      `json:"commandLine"`
     Nodes            []Node
 }
 type Node struct {
@@ -91,6 +96,11 @@ func GetAllGroups()(Groups []Group, err error){
         gr.NodeSuricata = allGroups[gid]["nodesuricata"]
         gr.MasterZeek = allGroups[gid]["masterzeek"]
         gr.NodeZeek = allGroups[gid]["nodezeek"]
+        gr.Interface = allGroups[gid]["interface"]
+        gr.BPFFile = allGroups[gid]["BPFfile"]
+        gr.BPFRule = allGroups[gid]["BPFrule"]
+        gr.ConfigFile = allGroups[gid]["configFile"]
+        gr.CommandLine = allGroups[gid]["commandLine"]
 
         for nid := range groupNodes{
             if gid == groupNodes[nid]["groupid"]{
@@ -243,5 +253,12 @@ func SyncPathGroup(data map[string]string)(err error) {
         }
     }
     
+    return nil
+}
+
+func UpdateGroupService(data map[string]string)(err error) {
+    err = ndb.UpdateGroupValue(data["uuid"], data["param"], data["value"])
+    if err != nil {logs.Error("group/UpdateGroupService ERROR updating group data: "+err.Error()); return err}	
+
     return nil
 }
