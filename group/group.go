@@ -5,29 +5,30 @@ import (
     "owlhmaster/database"
     "errors"
     "owlhmaster/utils"
+    "owlhmaster/node"
     "owlhmaster/nodeclient"
     "encoding/json"
     "os"
 )
 
-func CreateGroup(n map[string]string) (err error) {
+func AddGroupElement(n map[string]string) (err error) {
     uuid := utils.Generate()
-    if _, ok := n["name"]; !ok {
-        logs.Error("name empty: "+err.Error())
-        return errors.New("name empty")
-    }
-    if _, ok := n["desc"]; !ok {
-        logs.Error("desc empty: "+err.Error())
-        return errors.New("desc empty")
-    }
+    // if _, ok := n["name"]; !ok {
+    //     logs.Error("name empty: "+err.Error())
+    //     return errors.New("name empty")
+    // }
+    // if _, ok := n["desc"]; !ok {
+    //     logs.Error("desc empty: "+err.Error())
+    //     return errors.New("desc empty")
+    // }
 
-    if err := ndb.GroupExists(uuid); err != nil {logs.Error("Group exist error: "+err.Error()); return err}
+    if err := ndb.GroupExists(uuid); err != nil {logs.Error("Group uuid exist error: "+err.Error()); return err}
     
     for key, value := range n {        
-        err = ndb.InsertGroup(uuid, key, value); if err != nil {logs.Error("InsertGroup error: "+ err.Error()); return err}
+        err = ndb.InsertGroup(uuid, key, value); if err != nil {logs.Error("AddGroupElement error: "+ err.Error()); return err}
     }
     
-    if err != nil {logs.Error("Error creating group: "+err.Error()); return err}
+    if err != nil {logs.Error("AddGroupElement Error adding element to group table: "+err.Error()); return err}
     return nil
 }
 
@@ -223,12 +224,12 @@ func SyncPathGroup(data map[string]string)(err error) {
     filesMap := make(map[string][]byte)
     if data["type"] == "suricata"{
         filesMap,err = utils.ListFilepath(data["mastersuricata"])
-        if err != nil {logs.Error("group/ChangePaths ERROR getting Suricata path and files for send to node: "+err.Error()); return err}    
+        if err != nil {logs.Error("group/SyncPathGroup ERROR getting Suricata path and files for send to node: "+err.Error()); return err}    
         if fileList[data["nodesuricata"]] == nil { fileList[data["nodesuricata"]] = map[string][]byte{}}
         fileList[data["nodesuricata"]] = filesMap
     }else{
         filesMap,err = utils.ListFilepath(data["masterzeek"])
-        if err != nil {logs.Error("group/ChangePaths ERROR getting Zeek path and files for send to node: "+err.Error()); return err}    
+        if err != nil {logs.Error("group/SyncPathGroup ERROR getting Zeek path and files for send to node: "+err.Error()); return err}    
         if fileList[data["nodezeek"]] == nil { fileList[data["nodezeek"]] = map[string][]byte{}}
         fileList[data["nodezeek"]] = filesMap
     }
@@ -259,6 +260,54 @@ func SyncPathGroup(data map[string]string)(err error) {
 func UpdateGroupService(data map[string]string)(err error) {
     err = ndb.UpdateGroupValue(data["uuid"], data["param"], data["value"])
     if err != nil {logs.Error("group/UpdateGroupService ERROR updating group data: "+err.Error()); return err}    
+
+    return nil
+}
+
+func SyncAll(uuid string, data map[string]map[string]string)(err error) {
+    for key, _ := range data{
+        filesMap := make(map[string]string)
+        if key == "suricata-services"{
+            filesMap["uuid"] = uuid
+            filesMap["interface"] = data[key]["interface"]
+            filesMap["BPFfile"] = data[key]["BPFfile"]
+            filesMap["BPFrule"] = data[key]["BPFrule"]
+            filesMap["configFile"] = data[key]["configFile"]
+            filesMap["commandLine"] = data[key]["commandLine"]
+            logs.Info("Synchronizing Suricata services")
+            logs.Emergency(filesMap)
+            err = node.PutSuricataServicesFromGroup(filesMap)
+            if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Suricata services to node: "+err.Error()); return err}
+            logs.Notice("Suricata services synchronized")
+        }else if key == "zeek-policies"{
+            filesMap["uuid"] = uuid
+            filesMap["type"] = data[key]["type"]
+            filesMap["masterzeek"] = data[key]["masterzeek"]
+            filesMap["nodezeek"] = data[key]["nodezeek"]
+            logs.Info("Synchronizing Zeek policies")
+            logs.Emergency(filesMap)
+            err = SyncPathGroup(filesMap)
+            if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Zeek configuration: "+err.Error()); return err}
+            logs.Notice("Zeek policies synchronized")
+        }else if key == "suricata-rulesets"{
+            filesMap["uuid"] = uuid
+            logs.Info("Synchronizing Suricata ruleset")
+            logs.Emergency(filesMap)
+            err = node.SyncRulesetToAllGroupNodes(filesMap)
+            if err!=nil {logs.Error("group/SyncAll -- Error synchronizing ruleset: "+err.Error()); return err}
+            logs.Notice("Suricata ruleset synchronized")
+        }else if key == "suricata-config"{
+            filesMap["uuid"] = uuid
+            filesMap["type"] = data[key]["type"]
+            filesMap["mastersuricata"] = data[key]["mastersuricata"]
+            filesMap["nodesuricata"] = data[key]["nodesuricata"]
+            logs.Info("Synchronizing Suricata configuration")
+            logs.Emergency(filesMap)
+            err = SyncPathGroup(filesMap)
+            if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Suricata configuration: "+err.Error()); return err}
+            logs.Notice("Suricata configuration synchronized")
+        }
+    }
 
     return nil
 }

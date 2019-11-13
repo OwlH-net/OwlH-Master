@@ -12,7 +12,7 @@ import (
     "owlhmaster/search"
     "owlhmaster/scheduler"
     "owlhmaster/utils"
-    "owlhnode/configuration"
+    "owlhmaster/configuration"
     "os"
     "bufio"
     "strings"

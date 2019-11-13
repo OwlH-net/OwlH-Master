@@ -1115,6 +1115,7 @@ func PutIncidentNode(anode map[string]string)(err error){
 }
 
 func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
+    logs.Info(anode);
     nodesID,err := ndb.GetGroupNodesByUUID(anode["uuid"])
     if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all nodes for a groups: "+err.Error()); return err}
     
@@ -1158,6 +1159,24 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
         if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
 
     }
+
+    return nil
+}
+
+func PutSuricataServicesFromGroup(anode map[string]string)(err error){
+    nodesID,err := ndb.GetGroupNodesByUUID(anode["uuid"])
+    if err != nil {logs.Error("node/PutSuricataServicesFromGroup error getting all nodes for a groups: "+err.Error()); return err}
+    
+    for x := range nodesID {
+        //get node data by uuid
+        if ndb.Db == nil { logs.Error("node/PutSuricataServicesFromGroup -- Can't acces to database"); return err}
+        ipnid,portnid,err := ndb.ObtainPortIp(nodesID[x]["nodesid"])
+        if err != nil { logs.Error("node/PutSuricataServicesFromGroup ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+        //send Suricata services to node
+        err = nodeclient.PutSuricataServicesFromGroup(ipnid,portnid,anode)
+        if err != nil { logs.Error("node/PutSuricataServicesFromGroup ERROR http data request: "+err.Error()); return err}
+    }  
 
     return nil
 }

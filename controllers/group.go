@@ -11,18 +11,18 @@ type GroupController struct {
     beego.Controller
 }
 
-// @Title CreateGroup
-// @Description Create new group
+// @Title AddGroupElement
+// @Description Add new group element
 // @Success 200 {object} models.Group
 // @Failure 403 body is empty
 // @router / [post]
-func (n *GroupController) CreateGroup() {
+func (n *GroupController) AddGroupElement() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.CreateGroup(anode)
+    err := models.AddGroupElement(anode)
     n.Data["json"] = map[string]string{"ack": "true!"}
     if err != nil {
-        logs.Error("GROUP CREATE -> error: %s", err.Error())
+        logs.Error("GROUP ADD ELEMENT -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -193,6 +193,23 @@ func (n *GroupController) UpdateGroupService() {
     var anode map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     err := models.UpdateGroupService(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SyncAll
+// @Description Synchronize all group elements
+// @Success 200 {object} models.Groups
+// @router /syncAll/:uuid [put]
+func (n *GroupController) SyncAll() { 
+    uuid := n.GetString(":uuid") 
+    var anode map[string]map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    err := models.SyncAll(uuid, anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

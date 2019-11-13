@@ -1439,3 +1439,13 @@ func ChangeZeekPathsGroups(ipnid string, portnid string, data map[string]map[str
     defer resp.Body.Close()
     return nil
 }
+
+func PutSuricataServicesFromGroup(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/suricta/putServices"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/PutSuricataServicesFromGroup ERROR connection through http new Request: "+err.Error()); return err}
+
+    defer resp.Body.Close()
+    return nil
+}

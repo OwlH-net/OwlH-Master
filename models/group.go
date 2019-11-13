@@ -4,8 +4,8 @@ import (
     "owlhmaster/group"
 )
 
-func CreateGroup(data map[string]string)(err error) {
-    err = group.CreateGroup(data)
+func AddGroupElement(data map[string]string)(err error) {
+    err = group.AddGroupElement(data)
     return err
 }
 
@@ -66,5 +66,10 @@ func UpdateGroupService(data map[string]string)(err error) {
 
 func SyncPathGroup(data map[string]string)(err error) {
     err = group.SyncPathGroup(data)
+    return err
+}
+
+func SyncAll(uuid string, data map[string]map[string]string)(err error) {
+    err = group.SyncAll(uuid, data)
     return err
 }

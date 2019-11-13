@@ -8,7 +8,7 @@ import (
     // "io/ioutil"
     // "io"
     // "errors"
-    "owlhnode/utils"
+    "owlhmaster/utils"
     "os"
     // "time"
     // "os/exec"
@@ -62,6 +62,7 @@ func MainCheck()(cancontinue bool){
 func checkDatabases()(ok bool){
     dbs := []string{"masterConn","dbsConn","rulesetConn"}
     for db := range dbs {
+        logs.Warn("lets check db -> "+dbs[db])
         ok := CheckDB(dbs[db])
         if !ok {
             return false
@@ -73,14 +74,6 @@ func checkDatabases()(ok bool){
 
 func checkTables()(ok bool){
     var table Table
-
-    table.Tname = "plugins"
-    table.Tconn = "masterConn"
-    table.Tcreate = "CREATE TABLE plugins (plugin_id integer PRIMARY KEY AUTOINCREMENT,plugin_uniqueid text NOT NULL,plugin_param text NOT NULL,plugin_value text NOT NULL)"
-    ok = CheckTable(table)
-    if !ok {
-        return false
-    }
 
     table.Tname = "plugins"
     table.Tconn = "masterConn"
@@ -202,13 +195,11 @@ func checkFields()(ok bool){
 
     var field Field
 
-    return true
-
-    field.Fconn      = "pluginConn"
+    field.Fconn      = "masterConn"
     field.Ftable     = "plugins"
-    field.Fquery     = "select analyzer_param from analyzer where analyzer_param='status'"
-    field.Finsert    = "insert into analyzer (analyzer_uniqueid,analyzer_param,analyzer_value) values ('analyzer','status','Disabled')"
-    field.Fname      = "analyzer - status"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='status' and plugin_uniqueid='dispatcher'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('dispatcher','status','disabled')"
+    field.Fname      = "dispatcher - status"
     ok = CheckField(field)
     if !ok {
         return false

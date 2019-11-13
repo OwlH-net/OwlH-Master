@@ -430,7 +430,7 @@ func ListFilepath(path string)(files map[string][]byte, err error){
         }
         return nil
     })
-    if err != nil {logs.Error("Error filepath walk: "+err.Error()); return nil, err}
+    if err != nil {logs.Error("Error filepath walk finish: "+err.Error()); return nil, err}
 
     return pathMap, nil
 }
