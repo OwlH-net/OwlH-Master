@@ -7,6 +7,7 @@ import (
     "errors"
     "os"
     "bufio"
+    "io/ioutil"
     "owlhmaster/nodeclient"
     "owlhmaster/utils"
     "regexp"
@@ -392,17 +393,20 @@ func DeployService(uuid string)(err error){
 }
 
 //Get specific file from node files
-func GetNodeFile(loadFile map[string]string) (data map[string]string, err error) {
-    ipData,portData,err := ndb.ObtainPortIp(loadFile["uuid"])
-    if err != nil {
-        logs.Error("node/GetNodeFile ERROR getting node port/ip: "+err.Error())
-        return data, err
-    }
+func GetNodeFile(loadFile map[string]string) (values map[string]string, err error) {    
+    rData := make(map[string]string)
+    if loadFile["file"] == "group-analyzer"{        
+        fileReaded, err := ioutil.ReadFile("conf/analyzer.json")
+        if err != nil {logs.Error("node/GetNodeFile ERROR getting analyzer from master: "+err.Error()); return nil, err}
 
-    rData,err := nodeclient.GetNodeFile(ipData,portData,loadFile)
-    if err != nil {
-        logs.Error("node/GetNodeFile ERROR reading file: "+err.Error())
-        return data, err
+        rData["fileContent"] = string(fileReaded)
+        rData["fileName"] = loadFile["file"]        
+    }else{
+        ipData,portData,err := ndb.ObtainPortIp(loadFile["uuid"])
+        if err != nil {logs.Error("node/GetNodeFile ERROR getting node port/ip: "+err.Error()); return nil, err}
+    
+        rData,err = nodeclient.GetNodeFile(ipData,portData,loadFile)
+        if err != nil {logs.Error("node/GetNodeFile ERROR reading file: "+err.Error()); return nil, err}
     }
 
     return rData,nil
@@ -410,17 +414,16 @@ func GetNodeFile(loadFile map[string]string) (data map[string]string, err error)
 
 
 //Get specific file from node files
-func SetNodeFile(loadFile map[string]string) (err error) {
-    ipData,portData,err := ndb.ObtainPortIp(loadFile["uuid"])
-    if err != nil {
-        logs.Error("node/SetNodeFile ERROR getting node port/ip : "+err.Error())
-        return err
-    }    
-
-    err = nodeclient.SetNodeFile(ipData,portData,loadFile)
-    if err != nil {
-        logs.Error("node/SetNodeFile ERROR request HTTP: "+err.Error())
-        return err
+func SetNodeFile(saveFile map[string]string) (err error) {
+    if saveFile["uuid"] == "local"{
+        bytearray := []byte(saveFile["content"])
+        err = utils.WriteNewDataOnFile("conf/analyzer.json", bytearray)
+    }else{
+        ipData,portData,err := ndb.ObtainPortIp(saveFile["uuid"])
+        if err != nil {logs.Error("node/SetNodeFile ERROR getting node port/ip : "+err.Error()); return err}    
+    
+        err = nodeclient.SetNodeFile(ipData,portData,saveFile)
+        if err != nil {logs.Error("node/SetNodeFile ERROR request HTTP: "+err.Error()); return err}
     }
     return nil
 }
@@ -725,21 +728,33 @@ func PingAnalyzer(uuid string)(data map[string]string, err error){
 }
 
 func ChangeAnalyzerStatus(anode map[string]string)(err error){
-    if ndb.Db == nil {
-        logs.Error("ChangeAnalyzerStatus -- Can't acces to database")
-        return errors.New("ChangeAnalyzerStatus -- Can't acces to database")
-    }
+    logs.Debug(anode)
+    logs.Debug(anode)
+    logs.Debug(anode)
+    logs.Debug(anode)
+    logs.Debug(anode)
+    logs.Debug(anode)
+    logs.Debug(anode)
+    logs.Debug(anode)
+    var nodeExists bool = true
+    if ndb.Db == nil {logs.Error("ChangeAnalyzerStatus -- Can't acces to database"); return errors.New("ChangeAnalyzerStatus -- Can't acces to database")}
     
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
-    if err != nil {
-        logs.Error("node/ChangeAnalyzerStatus ERROR Obtaining Port and Ip: "+err.Error())
-        return err
+    if err != nil { 
+        if anode["type"] != "groups" {
+            logs.Error("node/ChangeAnalyzerStatus ERROR Obtaining Port and Ip: "+err.Error())
+            return err
+        }else{
+            nodeExists = false
+            logs.Error("node/ChangeAnalyzerStatus ERROR Obtaining Port and Ip for groups: "+err.Error())
+        }
     }
-    err = nodeclient.ChangeAnalyzerStatus(ipnid,portnid,anode)
-    if err != nil {
-        logs.Error("node/ChangeAnalyzerStatus ERROR http data request: "+err.Error())
-        return err
+
+    if nodeExists{
+        err = nodeclient.ChangeAnalyzerStatus(ipnid,portnid,anode)
+        if err != nil {logs.Error("node/ChangeAnalyzerStatus ERROR http data request: "+err.Error()); return err}
     }
+
     return nil
 }
 

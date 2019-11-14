@@ -77,6 +77,7 @@ type Node struct {
     Uuid             string      `json:"nuuid"`
     Name             string      `json:"nname"`
     Ip               string      `json:"nip"`
+    Status           string      `json:"nstatus"`
 }
 
 func GetAllGroups()(Groups []Group, err error){
@@ -109,6 +110,15 @@ func GetAllGroups()(Groups []Group, err error){
                 nd := Node{}
                 nd.Dbuuid = nid
                 for b := range nodeValues{
+                    //ping analyzer
+                    analyzerData,err := node.PingAnalyzer(b)
+                    if err != nil {
+                        logs.Error("group/PingAnalyzer ERROR getting all nodes analyzer : "+err.Error())
+                        nd.Status = "N/A"
+                    }else{
+                        nd.Status = analyzerData["status"]
+                    }    
+
                     nd.Uuid = b
                     nd.Name = nodeValues[b]["name"]
                     nd.Ip = nodeValues[b]["ip"]
@@ -170,7 +180,7 @@ func AddGroupNodes(data map[string]interface{}) (err error) {
 
 func PingGroupNodes()(data map[string]map[string]string, err error) {
     groups, err := ndb.GetAllGroupNodes()
-    if err != nil {logs.Error("GetAllGroups GetAllGroupNodes error: "+ err.Error()); return nil,err}
+    if err != nil {logs.Error("PingGroupNodes GetAllGroupNodes error: "+ err.Error()); return nil,err}
 
     return groups, nil
 }
