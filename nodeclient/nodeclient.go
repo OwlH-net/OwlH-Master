@@ -1462,12 +1462,17 @@ func SyncAnalyzerToAllGroupNodes(ipData string, portData string, data []byte)(er
     }
 
     body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
     if err != nil { logs.Error("nodeclient/SyncAnalyzerToAllGroupNodes ERROR reading request data: "+err.Error()); return err}
-    
-    err = json.Unmarshal(body, &data)
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
     if err != nil { logs.Error("nodeclient/SyncAnalyzerToAllGroupNodes ERROR doing unmarshal JSON: "+err.Error()); return err}
 
-    defer resp.Body.Close()
-    logs.Info(data)
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+
     return nil
 }

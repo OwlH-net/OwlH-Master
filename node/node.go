@@ -1214,6 +1214,7 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
                 logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
                 logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
                 logSync[anode[x]["nuuid"]]["status"] = "error"  
+                logs.Warn("ERROR -> reading file")
             }else{
                 //send Suricata services to node
                 err = nodeclient.SyncAnalyzerToAllGroupNodes(ipnid,portnid,analyzerFile)
@@ -1224,16 +1225,20 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
                     logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
                     logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
                     logSync[anode[x]["nuuid"]]["status"] = "error"
+                    logs.Warn("ERROR -> nodeclient")
                 }else{
                     //add to log
                     if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
                     logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
                     logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
                     logSync[anode[x]["nuuid"]]["status"] = "success"
+                    logs.Notice("SUCCESS")
                 }     
             }        
         }
     }
-    
+        
+    logs.Info(logSync)
+
     return logSync,nil
 }
