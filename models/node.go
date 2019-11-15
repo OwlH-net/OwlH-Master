@@ -498,3 +498,17 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
     err = node.SyncRulesetToAllGroupNodes(anode)
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/analyzer/sync \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v"
+//     "nodes": {
+//          "key":"value"
+//     }
+// }
+func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[string]map[string]string, err error){
+    log,err = node.SyncAnalyzerToAllGroupNodes(anode)
+    return log,err
+}

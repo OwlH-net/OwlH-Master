@@ -1307,3 +1307,19 @@ func (n *NodeController) SyncRulesetToAllGroupNodes() {
     }
     n.ServeJSON()
 }
+
+// @Title SyncAnalyzerToAllGroupNodes
+// @Description synchronize analyzer to all nodes
+// @Success 200 {object} models.Node
+// @router /analyzer/sync [put]
+func (n *NodeController) SyncAnalyzerToAllGroupNodes() {
+    anode := make(map[string]map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    log,err := models.SyncAnalyzerToAllGroupNodes(anode)
+    n.Data["json"] = log
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+
+    n.ServeJSON()
+}

@@ -728,14 +728,6 @@ func PingAnalyzer(uuid string)(data map[string]string, err error){
 }
 
 func ChangeAnalyzerStatus(anode map[string]string)(err error){
-    logs.Debug(anode)
-    logs.Debug(anode)
-    logs.Debug(anode)
-    logs.Debug(anode)
-    logs.Debug(anode)
-    logs.Debug(anode)
-    logs.Debug(anode)
-    logs.Debug(anode)
     var nodeExists bool = true
     if ndb.Db == nil {logs.Error("ChangeAnalyzerStatus -- Can't acces to database"); return errors.New("ChangeAnalyzerStatus -- Can't acces to database")}
     
@@ -1194,4 +1186,54 @@ func PutSuricataServicesFromGroup(anode map[string]string)(err error){
     }  
 
     return nil
+}
+
+func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[string]map[string]string, err error){
+    logSync := make(map[string]map[string]string)
+    var activeNode bool = true
+    for x := range anode {
+        //get node data by uuid
+        if ndb.Db == nil { logs.Error("node/SyncAnalyzerToAllGroupNodes -- Can't acces to database"); return nil, err}
+        ipnid,portnid,err := ndb.ObtainPortIp(anode[x]["nuuid"])
+        if err != nil { 
+            logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR Obtaining Port and Ip: "+err.Error()); 
+            activeNode = false
+            //add to log
+            if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
+            logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
+            logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
+            logSync[anode[x]["nuuid"]]["status"] = "error"
+        }
+
+        if activeNode{
+            //get analyzer file content
+            analyzerFile, err := ioutil.ReadFile("conf/analyzer.json")
+            if err != nil { 
+                logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR getting analyzer file content: "+err.Error())
+                if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
+                logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
+                logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
+                logSync[anode[x]["nuuid"]]["status"] = "error"  
+            }else{
+                //send Suricata services to node
+                err = nodeclient.SyncAnalyzerToAllGroupNodes(ipnid,portnid,analyzerFile)
+                if err != nil { 
+                    logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR http data request: "+err.Error())
+                    //add to log
+                    if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
+                    logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
+                    logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
+                    logSync[anode[x]["nuuid"]]["status"] = "error"
+                }else{
+                    //add to log
+                    if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
+                    logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
+                    logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
+                    logSync[anode[x]["nuuid"]]["status"] = "success"
+                }     
+            }        
+        }
+    }
+    
+    return logSync,nil
 }

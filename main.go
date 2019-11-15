@@ -14,6 +14,7 @@ import (
     "owlhmaster/utils"
     "owlhmaster/configuration"
     "os"
+    "crypto/tls"
     "bufio"
     "strings"
     "runtime"
@@ -49,7 +50,7 @@ func main() {
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.11.0.20191113")
+    logs.Info("Version OwlH Master: 0.11.0.20191115")
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {
@@ -86,6 +87,7 @@ func main() {
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
     }
 
+    beego.BeeApp.Server.TLSConfig = &tls.Config{ MinVersion: 1}
     beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
         AllowOrigins:     []string{"*"},
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},

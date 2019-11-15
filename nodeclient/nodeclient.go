@@ -1449,3 +1449,25 @@ func PutSuricataServicesFromGroup(ipnid string, portnid string, data map[string]
     defer resp.Body.Close()
     return nil
 }
+
+func SyncAnalyzerToAllGroupNodes(ipData string, portData string, data []byte)(err error){
+    values := make(map[string][]byte)
+    values["data"] = data
+    url := "https://"+ipData+":"+portData+"/node/analyzer/sync"
+    valuesJSON,err := json.Marshal(values)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SyncAnalyzerToAllGroupNodes ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/SyncAnalyzerToAllGroupNodes ERROR reading request data: "+err.Error()); return err}
+    
+    err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/SyncAnalyzerToAllGroupNodes ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    defer resp.Body.Close()
+    logs.Info(data)
+    return nil
+}
