@@ -7,8 +7,10 @@ import (
     "owlhmaster/utils"
     "owlhmaster/node"
     "owlhmaster/nodeclient"
-    "encoding/json"
+    "encoding/json"    
+    "path"
     "os"
+    "io/ioutil"
 )
 
 func AddGroupElement(n map[string]string) (err error) {
@@ -318,6 +320,83 @@ func SyncAll(uuid string, data map[string]map[string]string)(err error) {
             logs.Notice("Suricata configuration synchronized")
         }
     }
+
+    return nil
+}
+
+func AddCluster(anode map[string]string)(err error) {
+    //check if exists path
+    if _, err := os.Stat(anode["path"]); os.IsNotExist(err) {
+        logs.Warn("Cluster path doesn't exists. Creating..."); 
+        
+        err = os.MkdirAll(path.Dir(anode["path"]), os.ModePerm)
+        if err != nil{logs.Error("Error creating cluster path: "+err.Error()); return err }                
+
+        _, err := os.Create(anode["path"])
+        if err != nil{logs.Error("Error creating cluster file: "+err.Error()); return err }                
+    }
+    //read file data
+    data, err := ioutil.ReadFile("conf/node.cfg")
+    if err != nil {logs.Error("Error opening node.cfg file: "+err.Error()); return err }        
+    
+    //write file data
+    err = ioutil.WriteFile(anode["path"], data, 0644)
+    if err != nil {logs.Error("Error writting node.cfg data into new file: "+err.Error()); return err }        
+    
+    //add to db
+    uuid := utils.Generate()
+    err = ndb.InsertCluster(uuid, "guuid", anode["uuid"]); if err != nil {logs.Error("Error adding cluster guuid to database: "+err.Error()); return err }        
+    err = ndb.InsertCluster(uuid, "path", anode["path"]); if err != nil {logs.Error("Error adding cluster path to database: "+err.Error()); return err }        
+
+    return nil
+}
+
+func GetClusterFiles(uuid string)(data map[string]map[string]string, err error) {
+    data, err = ndb.GetClusterByValue(uuid)
+    if err != nil {logs.Error("Error GetClusterFiles: "+err.Error()); return nil,err }        
+    return data, err
+}
+
+func DeleteCluster(data map[string]string)(err error) {
+    err = ndb.DeleteCluster(data["uuid"])
+    if err != nil {logs.Error("Error DeleteCluster: "+err.Error()); return err }        
+    return nil
+}
+
+func ChangeClusterValue(anode map[string]string)(err error) {
+    //check if exists path
+    if _, err := os.Stat(anode["path"]); os.IsNotExist(err) {
+        logs.Error("New cluster path doesn't exists: "+err.Error()); 
+        return err             
+    }
+    err = ndb.UpdateGroupClusterValue(anode["uuid"], "path", anode["path"])
+    if err != nil {logs.Error("Error ChangeClusterValue: "+err.Error()); return err }        
+    return err
+}
+
+func GetClusterFileContent(uuid string)(values map[string]string, err error) {
+    fileContent := make(map[string]string)
+    data, err := ndb.GetClusterByUUID(uuid)
+    
+    for x := range data{
+        //read file data
+        content, err := ioutil.ReadFile(data[x]["path"])
+        if err != nil {logs.Error("GetClusterFileContent Error opening file: "+err.Error()); return nil, err }
+        fileContent[uuid] = string(content)
+    }
+
+    return fileContent, err
+}
+
+func SaveClusterFileContent(anode map[string]string)(err error) {
+    //check if exists path
+    if _, err := os.Stat(anode["path"]); os.IsNotExist(err) {
+        logs.Error("SaveClusterFileContent path doesn't exists: "+err.Error()); 
+        return err             
+    }
+    //write file data
+    err = ioutil.WriteFile(anode["path"], []byte(anode["content"]), 0644)
+    if err != nil {logs.Error("SaveClusterFileContent Error writting data into file: "+err.Error()); return err }
 
     return nil
 }

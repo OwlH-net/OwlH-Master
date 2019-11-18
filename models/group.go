@@ -73,3 +73,33 @@ func SyncAll(uuid string, data map[string]map[string]string)(err error) {
     err = group.SyncAll(uuid, data)
     return err
 }
+
+func AddCluster(data map[string]string)(err error) {
+    err = group.AddCluster(data)
+    return err
+}
+
+func GetClusterFiles(uuid string)(data map[string]map[string]string, err error) {
+    data, err = group.GetClusterFiles(uuid)
+    return data, err
+}
+
+func GetClusterFileContent(uuid string)(data map[string]string, err error) {
+    data, err = group.GetClusterFileContent(uuid)
+    return data, err
+}
+
+func DeleteCluster(data map[string]string)(err error) {
+    err = group.DeleteCluster(data)
+    return err
+}
+
+func ChangeClusterValue(data map[string]string)(err error) {
+    err = group.ChangeClusterValue(data)
+    return err
+}
+
+func SaveClusterFileContent(data map[string]string)(err error) {
+    err = group.SaveClusterFileContent(data)
+    return err
+}

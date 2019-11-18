@@ -151,13 +151,13 @@ func LoadMasterNetworkValuesSelected()(path map[string]map[string]string, err er
 }
 
 func InsertPluginService(uuid string, param string, value string)(err error){
-    updateAnalyzerNode, err := Mdb.Prepare("insert into plugins(plugin_uniqueid, plugin_param, plugin_value) values (?,?,?);")
+    updatePluginNode, err := Mdb.Prepare("insert into plugins(plugin_uniqueid, plugin_param, plugin_value) values (?,?,?);")
     if (err != nil){ logs.Error("InsertPluginService INSERT prepare error: "+err.Error()); return err}
 
-    _, err = updateAnalyzerNode.Exec(&uuid, &param, &value)
+    _, err = updatePluginNode.Exec(&uuid, &param, &value)
     if (err != nil){ logs.Error("InsertPluginService INSERT exec error: "+err.Error()); return err}
 
-    defer updateAnalyzerNode.Close()
+    defer updatePluginNode.Close()
     
     return nil
 }
@@ -449,6 +449,91 @@ func GetGroupNodesByUUID(uuid string)(groups map[string]map[string]string, err e
             if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
             allgroups[uniqid][param]=value
         } 
+    } 
+    return allgroups, nil
+}
+
+func InsertCluster(uuid string, param string, value string)(err error){
+    insertClusterNode, err := Mdb.Prepare("insert into groupcluster(gc_uniqueid, gc_param, gc_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertCluster INSERT prepare error: "+err.Error()); return err}
+
+    _, err = insertClusterNode.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertCluster INSERT exec error: "+err.Error()); return err}
+
+    defer insertClusterNode.Close()
+    
+    return nil
+}
+
+func GetClusterByValue(uuid string)(groups map[string]map[string]string, err error){
+    var allgroups = map[string]map[string]string{}
+    var id string
+    var uniqid string
+    var param string
+    var value string
+    if Mdb == nil { logs.Error("no access to database"); return nil, err}
+    
+    sql := "select gc_uniqueid from groupcluster where gc_value = '"+uuid+"';"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("Mdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&id); err != nil { logs.Error("GetClusterByUUID rows.Scan: %s", err.Error()); return nil, err}
+
+        sql := "select gc_uniqueid, gc_param, gc_value from groupcluster where gc_uniqueid = '"+id+"';"
+        rows, err := Mdb.Query(sql)
+        if err != nil { logs.Error("Mdb.Query Error : %s", err.Error()); return nil, err}
+        
+        for rows.Next() {
+            if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetClusterByUUID rows.Scan: %s", err.Error()); return nil, err}
+            
+            if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+            allgroups[uniqid][param]=value
+        } 
+    } 
+    return allgroups, nil
+}
+
+func DeleteCluster(uuid string)(err error){
+    DeleteService, err := Mdb.Prepare("delete from groupcluster where gc_uniqueid = ?;")
+    if (err != nil){ logs.Error("DeleteCluster UPDATE prepare error: "+err.Error()); return err}
+
+    _, err = DeleteService.Exec(&uuid)
+    if (err != nil){ logs.Error("DeleteCluster exec error: "+err.Error()); return err}
+
+    defer DeleteService.Close()
+    
+    return nil
+}
+
+func UpdateGroupClusterValue(uuid string, param string, value string)(err error){
+    UpdatePluginValue, err := Mdb.Prepare("update groupcluster set gc_value = ? where gc_uniqueid = ? and gc_param = ?;")
+    if (err != nil){ logs.Error("UpdateGroupClusterValue UPDATE prepare error: "+err.Error()); return err}
+
+    _, err = UpdatePluginValue.Exec(&value, &uuid, &param)
+    if (err != nil){ logs.Error("UpdateGroupClusterValue UPDATE exec error: "+err.Error()); return err}
+
+    defer UpdatePluginValue.Close()
+    
+    return nil
+}
+
+func GetClusterByUUID(id string)(groups map[string]map[string]string, err error){
+    var allgroups = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Mdb == nil { logs.Error("no access to database"); return nil, err}
+    
+    sql := "select gc_uniqueid, gc_param, gc_value from groupcluster where gc_uniqueid = '"+id+"';"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetClusterByUUID Mdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetClusterByUUID rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+        allgroups[uniqid][param]=value
     } 
     return allgroups, nil
 }

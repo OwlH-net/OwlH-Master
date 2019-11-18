@@ -216,3 +216,93 @@ func (n *GroupController) SyncAll() {
     }
     n.ServeJSON()
 }
+
+// @Title AddCluster
+// @Description Add cluster for Zeek group
+// @Success 200 {object} models.Groups
+// @router /addCluster [post]
+func (n *GroupController) AddCluster() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.AddCluster(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetClusterFiles
+// @Description Get all cluster elemenst for Zeek group
+// @Success 200 {object} models.Groups
+// @router /getClusterFiles/:uuid [get]
+func (n *GroupController) GetClusterFiles() { 
+    uuid := n.GetString(":uuid") 
+
+    data,err := models.GetClusterFiles(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteCluster
+// @Description delete cluster for Zeek group
+// @Success 200 {object} models.Groups
+// @router /deleteCluster [delete]
+func (n *GroupController) DeleteCluster() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.DeleteCluster(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title ChangeClusterValue
+// @Description delete cluster for Zeek group
+// @Success 200 {object} models.Groups
+// @router /changeClusterValue [put]
+func (n *GroupController) ChangeClusterValue() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.ChangeClusterValue(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title GetClusterFileContent
+// @Description Get cluster file content from Zeek group
+// @Success 200 {object} models.Groups
+// @router /getClusterFileContent/:uuid [get]
+func (n *GroupController) GetClusterFileContent() { 
+    uuid := n.GetString(":uuid") 
+
+    data,err := models.GetClusterFileContent(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveClusterFileContent
+// @Description delete cluster for Zeek group
+// @Success 200 {object} models.Groups
+// @router /saveClusterFileContent [put]
+func (n *GroupController) SaveClusterFileContent() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.SaveClusterFileContent(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

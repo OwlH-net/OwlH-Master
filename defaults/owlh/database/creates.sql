@@ -87,3 +87,9 @@ CREATE TABLE groupnodes (
    gn_param text NOT NULL,
    gn_value text NOT NULL
 );
+CREATE TABLE groupcluster (
+   gc_id integer PRIMARY KEY AUTOINCREMENT,
+   gc_uniqueid text NOT NULL,
+   gc_param text NOT NULL,
+   gc_value text NOT NULL
+);
