@@ -1473,6 +1473,31 @@ func SyncAnalyzerToAllGroupNodes(ipData string, portData string, data []byte)(er
         return errors.New(returnValues["error"])
     }
 
+    return nil
+}
+
+func SyncClusterFileNode(ipData string, portData string, data []byte)(err error){
+    values := make(map[string][]byte)
+    values["data"] = data
+    url := "https://"+ipData+":"+portData+"/node/zeek/syncClusterFile"
+    valuesJSON,err := json.Marshal(values)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SyncClusterFileNode ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SyncClusterFileNode ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/SyncClusterFileNode ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
 
     return nil
 }

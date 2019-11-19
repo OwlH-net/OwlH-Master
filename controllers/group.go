@@ -306,3 +306,33 @@ func (n *GroupController) SaveClusterFileContent() {
     }
     n.ServeJSON()
 }
+
+// @Title SyncClusterFile
+// @Description Sync cluster for Zeek group
+// @Success 200 {object} models.Groups
+// @router /syncClusterFile [put]
+func (n *GroupController) SyncClusterFile() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.SyncClusterFile(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SyncAllGroupCluster
+// @Description sync all clusters for Zeek group
+// @Success 200 {object} models.Groups
+// @router /syncAllGroupCluster [put]
+func (n *GroupController) SyncAllGroupCluster() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.SyncAllGroupCluster(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

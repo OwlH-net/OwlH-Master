@@ -10,6 +10,8 @@ import (
     "encoding/json"    
     "path"
     "os"
+    "strings"
+    "bufio"
     "io/ioutil"
 )
 
@@ -364,6 +366,10 @@ func DeleteCluster(data map[string]string)(err error) {
 }
 
 func ChangeClusterValue(anode map[string]string)(err error) {
+    logs.Notice(anode)
+    logs.Notice(anode)
+    logs.Notice(anode)
+    logs.Notice(anode)
     //check if exists path
     if _, err := os.Stat(anode["path"]); os.IsNotExist(err) {
         logs.Error("New cluster path doesn't exists: "+err.Error()); 
@@ -398,5 +404,65 @@ func SaveClusterFileContent(anode map[string]string)(err error) {
     err = ioutil.WriteFile(anode["path"], []byte(anode["content"]), 0644)
     if err != nil {logs.Error("SaveClusterFileContent Error writting data into file: "+err.Error()); return err }
 
+    return nil
+}
+
+func SyncClusterFile(data map[string]string)(err error) {
+    var managerIP string
+    //get file for this uuid
+    cluster,err := ndb.GetClusterByUUID(data["uuid"])
+    if err != nil {logs.Error("SyncClusterFile Error getting data: "+err.Error()); return err }
+    for x := range cluster{
+        var managerFound = false
+        file, err := os.Open(cluster[x]["path"])
+        if err != nil {logs.Error("SyncClusterFile Error opening path: "+err.Error()); return err }
+        defer file.Close()
+
+        scanner := bufio.NewScanner(file)
+        for scanner.Scan() {
+            if scanner.Text() == "[manager]"{
+                managerFound = true
+            }
+            if managerFound{
+                if strings.Contains(scanner.Text(), "host="){
+                    managerIP = strings.Trim(scanner.Text(), "host=")
+                    break
+                }
+            }
+        }
+
+        //get uuid by manger ip
+        nodes,err := ndb.GetAllNodes()
+        for z := range nodes{
+            if nodes[z]["ip"] == managerIP{
+                // read file content
+                content, err := ioutil.ReadFile(cluster[x]["path"])
+                if err != nil {logs.Error("SyncClusterFile Error opening file: "+err.Error()); return err }
+                //get ip and port for node
+                if ndb.Db == nil { logs.Error("SyncClusterFile -- Can't acces to database"); return err}
+                ipnid,portnid,err := ndb.ObtainPortIp(z)
+                if err != nil { logs.Error("node/SyncClusterFile ERROR Obtaining Port and Ip: "+err.Error())}            
+
+                err = nodeclient.SyncClusterFileNode(ipnid,portnid,content)
+                if err != nil { logs.Error("node/SyncClusterFile ERROR http data request: "+err.Error()); return err}
+            }
+        }
+    }
+
+    return nil
+}
+
+func SyncAllGroupCluster(data map[string]string)(err error) {
+    groupnodes,err := ndb.GetAllCluster()
+    if err != nil { logs.Error("node/SyncAllGroupCluster ERROR getting all group nodes: "+err.Error()); return err}
+    for x := range groupnodes{
+        if groupnodes[x]["guuid"] == data["uuid"]{
+            anode := make(map[string]string)
+            anode["uuid"] = x
+            err = SyncClusterFile(anode)
+            if err != nil { logs.Error("node/SyncAllGroupCluster ERROR SyncClusterFile: "+err.Error()); return err}
+        }
+    }
+    
     return nil
 }

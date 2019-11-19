@@ -59,7 +59,6 @@ func GetAllNodes() (nodes map[string]map[string]string, err error) {
             logs.Error("GetAllNodes rows.Scan: %s", err.Error())
             return nil, err
         }
-        logs.Info ("uniqid: %s, param: %s, value: %s", uniqid,param,value)
         if allnodes[uniqid] == nil { allnodes[uniqid] = map[string]string{}}
         allnodes[uniqid][param]=value
     } 

@@ -103,3 +103,13 @@ func SaveClusterFileContent(data map[string]string)(err error) {
     err = group.SaveClusterFileContent(data)
     return err
 }
+
+func SyncClusterFile(data map[string]string)(err error) {
+    err = group.SyncClusterFile(data)
+    return err
+}
+
+func SyncAllGroupCluster(data map[string]string)(err error) {
+    err = group.SyncAllGroupCluster(data)
+    return err
+}
