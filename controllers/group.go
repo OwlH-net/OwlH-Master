@@ -44,7 +44,7 @@ func (n *GroupController) GetAllGroups() {
 // @Title DeleteGroup
 // @Description delete a group
 // @Success 200 {object} models.Groups
-// @router /DeleteGroup/:uuid [put]
+// @router /DeleteGroup/:uuid [delete]
 func (n *GroupController) DeleteGroup() { 
     uuid := n.GetString(":uuid") 
     err := models.DeleteGroup(uuid)

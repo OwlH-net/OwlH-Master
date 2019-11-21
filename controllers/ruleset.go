@@ -48,22 +48,22 @@ func (n *RulesetController) GetRuleSID(){
     
 }
 
-// @Title AddRuleset
-// @Description Add Ruleset
-// @Success 200 {object} models.Ruleset
-// @Failure 403 AddRuleset can't add ruleset
-// @router /new [post]
-func (n *RulesetController) AddRuleset(){ 
-    var ruleset map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &ruleset)
-    err := models.AddRuleset(ruleset)
-    n.Data["json"] = map[string]string{"ack": "true"}
-    if err != nil {
-        logs.Info("AddRuleset -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
-    n.ServeJSON()
-}
+// // @Title AddRuleset
+// // @Description Add Ruleset
+// // @Success 200 {object} models.Ruleset
+// // @Failure 403 AddRuleset can't add ruleset
+// // @router /new [post]
+// func (n *RulesetController) AddRuleset(){ 
+//     var ruleset map[string]string
+//     json.Unmarshal(n.Ctx.Input.RequestBody, &ruleset)
+//     err := models.AddRuleset(ruleset)
+//     n.Data["json"] = map[string]string{"ack": "true"}
+//     if err != nil {
+//         logs.Info("AddRuleset -> error: %s", err.Error())
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }
 
 // @Title GetAllRulesets
 // @Description Get full list of rulesets
@@ -148,21 +148,21 @@ func (n *RulesetController) GetRuleName() {
     n.ServeJSON()
 }
 
-// @Title SetClonedRuleset
-// @Description Create a copy of selected ruleset with a new custom name 
-// @Success 200 {object} models.ruleset
-// @router /clone [put]
-func (n *RulesetController) SetClonedRuleset() { 
-    var clonedMap map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &clonedMap)
-    err := models.SetClonedRuleset(clonedMap)
-    n.Data["json"] = map[string]string{"ack": "true"}
-    if err != nil {
-        logs.Info("SetClonedRuleset -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
-    n.ServeJSON()
-}
+// // @Title SetClonedRuleset
+// // @Description Create a copy of selected ruleset with a new custom name 
+// // @Success 200 {object} models.ruleset
+// // @router /clone [put]
+// func (n *RulesetController) SetClonedRuleset() { 
+//     var clonedMap map[string]string
+//     json.Unmarshal(n.Ctx.Input.RequestBody, &clonedMap)
+//     err := models.SetClonedRuleset(clonedMap)
+//     n.Data["json"] = map[string]string{"ack": "true"}
+//     if err != nil {
+//         logs.Info("SetClonedRuleset -> error: %s", err.Error())
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }
 
 // @Title SetRulesetAction
 // @Description Set rules from specific ruleset
@@ -361,37 +361,37 @@ func (n *RulesetController) SaveRulesetData() {
     n.ServeJSON()
 }
 
-// @Title TimeSchedule
-// @Description Add a time schedule for syncronize rulesets
-// @Success 200 {object} models.ruleset
-// @Failure 403 Connection Failure
-// @router /timeSchedule [put]
-func (n *RulesetController) TimeSchedule() { 
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.TimeSchedule(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
-    n.ServeJSON()
-}
+// // @Title TimeSchedule
+// // @Description Add a time schedule for syncronize rulesets
+// // @Success 200 {object} models.ruleset
+// // @Failure 403 Connection Failure
+// // @router /timeSchedule [put]
+// func (n *RulesetController) TimeSchedule() { 
+//     var anode map[string]string
+//     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+//     err := models.TimeSchedule(anode)
+//     n.Data["json"] = map[string]string{"ack": "true"}
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }
 
-// @Title StopTimeSchedule
-// @Description Stop a current time schedule for syncronize rulesets
-// @Success 200 {object} models.ruleset
-// @Failure 403 Connection Failure
-// @router /stopTimeSchedule [put]
-func (n *RulesetController) StopTimeSchedule() { 
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.StopTimeSchedule(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
-    n.ServeJSON()
-}
+// // @Title StopTimeSchedule
+// // @Description Stop a current time schedule for syncronize rulesets
+// // @Success 200 {object} models.ruleset
+// // @Failure 403 Connection Failure
+// // @router /stopTimeSchedule [put]
+// func (n *RulesetController) StopTimeSchedule() { 
+//     var anode map[string]string
+//     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+//     err := models.StopTimeSchedule(anode)
+//     n.Data["json"] = map[string]string{"ack": "true"}
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }
 
 // @Title UpdateRule
 // @Description Update a specific rule

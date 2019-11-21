@@ -164,20 +164,20 @@ func (n *RulesetSourceController) AddNewLinesToRuleset() {
     n.ServeJSON()
 }
 
-// @Title createNewFile
-// @Description edit a RulesetSource
-// @Success 200 {object} models.RulesetSource
-// @router /createNewFile [put]
-func (n *RulesetSourceController) CreateNewFile() { 
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.CreateNewFile(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
-    n.ServeJSON()
-}
+// // @Title createNewFile
+// // @Description edit a RulesetSource
+// // @Success 200 {object} models.RulesetSource
+// // @router /createNewFile [post]
+// func (n *RulesetSourceController) CreateNewFile() { 
+//     var anode map[string]string
+//     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+//     err := models.CreateNewFile(anode)
+//     n.Data["json"] = map[string]string{"ack": "true"}
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }
 
 // @Title GetDetails
 // @Description edit a RulesetSource

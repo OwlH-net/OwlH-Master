@@ -842,7 +842,7 @@ func (n *NodeController) GetNodeMonitor() {
 // @Description Add new Suricata service
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
-// @router /add [put]
+// @router /add [post]
 func (n *NodeController) AddPluginService() { 
     anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

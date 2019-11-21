@@ -361,7 +361,7 @@ func NodePing(uuid string) (err error) {
     if err != nil {logs.Error("Error updating node data")}
 
     err = nodeclient.PingNode(ipData,portData)
-    if err != nil {return err}
+    if err != nil {return errors.New("N/A")}
 
     return nil
 }

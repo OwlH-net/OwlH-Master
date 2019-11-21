@@ -26,11 +26,12 @@ type Rule struct {
     Rulesets      []Ruleset    
 }
 type Ruleset struct {
-    File          string        `json:"file"`
-    Status        string        `json:"status"`
-    Name        string        `json:"name"`
-    Uuid        string        `json:"uuid"`
-    Node        []string    `json:"node"`
+    File            string          `json:"file"`
+    Status          string          `json:"status"`
+    Name            string          `json:"name"`
+    Uuid            string          `json:"uuid"`
+    SourceType      string          `json:"sourceType"`
+    Node            []string        `json:"node"`
 }
 var RulesIndex []Rule = nil
 
@@ -44,15 +45,11 @@ func GetRulesetsBySearch(anode map[string]string)(data []Rule, err error) {
             if strings.Contains(RulesIndex[w].Sid, anode["search"]){
                 currentRulesets := RulesIndex[w].Rulesets
                 if anode["rulesetName"] == ""{
-                    // for z := range currentRulesets {
-                        matchingRules = append(matchingRules, RulesIndex[w])
-                    // }
+                    matchingRules = append(matchingRules, RulesIndex[w])
                 }else{                    
                     for z := range currentRulesets {
                         if currentRulesets[z].Name == anode["rulesetName"]{
-                            // if RulesIndex[w].Rulesets.Uuid != currentRulesets[z].Uuid{
-                                matchingRules = append(matchingRules, RulesIndex[w])
-                            // }
+                            matchingRules = append(matchingRules, RulesIndex[w])
                         }
                     }
                 }
@@ -61,36 +58,10 @@ func GetRulesetsBySearch(anode map[string]string)(data []Rule, err error) {
             if strings.Contains(strings.ToLower(RulesIndex[w].Msg), strings.ToLower(anode["search"])){
                 currentRulesets := RulesIndex[w].Rulesets
                 if anode["rulesetName"] == ""{
-                    // for z := range currentRulesets {
-                    //     Rsets := Ruleset{}
-                    //     Rsets.Name = currentRulesets[z].Name
-                    //     Rsets.Status = currentRulesets[z].Status
-                    //     Rsets.File = currentRulesets[z].File
-                    //     Rsets.Uuid = currentRulesets[z].Uuid
-                        
-                    //     var NewRule Rule
-                    //     NewRule.Sid = RulesIndex[w].Sid
-                    //     NewRule.Msg = RulesIndex[w].Msg
-                    //     NewRule.Rulesets = append(NewRule.Rulesets, Rsets) 
-
-                        // matchingRules = append(matchingRules, NewRule)
-                        matchingRules = append(matchingRules, RulesIndex[w])
-                    // }
+                    matchingRules = append(matchingRules, RulesIndex[w])
                 }else{
                     for z := range currentRulesets {
                         if currentRulesets[z].Name == anode["rulesetName"]{
-                            // Rsets := Ruleset{}
-                            // Rsets.Name = currentRulesets[z].Name
-                            // Rsets.Status = currentRulesets[z].Status
-                            // Rsets.File = currentRulesets[z].File
-                            // Rsets.Uuid = currentRulesets[z].Uuid
-
-                            // var NewRule Rule
-                            // NewRule.Sid = RulesIndex[w].Sid
-                            // NewRule.Msg = RulesIndex[w].Msg
-                            // NewRule.Rulesets = append(NewRule.Rulesets, Rsets) 
-    
-                            // matchingRules = append(matchingRules, NewRule)
                             matchingRules = append(matchingRules, RulesIndex[w])
                         }
                     }
@@ -106,47 +77,6 @@ func Init()(){
         BuildRuleIndex()
         time.Sleep(5 * time.Minute)
     }    
-    // for {
-    //     RulesIndex = nil
-    //     exists := false
-    //     allRulesets,err := ndb.GetAllRuleFiles()
-    //     if err != nil {logs.Error("Search/Init error: %s", err.Error())}
-    //     for x,_ := range allRulesets {    
-    //         rset := Ruleset{}
-    //         currentRules, _ := ruleset.ReadRuleset(allRulesets[x]["path"])
-    //         rset.File = allRulesets[x]["path"]
-    //         rset.Name = allRulesets[x]["name"]
-    //         for y := range currentRules {                
-    //             rset.Status = currentRules[y]["enabled"]
-    //             rset.Uuid = x
-    //             rule := Rule{}
-    //             rule.Rulesets = append(rule.Rulesets, rset)
-    //             rule.Sid = currentRules[y]["sid"]
-    //             rule.Msg = currentRules[y]["msg"]
-    //             exists = false
-
-    //             for w := range RulesIndex {
-    //                 if RulesIndex[w].Sid == rule.Sid{    
-    //                     RulesIndex[w].Rulesets = append(RulesIndex[w].Rulesets, rset)
-    //                     exists=true
-    //                     break
-    //                 }
-    //             }
-    //             if !exists {
-    //                 RulesIndex = append(RulesIndex, rule)
-    //             }
-    //         }
-    //     }
-
-    //     //load nodes with rulesets
-    //     nodes,err := ndb.GetAllNodes() 
-    //     for f := range nodes{
-    //         nodeName,err := ndb.ObtainNodeName(nodes[f])
-    //     }
-
-    //     logs.Info("Ruleset list has been updated.")
-    //     time.Sleep(5 * time.Minute)
-    // }
 }
 
 func BuildRuleIndex()(){
@@ -209,7 +139,7 @@ func BuildRuleIndexElastic()(){
     }
 
     elk.Init(jsonRules)
-    logs.Notice("Elastic data loaded")
+    logs.Info("Elastic data loaded")
 }
 
 
@@ -219,12 +149,13 @@ func BuildRuleIndexLocal()(){
     cont := 0
     allRulesets,err := ndb.GetAllRuleFiles()
     if err != nil {logs.Error("Search/Init error: %s", err.Error())}
-    for x,_ := range allRulesets {    
+    for x,_ := range allRulesets {  
         rset := Ruleset{}
         currentRules, err := ruleset.ReadRuleset(allRulesets[x]["path"])
         if err!=nil {logs.Error("BuildRuleIndexLocal Error readding rulesets: "+err.Error())}
         rset.File = allRulesets[x]["path"]
         rset.Name = allRulesets[x]["name"]
+        rset.SourceType = allRulesets[x]["sourceType"]
         for y := range currentRules {            
             rset.Status = currentRules[y]["enabled"]
             rset.Uuid = x
@@ -247,63 +178,6 @@ func BuildRuleIndexLocal()(){
             cont++
         }
     }
-    // nodes,err := ndb.GetAllNodes()
-    // for x,_ := range allRulesets {    
-    //     for f := range nodes{
-    //         currentRules, _ := ruleset.ReadRuleset(allRulesets[x]["path"])
-    //         if allRulesets[x]["sourceUUID"] == f {
-    //             rset := Ruleset{}
-    //             nodeName,err := ndb.ObtainNodeName(nodes[f])
-    //             rset.Node = append(rset.Node, nodeName)
-    //             rule.Rulesets = append(rule.Rulesets, rset)
-    //         }
-    //         if RulesIndex[w].Sid == currentRules[w]["sid"]{    
-    //             RulesIndex[w].Rulesets = append(RulesIndex[w].Rulesets, rset)
-    //             exists=true
-    //             break
-    //         }
-    //         for y := range currentRules {    
-    //             for w,l := range RulesIndex {
-    //                 if contains(arr,nodeName){
-
-    //                 }
-
-    //             }
-    //             if !exists {
-    //                 RulesIndex = append(RulesIndex, rule)
-    //             }
-
-    //         }
-    //     }
-
-    // }
-
-
-
 
     logs.Info("Ruleset list loaded")
 }
-
-
-// nodes,err := ndb.GetAllNodes()
-// if err != nil {logs.Error("Error getting all ruleset values: "+err.Error())}
-// for f := range nodes{
-//     if allRulesets[x]["sourceUUID"] == f{
-//         nodeName,err := ndb.ObtainNodeName(nodes[f])
-//         if err != nil {logs.Error("Error getting node name from their ruleset: "+err.Error())}
-//         logs.Warn(nodes[f]+"  ->  "+nodeName)
-        
-        
-//         // // isNodeYet := false
-//         // for r := range rset.Node{
-//         //     if rset.Node[r] == nodeName{
-//         //         // isNodeYet = true
-//         //         break;
-//         //     }else{
-//         //         rset.Node = append(rset.Node, nodeName)
-//         //     }
-//         // }
-//         // // if !isNodeYet{
-//         // // }
-//     }
-// }
