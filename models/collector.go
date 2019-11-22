@@ -2,6 +2,7 @@ package models
 
 import (
     "owlhmaster/collector"
+    "owlhmaster/changeControl"
 )
 
 // curl -X GET \
@@ -9,6 +10,7 @@ import (
 // }
 func PlayCollector(uuid string) (err error) {
     err = collector.PlayCollector(uuid)
+    changecontrol.ChangeControlInsertData(err, "PlayCollector")
     return err
 }
 
@@ -17,6 +19,7 @@ func PlayCollector(uuid string) (err error) {
 // }
 func StopCollector(uuid string) (err error) {
     err = collector.StopCollector(uuid)
+    changecontrol.ChangeControlInsertData(err, "StopCollector")
     return err
 }
 
@@ -25,6 +28,7 @@ func StopCollector(uuid string) (err error) {
 // }
 func ShowCollector(uuid string) (data string, err error) {
     data, err = collector.ShowCollector(uuid)
+    changecontrol.ChangeControlInsertData(err, "ShowCollector")
     return data, err
 }
 
@@ -33,6 +37,7 @@ func ShowCollector(uuid string) (data string, err error) {
 // }
 func PlayMasterCollector() (err error) {
     err = collector.PlayMasterCollector()
+    changecontrol.ChangeControlInsertData(err, "PlayMasterCollector")
     return err
 }
 
@@ -41,6 +46,7 @@ func PlayMasterCollector() (err error) {
 // }
 func StopMasterCollector() (err error) {
     err = collector.StopMasterCollector()
+    changecontrol.ChangeControlInsertData(err, "StopMasterCollector")
     return err
 }
 
@@ -49,5 +55,6 @@ func StopMasterCollector() (err error) {
 // }
 func ShowMasterCollector() (data string, err error) {
     data, err = collector.ShowMasterCollector()
+    changecontrol.ChangeControlInsertData(err, "ShowMasterCollector")
     return data, err
 }

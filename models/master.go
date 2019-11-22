@@ -2,6 +2,7 @@ package models
 
 import (
     "owlhmaster/master"
+    "owlhmaster/changeControl"
     "owlhmaster/database"
 )
 
@@ -10,6 +11,7 @@ import (
 // }
 func GetMasterTitle() (data string, err error) {
     data, err = master.GetMasterTitle()
+    changecontrol.ChangeControlInsertData(err, "GetMasterTitle")
     return data, err
 }
 
@@ -18,6 +20,7 @@ func GetMasterTitle() (data string, err error) {
 // }
 func GetFileContent(file string) (data map[string]string, err error) {
     data, err = master.GetFileContent(file)
+    changecontrol.ChangeControlInsertData(err, "GetFileContent")
     return data, err
 }
 
@@ -31,6 +34,7 @@ func GetFileContent(file string) (data map[string]string, err error) {
 // }
 func SaveFileContent(anode map[string]string) (err error) {
     err = master.SaveFileContent(anode)
+    changecontrol.ChangeControlInsertData(err, "SaveFileContent")
     return err
 }
 
@@ -39,6 +43,7 @@ func SaveFileContent(anode map[string]string) (err error) {
 // }
 func PingPlugins() (data map[string]map[string]string, err error) {
     data,err = ndb.PingPlugins()
+    changecontrol.ChangeControlInsertData(err, "PingPlugins")
     return data,err
 }
 
@@ -47,6 +52,7 @@ func PingPlugins() (data map[string]map[string]string, err error) {
 // }
 func PingFlow() (data map[string]map[string]string, err error) {
     data,err = ndb.PingFlow()
+    changecontrol.ChangeControlInsertData(err, "PingFlow")
     return data,err
 }
 
@@ -60,6 +66,7 @@ func PingFlow() (data map[string]map[string]string, err error) {
 // }
 func ChangePluginStatus(anode map[string]string) (err error) {
     err = ndb.UpdatePluginValueMaster(anode["uuid"], anode["param"], anode["value"])
+    changecontrol.ChangeControlInsertData(err, "ChangePluginStatus")
     return err
 }
 
@@ -74,6 +81,7 @@ func ChangePluginStatus(anode map[string]string) (err error) {
 // }
 func SaveStapInterface(anode map[string]string) (err error) {
     err = master.SaveStapInterface(anode)
+    changecontrol.ChangeControlInsertData(err, "SaveStapInterface")
     return err
 }
 
@@ -82,6 +90,7 @@ func SaveStapInterface(anode map[string]string) (err error) {
 // }
 func GetNetworkInterface()(data map[string]string, err error) {
     data,err = master.GetNetworkInterface()
+    changecontrol.ChangeControlInsertData(err, "GetNetworkInterface")
     return data,err
 }
 
@@ -96,6 +105,7 @@ func GetNetworkInterface()(data map[string]string, err error) {
 // }
 func ChangeDataflowStatus(anode map[string]string) (err error) {
     err = ndb.ChangeDataflowStatus(anode)
+    changecontrol.ChangeControlInsertData(err, "ChangeDataflowStatus")
     return err
 }
 
@@ -108,6 +118,7 @@ func ChangeDataflowStatus(anode map[string]string) (err error) {
 // }
 func DeployMaster(anode map[string]string)(err error) {
     err = master.DeployMaster(anode)
+    changecontrol.ChangeControlInsertData(err, "DeployMaster")
     return err
 }
 
@@ -122,6 +133,7 @@ func DeployMaster(anode map[string]string)(err error) {
 // }
 func UpdateMasterNetworkInterface(anode map[string]string)(err error) {
     err = master.UpdateMasterNetworkInterface(anode)
+    changecontrol.ChangeControlInsertData(err, "UpdateMasterNetworkInterface")
     return err
 }
 
@@ -130,6 +142,7 @@ func UpdateMasterNetworkInterface(anode map[string]string)(err error) {
 // }
 func LoadMasterNetworkValuesSelected()(data map[string]map[string]string ,err error) {
     data,err = master.LoadMasterNetworkValuesSelected()
+    changecontrol.ChangeControlInsertData(err, "LoadMasterNetworkValuesSelected")
     return data,err
 }
 
@@ -138,6 +151,7 @@ func LoadMasterNetworkValuesSelected()(data map[string]map[string]string ,err er
 // }
 func PingServiceMaster()(err error) {
     err = master.PingServiceMaster()
+    changecontrol.ChangeControlInsertData(err, "PingServiceMaster")
     return err
 }
 
@@ -146,6 +160,7 @@ func PingServiceMaster()(err error) {
 // }
 func DeployServiceMaster()(err error) {
     err = master.DeployServiceMaster()
+    changecontrol.ChangeControlInsertData(err, "DeployServiceMaster")
     return err
 }
 
@@ -162,6 +177,7 @@ func DeployServiceMaster()(err error) {
 // }
 func AddPluginServiceMaster(anode map[string]string)(err error){
     err = master.AddPluginServiceMaster(anode)
+    changecontrol.ChangeControlInsertData(err, "AddPluginServiceMaster")
     return err
 }
 
@@ -174,6 +190,7 @@ func AddPluginServiceMaster(anode map[string]string)(err error){
 // }
 func DeleteServiceMaster(anode map[string]string)(err error){
     err = master.DeleteServiceMaster(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteServiceMaster")
     return err
 }
 
@@ -190,6 +207,7 @@ func DeleteServiceMaster(anode map[string]string)(err error){
 // }
 func ModifyStapValuesMaster(anode map[string]string)(err error){
     err = master.ModifyStapValuesMaster(anode)
+    changecontrol.ChangeControlInsertData(err, "ModifyStapValuesMaster")
     return err
 }
 
@@ -204,6 +222,7 @@ func ModifyStapValuesMaster(anode map[string]string)(err error){
 // }
 func UpdateMasterStapInterface(anode map[string]string)(err error){
     err = master.UpdateMasterStapInterface(anode)
+    changecontrol.ChangeControlInsertData(err, "UpdateMasterStapInterface")
     return err
 }
 
@@ -218,6 +237,7 @@ func UpdateMasterStapInterface(anode map[string]string)(err error){
 // }
 func SetBPF(anode map[string]string)(err error){
     err = master.SetBPF(anode)
+    changecontrol.ChangeControlInsertData(err, "SetBPF")
     return err
 }
 
@@ -234,6 +254,7 @@ func SetBPF(anode map[string]string)(err error){
 // }
 func DeployStapServiceMaster(anode map[string]string)(err error){
     err = master.DeployStapServiceMaster(anode)
+    changecontrol.ChangeControlInsertData(err, "DeployStapServiceMaster")
     return err
 }
 
@@ -247,6 +268,7 @@ func DeployStapServiceMaster(anode map[string]string)(err error){
 // }
 func StopStapServiceMaster(anode map[string]string)(err error){
     err = master.StopStapServiceMaster(anode)
+    changecontrol.ChangeControlInsertData(err, "StopStapServiceMaster")
     return err
 }
 
@@ -255,6 +277,7 @@ func StopStapServiceMaster(anode map[string]string)(err error){
 // }
 func GetIncidents()(data map[string]map[string]string, err error){
     data,err = master.GetIncidents()
+    changecontrol.ChangeControlInsertData(err, "GetIncidents")
     return data,err
 }
 
@@ -268,5 +291,6 @@ func GetIncidents()(data map[string]map[string]string, err error){
 // }
 func PutIncident(anode map[string]string)(err error){
     err = master.PutIncident(anode)
+    changecontrol.ChangeControlInsertData(err, "PutIncident")
     return err
 }

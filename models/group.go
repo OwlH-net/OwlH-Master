@@ -2,6 +2,7 @@ package models
 
 import (
     "owlhmaster/group"
+    "owlhmaster/changeControl"
 )
 
 // curl -X POST \
@@ -26,6 +27,7 @@ import (
 // }
 func AddGroupElement(data map[string]string)(err error) {
     err = group.AddGroupElement(data)
+    changecontrol.ChangeControlInsertData(err, "AddGroupElement")
     return err
 }
 
@@ -40,6 +42,7 @@ func AddGroupElement(data map[string]string)(err error) {
 // }
 func EditGroup(data map[string]string)(err error) {
     err = group.EditGroup(data)
+    changecontrol.ChangeControlInsertData(err, "EditGroup")
     return err
 }
 
@@ -48,6 +51,7 @@ func EditGroup(data map[string]string)(err error) {
 // }
 func DeleteGroup(groupId string)(err error) {
     err = group.DeleteGroup(groupId)
+    changecontrol.ChangeControlInsertData(err, "DeleteGroup")
     return err
 }
 
@@ -56,6 +60,7 @@ func DeleteGroup(groupId string)(err error) {
 // }
 func GetAllGroups()(Groups []group.Group, err error) {
     Groups, err = group.GetAllGroups()
+    changecontrol.ChangeControlInsertData(err, "GetAllGroups")
     return Groups, err
 }
 
@@ -64,6 +69,7 @@ func GetAllGroups()(Groups []group.Group, err error) {
 // }
 func GetAllNodesGroup(uuid string)(data map[string]map[string]string, err error) {
     data, err = group.GetAllNodesGroup(uuid)
+    changecontrol.ChangeControlInsertData(err, "GetAllNodesGroup")
     return data, err
 }
 
@@ -77,6 +83,7 @@ func GetAllNodesGroup(uuid string)(data map[string]map[string]string, err error)
 // }
 func AddGroupNodes(data map[string]interface{})(err error) {
     err = group.AddGroupNodes(data)
+    changecontrol.ChangeControlInsertData(err, "AddGroupNodes")
     return err
 }
 
@@ -85,6 +92,7 @@ func AddGroupNodes(data map[string]interface{})(err error) {
 // }
 func PingGroupNodes()(data map[string]map[string]string, err error) {
     data, err = group.PingGroupNodes()
+    changecontrol.ChangeControlInsertData(err, "PingGroupNodes")
     return data, err
 }
 
@@ -93,6 +101,7 @@ func PingGroupNodes()(data map[string]map[string]string, err error) {
 // }
 func GetNodeValues(uuid string)(data map[string]map[string]string, err error) {
     data, err = group.GetNodeValues(uuid)
+    changecontrol.ChangeControlInsertData(err, "GetNodeValues")
     return data, err
 }
 
@@ -101,6 +110,7 @@ func GetNodeValues(uuid string)(data map[string]map[string]string, err error) {
 // }
 func DeleteNodeGroup(uuid string)(err error) {
     err = group.DeleteNodeGroup(uuid)
+    changecontrol.ChangeControlInsertData(err, "DeleteNodeGroup")
     return err
 }
 
@@ -115,6 +125,7 @@ func DeleteNodeGroup(uuid string)(err error) {
 // }
 func ChangeGroupRuleset(data map[string]string)(err error) {
     err = group.ChangeGroupRuleset(data)
+    changecontrol.ChangeControlInsertData(err, "ChangeGroupRuleset")
     return err
 }
 
@@ -140,6 +151,7 @@ func ChangeGroupRuleset(data map[string]string)(err error) {
 // }
 func ChangePathsGroups(data map[string]string)(err error) {
     err = group.ChangePathsGroups(data)
+    changecontrol.ChangeControlInsertData(err, "ChangePathsGroups")
     return err
 }
 
@@ -154,6 +166,7 @@ func ChangePathsGroups(data map[string]string)(err error) {
 // }
 func UpdateGroupService(data map[string]string)(err error) {
     err = group.UpdateGroupService(data)
+    changecontrol.ChangeControlInsertData(err, "UpdateGroupService")
     return err
 }
 
@@ -179,6 +192,7 @@ func UpdateGroupService(data map[string]string)(err error) {
 // }
 func SyncPathGroup(data map[string]string)(err error) {
     err = group.SyncPathGroup(data)
+    changecontrol.ChangeControlInsertData(err, "SyncPathGroup")
     return err
 }
 
@@ -205,6 +219,7 @@ func SyncPathGroup(data map[string]string)(err error) {
 // }
 func SyncAll(uuid string, data map[string]map[string]string)(err error) {
     err = group.SyncAll(uuid, data)
+    changecontrol.ChangeControlInsertData(err, "SyncAll")
     return err
 }
 
@@ -218,6 +233,7 @@ func SyncAll(uuid string, data map[string]map[string]string)(err error) {
 // }
 func AddCluster(data map[string]string)(err error) {
     err = group.AddCluster(data)
+    changecontrol.ChangeControlInsertData(err, "AddCluster")
     return err
 }
 
@@ -226,6 +242,7 @@ func AddCluster(data map[string]string)(err error) {
 // }
 func GetClusterFiles(uuid string)(data map[string]map[string]string, err error) {
     data, err = group.GetClusterFiles(uuid)
+    changecontrol.ChangeControlInsertData(err, "GetClusterFiles")
     return data, err
 }
 
@@ -234,6 +251,7 @@ func GetClusterFiles(uuid string)(data map[string]map[string]string, err error) 
 // }
 func GetClusterFileContent(uuid string)(data map[string]string, err error) {
     data, err = group.GetClusterFileContent(uuid)
+    changecontrol.ChangeControlInsertData(err, "GetClusterFileContent")
     return data, err
 }
 
@@ -246,6 +264,7 @@ func GetClusterFileContent(uuid string)(data map[string]string, err error) {
 // }
 func DeleteCluster(data map[string]string)(err error) {
     err = group.DeleteCluster(data)
+    changecontrol.ChangeControlInsertData(err, "DeleteCluster")
     return err
 }
 
@@ -260,6 +279,7 @@ func DeleteCluster(data map[string]string)(err error) {
 // }
 func ChangeClusterValue(data map[string]string)(err error) {
     err = group.ChangeClusterValue(data)
+    changecontrol.ChangeControlInsertData(err, "ChangeClusterValue")
     return err
 }
 
@@ -274,6 +294,7 @@ func ChangeClusterValue(data map[string]string)(err error) {
 // }
 func SaveClusterFileContent(data map[string]string)(err error) {
     err = group.SaveClusterFileContent(data)
+    changecontrol.ChangeControlInsertData(err, "SaveClusterFileContent")
     return err
 }
 
@@ -286,6 +307,7 @@ func SaveClusterFileContent(data map[string]string)(err error) {
 // }
 func SyncClusterFile(data map[string]string)(err error) {
     err = group.SyncClusterFile(data)
+    changecontrol.ChangeControlInsertData(err, "SyncClusterFile")
     return err
 }
 
@@ -298,5 +320,6 @@ func SyncClusterFile(data map[string]string)(err error) {
 // }
 func SyncAllGroupCluster(data map[string]string)(err error) {
     err = group.SyncAllGroupCluster(data)
+    changecontrol.ChangeControlInsertData(err, "SyncAllGroupCluster")
     return err
 }

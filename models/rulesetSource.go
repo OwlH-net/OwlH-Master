@@ -2,6 +2,7 @@ package models
 
 import (
     "owlhmaster/rulesetSource"
+    "owlhmaster/changeControl"
     // "github.com/astaxie/beego/logs"
 )
 
@@ -19,6 +20,7 @@ import (
 // }
 func CreateRulesetSource(data map[string]string) (err error) {
     err = rulesetSource.CreateRulesetSource(data)
+    changecontrol.ChangeControlInsertData(err, "CreateRulesetSource")
     return err
 }
 
@@ -36,6 +38,7 @@ func CreateRulesetSource(data map[string]string) (err error) {
 // }
 func CreateCustomRulesetSource(data map[string]string) (err error) {
     err = rulesetSource.CreateCustomRulesetSource(data)
+    changecontrol.ChangeControlInsertData(err, "CreateCustomRulesetSource")
     return err
 }
 
@@ -43,6 +46,7 @@ func CreateCustomRulesetSource(data map[string]string) (err error) {
 //   https://52.47.197.22:50002/v1/rulesetSource/ \
 func GetAllRulesetSource() (data map[string]map[string]string, err error) {
     data, err = rulesetSource.GetAllRulesetSource()
+    changecontrol.ChangeControlInsertData(err, "GetAllRulesetSource")
     return data, err
 }
 
@@ -57,6 +61,7 @@ func GetAllRulesetSource() (data map[string]map[string]string, err error) {
 // }
 func EditRulesetSource(data map[string]string) (err error) {
     err = rulesetSource.EditRulesetSource(data)
+    changecontrol.ChangeControlInsertData(err, "EditRulesetSource")
     return err
 }
 
@@ -69,6 +74,7 @@ func EditRulesetSource(data map[string]string) (err error) {
 // }
 func DeleteRulesetSource(anode map[string]string) (err error) {
     err = rulesetSource.DeleteRulesetSource(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteRulesetSource")
     return err
 }
 
@@ -76,6 +82,7 @@ func DeleteRulesetSource(anode map[string]string) (err error) {
 //   https://52.47.197.22:50002/v1/rulesetSource/DeleteRulesetSource/:uuid \
 func DeleteRulesetFile(uuid string) (err error) {
     err = rulesetSource.DeleteRulesetFile(uuid)
+    changecontrol.ChangeControlInsertData(err, "DeleteRulesetFile")
     return err
 }
 
@@ -90,6 +97,7 @@ func DeleteRulesetFile(uuid string) (err error) {
 // }
 func DownloadFile(data map[string]string) (err error) {
     err = rulesetSource.DownloadFile(data)
+    changecontrol.ChangeControlInsertData(err, "DownloadFile")
     return err
 }
 
@@ -104,6 +112,7 @@ func DownloadFile(data map[string]string) (err error) {
 // }
 func OverwriteDownload(data map[string]string) (err error) {
     err = rulesetSource.OverwriteDownload(data)
+    changecontrol.ChangeControlInsertData(err, "OverwriteDownload")
     return err
 }
 
@@ -111,6 +120,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 //   https://52.47.197.22:50002/v1/rulesetSource/compareSourceFiles/:uuid \
 func CompareFiles(uuid string) (mapData map[string]map[string]string, err error) {
     mapData,err = rulesetSource.CompareFiles(uuid)
+    changecontrol.ChangeControlInsertData(err, "CompareFiles")
     return mapData,err
 }
 
@@ -125,13 +135,15 @@ func CompareFiles(uuid string) (mapData map[string]map[string]string, err error)
 // // }
 // func CreateNewFile(data map[string]string) (err error) {
 //     err = rulesetSource.CreateNewFile(data)
-//     return err
+//     changecontrol.ChangeControlInsertData(err, "")
+    // return err
 // }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/rulesetSource/getDetails/:uuid \
 func GetDetails(uuid string) (files map[string]map[string]string, err error) {
     files, err = rulesetSource.GetDetails(uuid)
+    changecontrol.ChangeControlInsertData(err, "GetDetails")
     return files ,err
 }
 
@@ -139,6 +151,7 @@ func GetDetails(uuid string) (files map[string]map[string]string, err error) {
 //   https://52.47.197.22:50002/v1/rulesetSource/GetFileUUIDfromRulesetUUID/:uuid \
 func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
     uuid,err = rulesetSource.GetFileUUIDfromRulesetUUID(value)
+    changecontrol.ChangeControlInsertData(err, "GetFileUUIDfromRulesetUUID")
     return uuid,err
 }
 
@@ -146,6 +159,7 @@ func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
 //   https://52.47.197.22:50002/v1/rulesetSource/OverwriteRuleFile/:uuid \
 func OverwriteRuleFile(uuid string)(err error){
     err = rulesetSource.OverwriteRuleFile(uuid)
+    changecontrol.ChangeControlInsertData(err, "OverwriteRuleFile")
     return err
 }
 
@@ -153,5 +167,6 @@ func OverwriteRuleFile(uuid string)(err error){
 //   https://52.47.197.22:50002/v1/rulesetSource/AddNewLinesToRuleset/:uuid \
 func AddNewLinesToRuleset(uuid string)(err error){
     err = rulesetSource.AddNewLinesToRuleset(uuid)
+    changecontrol.ChangeControlInsertData(err, "AddNewLinesToRuleset")
     return err
 }

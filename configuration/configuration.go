@@ -83,6 +83,14 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "groupcluster"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE groupcluster (gc_id integer PRIMARY KEY AUTOINCREMENT,gc_uniqueid text NOT NULL,gc_param text NOT NULL,gc_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "groups"
     table.Tconn = "masterConn"
     table.Tcreate = "CREATE TABLE groups (group_id integer PRIMARY KEY AUTOINCREMENT,group_uniqueid text NOT NULL,group_param text NOT NULL,group_value text NOT NULL)"

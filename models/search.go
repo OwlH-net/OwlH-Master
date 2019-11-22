@@ -2,6 +2,7 @@ package models
 
 import (
     "owlhmaster/search"
+    "owlhmaster/changeControl"
 )
 
 // curl -X PUT \
@@ -13,5 +14,6 @@ import (
 //  }
 func GetRulesetsBySearch(anode map[string]string)(data interface{}, err error) {
     data, err = search.GetRulesetsBySearch(anode)
+    changecontrol.ChangeControlInsertData(err, "GetRulesetsBySearch")
     return data, err
 }

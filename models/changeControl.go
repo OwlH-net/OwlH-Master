@@ -9,5 +9,6 @@ import (
 // }
 func GetChangeControl()(data map[string]map[string]string, err error) {
     data, err = changecontrol.GetChangeControl()
+    changecontrol.ChangeControlInsertData(err, "GetChangeControl")
     return data, err
 }

@@ -35,3 +35,21 @@ func InsertChangeControl(values map[string]string)(err error){
 
     return nil
 }
+
+func ChangeControlInsertData(err error, desc string){
+    //check error
+    n := make(map[string]string)
+    if err!=nil { 
+        n["actionStatus"] = "error"
+        n["errorDescription"] = err.Error()
+    }else{
+        n["actionStatus"] = "success"
+    }
+    n["action"] = "POST"
+    n["actionDescription"] = desc
+    
+    //add incident
+    var controlError error
+    controlError = InsertChangeControl(n)
+    if controlError!=nil { logs.Error(desc+" controlError: "+controlError.Error()) }
+}
