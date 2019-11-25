@@ -87,7 +87,14 @@ func main() {
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
     }
 
-    beego.BeeApp.Server.TLSConfig = &tls.Config{ MinVersion: 1}
+
+    beego.BeeApp.Server.TLSConfig = &tls.Config{    CipherSuites: []uint16{
+                                                        tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
+                                                        tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+                                                    },
+                                                    MinVersion:               tls.VersionTLS12,
+                                                    PreferServerCipherSuites: true,
+                                                }
     beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
         AllowOrigins:     []string{"*"},
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
