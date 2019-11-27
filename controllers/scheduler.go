@@ -1,13 +1,13 @@
 package controllers
 
 import (
-	"owlhmaster/models"
-	"encoding/json"
+    "owlhmaster/models"
+    "encoding/json"
     "github.com/astaxie/beego"
 )
 
 type SchedulerController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title SchedulerTask
@@ -17,8 +17,8 @@ type SchedulerController struct {
 // @router /add [put]
 func (n *SchedulerController) SchedulerTask() { 
     var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)	
-	err := models.SchedulerTask(anode)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
+    err := models.SchedulerTask(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -33,8 +33,8 @@ func (n *SchedulerController) SchedulerTask() {
 // @router /stop [put]
 func (n *SchedulerController) StopTask() { 
     var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.StopTask(anode)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.StopTask(anode)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -49,7 +49,7 @@ func (n *SchedulerController) StopTask() {
 // @router /log/:uuid [get]
 func (n *SchedulerController) GetLog() { 
     uuid := n.GetString(":uuid")
-	logReg,err := models.GetLog(uuid)	
+    logReg,err := models.GetLog(uuid)    
     n.Data["json"] = logReg
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

@@ -1,15 +1,15 @@
 package controllers
 
 import (
-	"owlhmaster/models"
-	"encoding/json"
-	//"strconv"
-	"github.com/astaxie/beego"
+    "owlhmaster/models"
+    "encoding/json"
+    //"strconv"
+    "github.com/astaxie/beego"
     // "github.com/astaxie/beego/logs"
 )
 
 type SearchController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title GetRulesetsBySearch

@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	"owlhmaster/models"
-	"encoding/json"
-	//"strconv"
-	"github.com/astaxie/beego"
+    "owlhmaster/models"
+    "encoding/json"
+    //"strconv"
+    "github.com/astaxie/beego"
 )
 
 type StapController struct {
-	beego.Controller
+    beego.Controller
 }
 
 // @Title AddServer
@@ -17,11 +17,11 @@ type StapController struct {
 // @Failure 403 ruleset is empty
 // @router / [post]
 func (n *StapController) AddServer(){ 
-	var newServer map[string]string
+    var newServer map[string]string
     json.Unmarshal(n.Ctx.Input.RequestBody, &newServer)
-	err := models.AddServer(newServer)
-	n.Data["json"] = map[string]string{"ack": "true"}
-	if err != nil {
+    err := models.AddServer(newServer)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -32,10 +32,10 @@ func (n *StapController) AddServer(){
 // @Success 200 {object} models.stap
 // @router /:uuid [get]
 func (n *StapController) GetAllServers() {
-	uuid := n.GetString(":uuid") 
-	servers, err := models.GetAllServers(uuid)
-	n.Data["json"] = servers
-	if err != nil {
+    uuid := n.GetString(":uuid") 
+    servers, err := models.GetAllServers(uuid)
+    n.Data["json"] = servers
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -47,11 +47,11 @@ func (n *StapController) GetAllServers() {
 // @Success 200 {object} models.stap
 // @router /server/:uuid/:serveruuid [get]
 func (n *StapController) GetServer() {
-	uuid := n.GetString(":uuid") 
-	serveruuid := n.GetString(":serveruuid")
-	server, err := models.GetServer(uuid,serveruuid)
-	n.Data["json"] = server
-	if err != nil {
+    uuid := n.GetString(":uuid") 
+    serveruuid := n.GetString(":serveruuid")
+    server, err := models.GetServer(uuid,serveruuid)
+    n.Data["json"] = server
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -169,7 +169,7 @@ func (n *StapController) DeleteStapServer() {
 // @router /EditStapServer [put]
 func (n *StapController) EditStapServer() { 
     var editedMap map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &editedMap)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &editedMap)
     err := models.EditStapServer(editedMap)
     n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {

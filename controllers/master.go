@@ -1,14 +1,14 @@
 package controllers
 
 import (
-	"owlhmaster/models"
-	"github.com/astaxie/beego"
-	"github.com/astaxie/beego/logs"
-	"encoding/json"
+    "owlhmaster/models"
+    "github.com/astaxie/beego"
+    "github.com/astaxie/beego/logs"
+    "encoding/json"
 )
 
 type MasterController struct {
-	beego.Controller
+    beego.Controller
 }
 
 
@@ -32,7 +32,7 @@ func (m *MasterController) GetMasterTitle() {
 // @Success 200 {object} models.Master
 // @router /editFile/:file [get]
 func (m *MasterController) GetFileContent() {
-	file := m.GetString(":file")
+    file := m.GetString(":file")
     data, err := models.GetFileContent(file)
     m.Data["json"] = data
     if err != nil {
@@ -47,7 +47,7 @@ func (m *MasterController) GetFileContent() {
 // @Success 200 {object} models.Master
 // @router /savefile [put]
 func (m *MasterController) SaveFileContent() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
     err := models.SaveFileContent(anode)
     m.Data["json"] = map[string]string{"ack": "true"}
@@ -91,7 +91,7 @@ func (m *MasterController) PingFlow() {
 // @Success 200 {object} models.Master
 // @router /changePluginStatus [put]
 func (m *MasterController) ChangePluginStatus() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
     err := models.ChangePluginStatus(anode)
     m.Data["json"] = map[string]string{"ack": "true"}
@@ -107,7 +107,7 @@ func (m *MasterController) ChangePluginStatus() {
 // @Success 200 {object} models.Master
 // @router /saveStapInterface [put]
 func (m *MasterController) SaveStapInterface() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
     err := models.SaveStapInterface(anode)
     m.Data["json"] = map[string]string{"ack": "true"}
@@ -123,7 +123,7 @@ func (m *MasterController) SaveStapInterface() {
 // @Success 200 {object} models.Master
 // @router /changeDataflowStatus [put]
 func (m *MasterController) ChangeDataflowStatus() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
     err := models.ChangeDataflowStatus(anode)
     m.Data["json"] = map[string]string{"ack": "true"}
@@ -138,7 +138,7 @@ func (m *MasterController) ChangeDataflowStatus() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /interface [get]
-func (m *MasterController) GetNetworkInterface() {	
+func (m *MasterController) GetNetworkInterface() {    
     data, err := models.GetNetworkInterface()
     m.Data["json"] = data
     if err != nil {
@@ -153,15 +153,15 @@ func (m *MasterController) GetNetworkInterface() {
 // @Success 200 {object} models.Master
 // @router /deployMaster [put]
 func (m *MasterController) DeployMaster() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
     err := models.DeployMaster(anode)
     m.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
-	}
-	
-	m.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
+    }
+    
+    m.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
     m.ServeJSON()
 }
 
@@ -171,15 +171,15 @@ func (m *MasterController) DeployMaster() {
 // @Success 200 {object} models.Master
 // @router /updateMasterNetworkInterface [put]
 func (m *MasterController) UpdateMasterNetworkInterface() {
-	anode := make(map[string]string)
+    anode := make(map[string]string)
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
     err := models.UpdateMasterNetworkInterface(anode)
     m.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
-	}
-	
-	m.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
+    }
+    
+    m.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
     m.ServeJSON()
 }
 
@@ -188,7 +188,7 @@ func (m *MasterController) UpdateMasterNetworkInterface() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /loadMasterNetworkValuesSelected [get]
-func (m *MasterController) LoadMasterNetworkValuesSelected() {	
+func (m *MasterController) LoadMasterNetworkValuesSelected() {    
     data, err := models.LoadMasterNetworkValuesSelected()
     m.Data["json"] = data
     if err != nil {
@@ -202,7 +202,7 @@ func (m *MasterController) LoadMasterNetworkValuesSelected() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /pingservice [get]
-func (m *MasterController) PingServiceMaster() {	
+func (m *MasterController) PingServiceMaster() {    
     err := models.PingServiceMaster()
     m.Data["json"] =  map[string]string{"ack": "true"}
     if err != nil {
@@ -216,7 +216,7 @@ func (m *MasterController) PingServiceMaster() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /deployservice [put]
-func (m *MasterController) DeployServiceMaster() {	
+func (m *MasterController) DeployServiceMaster() {    
     err := models.DeployServiceMaster()
     m.Data["json"] =  map[string]string{"ack": "true"}
     if err != nil {
@@ -246,10 +246,10 @@ func (n *MasterController) AddPluginServiceMaster() {
 // @Description delete a specific plugin service
 // @router /deleteService [delete]
 func (n *MasterController) DeleteServiceMaster() {
-	var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.DeleteServiceMaster(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.DeleteServiceMaster(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -260,10 +260,10 @@ func (n *MasterController) DeleteServiceMaster() {
 // @Description delete a specific plugin service
 // @router /modifyStapValues [put]
 func (n *MasterController) ModifyStapValuesMaster() {
-	var anode map[string]string
-	json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-	err := models.ModifyStapValuesMaster(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.ModifyStapValuesMaster(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
@@ -313,9 +313,9 @@ func (n *MasterController) DeployStapServiceMaster() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.DeployStapServiceMaster(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -330,9 +330,9 @@ func (n *MasterController) StopStapServiceMaster() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.StopStapServiceMaster(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()
@@ -343,7 +343,7 @@ func (n *MasterController) StopStapServiceMaster() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /incidents [get]
-func (m *MasterController) GetIncidents() {	
+func (m *MasterController) GetIncidents() {    
     data,err := models.GetIncidents()
     m.Data["json"] = data
     if err != nil {
@@ -361,9 +361,9 @@ func (n *MasterController) PutIncident() {
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
     err := models.PutIncident(anode)
-	n.Data["json"] = map[string]string{"ack": "true"}
+    n.Data["json"] = map[string]string{"ack": "true"}
 
-	if err != nil {
+    if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     n.ServeJSON()

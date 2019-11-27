@@ -28,39 +28,39 @@ func RunWazuh(uuid string)(data string, err error){
         return "", errors.New("RunWazuh -- Can't acces to database")
     }
     
-	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-	if err != nil {
-		logs.Error("node/RunWazuh ERROR Obtaining Port and Ip: "+err.Error())
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+    if err != nil {
+        logs.Error("node/RunWazuh ERROR Obtaining Port and Ip: "+err.Error())
         return "",err
     }
-	data,err = nodeclient.RunWazuh(ipnid,portnid)
-	if err != nil {
-		logs.Error("node/RunWazuh ERROR http data request: "+err.Error())
+    data,err = nodeclient.RunWazuh(ipnid,portnid)
+    if err != nil {
+        logs.Error("node/RunWazuh ERROR http data request: "+err.Error())
         return "",err
     }
-	return data,nil
+    return data,nil
 }
 
 func StopWazuh(uuid string)(data string, err error){
     if ndb.Db == nil {logs.Error("StopWazuh -- Can't acces to database"); return "", errors.New("StopWazuh -- Can't acces to database")}
-	
-	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {logs.Error("node/StopWazuh ERROR Obtaining Port and Ip: "+err.Error()); return "",err}
     
-	data,err = nodeclient.StopWazuh(ipnid,portnid)
-	if err != nil {logs.Error("node/StopWazuh ERROR http data request: "+err.Error()); return "",err}
-	return data,nil
+    data,err = nodeclient.StopWazuh(ipnid,portnid)
+    if err != nil {logs.Error("node/StopWazuh ERROR http data request: "+err.Error()); return "",err}
+    return data,nil
 }
 
 func PingWazuhFiles(uuid string)(anode map[int]map[string]string, err error){
     if ndb.Db == nil {logs.Error("PingWazuhFiles -- Can't acces to database"); return nil, errors.New("PingWazuhFiles -- Can't acces to database")}
-	
-	ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {logs.Error("node/PingWazuhFiles ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
     
-	anode,err = nodeclient.PingWazuhFiles(ipnid,portnid)
-	if err != nil {logs.Error("node/PingWazuhFiles ERROR http data request: "+err.Error()); return nil,err}
-	return anode,nil
+    anode,err = nodeclient.PingWazuhFiles(ipnid,portnid)
+    if err != nil {logs.Error("node/PingWazuhFiles ERROR http data request: "+err.Error()); return nil,err}
+    return anode,nil
 }
 
 func DeleteWazuhFile(anode map[string]interface{})(err error){
@@ -68,9 +68,9 @@ func DeleteWazuhFile(anode map[string]interface{})(err error){
     
     var uuid = fmt.Sprintf("%v", anode["uuid"])
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-	if err != nil {logs.Error("DeleteWazuhFile ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    if err != nil {logs.Error("DeleteWazuhFile ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
-	err = nodeclient.DeleteWazuhFile(ipnid,portnid,anode)
+    err = nodeclient.DeleteWazuhFile(ipnid,portnid,anode)
     if err != nil {logs.Error("DeleteWazuhFile error HTTP data request: "+err.Error()); return err}
 
     return nil
@@ -81,9 +81,9 @@ func AddWazuhFile(anode map[string]interface{})(err error){
     
     var uuid = fmt.Sprintf("%v", anode["uuid"])
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-	if err != nil {logs.Error("AddWazuhFile ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    if err != nil {logs.Error("AddWazuhFile ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
-	err = nodeclient.AddWazuhFile(ipnid,portnid,anode)
+    err = nodeclient.AddWazuhFile(ipnid,portnid,anode)
     if err != nil {logs.Error("AddWazuhFile error HTTP data request: "+err.Error()); return err}
 
     return nil
@@ -94,9 +94,9 @@ func LoadFileLastLines(anode map[string]string)(data map[string]string, err erro
     
     var uuid = fmt.Sprintf("%v", anode["uuid"])
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-	if err != nil {logs.Error("LoadFileLastLines ERROR Obtaining Port and Ip: "+err.Error()); return nil, err}
+    if err != nil {logs.Error("LoadFileLastLines ERROR Obtaining Port and Ip: "+err.Error()); return nil, err}
 
-	data,err = nodeclient.LoadFileLastLines(ipnid,portnid,anode)
+    data,err = nodeclient.LoadFileLastLines(ipnid,portnid,anode)
     if err != nil {logs.Error("LoadFileLastLines error HTTP data request: "+err.Error()); return nil, err}
 
     return data, nil
@@ -107,9 +107,9 @@ func SaveFileContentWazuh(anode map[string]string)(err error){
     
     var uuid = fmt.Sprintf("%v", anode["uuid"])
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-	if err != nil {logs.Error("SaveFileContentWazuh ERROR Obtaining Port and Ip: "+err.Error()); return  err}
+    if err != nil {logs.Error("SaveFileContentWazuh ERROR Obtaining Port and Ip: "+err.Error()); return  err}
 
-	err = nodeclient.SaveFileContentWazuh(ipnid,portnid,anode)
+    err = nodeclient.SaveFileContentWazuh(ipnid,portnid,anode)
     if err != nil {logs.Error("SaveFileContentWazuh error HTTP data request: "+err.Error()); return  err}
 
     return  nil
