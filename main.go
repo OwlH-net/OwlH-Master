@@ -50,7 +50,7 @@ func main() {
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.11.0.20191122")
+    logs.Info("Version OwlH Master: 0.12.0.20191130")
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {
@@ -89,8 +89,8 @@ func main() {
 
 
     beego.BeeApp.Server.TLSConfig = &tls.Config{    CipherSuites: []uint16{
-                                                        tls.TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384,
-                                                        tls.TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384,
+                                                        tls.TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256,
+                                                        tls.TLS_RSA_WITH_AES_256_GCM_SHA384,
                                                     },
                                                     MinVersion:               tls.VersionTLS12,
                                                     PreferServerCipherSuites: true,

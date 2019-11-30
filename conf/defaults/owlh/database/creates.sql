@@ -69,3 +69,27 @@ CREATE TABLE dataflow (
     flow_param text NOT NULL,
     flow_value text NOT NULL
  );
+ CREATE TABLE changerecord (
+    control_id integer PRIMARY KEY AUTOINCREMENT,
+    control_uniqueid text NOT NULL,
+    control_param text NOT NULL,
+    control_value text NOT NULL
+);
+CREATE TABLE incidents (
+   incidents_id integer PRIMARY KEY AUTOINCREMENT,
+   incidents_uniqueid text NOT NULL,
+   incidents_param text NOT NULL,
+   incidents_value text NOT NULL
+);
+CREATE TABLE groupnodes (
+   gn_id integer PRIMARY KEY AUTOINCREMENT,
+   gn_uniqueid text NOT NULL,
+   gn_param text NOT NULL,
+   gn_value text NOT NULL
+);
+CREATE TABLE groupcluster (
+   gc_id integer PRIMARY KEY AUTOINCREMENT,
+   gc_uniqueid text NOT NULL,
+   gc_param text NOT NULL,
+   gc_value text NOT NULL
+);
