@@ -128,50 +128,68 @@ func DownloadFile(filepath string, url string)(err error){
 }
 
 //extract tar.gz files
-// func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err error){
-func ExtractTarGz(tarGzFile string, pathDownloads string)(err error){
-    file, err := os.Open(tarGzFile)
-    defer file.Close()
-    if err != nil {
-        return err
-    }
+func ExtractFile(tarGzFile string, pathDownloads string)(err error){
+    base := filepath.Base(tarGzFile)
+    fileType := strings.Split(base, ".")
 
-    uncompressedStream, err := gzip.NewReader(file)
-    if err != nil {
-        return err
-    }
 
-    tarReader := tar.NewReader(uncompressedStream)
-    for true {
-        header, err := tarReader.Next()
-        if err == io.EOF {
-            break
-        }
-        if err != nil {
-            return err
-        }
 
-        switch header.Typeflag {
-        case tar.TypeDir:
-            err := os.MkdirAll(pathDownloads+"/"+header.Name, 0755);
+    if fileType[len(fileType)-1] == "rules"{
+        resp, err := http.Get(tarGzFile); if err != nil {logs.Error("ExtractFile ERROR: Cannot download a rule file"); return err}
+        defer resp.Body.Close()
+        // html, err := ioutil.ReadAll(resp.Body)
+        // logs.Warn(string(html))
+        logs.Warn(resp.Body)
+
+    }else if fileType[len(fileType)-1] == "gz"{
+        if fileType[len(fileType)-2] == "tar"{
+            file, err := os.Open(tarGzFile)
+            defer file.Close()
             if err != nil {
-                logs.Error("TypeDir: "+err.Error())
                 return err
             }
-        case tar.TypeReg:
-            outFile, err := os.Create(pathDownloads+"/"+header.Name)
-            _, err = io.Copy(outFile, tarReader)
+        
+            uncompressedStream, err := gzip.NewReader(file)
             if err != nil {
-                logs.Error("TypeReg: "+err.Error())
                 return err
             }
-        default:
-            logs.Error(
-                "ExtractTarGz: uknown type: %s in %s",
-                header.Typeflag,
-                header.Name)
+        
+            tarReader := tar.NewReader(uncompressedStream)
+            for true {
+                header, err := tarReader.Next()
+                if err == io.EOF {
+                    break
+                }
+                if err != nil {
+                    return err
+                }
+        
+                switch header.Typeflag {
+                case tar.TypeDir:
+                    err := os.MkdirAll(pathDownloads+"/"+header.Name, 0755);
+                    if err != nil {
+                        logs.Error("TypeDir: "+err.Error())
+                        return err
+                    }
+                case tar.TypeReg:
+                    outFile, err := os.Create(pathDownloads+"/"+header.Name)
+                    _, err = io.Copy(outFile, tarReader)
+                    if err != nil {
+                        logs.Error("TypeReg: "+err.Error())
+                        return err
+                    }
+                default:
+                    logs.Error(
+                        "ExtractTarGz: uknown type: %s in %s",
+                        header.Typeflag,
+                        header.Name)
+                }
+            }
         }
+    }else if fileType[len(fileType)-1] == "tgz"{
+
     }
+
     return nil
 }
 

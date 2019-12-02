@@ -390,8 +390,8 @@ func OverwriteDownload(data map[string]string) (err error) {
         return err
     }
 
-    // err = utils.ExtractTarGz(data["path"], pathDownloaded, data["name"])
-    err = utils.ExtractTarGz(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
+    // err = utils.ExtractFile(data["path"], pathDownloaded, data["name"])
+    err = utils.ExtractFile(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
     if err != nil {
         logs.Error("Error unzipping file downloaded: "+err.Error())
         // err = os.RemoveAll(pathDownloaded+data["name"])
@@ -509,7 +509,7 @@ func DownloadFile(data map[string]string) (err error) {
             return err
         }
     
-        err = utils.ExtractTarGz(data["path"], pathDownloaded+pathSelected)
+        err = utils.ExtractFile(data["path"], pathDownloaded+pathSelected)
         if err != nil {
             logs.Error("Error unzipping file downloaded: "+err.Error())
             err = os.RemoveAll(pathDownloaded+pathSelected)
