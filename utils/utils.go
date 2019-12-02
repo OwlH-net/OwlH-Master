@@ -138,7 +138,6 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
         resp, err := http.Get(tarGzFile); if err != nil {logs.Error("ExtractFile ERROR: Cannot download a rule file"); return err}
         defer resp.Body.Close()
         // html, err := ioutil.ReadAll(resp.Body)
-        // logs.Warn(string(html))
         logs.Warn(resp.Body)
 
     }else if fileType[len(fileType)-1] == "gz"{
