@@ -503,17 +503,14 @@ func DownloadFile(data map[string]string) (err error) {
         if err != nil {
             logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
             _ = os.RemoveAll(pathDownloaded+pathSelected)
-            // if err!=nil { logs.Error("Error removing files DownloadFile due to download error: "+err.Error()); return err}
             _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-            // if err!=nil { logs.Error("Error updating isDownloaded variable at DownloadFile due to download error: "+err.Error()); return err}
             return err
         }
     
         err = utils.ExtractFile(data["path"], pathDownloaded+pathSelected)
         if err != nil {
             logs.Error("Error unzipping file downloaded: "+err.Error())
-            err = os.RemoveAll(pathDownloaded+pathSelected)
-            if err!=nil { logs.Error("Error getting main.conf data DownloadFile : "+err.Error()); return err}
+            _ = os.RemoveAll(pathDownloaded+pathSelected)
             return err
         }
 

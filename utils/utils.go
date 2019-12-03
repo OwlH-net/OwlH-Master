@@ -132,16 +132,15 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
     base := filepath.Base(tarGzFile)
     fileType := strings.Split(base, ".")
 
-
-
     if fileType[len(fileType)-1] == "rules"{
-        resp, err := http.Get(tarGzFile); if err != nil {logs.Error("ExtractFile ERROR: Cannot download a rule file"); return err}
-        defer resp.Body.Close()
-        // html, err := ioutil.ReadAll(resp.Body)
-        logs.Warn(resp.Body)
+        cmd := exec.Command("wget", tarGzFile, "-O", pathDownloads)
+        cmd.Stdout = os.Stdout
+        cmd.Stderr = os.Stderr
+        cmd.Run()
 
-    }else if fileType[len(fileType)-1] == "gz"{
-        if fileType[len(fileType)-2] == "tar"{
+    // }else if fileType[len(fileType)-1] == "gz"{
+    }else{
+        // if fileType[len(fileType)-2] == "tar"{
             file, err := os.Open(tarGzFile)
             defer file.Close()
             if err != nil {
@@ -184,9 +183,8 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
                         header.Name)
                 }
             }
-        }
-    }else if fileType[len(fileType)-1] == "tgz"{
-
+        // }
+    // }else if fileType[len(fileType)-1] == "tgz"{
     }
 
     return nil
