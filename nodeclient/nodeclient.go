@@ -40,7 +40,19 @@ func PingNode(ip string, port string) (err error) {
         return err
     }
     
+
+    body, err := ioutil.ReadAll(resp.Body)
     defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SyncClusterFileNode ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/SyncClusterFileNode ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
     return nil
 }
 
