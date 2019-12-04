@@ -419,7 +419,6 @@ func SortHashMap(data map[string]map[string]string)(dataSorted map[string]map[st
     for z := range val{
         for y := range data {
             if strings.ToLower(val[z]) == strings.ToLower(data[y]["name"]) {
-                logs.Info("EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS ")
                 if sortedValues[y] == nil { sortedValues[y] = map[string]string{}}
                 sortedValues[y] = data[y]
             }
