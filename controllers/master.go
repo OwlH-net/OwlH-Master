@@ -352,19 +352,19 @@ func (m *MasterController) GetIncidents() {
     m.ServeJSON()
 }
 
-// @Title PutIncident
-// @Description Add new incident
-// @Success 200 {object} models.Master
-// @router /incidents [post]
-func (n *MasterController) PutIncident() {
-    anode := make(map[string]string)
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+// // @Title PutIncident
+// // @Description Add new incident
+// // @Success 200 {object} models.Master
+// // @router /incidents [post]
+// func (n *MasterController) PutIncident() {
+//     anode := make(map[string]string)
+//     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
-    err := models.PutIncident(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+//     err := models.PutIncident(anode)
+//     n.Data["json"] = map[string]string{"ack": "true"}
 
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
-    n.ServeJSON()
-}
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }

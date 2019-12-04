@@ -1257,22 +1257,22 @@ func (m *NodeController) GetIncidentsNode() {
     m.ServeJSON()
 }
 
-// @Title PutIncidentNode
-// @Description Add new incident at node
-// @Success 200 {object} models.Master
-// @router /incidents [post]
-func (n *NodeController) PutIncidentNode() {
-    anode := make(map[string]string)
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+// // @Title PutIncidentNode
+// // @Description Add new incident at node
+// // @Success 200 {object} models.Master
+// // @router /incidents [post]
+// func (n *NodeController) PutIncidentNode() {
+//     anode := make(map[string]string)
+//     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
-    err := models.PutIncidentNode(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+//     err := models.PutIncidentNode(anode)
+//     n.Data["json"] = map[string]string{"ack": "true"}
 
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
-    n.ServeJSON()
-}
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }
 
 // @Title ChangeSuricataTable
 // @Description Change mainconf db values

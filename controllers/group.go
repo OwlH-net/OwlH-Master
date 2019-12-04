@@ -129,7 +129,7 @@ func (n *GroupController) GetNodeValues() {
 // @Title DeleteNodeGroup
 // @Description add nodes to a group
 // @Success 200 {object} models.Groups
-// @router /deleteNodeGroup/:uuid [put]
+// @router /deleteNodeGroup/:uuid [delete]
 func (n *GroupController) DeleteNodeGroup() { 
     uuid := n.GetString(":uuid") 
     err := models.DeleteNodeGroup(uuid)
