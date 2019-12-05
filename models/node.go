@@ -62,7 +62,7 @@ func Suricata(n string) (data map[string]bool, err error) {
 }
 
 // curl -X GET \
-//   https://52.47.197.22:50002/v1/node/xeek/:uuid \
+//   https://52.47.197.22:50002/v1/node/zeek/:uuid \
 func Zeek(n string) (data  map[string]bool, err error) {
     data,err = node.Zeek(n)
     changecontrol.ChangeControlInsertData(err, "Ping Zeek")
