@@ -42,7 +42,7 @@ func SaveFileContent(anode map[string]string) (err error) {
 //   https://52.47.197.22:50002/v1/master/pingPlugins \
 // }
 func PingPlugins() (data map[string]map[string]string, err error) {
-    data,err = ndb.PingPlugins()
+    data,err = master.PingPlugins()
     changecontrol.ChangeControlInsertData(err, "PingPlugins")
     return data,err
 }
