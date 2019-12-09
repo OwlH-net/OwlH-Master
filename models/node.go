@@ -2,6 +2,7 @@ package models
 
 import (
     "owlhmaster/node"
+    "owlhmaster/nodeclient"
     "owlhmaster/changeControl"
     "errors"
 )
@@ -63,7 +64,7 @@ func Suricata(n string) (data map[string]bool, err error) {
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/node/zeek/:uuid \
-func Zeek(n string) (data  map[string]bool, err error) {
+func Zeek(n string) (data nodeclient.ZeekData, err error) {
     data,err = node.Zeek(n)
     changecontrol.ChangeControlInsertData(err, "Ping Zeek")
     return data,err
@@ -919,4 +920,64 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
     log,err = node.SyncAnalyzerToAllGroupNodes(anode)
     changecontrol.ChangeControlInsertData(err, "SyncAnalyzerToAllGroupNodes")
     return log,err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/StartSuricataMain \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v"
+// }
+func StartSuricataMainConf(uuid map[string]string)(err error) {
+    err = node.StartSuricataMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "StartSuricataMainConf")
+    return err
+}
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/StopSuricataMain \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v"
+// }
+func StopSuricataMainConf(uuid map[string]string)(err error) {
+    err = node.StopSuricataMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "StopSuricataMainConf")
+    return err
+}
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/KillSuricataMain \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "pid": "v"
+// }
+func KillSuricataMainConf(uuid map[string]string)(err error) {
+    err = node.KillSuricataMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "KillSuricataMainConf")
+    return err
+}
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/ReloadSuricataMain \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "pid": "v"
+// }
+func ReloadSuricataMainConf(uuid map[string]string)(err error) {
+    err = node.ReloadSuricataMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "ReloadSuricataMainConf")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/LaunchZeekMainConf \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "param": "v"
+// }
+func LaunchZeekMainConf(uuid map[string]string)(err error) {
+    err = node.LaunchZeekMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "LaunchZeekMainConf")
+    return err
 }

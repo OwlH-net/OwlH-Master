@@ -7,16 +7,16 @@ import (
     "owlhmaster/nodeclient"
 )
 
-func Zeek(n string) (data map[string]bool, err error) {
+func Zeek(n string) (data nodeclient.ZeekData, err error) {
     ip,port,err := ndb.ObtainPortIp(n)
     if err != nil {
         logs.Info("Zeek - get IP and PORT Error -> %s", err.Error())
-        return nil,err
+        return data,err
     }    
     logs.Info("Zeek IP and PORT -> %s, %s", ip, port)
     data, err = nodeclient.Zeek(ip,port)
     if err != nil {
-        return nil,err
+        return data,err
     }
     return data,nil
 }
@@ -146,6 +146,18 @@ func SyncCluster(anode map[string]string)(err error){
     
     err = nodeclient.SyncCluster(ipnid,portnid,anode)
     if err != nil { logs.Error("node/SyncCluster ERROR http data request: "+err.Error()); return err}
+
+    return nil
+}
+
+func LaunchZeekMainConf(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("LaunchZeekMainConf -- Can't acces to database"); return err}
+
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil { logs.Error("node/LaunchZeekMainConf ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.LaunchZeekMainConf(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/LaunchZeekMainConf ERROR http data request: "+err.Error()); return err}
 
     return nil
 }

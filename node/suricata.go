@@ -134,3 +134,48 @@ func ChangeSuricataTable(anode map[string]string)(err error){
 
     return nil
 }
+
+func StartSuricataMainConf(anode map[string]string)(err error){
+    if ndb.Db == nil {logs.Error("StartSuricataMainConf -- Can't acces to database: "); return errors.New("StartSuricataMainConf -- Can't acces to database")}
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil {logs.Error("node/StartSuricataMainConf ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+    err = nodeclient.StartSuricataMainConf(ipnid,portnid,anode)
+    if err != nil {logs.Error("nodeclient.StartSuricataMainConf error HTTP data request: "+err.Error()); return err}
+
+    return nil
+}
+func StopSuricataMainConf(anode map[string]string)(err error){
+    if ndb.Db == nil {logs.Error("StopSuricataMainConf -- Can't acces to database: "); return errors.New("StartSuricataMainConf -- Can't acces to database")}
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil {logs.Error("node/StopSuricataMainConf ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+    err = nodeclient.StopSuricataMainConf(ipnid,portnid,anode)
+    if err != nil {logs.Error("nodeclient.StopSuricataMainConf error HTTP data request: "+err.Error()); return err}
+
+    return nil
+}
+func KillSuricataMainConf(anode map[string]string)(err error){
+    if ndb.Db == nil {logs.Error("KillSuricataMainConf -- Can't acces to database: "); return errors.New("StartSuricataMainConf -- Can't acces to database")}
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil {logs.Error("node/KillSuricataMainConf ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+    err = nodeclient.KillSuricataMainConf(ipnid,portnid,anode)
+    if err != nil {logs.Error("nodeclient.KillSuricataMainConf error HTTP data request: "+err.Error()); return err}
+
+    return nil
+}
+func ReloadSuricataMainConf(anode map[string]string)(err error){
+    if ndb.Db == nil {logs.Error("ReloadSuricataMainConf -- Can't acces to database: "); return errors.New("StartSuricataMainConf -- Can't acces to database")}
+    
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil {logs.Error("node/ReloadSuricataMainConf ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+    err = nodeclient.ReloadSuricataMainConf(ipnid,portnid,anode)
+    if err != nil {logs.Error("nodeclient.ReloadSuricataMainConf error HTTP data request: "+err.Error()); return err}
+
+    return nil
+}

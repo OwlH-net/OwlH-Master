@@ -148,12 +148,6 @@ func (n *NodeController) GetSuricata() {
 func (n *NodeController) GetZeek() {
     nid := n.GetString(":nid")
     data,err := models.Zeek(nid)
-
-    logs.Warn("GetZeek")
-    logs.Warn(data)
-    // var anode map[string]string
-    // json.Unmarshal(data, &anode)
-    // n.Data["json"] = anode
     n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
@@ -1321,5 +1315,77 @@ func (n *NodeController) SyncAnalyzerToAllGroupNodes() {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
 
+    n.ServeJSON()
+}
+
+// @Title StartSuricataMainConf
+// @Description Start Suricata Main Conf
+// @Success 200 {object} models.Node
+// @router /StartSuricataMain [put]
+func (n *NodeController) StartSuricataMainConf() { 
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.StartSuricataMainConf(anode)
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+// @Title StopSuricataMainConf
+// @Description Stop Suricata Main Conf
+// @Success 200 {object} models.Node
+// @router /StopSuricataMain [put]
+func (n *NodeController) StopSuricataMainConf() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.StopSuricataMainConf(anode)
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+// @Title KillSuricataMainConf
+// @Description Kill Suricata Main Conf
+// @Success 200 {object} models.Node
+// @router /KillSuricataMain [put]
+func (n *NodeController) KillSuricataMainConf() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.KillSuricataMainConf(anode)
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+// @Title ReloadSuricataMainConf
+// @Description Kill Suricata Main Conf
+// @Success 200 {object} models.Node
+// @router /ReloadSuricataMain [put]
+func (n *NodeController) ReloadSuricataMainConf() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.ReloadSuricataMainConf(anode)
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title LaunchZeekMainConf
+// @Description Launch Zeek option through Main.conf
+// @Success 200 {object} models.Node
+// @router /LaunchZeekMainConf [put]
+func (n *NodeController) LaunchZeekMainConf() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    err := models.LaunchZeekMainConf(anode)
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
     n.ServeJSON()
 }

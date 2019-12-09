@@ -11,6 +11,38 @@ import (
     "time"
 )
 
+//Zeek data struct
+type ZeekData struct {
+    Path        bool                `json:"path"`
+    Rol         string              `json:"role"`
+    Bin         bool                `json:"bin"`
+    Action      string              `json:"action"`
+    Running     []ZeekNodeStatus    `json:"running"`
+    Mode        string              `json:"mode"`
+    Managed     bool                `json:"managed"`
+    Nodes       []ZeekNode          `json:"nodes"`
+    Extra       map[string]string   `json:"extra"`
+}
+type ZeekKeys struct {
+    Key         string              `json:"key"`
+    Value       string              `json:"value"`
+}
+type ZeekNode struct {
+    Name        string              `json:"name"`
+    Host        string              `json:"host"`
+    Status      string              `json:"status"`
+    Type        string              `json:"type"`
+    NInterface  string              `json:"interface"`
+    Pid         string              `json:"pid"`
+    Started     string              `json:"started"`
+    Extra       []ZeekKeys          `json:"extra"`
+}
+type ZeekNodeStatus struct {
+    Status      string              `json:"status"`
+    Nodes       int                 `json:"nodes"`
+}
+
+
 func init() {
 
 }
@@ -90,13 +122,13 @@ func Suricata(ip string, port string) (data map[string]bool, err error ) {
     return data,nil
 }
 
-func Zeek(ip string, port string) (data map[string]bool, err error ) {
+func Zeek(ip string, port string) (data ZeekData, err error ) {
     logs.Info("NodeClient zeek status -> %s, %s", ip, port)
     url := "https://"+ip+":"+port+"/node/zeek"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
         logs.Error("nodeClient/Zeek ERROR connection through http new Request: "+err.Error())
-        return nil,err
+        return data,err
     }
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
@@ -106,7 +138,7 @@ func Zeek(ip string, port string) (data map[string]bool, err error ) {
     err = json.Unmarshal(body, &data)
     if err != nil {
         logs.Error("nodeClient/Zeek -- ERROR JSON unmarshal: "+err.Error())
-        return nil,err
+        return data,err
     }
     defer resp.Body.Close()
     return data,nil
@@ -1504,6 +1536,126 @@ func SyncClusterFileNode(ipData string, portData string, data []byte)(err error)
     err = json.Unmarshal(body, &returnValues)
     if err != nil { logs.Error("nodeclient/SyncClusterFileNode ERROR doing unmarshal JSON: "+err.Error()); return err}
 
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func StartSuricataMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/suricata/StartSuricataMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/StartSuricataMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/StartSuricataMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/StartSuricataMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func StopSuricataMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/suricata/StopSuricataMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/StopSuricataMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/StopSuricataMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/StopSuricataMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func KillSuricataMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/suricata/KillSuricataMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/KillSuricataMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/KillSuricataMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/KillSuricataMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func ReloadSuricataMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/suricata/ReloadSuricataMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/ReloadSuricataMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/ReloadSuricataMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/ReloadSuricataMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+    
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func LaunchZeekMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/zeek/LaunchZeekMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/LaunchZeekMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/LaunchZeekMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/LaunchZeekMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+    
     if returnValues["ack"] == "false"{
         return errors.New(returnValues["error"])
     }
