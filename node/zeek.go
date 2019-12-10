@@ -157,7 +157,7 @@ func LaunchZeekMainConf(anode map[string]string)(err error){
     if err != nil { logs.Error("node/LaunchZeekMainConf ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
     err = nodeclient.LaunchZeekMainConf(ipnid,portnid,anode)
-    if err != nil { logs.Error("node/LaunchZeekMainConf ERROR http data request: "+err.Error()); return err}
+    if err != nil { logs.Error("node/LaunchZeekMainConf ERROR http data request PUT Zeek status: "+err.Error()); return err}
 
     return nil
 }
