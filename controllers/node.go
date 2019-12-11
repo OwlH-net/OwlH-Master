@@ -1188,6 +1188,24 @@ func (n *NodeController) EditClusterValue() {
     n.ServeJSON()
 }
 
+// @Title SaveZeekValues
+// @Description Edit Zeek expert values
+// @Success 200 {object} models.Node
+// @router /zeek/saveZeekValues [put]
+func (n *NodeController) SaveZeekValues() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.SaveZeekValues(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
 // @Title DeleteClusterValue
 // @Description Delete cluster value
 // @Success 200 {object} models.Node

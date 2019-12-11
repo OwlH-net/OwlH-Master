@@ -161,3 +161,15 @@ func LaunchZeekMainConf(anode map[string]string)(err error){
 
     return nil
 }
+
+func SaveZeekValues(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("SaveZeekValues -- Can't acces to database"); return err}
+
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil { logs.Error("node/SaveZeekValues ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+    err = nodeclient.SaveZeekValues(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/SaveZeekValues ERROR http data request: "+err.Error()); return err}
+
+    return nil
+}

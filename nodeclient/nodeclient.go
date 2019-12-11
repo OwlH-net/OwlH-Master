@@ -1662,3 +1662,27 @@ func LaunchZeekMainConf(ipData string, portData string, anode map[string]string)
 
     return nil
 }
+
+func SaveZeekValues(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/zeek/saveZeekValues"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SaveZeekValues ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SaveZeekValues ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/SaveZeekValues ERROR doing unmarshal JSON: "+err.Error()); return err}
+    
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
