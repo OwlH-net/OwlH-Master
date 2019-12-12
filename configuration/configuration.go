@@ -213,6 +213,62 @@ func checkFields()(ok bool){
         return false
     }
 
+    //Create default Zeek values
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='nodeConfig'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','nodeConfig','')"
+    field.Fname      = "plugin - nodeConfig"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='networksConfig'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','networksConfig','')"
+    field.Fname      = "plugin - networksConfig"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='policiesMaster'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','policiesMaster','')"
+    field.Fname      = "plugin - policiesMaster"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='policiesNode'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','policiesNode','')"
+    field.Fname      = "plugin - policiesNode"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='variables1'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','variables1','')"
+    field.Fname      = "plugin - variables1"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='variables2'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','variables2','')"
+    field.Fname      = "plugin - variables2"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
     return true
 }
 

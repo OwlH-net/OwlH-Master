@@ -5,6 +5,7 @@ import (
     "owlhmaster/database"
     "errors"
     "owlhmaster/nodeclient"
+    "io/ioutil"
 )
 
 func Zeek(n string) (data nodeclient.ZeekData, err error) {
@@ -162,14 +163,37 @@ func LaunchZeekMainConf(anode map[string]string)(err error){
     return nil
 }
 
-func SaveZeekValues(anode map[string]string)(err error){
-    if ndb.Db == nil { logs.Error("SaveZeekValues -- Can't acces to database"); return err}
+// func SaveZeekValues(anode map[string]string)(err error){
+//     if ndb.Db == nil { logs.Error("SaveZeekValues -- Can't acces to database"); return err}
+
+//     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+//     if err != nil { logs.Error("node/SaveZeekValues ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    
+//     err = nodeclient.SaveZeekValues(ipnid,portnid,anode)
+//     if err != nil { logs.Error("node/SaveZeekValues ERROR http data request: "+err.Error()); return err}
+
+//     return nil
+// }
+
+func SyncZeekValues(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("SyncZeekValues -- Can't acces to database"); return err}
 
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
-    if err != nil { logs.Error("node/SaveZeekValues ERROR Obtaining Port and Ip: "+err.Error()); return err}
-    
-    err = nodeclient.SaveZeekValues(ipnid,portnid,anode)
-    if err != nil { logs.Error("node/SaveZeekValues ERROR http data request: "+err.Error()); return err}
+    if err != nil { logs.Error("node/SyncZeekValues ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
-    return nil
+    data,err := ndb.GetPlugins()
+    for x,y := range data {
+        for y := range y {
+            if x == "zeek"{
+                fileReaded, err := ioutil.ReadFile(data[x][y])
+                if err != nil {logs.Error("zeek/SyncZeekValues Error reading file for path: "+data[x][y])}
+                syncValue := make(map[string]string)
+                syncValue[y] = string(fileReaded)
+
+                err = nodeclient.SyncZeekValues(ipnid,portnid,syncValue)
+                if err != nil { logs.Error("zeek/SyncZeekValues ERROR http data request: "+err.Error()); return err}
+            }
+        }
+    }
+    return err
 }

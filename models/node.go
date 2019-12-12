@@ -823,20 +823,6 @@ func EditClusterValue(anode map[string]string)(err error){
     return err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/node/zeek/saveZeekValues \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "uuid": "v",
-//     "param": "v",
-//     "node": "v"
-// }
-func SaveZeekValues(anode map[string]string)(err error){
-    err = node.SaveZeekValues(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveZeekValues")
-    return err
-}
-
 // curl -X DELETE \
 //   https://52.47.197.22:50002/v1/node/zeek/deleteClusterValue \
 //   -H 'Content-Type: application/json' \
@@ -993,5 +979,17 @@ func ReloadSuricataMainConf(uuid map[string]string)(err error) {
 func LaunchZeekMainConf(uuid map[string]string)(err error) {
     err = node.LaunchZeekMainConf(uuid)
     changecontrol.ChangeControlInsertData(err, "LaunchZeekMainConf")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/zeek/syncZeekValues \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v"
+// }
+func SyncZeekValues(anode map[string]string)(err error){
+    err = node.SyncZeekValues(anode)
+    changecontrol.ChangeControlInsertData(err, "SyncZeekValues")
     return err
 }

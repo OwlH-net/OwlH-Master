@@ -368,3 +368,65 @@ func (m *MasterController) GetIncidents() {
 //     }
 //     n.ServeJSON()
 // }
+
+// @Title SaveZeekValues
+// @Description Edit Zeek expert values
+// @Success 200 {object} models.Master
+// @router /zeek/saveZeekValues [put]
+func (n *MasterController) SaveZeekValues() {
+    anode := make(map[string]string)
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+    err := models.SaveZeekValues(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title PingPluginsMaster
+// @Description Get Master plugins
+// @Success 200 {object} models.Master
+// @router /pingPlugins [get]
+func (m *MasterController) PingPluginsMaster() {
+    data, err := models.PingPluginsMaster()
+    m.Data["json"] = data
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+    }
+    m.ServeJSON()
+}
+
+// @Title GetPathFileContent
+// @Description Get file content from path
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /editPathFile/:param [get]
+func (m *MasterController) GetPathFileContent() {
+    param := m.GetString(":param")
+    data, err := models.GetPathFileContent(param)
+    m.Data["json"] = data
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+    }
+    m.ServeJSON()
+}
+
+// @Title SaveFilePathContent
+// @Description Set file content to selected path file
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /savefilePath [put]
+func (m *MasterController) SaveFilePathContent() {
+    anode := make(map[string]string)
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+    err := models.SaveFilePathContent(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+    }
+    m.ServeJSON()
+}

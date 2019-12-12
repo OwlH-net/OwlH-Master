@@ -294,3 +294,49 @@ func PutIncident(anode map[string]string)(err error){
     changecontrol.ChangeControlInsertData(err, "PutIncident")
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/zeek/saveZeekValues \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "param": "v",
+//     "node": "v"
+// }
+func SaveZeekValues(anode map[string]string)(err error){
+    err = master.SaveZeekValues(anode)
+    changecontrol.ChangeControlInsertData(err, "SaveZeekValues")
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/incidents \
+// }
+func PingPluginsMaster()(data map[string]map[string]string, err error){
+    data,err = master.PingPluginsMaster()
+    changecontrol.ChangeControlInsertData(err, "PingPluginsMaster")
+    return data,err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/editPathFile/:path \
+// }
+func GetPathFileContent(param string) (data map[string]string, err error) {
+    data, err = master.GetPathFileContent(param)
+    changecontrol.ChangeControlInsertData(err, "GetPathFileContent")
+    return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/savefilePath \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "file": "v",
+//     "content": "v"
+//  }
+// }
+func SaveFilePathContent(anode map[string]string) (err error) {
+    err = master.SaveFilePathContent(anode)
+    changecontrol.ChangeControlInsertData(err, "SaveFilePathContent")
+    return err
+}
