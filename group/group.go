@@ -366,10 +366,6 @@ func DeleteCluster(data map[string]string)(err error) {
 }
 
 func ChangeClusterValue(anode map[string]string)(err error) {
-    logs.Notice(anode)
-    logs.Notice(anode)
-    logs.Notice(anode)
-    logs.Notice(anode)
     //check if exists path
     if _, err := os.Stat(anode["path"]); os.IsNotExist(err) {
         logs.Error("New cluster path doesn't exists: "+err.Error()); 
@@ -464,5 +460,34 @@ func SyncAllGroupCluster(data map[string]string)(err error) {
         }
     }
     
+    return nil
+}
+
+func SyncAllSuricataGroup(data map[string]string)(err error) {
+    groups,err := ndb.GetAllGroups()
+    if err != nil { logs.Error("node/SyncAllSuricataGroup ERROR getting all group nodes: "+err.Error()); return err}
+    gr,err := ndb.GetGroupNodesByUUID(data["uuid"])
+    if err != nil { logs.Error("group/SyncAllSuricataGroup ERROR getting all group nodes: "+err.Error()); return err}
+
+    for x,y := range groups{
+        anode := make(map[string]string)
+        if x == data["uuid"]{
+            for y := range y{
+                anode[y] = groups[x][y]
+            }
+            for w := range gr{
+                //get ip and port for node
+                if ndb.Db == nil { logs.Error("group/SyncAllSuricataGroup -- Can't access to database"); return err}
+                ipnid,portnid,err := ndb.ObtainPortIp(gr[w]["nodesid"])
+                if err != nil { logs.Error("group/SyncAllSuricataGroup ERROR Obtaining Port and Ip: "+err.Error()); return err}
+                
+                //send to nodeclient all data
+                err = nodeclient.SyncAllSuricataGroup(ipnid,portnid,anode)
+                if err != nil { logs.Error("group/SyncAllSuricataGroup ERROR http data request: "+err.Error()); return err}    
+        
+            }
+        }
+    }
+
     return nil
 }

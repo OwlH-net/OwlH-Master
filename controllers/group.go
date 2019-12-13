@@ -336,3 +336,19 @@ func (n *GroupController) SyncAllGroupCluster() {
     }
     n.ServeJSON()
 }
+
+// @Title SyncAllSuricataGroup
+// @Description Synchronize all group elements
+// @Success 200 {object} models.Groups
+// @router /syncAllSuricataGroup [put]
+func (n *GroupController) SyncAllSuricataGroup() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    err := models.SyncAllSuricataGroup(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

@@ -1710,3 +1710,27 @@ func SyncZeekValues(ipData string, portData string, anode map[string]string)(err
 
     return nil
 }
+
+func SyncAllSuricataGroup(ipData string, portData string, data map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/group/sync"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SyncAllSuricataGroup ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SyncAllSuricataGroup ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/SyncAllSuricataGroup ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
