@@ -413,29 +413,29 @@ func PutIncident(anode map[string]string)(err error){
 func SaveZeekValues(anode map[string]string) (err error) {
     if anode["param"] == "nodeConfig"{
         if _, err := os.Stat(anode["nodeConfig"]); os.IsNotExist(err) {
-            logs.Error("master/SaveZeekValues Path error: "+err.Error()); return err
+            logs.Error("master/SaveZeekValues node config path error: "+err.Error()); return err
         }
         err = ndb.UpdatePluginValueMaster("zeek", anode["param"], anode["nodeConfig"])
         if err != nil{logs.Error("master/SaveZeekValues Error writting node content: "+err.Error()); return err}
     }
     if anode["param"] == "networksConfig"{
         if _, err := os.Stat(anode["networksConfig"]); os.IsNotExist(err) {
-            logs.Error("master/SaveZeekValues Path error: "+err.Error()); return err
+            logs.Error("master/SaveZeekValues networks config path error: "+err.Error()); return err
         }
         err = ndb.UpdatePluginValueMaster("zeek", anode["param"], anode["networksConfig"])
         if err != nil{logs.Error("master/SaveZeekValues Error writting networks content: "+err.Error()); return err}
         }            
     if anode["param"] == "policies"{
         if _, err := os.Stat(anode["policiesMaster"]); os.IsNotExist(err) {
-            logs.Error("master/SaveZeekValues Path error: "+err.Error()); return err
+            logs.Error("master/SaveZeekValues policies path error: "+err.Error()); return err
         }
         err = ndb.UpdatePluginValueMaster("zeek", "policiesMaster", anode["policiesMaster"]); if err != nil{logs.Error("master/SaveZeekValues Error writting policies content: "+err.Error()); return err}
         err = ndb.UpdatePluginValueMaster("zeek", "policiesNode", anode["policiesNode"]); if err != nil{logs.Error("master/SaveZeekValues Error writting policies content: "+err.Error()); return err}
     }            
     if anode["param"] == "variables"{
-        // if _, err := os.Stat(anode["nodeConfig"]); os.IsNotExist(err) {
-        //     logs.Error("master/SaveZeekValues Path error: "+err.Error()); return err
-        // }
+        if _, err := os.Stat(anode["variables1"]); os.IsNotExist(err) {
+            logs.Error("master/SaveZeekValues variables path error: "+err.Error()); return err
+        }
         err = ndb.UpdatePluginValueMaster("zeek", "variables1", anode["variables1"]); if err != nil{logs.Error("master/SaveZeekValues Error writting variables content: "+err.Error()); return err}
         err = ndb.UpdatePluginValueMaster("zeek", "variables2", anode["variables2"]); if err != nil{logs.Error("master/SaveZeekValues Error writting variables content: "+err.Error()); return err}
     }            

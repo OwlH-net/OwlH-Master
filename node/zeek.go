@@ -185,10 +185,22 @@ func SyncZeekValues(anode map[string]string)(err error){
     for x,y := range data {
         for y := range y {
             if x == "zeek"{
+                if y == "policiesNode" || y == "variables2"{
+                    continue
+                }
                 fileReaded, err := ioutil.ReadFile(data[x][y])
-                if err != nil {logs.Error("zeek/SyncZeekValues Error reading file for path: "+data[x][y])}
+                if err != nil {logs.Error("zeek/SyncZeekValues Error reading file for path: "+data[x][y]); return err}
                 syncValue := make(map[string]string)
                 syncValue[y] = string(fileReaded)
+                
+                if y == "policiesMaster" || y == "variables1"{
+                    if y == "policiesMaster"{
+                        syncValue["dst"] = data[x]["policiesNode"]
+                    } 
+                    if y == "variables1"{
+                        syncValue["dst"] = data[x]["variables2"]
+                    } 
+                }                
 
                 err = nodeclient.SyncZeekValues(ipnid,portnid,syncValue)
                 if err != nil { logs.Error("zeek/SyncZeekValues ERROR http data request: "+err.Error()); return err}
