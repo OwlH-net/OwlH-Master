@@ -335,3 +335,25 @@ func SyncAllSuricataGroup(data map[string]string)(err error) {
     changecontrol.ChangeControlInsertData(err, "SyncAllSuricataGroup")
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/group/suricata \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "d",
+//     "action": "stop" //or start
+// }
+func SuricataGroupService(data map[string]string)(err error) {
+    err = group.SuricataGroupService(data)
+    changecontrol.ChangeControlInsertData(err, "SuricataGroupService")
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/group/suricata/status/:uuid \
+// }
+func SuricataNodesStatus(uuid string)(data map[string]map[string]string, err error) {
+    data, err = group.SuricataNodesStatus(uuid)
+    changecontrol.ChangeControlInsertData(err, "SuricataNodesStatus")
+    return data, err
+}

@@ -465,9 +465,9 @@ func SyncAllGroupCluster(data map[string]string)(err error) {
 
 func SyncAllSuricataGroup(data map[string]string)(err error) {
     groups,err := ndb.GetAllGroups()
-    if err != nil { logs.Error("node/SyncAllSuricataGroup ERROR getting all group nodes: "+err.Error()); return err}
-    gr,err := ndb.GetGroupNodesByUUID(data["uuid"])
     if err != nil { logs.Error("group/SyncAllSuricataGroup ERROR getting all group nodes: "+err.Error()); return err}
+    gr,err := ndb.GetGroupNodesByUUID(data["uuid"])
+    if err != nil { logs.Error("group/SyncAllSuricataGroup ERROR getting a group by id: "+err.Error()); return err}
 
     for x,y := range groups{
         anode := make(map[string]string)
@@ -490,4 +490,56 @@ func SyncAllSuricataGroup(data map[string]string)(err error) {
     }
 
     return nil
+}
+
+func SuricataGroupService(data map[string]string)(err error) {
+    gr,err := ndb.GetGroupNodesByUUID(data["uuid"])
+    if err != nil { logs.Error("group/SuricataGroupService ERROR getting a group by id: "+err.Error()); return err}
+
+    for w := range gr{
+        //get ip and port for node
+        if ndb.Db == nil { logs.Error("group/SuricataGroupService -- Can't access to database"); return err}
+        ipnid,portnid,err := ndb.ObtainPortIp(gr[w]["nodesid"])
+        if err != nil { logs.Error("group/SuricataGroupService ERROR Obtaining Port and Ip: "+err.Error()); return err}
+        
+        //send to nodeclient all data
+        err = nodeclient.SuricataGroupService(ipnid,portnid,data)
+        if err != nil { logs.Error("group/SuricataGroupService ERROR http data request: "+err.Error()); return err}    
+
+    }
+
+    return nil
+}
+
+
+func SuricataNodesStatus(uuid string)(data map[string]map[string]string, err error) {
+    nodePlugins := map[string]map[string]string{}
+
+    gr,err := ndb.GetGroupNodesByUUID(uuid)
+    if err != nil { logs.Error("group/SuricataNodesStatus ERROR getting a group by id: "+err.Error()); return nil,err}
+
+    for w := range gr{
+        //get ip and port for node
+        if ndb.Db == nil { logs.Error("group/SuricataNodesStatus -- Can't access to database"); return nil,err}
+        ipnid,portnid,err := ndb.ObtainPortIp(gr[w]["nodesid"])
+        if err != nil { logs.Error("group/SuricataNodesStatus ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+        
+        //send to nodeclient all data
+        plugins,err := nodeclient.PingPluginsNode(ipnid,portnid)
+        if err != nil { logs.Error("group/SuricataNodesStatus ERROR http data request: "+err.Error()); return nil,err}    
+
+        for x,y := range plugins{
+            nodePlugins[x] = map[string]string{}
+            for y := range y{
+                nodePlugins[x][y] = plugins[x][y]
+                nodePlugins[x]["ip"] = ipnid
+                nodePlugins[x]["port"] = portnid
+                nodeName,err := ndb.ObtainNodeName(gr[w]["nodesid"])
+                if err != nil { logs.Error("group/SuricataNodesStatus ERROR getting node name: "+err.Error()); return nil,err}   
+                nodePlugins[x]["nodeName"] = nodeName
+            }
+        }
+    }
+    
+    return nodePlugins, err
 }

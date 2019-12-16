@@ -352,3 +352,34 @@ func (n *GroupController) SyncAllSuricataGroup() {
     }
     n.ServeJSON()
 }
+
+// @Title SuricataGroupService
+// @Description Suricata stazrt/stop for all group nodes.
+// @Success 200 {object} models.Groups
+// @router /suricata [put]
+func (n *GroupController) SuricataGroupService() { 
+    var anode map[string]string
+    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+    err := models.SuricataGroupService(anode)
+    n.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}
+
+// @Title SuricataNodesStatus
+// @Description Get cluster file content from Zeek group
+// @Success 200 {object} models.Groups
+// @router /suricata/status/:uuid [get]
+func (n *GroupController) SuricataNodesStatus() { 
+    uuid := n.GetString(":uuid") 
+
+    data,err := models.SuricataNodesStatus(uuid)
+    n.Data["json"] = data
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    n.ServeJSON()
+}

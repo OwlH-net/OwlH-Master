@@ -1734,3 +1734,27 @@ func SyncAllSuricataGroup(ipData string, portData string, data map[string]string
 
     return nil
 }
+
+func SuricataGroupService(ipData string, portData string, data map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/group/suricata"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SuricataGroupService ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SuricataGroupService ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+    // if err != nil { logs.Error("nodeclient/SuricataGroupService ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
+
+    return nil
+}
