@@ -742,11 +742,6 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
             return nil,err
         }
 
-        // path,err := ndb.GetRulesetSourceValue(anode["dest"], "path") 
-        // if err != nil {
-        //     logs.Error("AddRulesToCustomRuleset -- Error getting GetRulesetSourceValue: %s", err.Error())
-        //     return nil,err
-        // }
         file, err := os.Open(path)
         defer file.Close()
 
@@ -849,6 +844,15 @@ func SaveRulesetData(anode map[string]string)(err error) {
     if err != nil {
         logs.Error("SaveRulesetData failed writing to file: %s", err)
         return err
+    }
+    
+    //update md5
+    allFiles,err := ndb.GetAllRuleFiles()
+    for g := range allFiles {
+        if uuid == g{                   
+            sourceMD5,err := utils.CalculateMD5(allFiles[g]["path"]); if err != nil {logs.Error("SaveRulesetData Error calculating source md5: %s", err.Error()); return err}    
+            err = ndb.UpdateRuleFiles(g, "md5", sourceMD5); if err != nil {logs.Error("SaveRulesetData Error updating source md5: %s", err.Error()); return err}                  
+        }
     }
     
     return nil

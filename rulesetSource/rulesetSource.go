@@ -695,10 +695,8 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
     for x := range dbFiles{
         checked = utils.VerifyPathExists(dbFiles[x]["path"])
         err = ndb.UpdateRuleFiles(x, "exists", checked)
-        if err != nil {
-            logs.Error("ndb.UpdateRuleFiles Error : %s", err.Error())
-            return nil, err
-        }
+        if err != nil {logs.Error("ndb.UpdateRuleFiles Error : %s", err.Error()); return nil, err}
+
         dbFiles[x]["exists"]=checked
 
         //get sourceUUID from rule_files files by uuid
@@ -712,6 +710,10 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
         for n := range sourceFile{
             dbFiles[x]["existsSourceFile"]=utils.VerifyPathExists(sourceFile[n]["path"])
             md5S,err := utils.CalculateMD5(sourceFile[n]["path"])
+
+            logs.Notice(md5S)
+            logs.Warn(sourceFile[n]["md5"])
+
             if (sourceFile[n]["md5"] != md5S){
                 dbFiles[x]["isUpdated"]="true"
                 err = ndb.UpdateRuleFiles(n, "isUpdated", "true")
@@ -741,7 +743,7 @@ func OverwriteRuleFile(uuid string)(err error){
     for r := range dbFiles {
         sourceFile,err = ndb.GetRuleFilesByUniqueid(dbFiles[r]["sourceFileUUID"])
         if err != nil {
-            logs.Error("SaveRulesetData failed writing to file: %s", err)
+            logs.Error("OverwriteRuleFile failed writing to file: %s", err)
             return err
         }
 
