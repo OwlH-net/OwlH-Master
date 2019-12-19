@@ -581,7 +581,7 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
         defer rows.Close()
         for rows.Next() {
             if err = rows.Scan(&uniqidSub, &paramSub, &valueSub); err != nil {
-                logs.Error("GetDetails rows.Scan: %s", err.Error())
+                logs.Error("GetAllRuleData rows.Scan: %s", err.Error())
                 return nil, err
             }
             if allRuleDetails[uniqidSub] == nil { allRuleDetails[uniqidSub] = map[string]string{}}
@@ -827,33 +827,25 @@ func ReadRulesetData(uuid string)(content map[string]string, err error) {
 }
 
 func SaveRulesetData(anode map[string]string)(err error) {
+    logs.Notice(anode["uuid"])
     uuid := anode["uuid"]
     content := anode["content"]
     
     path,err := ndb.GetRulesetPath(uuid)
 
     file, err := os.OpenFile(path, os.O_RDWR, 0644)
-    if err != nil {
-        logs.Error("SaveRulesetData failed opening file: %s", err)
-        return err
-    }
+    if err != nil {logs.Error("SaveRulesetData failed opening file: %s", err); return err}
+
     defer file.Close()
     file.Truncate(0)
     file.Seek(0,0)
     _, err = file.WriteAt([]byte(content), 0) // Write at 0 beginning
-    if err != nil {
-        logs.Error("SaveRulesetData failed writing to file: %s", err)
-        return err
-    }
+    if err != nil {logs.Error("SaveRulesetData failed writing to file: %s", err); return err}
     
     //update md5
     allFiles,err := ndb.GetAllRuleFiles()
-    for g := range allFiles {
-        if uuid == g{                   
-            sourceMD5,err := utils.CalculateMD5(allFiles[g]["path"]); if err != nil {logs.Error("SaveRulesetData Error calculating source md5: %s", err.Error()); return err}    
-            err = ndb.UpdateRuleFiles(g, "md5", sourceMD5); if err != nil {logs.Error("SaveRulesetData Error updating source md5: %s", err.Error()); return err}                  
-        }
-    }
+    sourceMD5,err := utils.CalculateMD5(allFiles[uuid]["path"]); if err != nil {logs.Error("SaveRulesetData Error calculating source md5: %s", err.Error()); return err}    
+    err = ndb.UpdateRuleFiles(uuid, "md5", sourceMD5); if err != nil {logs.Error("SaveRulesetData Error updating source md5: %s", err.Error()); return err}                  
     
     return nil
 }

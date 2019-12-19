@@ -193,14 +193,11 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
 //create a hashmap from file
 func MapFromFile(path string)(mapData map[string]map[string]string, err error){
     var mapFile = make(map[string]map[string]string)
-    var validID = regexp.MustCompile(`sid:(\d+);`)
+    var validID = regexp.MustCompile(`sid: (\d+);`)
     var enablefield = regexp.MustCompile(`^#`)
     
     file, err := os.Open(path)
-    if err != nil {
-        logs.Error("Openning File for export to map: "+ err.Error())
-        return nil, err
-    }
+    if err != nil {logs.Error("utils/MapFromFile Error openning file for export to map: "+ err.Error()); return nil, err}
     
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
