@@ -705,7 +705,7 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
 
         //get sourceUUID from rule_files files by uuid
         sourceFile,err := ndb.GetRuleFilesByUniqueid(dbFiles[x]["sourceFileUUID"])
-        if err != nil {logs.Error("ndb.GetRuleFilesByUniqueid Error : %s", err.Error()); return nil, err}
+        if err != nil {logs.Error("GetDetails ndb.GetRuleFilesByUniqueid Error : %s", err.Error()); return nil, err}
         
         //check differences for md5
         for n := range sourceFile{
@@ -713,19 +713,43 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
             md5S,err := utils.CalculateMD5(sourceFile[n]["path"])//father file
             md5S1,err := utils.CalculateMD5(dbFiles[x]["path"])//son file
 
-            logs.Notice(md5S)
-            logs.Warn(md5S1)
-
             if (md5S1 != md5S){
                 dbFiles[x]["isUpdated"]="true"
                 err = ndb.UpdateRuleFiles(n, "isUpdated", "true")
                 err = ndb.UpdateRuleFiles(x, "isUpdated", "true")
-                if err != nil {logs.Error("Error updating after compare md5 GetDetails: %s", err.Error()); return nil, err}
+                if err != nil {logs.Error("GetDetails Error updating after compare md5 GetDetails: %s", err.Error()); return nil, err}
+            
+                // check if all lines are into file
+                fileOrig,err := utils.MapFromFile(sourceFile[n]["path"]) // father file
+                if err != nil {logs.Error("GetDetails Error creating map from source file: %s", err.Error()); return nil, err}
+
+                fileDst,err := utils.MapFromFile(dbFiles[x]["path"]) //son file                
+                if err != nil {logs.Error("GetDetails Error creating map from file: %s", err.Error()); return nil, err}
+
+                linesAreAdded := false
+                for q := range fileOrig{
+                    for w := range fileDst{
+                        logs.Notice(q)
+                        logs.Warn(w)
+                        logs.Debug("------------------------------------------")
+                        if q == w {
+                            linesAreAdded = true
+                        }
+                    }
+                    logs.Debug(linesAreAdded)
+                    if !linesAreAdded{
+                        logs.Warn("Not Lines ADDED")
+                        err = ndb.UpdateRuleFiles(x, "linesAdded", "false")
+                        if err != nil {logs.Error("GetDetails Error updating after compare lines added: %s", err.Error()); return nil, err}
+                        break
+                    }
+                    linesAreAdded = false
+                }              
             }else{
                 dbFiles[x]["isUpdated"]="false"
                 err = ndb.UpdateRuleFiles(n, "isUpdated", "false")
                 err = ndb.UpdateRuleFiles(x, "isUpdated", "false")
-                if err != nil {logs.Error("Error updating after compare md5 GetDetails: %s", err.Error()); return nil, err}
+                if err != nil {logs.Error("GetDetails Error updating after compare md5 GetDetails: %s", err.Error()); return nil, err}
             }
         }
     }
@@ -738,18 +762,12 @@ func OverwriteRuleFile(uuid string)(err error){
     dbFiles,err := ndb.GetRuleFilesByUniqueid(uuid)
     for r := range dbFiles {
         sourceFile,err = ndb.GetRuleFilesByUniqueid(dbFiles[r]["sourceFileUUID"])
-        if err != nil {
-            logs.Error("OverwriteRuleFile failed writing to file: %s", err)
-            return err
-        }
+        if err != nil {logs.Error("OverwriteRuleFile failed writing to file: %s", err); return err}
 
         for t := range sourceFile {
             fileOrig, err := os.Open(sourceFile[t]["path"])
             fileDst,err := os.OpenFile(dbFiles[r]["path"], os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-            if err != nil {
-                logs.Error("OverwriteRuleFile failed opening file: %s", err)
-                return err
-            }
+            if err != nil {logs.Error("OverwriteRuleFile failed opening file: %s", err); return err}
             defer fileOrig.Close()
             defer fileDst.Close()
 
@@ -759,10 +777,7 @@ func OverwriteRuleFile(uuid string)(err error){
             fileDst.Truncate(0)
             fileDst.Seek(0,0)
             _, err = fileDst.WriteAt([]byte(content), 0) // Write at 0 beginning
-            if err != nil {
-                logs.Error("OverwriteRuleFile failed writing to file: %s", err)
-                return err
-            }
+            if err != nil {logs.Error("OverwriteRuleFile failed writing to file: %s", err); return err}
 
             //change md5 and isUpdated status
             md5S,err := utils.CalculateMD5(sourceFile[t]["path"])
@@ -771,24 +786,21 @@ func OverwriteRuleFile(uuid string)(err error){
             err = ndb.UpdateRuleFiles(t, "md5", md5S)                    
             err = ndb.UpdateRuleFiles(r, "isUpdated", "false")    
             err = ndb.UpdateRuleFiles(r, "md5", md5L)                    
-            if err != nil {
-                logs.Error("Error updating sourceFile after compare md5 OverwriteRuleFile: %s", err.Error())
-                return err
-            }
+            err = ndb.UpdateRuleFiles(r, "linesAdded", "true")                    
+            if err != nil {logs.Error("Error updating sourceFile after compare md5 OverwriteRuleFile: %s", err.Error()); return err}
         }
     }
     return nil
 }
 
 func AddNewLinesToRuleset(uuid string)(err error){
-    rulesetFile,err := ndb.GetRuleFilesByUniqueid(uuid)
+    rulesetFile,err := ndb.GetRuleFilesByUniqueid(uuid)//son file
     if err != nil {logs.Error("AddNewLinesToRuleset GetRuleFilesByUniqueid error: %s", err); return err}
-
-    sourceFile,err := ndb.GetRuleFilesByUniqueid(rulesetFile[uuid]["sourceFileUUID"])
+    sourceFile,err := ndb.GetRuleFilesByUniqueid(rulesetFile[uuid]["sourceFileUUID"]) //father file
     if err != nil {logs.Error("AddNewLinesToRuleset failed getting sourceFileUUID data: %s", err); return err}
-    
-    rulesetPath := rulesetFile[uuid]["path"]
-    sourcePath := sourceFile[rulesetFile[uuid]["sourceFileUUID"]]["path"]
+ 
+    sourcePath := sourceFile[rulesetFile[uuid]["sourceFileUUID"]]["path"] //father
+    rulesetPath := rulesetFile[uuid]["path"] // son
 
     fileOrig,err := utils.MapFromFile(sourcePath)
     fileDst,err := utils.MapFromFile(rulesetPath)
@@ -813,22 +825,18 @@ func AddNewLinesToRuleset(uuid string)(err error){
         }
     }
 
+
     //change md5 and isUpdated status
-    for w := range rulesetFile{
-        sourceFile,err := ndb.GetRuleFilesByUniqueid(rulesetFile[w]["sourceFileUUID"])
-        if err != nil {logs.Error("Error getting sourceFile for update md5 OverwriteRuleFile: %s", err.Error()); return err}
-        for s := range sourceFile{
+    for w := range rulesetFile{ //son
+        for s := range sourceFile{ //father
             //change md5 and isUpdated status
-            md5S,err := utils.CalculateMD5(sourceFile[s]["path"])
-            md5L,err := utils.CalculateMD5(rulesetFile[w]["path"])
-            err = ndb.UpdateRuleFiles(w, "isUpdated", "false")    
-            err = ndb.UpdateRuleFiles(w, "md5", md5L)                    
-            err = ndb.UpdateRuleFiles(s, "isUpdated", "false")    
-            err = ndb.UpdateRuleFiles(s, "md5", md5S)                    
-            if err != nil {
-                logs.Error("Error updating sourceFile after compare md5 OverwriteRuleFile: %s", err.Error())
-                return err
-            }
+            md5Father,err := utils.CalculateMD5(sourceFile[s]["path"])
+            if err != nil {logs.Error("Error updating sourceFile after compare md5 AddNewLinesToRuleset: %s", err.Error()); return err}
+            md5Son,err := utils.CalculateMD5(rulesetFile[w]["path"])
+            if err != nil {logs.Error("Error updating sourceFile after compare md5 AddNewLinesToRuleset: %s", err.Error()); return err}
+            err = ndb.UpdateRuleFiles(s, "md5", md5Father); if err != nil {logs.Error("Error updating sourceFile after compare md5 AddNewLinesToRuleset: %s", err.Error()); return err}                    
+            err = ndb.UpdateRuleFiles(w, "md5", md5Son); if err != nil {logs.Error("Error updating sourceFile after compare md5 AddNewLinesToRuleset: %s", err.Error()); return err}                    
+            err = ndb.UpdateRuleFiles(w, "linesAdded", "true"); if err != nil {logs.Error("Error updating linesAdded AddNewLinesToRuleset: %s", err.Error()); return err}                    
         }
     }
 

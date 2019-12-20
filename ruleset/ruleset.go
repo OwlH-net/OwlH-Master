@@ -705,6 +705,7 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
         err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "isUpdated", "false")
         err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "md5", md5)
         err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceType", data[x]["sourceType"])
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "linesAdded", "true")
         if err != nil {logs.Error("ruleset/AddNewRuleset -- Error Inserting Ruleset: %s", err.Error());return nil,err}
     }
 
