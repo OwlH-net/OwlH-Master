@@ -50,7 +50,7 @@ func main() {
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.12.0.20191220")
+    logs.Info("Version OwlH Master: 0.12.0.20200107")
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {
