@@ -1158,8 +1158,9 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
                 }
             }
         } 
-
+        
         AllEnabledLines,err := utils.MergeAllFiles(rulePaths)
+        if AllEnabledLines == nil { return errors.New("There are no rules for synchronize. Please, select a valid ruleset.")}
 
         //send lines to node
         err = nodeclient.SyncRulesetToNode(ipnid,portnid,AllEnabledLines)

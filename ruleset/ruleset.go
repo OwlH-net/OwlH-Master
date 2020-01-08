@@ -21,12 +21,14 @@ import(
 
 type LinesID struct {
     Counter     int `json:"counter"`
-    Values        []Values `json:"values"`
+    Values      []Values `json:"values"`
 }
 type Values struct {
-    Path         string `json:"path"`
+    Path        string `json:"path"`
+    Enabled     string `json:"enabled"`
     FileName    string `json:"fileName"`
     Line        string `json:"line"`
+    Sid         string `json:"sid"`
 }
 
 
@@ -603,9 +605,11 @@ func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated []byte, er
         for y := range sidLines {
             values := Values{}
             linesID := LinesID{}
+            values.Enabled = sidLines[y]["enabled"]
             values.Path = data[x]["filePath"]
             values.FileName = data[x]["fileName"]
             values.Line = sidLines[y]["raw"]
+            values.Sid = sidLines[y]["sid"]
             if _, exists := allSids[y]; exists { //exist                
                 linesID.Counter = allSids[y].Counter 
                 linesID.Counter += 1
@@ -625,15 +629,42 @@ func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated []byte, er
             allSidsResult[n] = allSids[n]
         }
     }
+
     //check if response array is empty
     if len(allSidsResult) == 0{
         return nil,nil
     }else{
-        LinesOutput, err := json.Marshal(allSidsResult)
-        if err != nil {
-            logs.Error("ERROR Marshal allSidsResult --> "+err.Error())
-            return nil,err
+        for w := range allSidsResult{
+            logs.Warn(w)
+            CheckLinesID := LinesID{}
+            var bothEnabled string
+            var shouldDelete bool
+            count := 0
+            CheckLinesID = allSidsResult[w] 
+            for r := range CheckLinesID.Values{
+                logs.Alert(CheckLinesID.Values[r].Enabled)
+                if count == 0 {
+                    count++
+                    bothEnabled = CheckLinesID.Values[r].Enabled
+                }else{
+                    if ((bothEnabled != CheckLinesID.Values[r].Enabled) || ((bothEnabled == CheckLinesID.Values[r].Enabled) && (bothEnabled != "Enabled"))){
+                        shouldDelete = true
+                    }
+                }
+            }
+            if shouldDelete {
+                logs.Info(LinesID{})
+                allSidsResult[w] = LinesID{}
+                delete(allSidsResult, w)
+                shouldDelete = false
+            }
         }
+        logs.Notice(allSidsResult)
+
+        if len(allSidsResult) == 0{return nil,nil}    
+
+        LinesOutput, err := json.Marshal(allSidsResult)
+        if err != nil {logs.Error("ERROR Marshal allSidsResult --> "+err.Error()); return nil,err}
         return LinesOutput, nil
     }
 }
@@ -644,15 +675,9 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
     if duplicated,err = FindDuplicatedSIDs(data); duplicated != nil {
         return duplicated, nil
     }
-    if err != nil {
-        logs.Error("ruleset/AddNewRuleset -- duplicated error: %s", err.Error())
-        return nil,err
-    }
+    if err != nil {logs.Error("ruleset/AddNewRuleset -- duplicated error: %s", err.Error()); return nil,err}
 
-    if ndb.Rdb == nil {
-        logs.Error("ruleset/AddNewRuleset -- Can't access to database")
-        return nil,errors.New("ruleset/AddNewRuleset -- Can't access to database")
-    }
+    if ndb.Rdb == nil {logs.Error("ruleset/AddNewRuleset -- Can't access to database"); return nil,errors.New("ruleset/AddNewRuleset -- Can't access to database")}
     
     localRulesets := map[string]map[string]string{}
     localRulesets["ruleset"] = map[string]string{}
@@ -670,10 +695,7 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
             err = insertRulesetValues(rulesetUUID, "type", "local")
             err = insertRulesetValues(rulesetUUID, "name", data[x]["rulesetName"])
             err = insertRulesetValues(rulesetUUID, "desc", data[x]["rulesetDesc"])
-            if err != nil {
-                logs.Error("ruleset/AddNewRuleset -- Insert error: %s", err.Error())
-                return nil,err
-            }
+            if err != nil {logs.Error("ruleset/AddNewRuleset -- Insert error: %s", err.Error()); return nil,err}
             rulesetCreated = true
         }
                 
@@ -685,10 +707,7 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
         //copyfile
         cpCmd := exec.Command("cp", data[x]["filePath"], path)
         err = cpCmd.Run()
-        if err != nil {
-            logs.Error("ruleset/AddNewRuleset -- Error copying new file: %s", err.Error())
-            return nil,err
-        }
+        if err != nil {logs.Error("ruleset/AddNewRuleset -- Error copying new file: %s", err.Error()); return nil,err}
 
         //add md5 for every file
         md5,err := utils.CalculateMD5(path)
