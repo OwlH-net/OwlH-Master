@@ -193,7 +193,7 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
 //create a hashmap from file
 func MapFromFile(path string)(mapData map[string]map[string]string, err error){
     var mapFile = make(map[string]map[string]string)
-    var validID = regexp.MustCompile(`sid:\s*(\d+);`)
+    var validID = regexp.MustCompile(`sid:\s?(\d+);`)
     var enablefield = regexp.MustCompile(`^#`)
     
     file, err := os.Open(path)
@@ -224,17 +224,21 @@ func MergeAllFiles(files []string)(content []byte, err error){
         lines,err := MapFromFile(files[x])
         if err != nil {logs.Error("MergeAllFiles/MapFromFile error creating map from file: "+err.Error()); return nil,err}
         for y := range lines {
+            // exists := false
             if lines[y]["Enabled"] == "Enabled" {
                 if allFiles[y] == nil { allFiles[y] = map[string]string{}}
-                for z := range allFiles {
-                    if y != z {
-                        allFiles[y] = lines[y]
-                    }
-                }
+                allFiles[y] = lines[y]
+                // for z := range allFiles {
+                //     if y == z {
+                //         exists = true
+                //     }
+                // }
+                // if exists {allFiles[y] = lines[y]}
             }
         }
     }
     for r := range allFiles{
+        logs.Info(allFiles[r]["Line"])
         content = append(content, []byte(allFiles[r]["Line"])...)
         content = append(content, []byte("\n")...)
     }
@@ -260,7 +264,7 @@ func ReplaceLines(data map[string]string)(err error){
     saved := false
     rulesFile, err := os.Create("_creating-new-file.txt")
     defer rulesFile.Close()
-    var validID = regexp.MustCompile(`sid:(\d+);`)
+    var validID = regexp.MustCompile(`sid:\s?(\d+);`)
 
     newFileDownloaded, err := os.Open(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
 

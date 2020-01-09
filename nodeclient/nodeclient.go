@@ -240,19 +240,17 @@ func SetNodeFile(ipData string, portData string, loadFile map[string]string)(err
 func GetNodeFile(ipData string, portData string, loadFile map[string]string)(rData map[string]string, err error){
     url := "https://"+ipData+":"+portData+"/node/file/"+loadFile["file"]
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {
-        logs.Error("nodeclient/GetNodeFile ERROR connection through http new Request: "+err.Error())
-        return nil, err
-    }
+    if err != nil {logs.Error("nodeclient/GetNodeFile ERROR connection through http new Request: "+err.Error()); return nil, err}
     responseData, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        logs.Error("nodeclient/GetNodeFile ERROR reading file: "+err.Error())
-        return nil, err
-    }
+    if err != nil {logs.Error("nodeclient/GetNodeFile ERROR reading file: "+err.Error()); return nil, err}
+
+    defer resp.Body.Close()
     json.Unmarshal(responseData, &rData)
+    if rData["ack"] == "false"{
+        return nil, errors.New("GetNodeFile Error getting node file: "+rData["error"])
+    }
     rData["nodeUUID"] = loadFile["uuid"]
     
-    defer resp.Body.Close()
     return rData, nil
 }
 
@@ -260,10 +258,8 @@ func PutSuricataBPF(ipnid string, portnid string, anode map[string]string)(err e
     valuesJSON,err := json.Marshal(anode)
     url := "https://"+ipnid+":"+portnid+"/node/suricata/bpf"
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {
-        logs.Error("nodeclient/PutSuricataBPF ERROR connection through http new Request: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("nodeclient/PutSuricataBPF ERROR connection through http new Request: "+err.Error()); return err}
+
     defer resp.Body.Close()
     return  nil
 }
@@ -1486,8 +1482,18 @@ func PutSuricataServicesFromGroup(ipnid string, portnid string, data map[string]
     valuesJSON,err := json.Marshal(data)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
     if err != nil {logs.Error("nodeclient/PutSuricataServicesFromGroup ERROR connection through http new Request: "+err.Error()); return err}
-
+    
+    body, err := ioutil.ReadAll(resp.Body)
     defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SuricataGroupService ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
+
     return nil
 }
 
@@ -1739,10 +1745,7 @@ func SuricataGroupService(ipData string, portData string, data map[string]string
     url := "https://"+ipData+":"+portData+"/node/group/suricata"
     valuesJSON,err := json.Marshal(data)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {
-        logs.Error("nodeclient/SuricataGroupService ERROR connection through http new Request: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("nodeclient/SuricataGroupService ERROR connection through http new Request: "+err.Error()); return err}
 
     body, err := ioutil.ReadAll(resp.Body)
     defer resp.Body.Close()
@@ -1750,7 +1753,6 @@ func SuricataGroupService(ipData string, portData string, data map[string]string
 
     returnValues := make(map[string]string)
     _ = json.Unmarshal(body, &returnValues)
-    // if err != nil { logs.Error("nodeclient/SuricataGroupService ERROR doing unmarshal JSON: "+err.Error()); return err}
 
     if returnValues["ack"] == "false"{
         return errors.New("Error getting node group http response: "+returnValues["error"])

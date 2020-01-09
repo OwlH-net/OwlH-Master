@@ -635,14 +635,12 @@ func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated []byte, er
         return nil,nil
     }else{
         for w := range allSidsResult{
-            logs.Warn(w)
             CheckLinesID := LinesID{}
             var bothEnabled string
             var shouldDelete bool
             count := 0
             CheckLinesID = allSidsResult[w] 
             for r := range CheckLinesID.Values{
-                logs.Alert(CheckLinesID.Values[r].Enabled)
                 if count == 0 {
                     count++
                     bothEnabled = CheckLinesID.Values[r].Enabled
@@ -653,13 +651,11 @@ func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated []byte, er
                 }
             }
             if shouldDelete {
-                logs.Info(LinesID{})
                 allSidsResult[w] = LinesID{}
                 delete(allSidsResult, w)
                 shouldDelete = false
             }
         }
-        logs.Notice(allSidsResult)
 
         if len(allSidsResult) == 0{return nil,nil}    
 
@@ -750,7 +746,7 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
     sidsSplit := strings.Split(anode["sids"], ",")
     path,err := ndb.GetRulesetSourceValue(anode["dest"], "path") 
     for uuid := range sidsSplit{
-        var validID = regexp.MustCompile(`sid:`+sidsSplit[uuid]+`;`)
+        var validID = regexp.MustCompile(`sid:\s?`+sidsSplit[uuid]+`;`)
         readSidsData := make(map[string]string)
         readSidsData["sid"] = sidsSplit[uuid]
         readSidsData["uuid"] = anode["orig"]

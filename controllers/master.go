@@ -21,7 +21,7 @@ func (m *MasterController) GetMasterTitle() {
     data, err := models.GetMasterTitle()
     m.Data["json"] = data
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
 }
@@ -36,7 +36,7 @@ func (m *MasterController) GetFileContent() {
     data, err := models.GetFileContent(file)
     m.Data["json"] = data
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
 }
@@ -52,7 +52,7 @@ func (m *MasterController) SaveFileContent() {
     err := models.SaveFileContent(anode)
     m.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
 }
@@ -142,7 +142,7 @@ func (m *MasterController) GetNetworkInterface() {
     data, err := models.GetNetworkInterface()
     m.Data["json"] = data
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
 }
@@ -192,7 +192,7 @@ func (m *MasterController) LoadMasterNetworkValuesSelected() {
     data, err := models.LoadMasterNetworkValuesSelected()
     m.Data["json"] = data
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
 }
@@ -395,7 +395,7 @@ func (m *MasterController) PingPluginsMaster() {
     data, err := models.PingPluginsMaster()
     m.Data["json"] = data
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
 }
@@ -410,7 +410,7 @@ func (m *MasterController) GetPathFileContent() {
     data, err := models.GetPathFileContent(param)
     m.Data["json"] = data
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
 }
@@ -426,7 +426,7 @@ func (m *MasterController) SaveFilePathContent() {
     err := models.SaveFilePathContent(anode)
     m.Data["json"] = map[string]string{"ack": "true"}
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
     m.ServeJSON()
 }

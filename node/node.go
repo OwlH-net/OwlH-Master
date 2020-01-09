@@ -622,7 +622,7 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
     var uniqueid string
     var rulePath string
     var uuidArray []string
-    var validID = regexp.MustCompile(`sid:(\d+);`)
+    var validID = regexp.MustCompile(`sid:\s?(\d+);`)
 
     //read rule uuid
     uuidRules, err := ndb.Rdb.Query("select rule_uniqueid from rule_files where rule_value='"+uuid+"'")
@@ -639,6 +639,8 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
         uuidArray = append(uuidArray, uniqueid)
     }
 
+    logs.Warn(uuidArray)
+
     //read files paths and
     for x := range uuidArray{
         rules, err := ndb.Rdb.Query("select rule_value from rule_files where rule_param = 'path' and rule_uniqueid= '"+uuidArray[x]+"'")
@@ -648,10 +650,8 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
         }
         defer rules.Close()
         for rules.Next() {
-            if err = rules.Scan(&rulePath); err != nil {
-                logs.Error("CreateNewRuleFile rows.Scan: %s", err.Error())
-                return nil,err
-            }
+            if err = rules.Scan(&rulePath); err != nil {logs.Error("CreateNewRuleFile rows.Scan: %s", err.Error()); return nil,err}
+            logs.Warn(rulePath)
             file, err := os.Open(rulePath)
             if err != nil {
                 logs.Error("File reading error: %s .Skipping file.", err.Error())
@@ -661,12 +661,13 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
             scanner := bufio.NewScanner(file)
             for scanner.Scan(){
                 if validID.MatchString(scanner.Text()){
+                    logs.Notice(scanner.Text()+"\n")
                     data = append(data, scanner.Bytes()...)
                     data = append(data, "\n"...)
                 }
             }
         }    
-    }
+    }    
     return data,nil
 }
 
