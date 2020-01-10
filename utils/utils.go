@@ -81,21 +81,49 @@ func BackupFile(path string, fileName string) (err error) {
     loadData["files"] = map[string]string{}
     loadData["files"]["backupPath"] = ""
     loadData,err = GetConf(loadData)
-    backupPath := loadData["files"]["backupPath"]
-    if err != nil {
-        logs.Error("Error BackupFile Creating backup: "+err.Error())
-        return err
+    backupFolder := loadData["files"]["backupPath"]
+    if err != nil {logs.Error("Error BackupFile Creating backup: "+err.Error()); return err}
+
+    // check if folder exists
+    if _, err := os.Stat(backupFolder); os.IsNotExist(err) {
+        err = os.MkdirAll(backupFolder, 0755)
+        if err != nil{logs.Error("utils.BackupFile Error creating main backup folder: "+err.Error()); return err}
     }
 
+    //get older backup file
+    listOfFiles,err := FilelistPathByFile(backupFolder, fileName)
+    if err != nil{logs.Error("utils.BackupFile Error walking through backup folder: "+err.Error()); return err}
+    count := 0
+    previousBck := ""
+    for x := range listOfFiles{
+        count++
+        if previousBck == "" {
+            previousBck = x
+            continue
+        }else if previousBck > x{
+            previousBck = x
+        }
+    }
+
+    //delete older bck file if there are 5 bck files
+    if count == 5 {
+        err = os.Remove(backupFolder+previousBck)
+        if err != nil{logs.Error("utils.BackupFile Error deleting older backup file: "+err.Error())}
+    }
+
+    //create backup
     t := time.Now()
     newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
     srcFolder := path+fileName
-    destFolder := backupPath+newFile
-    cpCmd := exec.Command("cp", srcFolder, destFolder)
-    err = cpCmd.Run()
-    if err != nil{
-        logs.Error("BackupFile Error exec cmd command: "+err.Error())
-        return err
+    destFolder := backupFolder+newFile
+
+    //check if file exist
+    if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
+        return errors.New("utils.BackupFile error: Source file doesn't exists")
+    }else{
+        cpCmd := exec.Command("cp", srcFolder, destFolder)
+        err = cpCmd.Run()
+        if err != nil{logs.Error("utils.BackupFile Error exec cmd command: "+err.Error()); return err}
     }
     return nil
 }
@@ -440,6 +468,27 @@ func ListFilepath(path string)(files map[string][]byte, err error){
             content, err := ioutil.ReadFile(file)
             if err != nil {logs.Error("Error filepath walk: "+err.Error()); return err}
             pathMap[pathSplit[len(pathSplit)-1]] = content
+        }
+        return nil
+    })
+    if err != nil {logs.Error("Error filepath walk finish: "+err.Error()); return nil, err}
+
+    return pathMap, nil
+}
+
+func FilelistPathByFile(path string, fileToSearch string)(files map[string][]byte, err error){
+    pathMap:= make(map[string][]byte)
+    err = filepath.Walk(path,
+        func(file string, info os.FileInfo, err error) error {
+        if err != nil {return err}
+        
+        if !info.IsDir() {
+            pathSplit := strings.Split(file, "/")
+            if strings.Contains(pathSplit[len(pathSplit)-1], fileToSearch){
+                content, err := ioutil.ReadFile(file)
+                if err != nil {logs.Error("Error filepath walk: "+err.Error()); return err}
+                pathMap[pathSplit[len(pathSplit)-1]] = content
+            }
         }
         return nil
     })
