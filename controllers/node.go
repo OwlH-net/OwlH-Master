@@ -5,6 +5,9 @@ import (
     "encoding/json"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
+    "crypto/hmac"
+    "crypto/sha256"
+    "encoding/base64"
 )
 
 type NodeController struct {
@@ -40,9 +43,8 @@ type NodeController struct {
 func (n *NodeController) CreateNode() {
     var anode map[string]interface{}
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-
     n.Data["json"] = map[string]string{"ack": "true"}
-    
+
     if _,ok := anode["bulkmode"]; ok{
         var bulk map[string][]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &bulk)
@@ -54,6 +56,15 @@ func (n *NodeController) CreateNode() {
         var node map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &node)
         err := models.AddNode(node)
+
+        sKey := "42isTheAnswer"
+        logs.Notice(node["jwt_header"])
+        logs.Notice(node["jwt_payload"])
+        key := []byte(sKey)
+        h := hmac.New(sha256.New, key)
+        h.Write([]byte(node["jwt_header"]+"."+node["jwt_payload"]))
+        b := base64.URLEncoding.EncodeToString(h.Sum(nil))
+        logs.Notice(string(b))
 
         if err != nil {
             logs.Error("NODE CREATE -> error: %s", err.Error())
