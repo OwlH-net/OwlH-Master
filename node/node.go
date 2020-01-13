@@ -79,19 +79,15 @@ func findNode(s string) (id string, err error) {
 
 func DeleteNode(nodeid string)(err error) {
     logs.Info("NODE Delete -> IN")
-    if ndb.Db == nil {logs.Error("No access to database"); return errors.New("No access to database")}
 
     //delete node from database
-    stmt, err := ndb.Db.Prepare("delete from nodes where node_uniqueid = ?")
-    if err != nil {logs.Error("DeleteNode delete node Prepare nodes -> %s", err.Error()); return err}
-    _, err = stmt.Exec(&nodeid)
-    if err != nil {logs.Error("DeleteNode delete node Execute nodes -> %s", err.Error()); return err}
+    err = ndb.DeleteNode(nodeid)
+    if err != nil {logs.Error("DeleteNode error for uuid: "+nodeid+": "+ err.Error()); return err}
+    
     
     //delete ruleset for this node
-    deleteRulesetNode, err := ndb.Rdb.Prepare("delete from ruleset_node where node_uniqueid = ?")
-    if err != nil {logs.Error("DeleteNode delete ruleset Prepare ruleset_node -> %s", err.Error()); return err}
-    _, err = deleteRulesetNode.Exec(&nodeid)
-    if err != nil {logs.Error("DeleteNode delete ruleset Execute ruleset_node -> %s", err.Error()); return err}
+    err = ndb.DeleteRulesetNodeByNode(nodeid)
+    if err != nil {logs.Error("DeleteNode DeleteRulesetNodeByNode error for uuid: "+nodeid+": "+ err.Error()); return err}
 
     //delete node for group
     groupnodes,err := ndb.GetGroupNodesByValue(nodeid)
@@ -104,35 +100,35 @@ func DeleteNode(nodeid string)(err error) {
     return nil
 }
 
-func getNodeConf(nodeKey string)(conf map[string]string, err error) {
-    var param string
-    var value string
+// func getNodeConf(nodeKey string)(conf map[string]string, err error) {
+//     var param string
+//     var value string
 
-    if ndb.Db == nil {
-        logs.Error("getNodeConf -> No access to database")
-        return nil, errors.New("getNodeConf -> No access to database")
-    }
+//     if ndb.Db == nil {
+//         logs.Error("getNodeConf -> No access to database")
+//         return nil, errors.New("getNodeConf -> No access to database")
+//     }
     
-    sql := "SELECT node_param, node_value FROM nodes where node_uniqueid='"+nodeKey+"';"
-    logs.Info("GetNodeConf -> SQL -> %s", sql)
+//     sql := "SELECT node_param, node_value FROM nodes where node_uniqueid='"+nodeKey+"';"
+//     logs.Info("GetNodeConf -> SQL -> %s", sql)
     
-    rows, err := ndb.Db.Query(sql)
+//     rows, err := ndb.Db.Query(sql)
     
-    if err != nil {
-        logs.Error(err.Error())
-        return nil, err
-    }
+//     if err != nil {
+//         logs.Error(err.Error())
+//         return nil, err
+//     }
     
-    defer rows.Close()
-    for rows.Next() {
-        if err = rows.Scan(&param, &value); err != nil {
-            logs.Info (" Error rows.Scan -> %s",err.Error())
-            continue
-        }
-        conf[param]=value
-    }
-    return conf, nil
-}
+//     defer rows.Close()
+//     for rows.Next() {
+//         if err = rows.Scan(&param, &value); err != nil {
+//             logs.Info ("Error rows.Scan -> %s",err.Error())
+//             continue
+//         }
+//         conf[param]=value
+//     }
+//     return conf, nil
+// }
 
 func GetAllNodes()(data map[string]map[string]string, err error){
     allNodes,err := ndb.GetAllNodes()
@@ -142,103 +138,55 @@ func GetAllNodes()(data map[string]map[string]string, err error){
     return allNodes,nil
 }
 
-func getAllNodesIp() (ips map[string]string, err error) {
-    var uid string
-    var ip string
-    if ndb.Db == nil {
-        logs.Error("getAllNodesIp -> no access to database")
-        return ips, errors.New("getAllNodesIp -> no access to database")
-    }
-    sql := "SELECT node_uniqueid, node_value FROM nodes where node_param = 'ip';"
-    rows, err := ndb.Db.Query(sql)
-    if err != nil {
-        logs.Error("Error ndb.Db.Query %s -> %s", sql, err.Error())
-        return ips, err
-    }
-    defer rows.Close()
-    for rows.Next() {
-        if err = rows.Scan(&uid, &ip); err != nil {
-            logs.Info (" Error -> rows.Scan -> %s",err.Error())
-        }
-        ips[uid]=ip
-    }
-    return ips, nil
-}
+// func getAllNodesIp() (ips map[string]string, err error) {
+//     var uid string
+//     var ip string
+//     if ndb.Db == nil {
+//         logs.Error("getAllNodesIp -> no access to database")
+//         return ips, errors.New("getAllNodesIp -> no access to database")
+//     }
+//     sql := "SELECT node_uniqueid, node_value FROM nodes where node_param = 'ip';"
+//     rows, err := ndb.Db.Query(sql)
+//     if err != nil {
+//         logs.Error("Error ndb.Db.Query %s -> %s", sql, err.Error())
+//         return ips, err
+//     }
+//     defer rows.Close()
+//     for rows.Next() {
+//         if err = rows.Scan(&uid, &ip); err != nil {
+//             logs.Info (" Error -> rows.Scan -> %s",err.Error())
+//         }
+//         ips[uid]=ip
+//     }
+//     return ips, nil
+// }
 
 func nodeKeyExists(nodekey string, key string) (id int, err error) {
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return 0, errors.New("no access to database")
-    }
-    sql := "SELECT node_id FROM nodes where node_uniqueid = '"+nodekey+"' and node_param = '"+key+"';"
-    rows, err := ndb.Db.Query(sql)
-    if err != nil {
-        logs.Error(err.Error())
-        return 0, err
-    }
-    defer rows.Close()
-    if rows.Next() {
-        if err = rows.Scan(&id); err == nil {
-            return id, err
-        }
-    }
-    return 0, nil
+    nodesExists,err := ndb.NodeKeyExists(nodekey, key)
+    if err != nil {logs.Error("Get all nodes error: "+err.Error()); return nodesExists, err}
+    return nodesExists,err
 }
 
 func nodeExists(nodeid string) (err error) {
-    if ndb.Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
-
-    sql := "SELECT * FROM nodes where node_uniqueid = '"+nodeid+"';"
-    rows, err := ndb.Db.Query(sql)
-    if err != nil {logs.Error(err.Error()); return err}
-
-    defer rows.Close()
-    if rows.Next() {
-        return errors.New("Node Exists " + nodeid)
-    } else {
-        return nil
-    }
+    err = ndb.GetNodeById(nodeid)
+    if err != nil {logs.Error("Get node error: "+err.Error()); return err}
+    return err
 }
 
 func nodeKeyUpdate(id int, nkey string, key string, value string) (err error) {
-    logs.Info("NODE Key Insert -> IN")
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-    }
-    logs.Info("nkey: %s, key: %s, value: %s", nkey, key, value)
-    stmt, err := ndb.Db.Prepare("update nodes set node_param = ?, node_value = ? where node_id = ? and node_uniqueid = ?")
-    if err != nil {
-        logs.Error("Prepare -> %s", err.Error())
-        return err
-    }
-    _, err = stmt.Exec(&key, &value, &id, &nkey)
-    if err != nil {
-        logs.Error("Execute -> %s", err.Error())
-        return err
-    }
-    return nil
+    err = ndb.UpdateNode(id, nkey, key, value)
+    if err != nil {logs.Error("Get node error: "+err.Error()); return err}
+    return err
 }
 
 func nodeKeyInsert(nkey string, key string, value string) (err error) {
-    if ndb.Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
-    
-    stmt, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values(?,?,?)")
-    if err != nil { logs.Error("Prepare -> %s", err.Error()); return err}
-
-    _, err = stmt.Exec(&nkey, &key, &value)
-    if err != nil {logs.Error("Execute -> %s", err.Error()); return err}
-
-    // logs.Info("nkey from node.go to stap.go-->"+nkey)
-    // _,err = stap.Stap(nkey)
-    // if err != nil { logs.Error("Error creating node stap status from nodeKeyInsert at node.go -> %s", err.Error()); return err}
-
-    return nil
+    err = ndb.InsertNodeKey(nkey, key, value)
+    if err != nil {logs.Error("Insert node error: "+err.Error()); return err}
+    return err
 }
 
 func AddNode(n map[string]string) (err error) {
     logs.Info("ADD NODE")
-    logs.Info(n)
     nodeKey := utils.Generate()
     if _, ok := n["name"]; !ok {
         logs.Error("name empty: "+err.Error())
@@ -331,23 +279,9 @@ func UpdateNode(n map[string]string) (err error) {
 }
 
 func getNodeIpbyName(n string)(ip string, err error) {
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return "", errors.New("no access to database")
-    }
-    sql := "select node_value from nodes where node_uniqueid like '%"+n+"%' and node_param = 'ip';"
-    rows, err := ndb.Db.Query(sql)
-    if err != nil {
-        logs.Error(err.Error())
-        return "", err
-    }
-    defer rows.Close()
-    if rows.Next() {
-        if err = rows.Scan(&ip); err == nil {
-            return ip, err
-        }
-    }
-    return "", errors.New("There is no IP for given node name")
+    ip,err = ndb.GetNodeIpbyName(n)
+    if err != nil {logs.Error("node/GetNodeIpbyName ERROR getting node port/ip: "+err.Error()); return "",err}    
+    return ip,err
 }
 
 func NodePing(uuid string) (err error) {
@@ -584,33 +518,16 @@ func PingPorts(uuid string)(data map[string]map[string]string, err error){
 }
 
 func SyncRulesetToNode(anode map[string]string)(err error){
-    uuid := anode["uuid"]
-    var rulesetUUID string
-    
-    ipData,portData,err := ndb.ObtainPortIp(uuid)
-    if err != nil {
-        logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error())
-        return err
-    }    
-        
-    //get ruleset uuid by node uuid
-    sqlIP := "select ruleset_uniqueid from ruleset_node where node_uniqueid = '"+uuid+"';"
-    ip, err := ndb.Rdb.Query(sqlIP)
-    if err != nil {
-        logs.Error("SetRuleset ndb.Db.Query Error  UUID: %s", err.Error())
-        return err
-    }
-    defer ip.Close()
-    if ip.Next() {
-        if err = ip.Scan(&rulesetUUID); err != nil {
-            return err
-        }
-    }
+    rulesetUUID,err := ndb.GetRulesetUUID(anode["uuid"])
+    if err != nil {logs.Error("SyncRulesetToNode/GetRulesetUUID error: "+err.Error()); return err}
+
     //read lines by ruleset uuid
     data, err := CreateNewRuleFile(rulesetUUID)
     if err != nil {logs.Error("nodeclient.SetRuleset ERROR creating a nunique ruleset file: "+err.Error()); return err}
 
     //send lines to node
+    ipData,portData,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil {logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error()); return err}    
     err = nodeclient.SyncRulesetToNode(ipData,portData,data)
     if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
 

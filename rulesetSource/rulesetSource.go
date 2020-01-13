@@ -247,16 +247,8 @@ func DeleteRulesetFile(uuid string) (err error) {
     }
     
     //delete a ruleset source in ruleset table
-    sourceSQL, err := ndb.Rdb.Prepare("delete from rule_files where rule_uniqueid = ?")
-    if err != nil {
-        logs.Error("Error DeleteRulesetSource Prepare delete a file -> %s", err.Error())
-        return err
-    }
-    _, err = sourceSQL.Exec(&uuid)
-    if err != nil {
-        logs.Error("Error DeleteRulesetSource deleting a file -> %s", err.Error())
-        return err
-    }
+    err = ndb.DeleteRuleFilesByUuid(uuid)
+    if err != nil {logs.Error("Error DeleteRulesetSource Prepare delete a file -> %s", err.Error()); return err}
     return nil
 }
 

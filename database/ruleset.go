@@ -55,20 +55,12 @@ func RulesetSourceKeyInsert(nkey string, key string, value string) (err error) {
 }
 
 func InsertRulesetSourceRules(nkey string, key string, value string) (err error) {
-    if Rdb == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-    }
+    if Rdb == nil {logs.Error("no access to database"); return errors.New("no access to database")}
     stmt, err := Rdb.Prepare("insert into rule_files (rule_uniqueid, rule_param, rule_value) values(?,?,?)")
-    if err != nil {
-        logs.Error("Prepare -> %s", err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Prepare -> %s", err.Error()); return err}
+
     _, err = stmt.Exec(&nkey, &key, &value)
-    if err != nil {
-        logs.Error("Execute -> %s", err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Execute -> %s", err.Error()); return err}
     return nil
 }
 
@@ -301,6 +293,17 @@ func DeleteRulesetByUniqueid(uuid string)(err error){
 
 func DeleteRulesetNodeByUniqueid(uuid string)(err error){
     deleteRulesetNodeQuery, err := Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
+    _, err = deleteRulesetNodeQuery.Exec(&uuid)
+    defer deleteRulesetNodeQuery.Close()
+    if err != nil {
+        logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+        return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
+    }
+    return nil
+}
+
+func DeleteRulesetNodeByNode(uuid string)(err error){
+    deleteRulesetNodeQuery, err := Rdb.Prepare("delete from ruleset_node where node_uniqueid = ?;")
     _, err = deleteRulesetNodeQuery.Exec(&uuid)
     defer deleteRulesetNodeQuery.Close()
     if err != nil {
