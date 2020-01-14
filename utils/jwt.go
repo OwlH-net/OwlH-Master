@@ -56,8 +56,7 @@ func isValidHash(value string, hash string, secret string) bool {
 // }
 
 func Decode(jwtToken string, secret string) (payload interface{}, err error) {
-	// check if the jwt token contains
-	// header, payload and token
+	// check if the jwt token contains header, payload and token
 	token := strings.Split(jwtToken, ".")
 	if len(token) != 3 {err := errors.New("Invalid token: token should contain header, payload and secret"); return nil, err}
 	logs.Info(token[0])
