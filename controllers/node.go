@@ -2,12 +2,11 @@ package controllers
 
 import (
     "owlhmaster/models"    
+    "owlhmaster/utils"    
     "encoding/json"
+    // "jwt"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
-    "crypto/hmac"
-    "crypto/sha256"
-    "encoding/base64"
 )
 
 type NodeController struct {
@@ -54,17 +53,31 @@ func (n *NodeController) CreateNode() {
         }
     }else{
         var node map[string]string
+        var err error
         json.Unmarshal(n.Ctx.Input.RequestBody, &node)
-        err := models.AddNode(node)
+        //JWT
+        token,_ := utils.CreateToken("hola")
+        logs.Notice(token)
+        // decodedHeader, err := utils.Base64Decode(node["jwt_header"])
+        // decodedPayload, err := utils.Base64Decode(node["jwt_payload"])
+        // secret := "42isTheAnswer"                
+        // decoded, err := utils.Decode(node["jwt"], secret)
+        // // logs.Debug(decodedHeader)
+        // // logs.Debug(decodedPayload)
+        // logs.Warn(decoded)
 
-        sKey := "42isTheAnswer"
-        logs.Notice(node["jwt_header"])
-        logs.Notice(node["jwt_payload"])
-        key := []byte(sKey)
-        h := hmac.New(sha256.New, key)
-        h.Write([]byte(node["jwt_header"]+"."+node["jwt_payload"]))
-        b := base64.URLEncoding.EncodeToString(h.Sum(nil))
-        logs.Notice(string(b))
+
+        err = models.AddNode(node)
+
+        // //decode signature
+        // sKey := "42isTheAnswer"
+        // logs.Notice(node["jwt_header"])
+        // logs.Notice(node["jwt_payload"])
+        // key := []byte(sKey)
+        // h := hmac.New(sha256.New, key)
+        // h.Write([]byte(node["jwt_header"]+"."+node["jwt_payload"]))
+        // b := base64.URLEncoding.EncodeToString(h.Sum(nil))
+        // logs.Notice(string(b))
 
         if err != nil {
             logs.Error("NODE CREATE -> error: %s", err.Error())
