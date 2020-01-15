@@ -3,6 +3,7 @@ package main
 import (
 
     "github.com/astaxie/beego/logs"
+    "github.com/astaxie/beego/context"
     _ "owlhmaster/routers"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
@@ -50,7 +51,7 @@ func main() {
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.12.0.20200113")
+    logs.Info("Version OwlH Master: 0.12.0.20200115")
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {
@@ -95,13 +96,36 @@ func main() {
                                                     MinVersion:               tls.VersionTLS12,
                                                     PreferServerCipherSuites: true,
                                                 }
+
     beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
         AllowOrigins:     []string{"*"},
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin"},
+        AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin", "token"},
         ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
         AllowCredentials: true,
     }))
+
+    var TokenValidation = func(ctx *context.Context) {
+        logs.Warn("TESTING")
+        logs.Warn("TESTING")
+        logs.Warn("TESTING")
+        logs.Warn("TESTING")
+        if ctx.Input.Header("token") == "" {
+            logs.Error("NOT TOKEN")
+        }else{
+            logs.Notice(ctx.Input.Header("token"))
+        }
+        
+        // if strings.HasPrefix(ctx.Input.URL(), "/login") {
+        //     return
+        // }
+        
+        // _, ok := ctx.Input.Session("uid").(int)
+        // if !ok {
+        //     ctx.Redirect(302, "/login")
+        // }
+    }
+    beego.InsertFilter("*", beego.BeforeRouter, TokenValidation)
 
     beego.Run()
 }

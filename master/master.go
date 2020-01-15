@@ -482,3 +482,26 @@ func SaveFilePathContent(file map[string]string) (err error) {
     
     return nil
 }
+
+func Login(data map[string]string)(err error){ 
+    users,err := ndb.GetLoginData()
+    if err != nil{logs.Error("master/Login Error Getting user values: "+err.Error()); return err}    
+    
+    userExists := false
+    //check values
+    for x := range users{
+        if users[x]["user"] == data["user"]{
+            check := utils.CheckPasswordHash(data["password"], users[x]["pass"])
+            if check{
+                userExists = true
+            }
+        }
+    }
+    //if user login is correct, create token
+    if userExists {
+        // create token
+        logs.Notice("Exists")
+    }
+
+    return nil
+}

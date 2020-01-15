@@ -5,8 +5,8 @@ import (
     "crypto/sha256"
 	"encoding/base64"
 	"github.com/astaxie/beego/logs"
-	"github.com/dgrijalva/jwt-go"
-    // "errors"
+	jwt "github.com/dgrijalva/jwt-go"
+    "errors"
     "strings"
 	// "encoding/json"
 )
@@ -39,62 +39,48 @@ func isValidHash(value string, hash string, secret string) bool {
 
 // // Encode generates a jwt.
 // func Encode(payload Payload, secret string) string {
-// 	type Header struct {
-// 		Alg string `json:"alg"`
-// 		Typ string `json:"typ"`
-// 	} 
-// 	header := Header{
-// 		Alg: "HS256",
-// 		Typ: "JWT",
-// 	}
-// 	str, _ := json.Marshal(header)
-// 	header = Base64Encode(string(str))
-// 	encodedPayload, _ := json.Marshal(payload)
-// 	signatureValue := header + "." + 
-// 	Base64Encode(string(encodedPayload))
-// 	return signatureValue + "." + Hash(signatureValue, secret)
+	// // type Header struct {
+	// // 	Alg string `json:"alg"`
+	// // 	Typ string `json:"typ"`
+	// // } 
+	// header := Header{
+	// 	Alg: "HS256",
+	// 	Typ: "JWT",
+	// }
+	// // str, _ := json.Marshal(header)
+	// // header = Base64Encode(string(str))
+	// // encodedPayload, _ := json.Marshal(payload)
+	// // signatureValue := header + "." + 
+	// // Base64Encode(string(encodedPayload))
+	// // return signatureValue + "." + Hash(signatureValue, secret)
+
+	// // Create a new token object, specifying signing method and the claims
+	// // you would like it to contain.
+	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+	// 	"user": "bar",
+	// 	"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
+	// })
+
+	// // Sign and get the complete encoded token as a string using the secret
+	// tokenString, err := token.SignedString(hmacSampleSecret)
 // }
 
-func Decode(jwtToken string, secret string) (payload interface{}, err error) {
-	// check if the jwt token contains header, payload and token
+func Decode(jwtToken string, secret string) (err error) {
 	token := strings.Split(jwtToken, ".")
-	if len(token) != 3 {err := errors.New("Invalid token: token should contain header, payload and secret"); return nil, err}
+	if len(token) != 3 {err := errors.New("Invalid token: token should contain header, payload and secret"); return err}
+	logs.Info("Pass: "+secret)
 	logs.Info(token[0])
 	logs.Info(token[1])
 	logs.Info(token[2])
 
-   	// decode payload
-	decodedPayload, err := Base64Decode(token[1])
-	if err != nil {return nil, err}
 
-	// parses payload from string to a struct
-   	err = json.Unmarshal([]byte(decodedPayload), &payload)
-	if err != nil {return nil, err}
+	jwtKey := []byte("42isTheAnswer") //get user secret
+	tkn, err := jwt.Parse(jwtToken, func(token *jwt.Token) (interface{}, error) {
+			return jwtKey, nil
+	})
 
-	// checks if the token has expired.
-	// if payload.Exp != 0 && time.Now().Unix() > payload.Exp {return nil, errors.New("Expired token: token has expired")}
-	// signatureValue := token[0] + "." + token[1]
+	logs.Notice(tkn)
+	logs.Error(err)
 
-	// verifies if the header and signature is exactly whats in
-	// the signature
-	// if CompareHmac(token[0]+"."+token[1], token[2], secret) == false {return nil, errors.New("Invalid JWT signature")}
-
-	// err = jwt.Verify(token[0]+"."+token[1], token[2], secret)
-	// logs.Error(err)
-
-	// // Parse the token
-	// token, err := jwt.ParseWithClaims(jwtToken, &CustomClaimsExample{}, func(token *jwt.Token) (interface{}, error) {
-	// 	// since we only use the one private key to sign the tokens,
-	// 	// we also only use its public counter part to verify
-	// 	return verifyKey, nil
-	// })
-	// if err != nil {logs.Error(err)}
-	// logs.Debug(token)
-
-	return payload, nil
-}
-
-func CreateToken(tok string)(token string ,err error){
-	token, err := jwt.createToken("foo")
-	return token, err
+	return nil
 }

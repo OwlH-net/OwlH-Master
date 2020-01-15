@@ -64,7 +64,7 @@ func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
     if err != nil {
         logs.Error("File reading error %s", err.Error()) 
     }
-
+    
     var validID = regexp.MustCompile(`sid:\s?(\d+);`)
     var msgfield = regexp.MustCompile(`msg:\s?\"([^"]+)\"`)
     var ipfield = regexp.MustCompile(`^([^\(]+)\(`)
@@ -73,12 +73,14 @@ func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
     scanner := bufio.NewScanner(data)
     rules = make(map[string]map[string]string)
     for scanner.Scan(){
-        if validID.MatchString(scanner.Text()){
-            sid := validID.FindStringSubmatch(scanner.Text())
-            msg := msgfield.FindStringSubmatch(scanner.Text())
-            ip := ipfield.FindStringSubmatch(scanner.Text())
+        replaceFirst := strings.Replace(scanner.Text(), "“", "\"", -1)
+        replaceSecond := strings.Replace(replaceFirst, "”", "\"", -1)
+        if validID.MatchString(replaceSecond){
+            sid := validID.FindStringSubmatch(replaceSecond)
+            msg := msgfield.FindStringSubmatch(replaceSecond)
+            ip := ipfield.FindStringSubmatch(replaceSecond)
             rule := make(map[string]string)
-            if enablefield.MatchString(scanner.Text()){
+            if enablefield.MatchString(replaceSecond){
                 rule["enabled"]="Disabled"
             }else{
                 rule["enabled"]="Enabled"
@@ -86,7 +88,7 @@ func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
             rule["sid"]=sid[1]
             rule["msg"]=msg[1]
             rule["ip"]=ip[1]
-            rule["raw"]=scanner.Text()
+            rule["raw"]=replaceSecond
             rules[sid[1]]=rule
         }
 
@@ -846,6 +848,9 @@ func SaveRulesetData(anode map[string]string)(err error) {
     logs.Notice(anode["uuid"])
     uuid := anode["uuid"]
     content := anode["content"]
+    //replace quotes
+    replaceFirst := strings.Replace(content, "“", "\"", -1)
+    replaceSecond := strings.Replace(replaceFirst, "”", "\"", -1)
     
     path,err := ndb.GetRulesetPath(uuid)
 
@@ -855,7 +860,7 @@ func SaveRulesetData(anode map[string]string)(err error) {
     defer file.Close()
     file.Truncate(0)
     file.Seek(0,0)
-    _, err = file.WriteAt([]byte(content), 0) // Write at 0 beginning
+    _, err = file.WriteAt([]byte(replaceSecond), 0) // Write at 0 beginning
     if err != nil {logs.Error("SaveRulesetData failed writing to file: %s", err); return err}
     
     //update md5

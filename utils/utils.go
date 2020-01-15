@@ -23,6 +23,7 @@ import (
     "crypto/rand"
     "encoding/hex"
     "sort"
+    "golang.org/x/crypto/bcrypt"
     "path/filepath"
 )
 
@@ -495,4 +496,16 @@ func FilelistPathByFile(path string, fileToSearch string)(files map[string][]byt
     if err != nil {logs.Error("Error filepath walk finish: "+err.Error()); return nil, err}
 
     return pathMap, nil
+}
+
+func HashPassword(password string) (string, error) {
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    logs.Info("HASH PSSWD--> "+string(bytes))
+    return string(bytes), err
+}
+
+func CheckPasswordHash(password string, hash string) bool {
+    err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
+    logs.Error(err)
+    return err == nil
 }

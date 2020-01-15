@@ -430,3 +430,18 @@ func (m *MasterController) SaveFilePathContent() {
     }
     m.ServeJSON()
 }
+
+// @Title Login
+// @Description Get Master plugins
+// @Success 200 {object} models.Master
+// @router /login [put]
+func (m *MasterController) Login() {
+    anode := make(map[string]string)
+    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
+    err := models.Login(anode)
+    m.Data["json"] = map[string]string{"ack": "true"}
+    if err != nil {
+        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    m.ServeJSON()
+}

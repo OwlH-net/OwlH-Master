@@ -340,3 +340,17 @@ func SaveFilePathContent(anode map[string]string) (err error) {
     changecontrol.ChangeControlInsertData(err, "SaveFilePathContent")
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/login \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "user": "v",
+//     "password": "v"
+//  }
+// }
+func Login(anode map[string]string) (err error) {
+    err = master.Login(anode)
+    changecontrol.ChangeControlInsertData(err, "ChangePluginStatus")
+    return err
+}

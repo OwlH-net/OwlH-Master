@@ -75,6 +75,14 @@ func checkDatabases()(ok bool){
 func checkTables()(ok bool){
     var table Table
 
+    table.Tname = "users"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE users (user_id integer PRIMARY KEY AUTOINCREMENT,user_uniqueid text NOT NULL,user_param text NOT NULL,user_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "plugins"
     table.Tconn = "masterConn"
     table.Tcreate = "CREATE TABLE plugins (plugin_id integer PRIMARY KEY AUTOINCREMENT,plugin_uniqueid text NOT NULL,plugin_param text NOT NULL,plugin_value text NOT NULL)"

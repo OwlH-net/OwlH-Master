@@ -557,3 +557,23 @@ func GetAllCluster()(groups map[string]map[string]string, err error){
     } 
     return allgroups, nil
 }
+
+func GetLoginData()(groups map[string]map[string]string, err error){
+    var allusers = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Mdb == nil { logs.Error("no access to database"); return nil, err}
+    
+    sql := "select user_uniqueid, user_param, user_value from users;"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetLoginData Mdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetLoginData rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allusers[uniqid] == nil { allusers[uniqid] = map[string]string{}}
+        allusers[uniqid][param]=value
+    } 
+    return allusers, nil
+}
