@@ -496,11 +496,13 @@ func Login(data map[string]string)(err error){
                 userExists = true
             }
         }
-    }
-    //if user login is correct, create token
-    if userExists {
-        // create token
-        logs.Notice("Exists")
+        //if user login is correct, create token
+        if userExists {
+            // create token
+            token, err := utils.Encode(data["user"], users[x]["pass"])
+            if err != nil {return err}
+            logs.Notice(token)
+        }
     }
 
     return nil

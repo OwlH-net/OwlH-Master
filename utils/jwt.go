@@ -37,8 +37,8 @@ func isValidHash(value string, hash string, secret string) bool {
 	return hash == Hash(value, secret)
 }
 
-// // Encode generates a jwt.
-// func Encode(payload Payload, secret string) string {
+// Encode generates a jwt.
+func Encode(user string, secret string) (val string, err error) {
 	// // type Header struct {
 	// // 	Alg string `json:"alg"`
 	// // 	Typ string `json:"typ"`
@@ -61,9 +61,17 @@ func isValidHash(value string, hash string, secret string) bool {
 	// 	"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
 	// })
 
-	// // Sign and get the complete encoded token as a string using the secret
-	// tokenString, err := token.SignedString(hmacSampleSecret)
-// }
+	// Create the Claims
+	claims := &jwt.StandardClaims{
+		ExpiresAt: 15000,
+		Issuer:    "test",
+	}
+
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenString, err := token.SignedString([]byte(secret))
+	if err != nil {logs.Error(err); return "", err}
+	return tokenString, err
+}
 
 func Decode(jwtToken string, secret string) (err error) {
 	token := strings.Split(jwtToken, ".")
