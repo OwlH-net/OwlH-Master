@@ -483,27 +483,26 @@ func SaveFilePathContent(file map[string]string) (err error) {
     return nil
 }
 
-func Login(data map[string]string)(err error){ 
+func Login(data map[string]string)(newToken string, err error){ 
     users,err := ndb.GetLoginData()
-    if err != nil{logs.Error("master/Login Error Getting user values: "+err.Error()); return err}    
+    if err != nil{logs.Error("master/Login Error Getting user values: "+err.Error()); return "",err}    
     
-    userExists := false
     //check values
     for x := range users{
         if users[x]["user"] == data["user"]{
-            check := utils.CheckPasswordHash(data["password"], users[x]["pass"])
+            check, err := utils.CheckPasswordHash(data["password"], users[x]["pass"])
+            if err != nil{return "", err}
             if check{
-                userExists = true
+                // userExists = true
+                token, err := utils.Encode(x, data["user"], users[x]["pass"])
+                if err != nil {return "",err}
+                // newToken["token"] = token
+                // newToken["user"] = users[x]["user"]
+                // newToken["user_uuid"] = x
+                return token,nil
             }
-        }
-        //if user login is correct, create token
-        if userExists {
-            // create token
-            token, err := utils.Encode(data["user"], users[x]["pass"])
-            if err != nil {return err}
-            logs.Notice(token)
         }
     }
 
-    return nil
+    return "", errors.New("There are not token. Error creating Token")
 }

@@ -436,12 +436,21 @@ func (m *MasterController) SaveFilePathContent() {
 // @Success 200 {object} models.Master
 // @router /login [put]
 func (m *MasterController) Login() {
+
+    // logs.Warn(m.Ctx.Input.Cookie)
+    // logs.Warn(string(m.Ctx.Input.Header))
+    // headers := make(map[string]map[string]string)
+    // json.Unmarshal(m.Ctx.Input, &headers)
+    // logs.Warn(headers)
+    
     anode := make(map[string]string)
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-    err := models.Login(anode)
-    m.Data["json"] = map[string]string{"ack": "true"}
+    token, err := models.Login(anode)
+    m.Data["json"] = token
+    // m.Data["cookie"] = token
     if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        // m.Data["cookie"] = nil
     }
     m.ServeJSON()
 }

@@ -349,8 +349,8 @@ func SaveFilePathContent(anode map[string]string) (err error) {
 //     "password": "v"
 //  }
 // }
-func Login(anode map[string]string) (err error) {
-    err = master.Login(anode)
+func Login(anode map[string]string) (token string, err error) {
+    token, err = master.Login(anode)
     changecontrol.ChangeControlInsertData(err, "ChangePluginStatus")
-    return err
+    return token, err
 }

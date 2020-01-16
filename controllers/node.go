@@ -227,11 +227,18 @@ func (n *NodeController) PutSuricataBPF() {
 // @Success 200 {object} models.Node
 // @router / [get]
 func (n *NodeController) GetAllNodes() {
-    nodes, err := models.GetAllNodes()
-    n.Data["json"] = nodes
+    //check token
+    err := utils.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else{
+        nodes, err := models.GetAllNodes()
+        n.Data["json"] = nodes
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
+
     n.ServeJSON()
 }
 

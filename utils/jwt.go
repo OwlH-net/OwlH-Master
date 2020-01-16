@@ -7,8 +7,10 @@ import (
 	"github.com/astaxie/beego/logs"
 	jwt "github.com/dgrijalva/jwt-go"
     "errors"
-    "strings"
+	"strings"
+	"golang.org/x/crypto/bcrypt"
 	// "encoding/json"
+    "owlhmaster/database"
 )
 //Enconde to Base64
 func Base64Encode(src string) string {
@@ -38,33 +40,22 @@ func isValidHash(value string, hash string, secret string) bool {
 }
 
 // Encode generates a jwt.
-func Encode(user string, secret string) (val string, err error) {
-	// // type Header struct {
-	// // 	Alg string `json:"alg"`
-	// // 	Typ string `json:"typ"`
-	// // } 
-	// header := Header{
-	// 	Alg: "HS256",
-	// 	Typ: "JWT",
-	// }
-	// // str, _ := json.Marshal(header)
-	// // header = Base64Encode(string(str))
-	// // encodedPayload, _ := json.Marshal(payload)
-	// // signatureValue := header + "." + 
-	// // Base64Encode(string(encodedPayload))
-	// // return signatureValue + "." + Hash(signatureValue, secret)
+func Encode(uuid string, user string, secret string) (val string, err error) {
 
-	// // Create a new token object, specifying signing method and the claims
-	// // you would like it to contain.
-	// token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-	// 	"user": "bar",
-	// 	"nbf": time.Date(2015, 10, 10, 12, 0, 0, 0, time.UTC).Unix(),
-	// })
+	type MyCustomClaims struct {
+		Uuid string `json:"uuid"`
+		User string `json:"user"`
+		jwt.StandardClaims
+	}
 
 	// Create the Claims
-	claims := &jwt.StandardClaims{
-		ExpiresAt: 15000,
-		Issuer:    "test",
+	claims := MyCustomClaims{
+		uuid,
+		user,
+		jwt.StandardClaims{
+			ExpiresAt: 15000,
+			Issuer:    "OwlH",
+		},
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -91,4 +82,30 @@ func Decode(jwtToken string, secret string) (err error) {
 	logs.Error(err)
 
 	return nil
+}
+
+func HashPassword(password string) (string, error) {
+    bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+    logs.Info("HASH PSSWD--> "+string(bytes))
+    return string(bytes), err
+}
+
+func CheckPasswordHash(password string, hash string) (bool, error) {
+    err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))	
+	if err != nil {logs.Error(err); return false, err}
+    return true, nil
+}
+
+func CheckToken(token string, user string, uuid string)(err error){
+	users,err := ndb.GetLoginData()
+	for x := range users{
+        if users[x]["user"] == data["user"]{
+			check, err := utils.CheckPasswordHash(data["password"], users[x]["pass"])
+			if err != nil{return err}
+            if check{
+				return nil
+			}
+		}
+	}
+	return errors.New("There are not token. Error creating Token")
 }

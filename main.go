@@ -3,7 +3,7 @@ package main
 import (
 
     "github.com/astaxie/beego/logs"
-    "github.com/astaxie/beego/context"
+    // "github.com/astaxie/beego/context"
     _ "owlhmaster/routers"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
@@ -51,7 +51,7 @@ func main() {
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.12.0.20200115")
+    logs.Info("Version OwlH Master: 0.12.0.20200116")
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {
@@ -86,6 +86,7 @@ func main() {
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
+        beego.BConfig.WebConfig.Session.SessionOn = true
     }
 
 
@@ -100,32 +101,29 @@ func main() {
     beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
         AllowOrigins:     []string{"*"},
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin", "token"},
+        AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin", "token", "user", "uuid"},
         ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
         AllowCredentials: true,
     }))
 
-    var TokenValidation = func(ctx *context.Context) {
-        logs.Warn("TESTING")
-        logs.Warn("TESTING")
-        logs.Warn("TESTING")
-        logs.Warn("TESTING")
-        if ctx.Input.Header("token") == "" {
-            logs.Error("NOT TOKEN")
-        }else{
-            logs.Notice(ctx.Input.Header("token"))
-        }
+    // var TokenValidation = func(ctx *context.Context) {
+    //     if ctx.Input.Header("token") == "" {            
+    //         utils.SendToken()
+    //     }else{
+    //         // ctx.Redirect(302, "/nodes")            
+    //         // logs.Notice(ctx.Input.Header("token"))
+    //     }
         
-        // if strings.HasPrefix(ctx.Input.URL(), "/login") {
-        //     return
-        // }
+    //     // if strings.HasPrefix(ctx.Input.URL(), "/login") {
+    //     //     return
+    //     // }
         
-        // _, ok := ctx.Input.Session("uid").(int)
-        // if !ok {
-        //     ctx.Redirect(302, "/login")
-        // }
-    }
-    beego.InsertFilter("*", beego.BeforeRouter, TokenValidation)
+    //     // _, ok := ctx.Input.Session("uid").(int)
+    //     // if !ok {
+    //     //     ctx.Redirect(302, "/login")
+    //     // }
+    // }
+    // beego.InsertFilter("*", beego.BeforeRouter, TokenValidation)
 
     beego.Run()
 }
