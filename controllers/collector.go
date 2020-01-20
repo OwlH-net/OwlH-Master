@@ -3,6 +3,7 @@ package controllers
 import (
     "owlhmaster/models"
     "github.com/astaxie/beego/logs"
+    "owlhmaster/validation"
     "github.com/astaxie/beego"
 )
 
@@ -16,12 +17,18 @@ type CollectorController struct {
 // @Failure 403 body is empty
 // @router /play/:uuid [get]
 func (n *CollectorController) PlayCollector() {
-    uuid := n.GetString(":uuid")
-    err := models.PlayCollector(uuid)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Error("PlayCollector ERROR -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else{
+        uuid := n.GetString(":uuid")
+        err := models.PlayCollector(uuid)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Error("PlayCollector ERROR -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+
     }
     n.ServeJSON()
 }
@@ -32,12 +39,18 @@ func (n *CollectorController) PlayCollector() {
 // @Failure 403 body is empty
 // @router /stop/:uuid [get]
 func (n *CollectorController) StopCollector() {
-    uuid := n.GetString(":uuid")
-    err := models.StopCollector(uuid)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Error("StopCollector ERROR -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else{
+        uuid := n.GetString(":uuid")
+        err := models.StopCollector(uuid)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Error("StopCollector ERROR -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+
     }
     n.ServeJSON()
 }

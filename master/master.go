@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "github.com/google/gopacket/pcap"
     "owlhmaster/utils"
+    "owlhmaster/validation"
     "owlhmaster/database"
     "io/ioutil"
     "os"
@@ -490,15 +491,14 @@ func Login(data map[string]string)(newToken string, err error){
     //check values
     for x := range users{
         if users[x]["user"] == data["user"]{
-            check, err := utils.CheckPasswordHash(data["password"], users[x]["pass"])
+            check, err := validation.CheckPasswordHash(data["password"], users[x]["pass"])
             if err != nil{return "", err}
             if check{
                 // userExists = true
-                token, err := utils.Encode(x, data["user"], users[x]["pass"])
+                token, err := validation.Encode(x, data["user"], users[x]["secret"])
+                logs.Notice("LOGIN TOKEN VALIDATION")
+                logs.Notice(token)
                 if err != nil {return "",err}
-                // newToken["token"] = token
-                // newToken["user"] = users[x]["user"]
-                // newToken["user_uuid"] = x
                 return token,nil
             }
         }

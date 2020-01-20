@@ -2,6 +2,7 @@ package controllers
 
 import (
     "owlhmaster/models"
+    "owlhmaster/validation"
     "encoding/json"
     //"strconv"
     "github.com/astaxie/beego"
@@ -18,11 +19,17 @@ type RulesetController struct {
 // @Failure 403 ruleset is empty
 // @router /default [get]
 func (n *RulesetController) GetRules(){ 
-    mstatus, err:= models.GetRules()
-    n.Data["json"] = mstatus
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("GetRules -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else{
+        mstatus, err:= models.GetRules()
+        n.Data["json"] = mstatus
+        if err != nil {
+            logs.Info("GetRules -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+
     }
     n.ServeJSON()
 }

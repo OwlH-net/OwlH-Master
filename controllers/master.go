@@ -4,6 +4,7 @@ import (
     "owlhmaster/models"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
+    "owlhmaster/validation"
     "encoding/json"
 )
 
@@ -17,13 +18,19 @@ type MasterController struct {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /getMasterTitle [get]
-func (m *MasterController) GetMasterTitle() {
-    data, err := models.GetMasterTitle()
-    m.Data["json"] = data
+func (n *MasterController) GetMasterTitle() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else{
+        data, err := models.GetMasterTitle()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title GetFileContent
@@ -435,22 +442,13 @@ func (m *MasterController) SaveFilePathContent() {
 // @Description Get Master plugins
 // @Success 200 {object} models.Master
 // @router /login [put]
-func (m *MasterController) Login() {
-
-    // logs.Warn(m.Ctx.Input.Cookie)
-    // logs.Warn(string(m.Ctx.Input.Header))
-    // headers := make(map[string]map[string]string)
-    // json.Unmarshal(m.Ctx.Input, &headers)
-    // logs.Warn(headers)
-    
+func (m *MasterController) Login() {  
     anode := make(map[string]string)
     json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
     token, err := models.Login(anode)
     m.Data["json"] = token
-    // m.Data["cookie"] = token
     if err != nil {
         m.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        // m.Data["cookie"] = nil
     }
     m.ServeJSON()
 }

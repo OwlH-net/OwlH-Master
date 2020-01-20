@@ -5,6 +5,7 @@ import (
     "encoding/json"
     //"strconv"
     "github.com/astaxie/beego"
+    "owlhmaster/validation"
 )
 
 type StapController struct {
@@ -17,12 +18,18 @@ type StapController struct {
 // @Failure 403 ruleset is empty
 // @router / [post]
 func (n *StapController) AddServer(){ 
-    var newServer map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &newServer)
-    err := models.AddServer(newServer)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else{
+        var newServer map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &newServer)
+        err := models.AddServer(newServer)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+
     }
     n.ServeJSON()
 }

@@ -5,6 +5,7 @@ import (
     "encoding/json"
     "github.com/astaxie/beego/logs"
     "github.com/astaxie/beego"
+    "owlhmaster/validation"
 )
 
 type RulesetSourceController struct {
@@ -17,13 +18,19 @@ type RulesetSourceController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *RulesetSourceController) CreateRulesetSource() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.CreateRulesetSource(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Error("CreateRulesetSource CREATE -> error: %s", err.Error())
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.CreateRulesetSource(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Error("CreateRulesetSource CREATE -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+
     }
     n.ServeJSON()
 }

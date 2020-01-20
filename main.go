@@ -124,7 +124,6 @@ func main() {
     //     // }
     // }
     // beego.InsertFilter("*", beego.BeforeRouter, TokenValidation)
-
     beego.Run()
 }
 
