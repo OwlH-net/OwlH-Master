@@ -2,7 +2,6 @@ package node
 
 import (
     "github.com/astaxie/beego/logs"
-    "strings"
     "owlhmaster/database"
     "errors"
     "os"
@@ -168,42 +167,29 @@ func nodeKeyExists(nodekey string, key string) (id int, err error) {
 }
 
 func nodeExists(nodeid string) (err error) {
-    err = ndb.GetNodeById(nodeid)
+    node,err := ndb.GetNodeById(nodeid)
     if err != nil {logs.Error("Get node error: "+err.Error()); return err}
+    if len(node) == 0 {logs.Error("Node not exists: "+err.Error()); return errors.New("Node does not exists.")}
     return err
 }
 
-func nodeKeyUpdate(id int, nkey string, key string, value string) (err error) {
-    err = ndb.UpdateNode(id, nkey, key, value)
-    if err != nil {logs.Error("Get node error: "+err.Error()); return err}
-    return err
-}
+// func nodeKeyUpdate(nkey string, key string, value string) (err error) {
+//     err = ndb.UpdateNode(nkey, key, value)
+//     if err != nil {logs.Error("Get node error: "+err.Error()); return err}
+//     return err
+// }
 
-func nodeKeyInsert(nkey string, key string, value string) (err error) {
-    err = ndb.InsertNodeKey(nkey, key, value)
-    if err != nil {logs.Error("Insert node error: "+err.Error()); return err}
-    return err
-}
+// func nodeKeyInsert(nkey string, key string, value string) (err error) {
+//     err = ndb.InsertNodeKey(nkey, key, value)
+//     if err != nil {logs.Error("Insert node error: "+err.Error()); return err}
+//     return err
+// }
 
 func AddNode(n map[string]string) (err error) {
-    logs.Info("ADD NODE")
-    nodeKey := utils.Generate()
-    if _, ok := n["name"]; !ok {
-        logs.Error("name empty: "+err.Error())
-        return errors.New("name empty")
-    }
-    if _, ok := n["ip"]; !ok {
-        logs.Error("ip empty: "+err.Error())
-        return errors.New("ip empty")
-    }
+    logs.Notice(n)
+    uuid := utils.Generate()
 
-    //check if exist some node whit the same uuid
-    if err := nodeExists(nodeKey); err != nil {
-        logs.Error("Node exists: "+err.Error())
-        return errors.New("Node exists: "+err.Error())
-    }
-    
-    //cehck if exists a node with the same ip and port
+    //check if exists a node with the same ip and port
     nodes,err:= ndb.GetAllNodes()
     for id := range nodes {
         if nodes[id]["ip"] == n["ip"]{
@@ -213,64 +199,35 @@ func AddNode(n map[string]string) (err error) {
         }
     }
 
-    for key, value := range n {
-        err = nodeKeyInsert(nodeKey, key, value)
-        if err != nil {return err}
-    }
-
-    //update node
-    nodeValues, err := ndb.GetAllNodesById(nodeKey)
-    if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}    
-    ipnid,portnid,err := ndb.ObtainPortIp(nodeKey)
-    if err != nil { logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: "+err.Error()); return err}
-    go nodeclient.UpdateNodeData(ipnid,portnid, nodeValues)
+    err = ndb.InsertNodeKey(uuid, "name", n["name"]); if err != nil {logs.Error("Insert node name error: "+err.Error()); return err}
+    err = ndb.InsertNodeKey(uuid, "port", n["port"]); if err != nil {logs.Error("Insert node port error: "+err.Error()); return err}
+    err = ndb.InsertNodeKey(uuid, "ip", n["ip"]); if err != nil {logs.Error("Insert node ip error: "+err.Error()); return err}
 
     return nil
 }
 
 func UpdateNode(n map[string]string) (err error) {
-    var nodeKey string
-
-    if _, ok := n["name"]; !ok {
-        return errors.New("name is empty")
-    }
-    if _, ok := n["ip"]; !ok {
-        return errors.New("ip is empty")
-    }
-    if _, ok := n["id"]; !ok {
-        nodeKey = strings.Replace(n["name"], " ", "-",0)+"-"+strings.Replace(n["ip"], ".", "-",0)
-    } else {
-        nodeKey = n["id"]
-    }
-    //check if exists a node with the same uuid
-    if err := nodeExists(nodeKey); err == nil {
-        return errors.New("Node doesn't exist, must be created")
-    }
-
     //cehck if exists a node with the same ip and port
     nodes,err:= ndb.GetAllNodes()
     for id := range nodes {
         if nodes[id]["ip"] == n["ip"]{
             if nodes[id]["port"] == n["port"]{
-                return errors.New("There is already a node with the same IP and Port")
+                if id != n["id"]{
+                    return errors.New("There is already a node with the same IP and Port")
+                }
             }
         }
     }
 
     //update node
-    for key, value := range n {
-        if id, _ := nodeKeyExists(nodeKey, key); id != 0 {
-            err = nodeKeyUpdate(id, nodeKey, key, value)
-        } else {
-            err = nodeKeyInsert(nodeKey, key, value)
-        }
-    }
-    if err != nil {return err}
+    err = ndb.UpdateNode(n["id"], "name", n["name"]);  if err != nil {logs.Error("UpdateNode name error: "+err.Error()); return err}
+    err = ndb.UpdateNode(n["id"], "ip", n["ip"]);  if err != nil {logs.Error("UpdateNode ip error: "+err.Error()); return err}
+    err = ndb.UpdateNode(n["id"], "port", n["port"]);  if err != nil {logs.Error("UpdateNode port error: "+err.Error()); return err}
 
-    //update node
-    nodeValues, err := ndb.GetAllNodesById(n["uuid"])
+    // //update node
+    nodeValues, err := ndb.GetNodeById(n["id"])
     if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}
-    ipnid,portnid,err := ndb.ObtainPortIp(n["uuid"])
+    ipnid,portnid,err := ndb.ObtainPortIp(n["id"])
     if err != nil { logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: "+err.Error()); return err}    
     err = nodeclient.UpdateNodeData(ipnid,portnid, nodeValues)
     if err != nil {logs.Error("Error updating node data")}
@@ -288,11 +245,11 @@ func NodePing(uuid string) (err error) {
     ipData,portData,err := ndb.ObtainPortIp(uuid)
     if err != nil {logs.Error("node/NodePing ERROR getting node port/ip: "+err.Error()); return err}    
     
-    nodeValues, err := ndb.GetAllNodesById(uuid)
-    if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}    
+    // nodeValues, err := ndb.GetNodeById(uuid)
+    // if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}    
 
-    err = nodeclient.UpdateNodeData(ipData,portData, nodeValues)
-    if err != nil {logs.Error("Error updating node data")}
+    // err = nodeclient.UpdateNodeData(ipData,portData, nodeValues)
+    // if err != nil {logs.Error("Error updating node data")}
 
     err = nodeclient.PingNode(ipData,portData)
     if err != nil {return errors.New("N/A")}

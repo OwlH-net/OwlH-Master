@@ -18,7 +18,7 @@ type HomeController struct {
 func (n *HomeController) Home() {
     err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
         n.Data["json"] = map[string]string{"ack": "true"}
     }

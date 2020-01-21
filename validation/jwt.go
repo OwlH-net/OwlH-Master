@@ -100,10 +100,9 @@ func CheckToken(token string, user string, uuid string)(err error){
 			// valid,err := Encode(uuid, user, users[x]["secret"])
 			tkn, err := Encode(uuid, user, users[x]["secret"])
 			if err != nil {
-				logs.Error("ERROR GETTING TOKEN FOR COMPARE: %s", err); return err
+				logs.Error("Error checking token: %s", err); return err
 			}else{
 				if token == tkn {
-					logs.Notice("Token checked successfully!")
 					return nil
 				}else{
 					return errors.New("The token retrieved is false")

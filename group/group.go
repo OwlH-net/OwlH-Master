@@ -110,7 +110,7 @@ func GetAllGroups()(Groups []Group, err error){
 
         for nid := range groupNodes{
             if gid == groupNodes[nid]["groupid"]{
-                nodeValues, err := ndb.GetAllNodesById(groupNodes[nid]["nodesid"]); if err != nil {logs.Error("group/GetNodeValues ERROR getting node values: "+err.Error()); return nil,err}    
+                nodeValues, err := ndb.GetNodeById(groupNodes[nid]["nodesid"]); if err != nil {logs.Error("group/GetNodeValues ERROR getting node values: "+err.Error()); return nil,err}    
                 nd := Node{}
                 nd.Dbuuid = nid
                 for b := range nodeValues{
@@ -190,7 +190,7 @@ func PingGroupNodes()(data map[string]map[string]string, err error) {
 }
 
 func GetNodeValues(uuid string)(data map[string]map[string]string, err error) {
-    data, err = ndb.GetAllNodesById(uuid)
+    data, err = ndb.GetNodeById(uuid)
     if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return nil,err}    
 
     return data, nil

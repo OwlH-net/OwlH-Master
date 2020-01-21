@@ -76,20 +76,20 @@ func NodeKeyExists(nodekey string, key string) (id int, err error) {
     return 0, nil
 }
 
-func GetNodeById(nodeid string)(err error){
-    if Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
+// func GetNodeById(nodeid string)(err error){
+//     if Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
 
-    sql := "SELECT * FROM nodes where node_uniqueid = '"+nodeid+"';"
-    rows, err := Db.Query(sql)
-    if err != nil {logs.Error(err.Error()); return err}
+//     sql := "SELECT * FROM nodes where node_uniqueid = '"+nodeid+"';"
+//     rows, err := Db.Query(sql)
+//     if err != nil {logs.Error(err.Error()); return err}
 
-    defer rows.Close()
-    if rows.Next() {
-        return errors.New("Node Exists " + nodeid)
-    } else {
-        return nil
-    }
-}
+//     defer rows.Close()
+//     if rows.Next() {
+//         return errors.New("Node Exists " + nodeid)
+//     } else {
+//         return nil
+//     }
+// }
 
 func InsertNodeKey(nkey string, key string, value string) (err error) {
     if Db == nil {logs.Error("no access to database"); return errors.New("no access to database")}
@@ -101,13 +101,13 @@ func InsertNodeKey(nkey string, key string, value string) (err error) {
     return nil
 }
 
-func UpdateNode(id int, uuid string, param string, value string)(err error){
-    updateNode, err := Db.Prepare("update nodes set node_param = ?, node_value = ? where node_id = ? and node_uniqueid = ?;")
-        if (err != nil){logs.Error("updateNode UPDATE prepare error for update-- "+err.Error()); return err}
+func UpdateNode(uuid string, param string, value string)(err error){
+    updateNode, err := Db.Prepare("update nodes set node_value = ? where node_uniqueid = ? and node_param = ?;")
+    if (err != nil){logs.Error("updateNode UPDATE prepare error for update-- "+err.Error()); return err}
 
-        _, err = updateNode.Exec(&param, &value, &id, &uuid)
-        defer updateNode.Close()
-        if (err != nil){logs.Error("updateNode UPDATE error -- "+err.Error()); return err}
+    _, err = updateNode.Exec(&value, &uuid, &param)
+    defer updateNode.Close()
+    if (err != nil){logs.Error("updateNode UPDATE error -- "+err.Error()); return err}
     return nil
 }
 

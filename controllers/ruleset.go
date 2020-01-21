@@ -21,7 +21,7 @@ type RulesetController struct {
 func (n *RulesetController) GetRules(){ 
     err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
         mstatus, err:= models.GetRules()
         n.Data["json"] = mstatus
@@ -40,16 +40,21 @@ func (n *RulesetController) GetRules(){
 // @Failure 403 SID not exist
 // @router /rule/:sid/:uuid [get]
 func (n *RulesetController) GetRuleSID(){ 
-    sid := n.GetString(":sid")
-    uuid := n.GetString(":uuid")
-    ruleSidPath := make(map[string]string)
-    ruleSidPath["sid"] = sid
-    ruleSidPath["uuid"] = uuid
-    mstatus, err := models.GetRuleSID(ruleSidPath)
-    n.Data["json"] = mstatus
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("GetRuleSID -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        sid := n.GetString(":sid")
+        uuid := n.GetString(":uuid")
+        ruleSidPath := make(map[string]string)
+        ruleSidPath["sid"] = sid
+        ruleSidPath["uuid"] = uuid
+        mstatus, err := models.GetRuleSID(ruleSidPath)
+        n.Data["json"] = mstatus
+        if err != nil {
+            logs.Info("GetRuleSID -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
     
@@ -77,11 +82,16 @@ func (n *RulesetController) GetRuleSID(){
 // @Success 200 {object} models.ruleset
 // @router / [get]
 func (n *RulesetController) GetAllRulesets() { 
-    rulesets, err := models.GetAllRulesets()
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
-        n.Data["json"] = rulesets
+        rulesets, err := models.GetAllRulesets()
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{
+            n.Data["json"] = rulesets
+        }
     }
     n.ServeJSON()
 }
@@ -91,14 +101,19 @@ func (n *RulesetController) GetAllRulesets() {
 // @Success 200 {object} models.ruleset
 // @router /rules/:uuid [get]
 // @router /:uuid/rules [get]
-func (n *RulesetController) GetRulesetRules() { 
-    uuid := n.GetString(":uuid")
-    rulesets, err := models.GetRulesetRules(uuid)
+func (n *RulesetController) GetRulesetRules() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
-        n.Data["json"] = rulesets
-    }
+        uuid := n.GetString(":uuid")
+        rulesets, err := models.GetRulesetRules(uuid)
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{
+            n.Data["json"] = rulesets
+        }
+    } 
 
     n.ServeJSON()
 }
@@ -108,15 +123,20 @@ func (n *RulesetController) GetRulesetRules() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /set [put]
-func (n *RulesetController) SetRuleSelected() { 
-    var ruleSelected map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &ruleSelected)
-    err := models.SetRuleSelected(ruleSelected)
-    n.Data["json"] = map[string]string{"ack": "true"}
+func (n *RulesetController) SetRuleSelected() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        logs.Info("RulesetSelected -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        var ruleSelected map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &ruleSelected)
+        err := models.SetRuleSelected(ruleSelected)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Info("RulesetSelected -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }
 
@@ -125,15 +145,20 @@ func (n *RulesetController) SetRuleSelected() {
 // @Success 200 {object} models.ruleset
 // @router /get/:uuid [get]
 // @router /:uuid/get [get]
-func (n *RulesetController) GetRuleSelected() { 
-    uuid := n.GetString(":uuid")
-    rulesets, err := models.GetRuleSelected(uuid)
+func (n *RulesetController) GetRuleSelected() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
-        n.Data["json"] = rulesets
-    }
-    logs.Info("GetRuleSelected: "+rulesets)
+        uuid := n.GetString(":uuid")
+        rulesets, err := models.GetRuleSelected(uuid)
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{
+            n.Data["json"] = rulesets
+        }
+        logs.Info("GetRuleSelected: "+rulesets)
+    } 
     n.ServeJSON()
 }
 
@@ -144,14 +169,19 @@ func (n *RulesetController) GetRuleSelected() {
 // @router /:uuid/get/name [get]
 // @router /get/:uuid/name [get]
 func (n *RulesetController) GetRuleName() { 
-    uuid := n.GetString(":uuid")
-    name, err := models.GetRuleName(uuid)
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
-        n.Data["json"] = name
+        uuid := n.GetString(":uuid")
+        name, err := models.GetRuleName(uuid)
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{
+            n.Data["json"] = name
+        }
+        logs.Info("GetRuleName: "+name)
     }
-    logs.Info("GetRuleName: "+name)
     n.ServeJSON()
 }
 
@@ -176,14 +206,19 @@ func (n *RulesetController) GetRuleName() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /action [put]
-func (n *RulesetController) SetRulesetAction() { 
-    var ruleAction map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &ruleAction)
-    err := models.SetRulesetAction(ruleAction)
-    n.Data["json"] = map[string]string{"ack": "true"}
+func (n *RulesetController) SetRulesetAction() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        var ruleAction map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &ruleAction)
+        err := models.SetRulesetAction(ruleAction)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }
 
@@ -193,15 +228,20 @@ func (n *RulesetController) SetRulesetAction() {
 // @Failure 403 Connection Failure
 // @router /getnote/:uuid/:sid [get]
 func (n *RulesetController) GetRuleNote() { 
-    sid := n.GetString(":sid")
-    uuid := n.GetString(":uuid")
-    ruleGetNote := make(map[string]string)
-    ruleGetNote["sid"] = sid
-    ruleGetNote["uuid"] = uuid
-    note,err := models.GetRuleNote(ruleGetNote)
-    n.Data["json"] = note
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        sid := n.GetString(":sid")
+        uuid := n.GetString(":uuid")
+        ruleGetNote := make(map[string]string)
+        ruleGetNote["sid"] = sid
+        ruleGetNote["uuid"] = uuid
+        note,err := models.GetRuleNote(ruleGetNote)
+        n.Data["json"] = note
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -211,14 +251,19 @@ func (n *RulesetController) GetRuleNote() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /note [put]
-func (n *RulesetController) SetRuleNote() { 
-    var ruleAction map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &ruleAction)
-    err := models.SetRuleNote(ruleAction)
-    n.Data["json"] = map[string]string{"ack": "true"}
+func (n *RulesetController) SetRuleNote() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        var ruleAction map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &ruleAction)
+        err := models.SetRuleNote(ruleAction)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }
 
@@ -227,14 +272,19 @@ func (n *RulesetController) SetRuleNote() {
 // @Success 200 {string} ruleset deleted
 // @Failure 403 Connection failure
 // @router /deleteRuleset [delete]
-func (n *RulesetController) DeleteNode() { 
-    var rulesetDelete map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &rulesetDelete)
-    err := models.DeleteRuleset(rulesetDelete)
-    n.Data["json"] = map[string]string{"ack": "true"}
+func (n *RulesetController) DeleteNode() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        var rulesetDelete map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &rulesetDelete)
+        err := models.DeleteRuleset(rulesetDelete)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }
 
@@ -243,15 +293,20 @@ func (n *RulesetController) DeleteNode() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /synchronize [put]
-func (n *RulesetController) SyncRulesetToAllNodes() { 
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
-    err := models.SyncRulesetToAllNodes(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+func (n *RulesetController) SyncRulesetToAllNodes() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        
+        err := models.SyncRulesetToAllNodes(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     
     n.ServeJSON()
 }
@@ -261,12 +316,17 @@ func (n *RulesetController) SyncRulesetToAllNodes() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /getAllRuleData [get]
-func (n *RulesetController) GetAllRuleData() { 
-    data,err := models.GetAllRuleData()
-    n.Data["json"] = data
+func (n *RulesetController) GetAllRuleData() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        data,err := models.GetAllRuleData()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }
 
@@ -276,17 +336,22 @@ func (n *RulesetController) GetAllRuleData() {
 // @Failure 403 Connection Failure
 // @router /addNewRuleset [put]
 func (n *RulesetController) AddNewRuleset() { 
-    var anode map[string]map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    duplicated,err := models.AddNewRuleset(anode)
-    
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }else {
-        if duplicated == nil {
-            n.Data["json"] = map[string]string{"ack": "true"}    
-        }else{
-            n.Data["json"] = string(duplicated)
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        var anode map[string]map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        duplicated,err := models.AddNewRuleset(anode)
+        
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else {
+            if duplicated == nil {
+                n.Data["json"] = map[string]string{"ack": "true"}    
+            }else{
+                n.Data["json"] = string(duplicated)
+            }
         }
     }
     n.ServeJSON()
@@ -298,10 +363,15 @@ func (n *RulesetController) AddNewRuleset() {
 // @Failure 403 Connection Failure
 // @router /custom [get]
 func (n *RulesetController) GetAllCustomRulesets() { 
-    data,err := models.GetAllCustomRulesets()
-    n.Data["json"] = data
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        data,err := models.GetAllCustomRulesets()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -311,12 +381,17 @@ func (n *RulesetController) GetAllCustomRulesets() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /syncAllRulesets [put]
-func (n *RulesetController) SynchronizeAllRulesets() { 
-    err := models.SynchronizeAllRulesets()
-    n.Data["json"] = map[string]string{"ack": "true"}
+func (n *RulesetController) SynchronizeAllRulesets() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        err := models.SynchronizeAllRulesets()
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }
 
@@ -326,13 +401,18 @@ func (n *RulesetController) SynchronizeAllRulesets() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /addRulesToCustom [put]
-func (n *RulesetController) AddRulesToCustomRuleset() { 
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    data, err := models.AddRulesToCustomRuleset(anode)
-    n.Data["json"] = data
+func (n *RulesetController) AddRulesToCustomRuleset() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        data, err := models.AddRulesToCustomRuleset(anode)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -342,13 +422,18 @@ func (n *RulesetController) AddRulesToCustomRuleset() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /readRuleset/:uuid [put]
-func (n *RulesetController) ReadRulesetData() { 
-    uuid := n.GetString(":uuid")
-    data, err := models.ReadRulesetData(uuid)
-    n.Data["json"] = data
+func (n *RulesetController) ReadRulesetData() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        uuid := n.GetString(":uuid")
+        data, err := models.ReadRulesetData(uuid)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }
 
@@ -357,14 +442,19 @@ func (n *RulesetController) ReadRulesetData() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /saveRuleset/ [put]
-func (n *RulesetController) SaveRulesetData() { 
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.SaveRulesetData(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+func (n *RulesetController) SaveRulesetData() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.SaveRulesetData(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }
 
@@ -405,13 +495,18 @@ func (n *RulesetController) SaveRulesetData() {
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /updateRule [put]
-func (n *RulesetController) UpdateRule() { 
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.UpdateRule(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+func (n *RulesetController) UpdateRule() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-    }
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.UpdateRule(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
     n.ServeJSON()
 }

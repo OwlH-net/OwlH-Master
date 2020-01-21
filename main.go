@@ -14,6 +14,8 @@ import (
     "owlhmaster/scheduler"
     "owlhmaster/utils"
     "owlhmaster/configuration"
+    // "owlhmaster/validation"
+    // "owlhmaster/controllers"
     "os"
     "crypto/tls"
     "bufio"
@@ -51,7 +53,7 @@ func main() {
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.12.0.20200116")
+    logs.Info("Version OwlH Master: 0.12.0.20200121")
 
     cancontinue := configuration.MainCheck()
     if !cancontinue {
@@ -107,9 +109,11 @@ func main() {
     }))
 
     // var TokenValidation = func(ctx *context.Context) {
-    //     if ctx.Input.Header("token") == "" {            
-    //         utils.SendToken()
-    //     }else{
+    //     err := validation.CheckToken(ctx.Input.Header("token"), ctx.Input.Header("user"), ctx.Input.Header("uuid"))
+    //     if err != nil {            
+    //         logs.Error(err)
+    //         beego.Router("/login", &controllers.MasterController{})
+    //     // }else{
     //         // ctx.Redirect(302, "/nodes")            
     //         // logs.Notice(ctx.Input.Header("token"))
     //     }
@@ -123,7 +127,8 @@ func main() {
     //     //     ctx.Redirect(302, "/login")
     //     // }
     // }
-    // beego.InsertFilter("*", beego.BeforeRouter, TokenValidation)
+    // beego.InsertFilter("/*", beego.BeforeRouter, TokenValidation)
+    // beego.InsertFilter("^(/login)$", beego.BeforeRouter, TokenValidation)
     beego.Run()
 }
 
