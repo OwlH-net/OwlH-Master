@@ -24,7 +24,14 @@ import (
     "encoding/hex"
     "sort"
     "path/filepath"
+    // "owlhmaster/validation"
 )
+
+//**********token global variables**********
+var TokenValidated string
+var UserValidated string
+var UuidValidated string
+//**********token global variables**********
 
 func Generate()(uuid string)  {
     b := make([]byte, 16)
@@ -37,7 +44,7 @@ func Generate()(uuid string)  {
 }
 
 //Read main.conf and return a map data
-func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
+func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) {
     confFilePath := "conf/main.conf"
     jsonPathBpf, err := ioutil.ReadFile(confFilePath)
     if err != nil {
@@ -48,7 +55,7 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
     var anode map[string]map[string]string
     json.Unmarshal(jsonPathBpf, &anode)
 
-    for k,y := range loadData { 
+    for k,y := range loadData {
         for y,_ := range y {
             if v, ok := anode[k][y]; ok {
                 loadData[k][y] = v
@@ -63,6 +70,9 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
 //create conection through http.
 func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Response, err error){
     req, err := http.NewRequest(order, url, values)
+    req.Header.Set("token", TokenValidated)
+    req.Header.Set("uuid", UuidValidated)
+    req.Header.Set("user", UserValidated)
     if err != nil {
         logs.Error("Error Executing HTTP new request")
     }
@@ -76,7 +86,7 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
 }
 
 //create a backup of selected file
-func BackupFile(path string, fileName string) (err error) { 
+func BackupFile(path string, fileName string) (err error) {
     loadData := map[string]map[string]string{}
     loadData["files"] = map[string]string{}
     loadData["files"]["backupPath"] = ""
@@ -131,7 +141,7 @@ func BackupFile(path string, fileName string) (err error) {
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
 func DownloadFile(filepath string, url string)(err error){
-    //Get the data    
+    //Get the data
     resp, err := http.Get(url)
     if err != nil {
         logs.Error("Error downloading file: "+err.Error())
@@ -174,12 +184,12 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
             if err != nil {
                 return err
             }
-        
+
             uncompressedStream, err := gzip.NewReader(file)
             if err != nil {
                 return err
             }
-        
+
             tarReader := tar.NewReader(uncompressedStream)
             for true {
                 header, err := tarReader.Next()
@@ -189,7 +199,7 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
                 if err != nil {
                     return err
                 }
-        
+
                 switch header.Typeflag {
                 case tar.TypeDir:
                     err := os.MkdirAll(pathDownloads+"/"+header.Name, 0755);
@@ -223,12 +233,12 @@ func MapFromFile(path string)(mapData map[string]map[string]string, err error){
     var mapFile = make(map[string]map[string]string)
     var validID = regexp.MustCompile(`sid:\s?(\d+);`)
     var enablefield = regexp.MustCompile(`^#`)
-    
+
     file, err := os.Open(path)
     if err != nil {logs.Error("utils/MapFromFile Error openning file for export to map: "+ err.Error()); return nil, err}
-    
+
     scanner := bufio.NewScanner(file)
-    for scanner.Scan() {        
+    for scanner.Scan() {
         sid := validID.FindStringSubmatch(scanner.Text())
         if sid != nil {
             lineData := make(map[string]string)
@@ -284,8 +294,8 @@ func ReplaceLines(data map[string]string)(err error){
         logs.Error("ReplaceLines error loading data from main.conf: "+ err.Error())
         return err
     }
-    
-    //split path 
+
+    //split path
     splitPath := strings.Split(data["path"], "/")
     pathSelected := splitPath[len(splitPath)-2]
 
@@ -305,8 +315,8 @@ func ReplaceLines(data map[string]string)(err error){
                     saved = true
                     continue
                 }else{
-                    _, err = rulesFile.WriteString(string(data[x]))    
-                    _, err = rulesFile.WriteString("\n")    
+                    _, err = rulesFile.WriteString(string(data[x]))
+                    _, err = rulesFile.WriteString("\n")
                     saved = true
                     continue
                 }
@@ -314,7 +324,7 @@ func ReplaceLines(data map[string]string)(err error){
         }
         if !saved{
             _, err = rulesFile.WriteString(scanner.Text())
-            _, err = rulesFile.WriteString("\n")    
+            _, err = rulesFile.WriteString("\n")
         }
         saved = false
     }
@@ -360,7 +370,7 @@ func VerifyPathExists(path string)(stauts string){
 }
 
 func EpochTime(date string)(epoch int64, err error){
-    t1 := time.Now() 
+    t1 := time.Now()
     t2,_ := time.ParseInLocation("2006-01-02T15:04:05", date, t1.Location())
 
     return t2.Unix(), nil
@@ -370,7 +380,7 @@ func HumanTime(epoch int64)(date string){
     return time.Unix(epoch , 0).String()
 }
 
-func BackupFullPath(path string) (err error) { 
+func BackupFullPath(path string) (err error) {
     t := time.Now()
     destFolder := path+"-"+strconv.FormatInt(t.Unix(), 10)
     cpCmd := exec.Command("cp", path, destFolder)
@@ -401,7 +411,7 @@ func CopyFile(dstfolder string, srcfolder string, file string, BUFFERSIZE int64)
     if !sourceFileStat.Mode().IsRegular() {
         logs.Error("%s is not a regular file.", sourceFileStat)
         return errors.New(sourceFileStat.Name()+" is not a regular file.")
-    } 
+    }
     source, err := os.Open(srcfolder+file)
     if err != nil {
         return err
@@ -481,7 +491,7 @@ func FilelistPathByFile(path string, fileToSearch string)(files map[string][]byt
     err = filepath.Walk(path,
         func(file string, info os.FileInfo, err error) error {
         if err != nil {return err}
-        
+
         if !info.IsDir() {
             pathSplit := strings.Split(file, "/")
             if strings.Contains(pathSplit[len(pathSplit)-1], fileToSearch){

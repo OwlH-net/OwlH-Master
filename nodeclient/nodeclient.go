@@ -6,7 +6,7 @@ import (
     "encoding/json"
     "errors"
     "owlhmaster/utils"
-    "owlhmaster/database"
+    "owlhmaster/database"    
     "bytes"
     "time"
 )
@@ -41,7 +41,6 @@ type ZeekNodeStatus struct {
     Status      string              `json:"status"`
     Nodes       int                 `json:"nodes"`
 }
-
 
 func init() {
 
@@ -1454,6 +1453,16 @@ func ChangeSuricataTable(ipnid string, portnid string, data map[string]string)(e
     if err != nil {logs.Error("nodeclient/ChangeSuricataTable ERROR connection through http new Request: "+err.Error()); return err}
 
     defer resp.Body.Close()
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/ChangeSuricataTable ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
     return nil
 }
 
@@ -1464,6 +1473,16 @@ func ChangeSuricataPathsGroups(ipnid string, portnid string, data map[string]map
     if err != nil {logs.Error("nodeclient/ChangeSuricataPathsGroups ERROR connection through http new Request: "+err.Error()); return err}
 
     defer resp.Body.Close()
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/ChangeSuricataPathsGroups ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
     return nil
 }
 
@@ -1474,6 +1493,16 @@ func ChangeZeekPathsGroups(ipnid string, portnid string, data map[string]map[str
     if err != nil {logs.Error("nodeclient/ChangeZeekPathsGroups ERROR connection through http new Request: "+err.Error()); return err}
 
     defer resp.Body.Close()
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/ChangeZeekPathsGroups ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
     return nil
 }
 

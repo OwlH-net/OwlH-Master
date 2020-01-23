@@ -496,8 +496,6 @@ func Login(data map[string]string)(newToken string, err error){
             if check{
                 // userExists = true
                 token, err := validation.Encode(x, data["user"], users[x]["secret"])
-                logs.Notice("LOGIN TOKEN VALIDATION")
-                logs.Notice(token)
                 if err != nil {return "",err}
                 return token,nil
             }
