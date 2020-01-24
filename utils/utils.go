@@ -24,13 +24,10 @@ import (
     "encoding/hex"
     "sort"
     "path/filepath"
-    // "owlhmaster/validation"
 )
 
 //**********token global variables**********
-var TokenValidated string
-var UserValidated string
-var UuidValidated string
+var TokenMasterValidated string
 //**********token global variables**********
 
 func Generate()(uuid string)  {
@@ -70,9 +67,7 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
 //create conection through http.
 func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Response, err error){
     req, err := http.NewRequest(order, url, values)
-    req.Header.Set("token", TokenValidated)
-    req.Header.Set("uuid", UuidValidated)
-    req.Header.Set("user", UserValidated)
+    req.Header.Set("token", TokenMasterValidated)
     if err != nil {
         logs.Error("Error Executing HTTP new request")
     }

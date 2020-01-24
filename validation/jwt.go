@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"errors"
     "owlhmaster/database"
-    "owlhmaster/utils"
+    // "owlhmaster/utils"
 )
 
 // Encode generates a jwt.
@@ -55,9 +55,6 @@ func CheckToken(token string, user string, uuid string)(err error){
 				logs.Error("Error checking token: %s", err); return err
 			}else{
 				if token == tkn {
-					utils.TokenValidated = token
-					utils.UserValidated = user
-					utils.UuidValidated = uuid
 					return nil
 				}else{
 					return errors.New("The token retrieved is false")

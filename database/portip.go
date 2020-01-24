@@ -2,6 +2,7 @@ package ndb
 
 import (
     "github.com/astaxie/beego/logs"
+    "owlhmaster/utils"
     "errors"
 )
 
@@ -30,11 +31,11 @@ func ObtainPortIp(uuid string)(ip string, port string, err error)  {
 }
 
 func ObtainNodeName(uuid string)(name string, err error)  {
-    if Db == nil {logs.Error("obtainPortIp -> Error conexión DB"); return "",err}
+    if Db == nil {logs.Error("ObtainNodeName -> Error conexión DB"); return "",err}
     
     row2 := Db.QueryRow("SELECT node_value FROM nodes WHERE node_uniqueid = \""+uuid+"\" and node_param = \"name\";")
     err = row2.Scan(&name)
-    if err != nil {logs.Error("DB NODE obtainPortIp portNode -> row2.Scan error: %s", err.Error()); return "",err}
+    if err != nil {logs.Error("DB NODE ObtainNodeName portNode -> row2.Scan error: %s", err.Error()); return "",err}
 
     return name, nil
 }
@@ -84,4 +85,18 @@ func GetNodeById(uuid string) (nodes map[string]map[string]string, err error) {
     }
     
     return allnodes, nil
+}
+
+func GetTokenByUuid(uuid string)(err error)  {
+    if Db == nil {logs.Error("obtainPortIp -> Error conexión DB"); return err}
+    
+    var token string
+    row1 := Db.QueryRow("SELECT node_value FROM nodes WHERE node_uniqueid = \""+uuid+"\" and node_param = \"token\";")
+    err = row1.Scan(&token)
+    if err != nil {logs.Error("GetTokenByUuid error: %s", err.Error()); return err}
+
+    //set token for httpRequest header
+    utils.TokenMasterValidated = token
+
+    return nil
 }

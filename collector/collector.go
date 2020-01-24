@@ -9,6 +9,7 @@ import (
 )
 
 func PlayCollector(uuid string) (err error) {
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("Error loading node token: %s",err); return err}
     ip,port,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error())
@@ -24,6 +25,7 @@ func PlayCollector(uuid string) (err error) {
 }
 
 func StopCollector(uuid string) (err error) {
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("Error loading node token: %s",err); return err}
     ip,port,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error())
@@ -38,6 +40,7 @@ func StopCollector(uuid string) (err error) {
 }
 
 func ShowCollector(uuid string) (data string, err error) {
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("Error loading node token: %s",err); return "",err}
     ip,port,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error())

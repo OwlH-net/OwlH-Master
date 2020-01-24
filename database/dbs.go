@@ -76,21 +76,6 @@ func NodeKeyExists(nodekey string, key string) (id int, err error) {
     return 0, nil
 }
 
-// func GetNodeById(nodeid string)(err error){
-//     if Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
-
-//     sql := "SELECT * FROM nodes where node_uniqueid = '"+nodeid+"';"
-//     rows, err := Db.Query(sql)
-//     if err != nil {logs.Error(err.Error()); return err}
-
-//     defer rows.Close()
-//     if rows.Next() {
-//         return errors.New("Node Exists " + nodeid)
-//     } else {
-//         return nil
-//     }
-// }
-
 func InsertNodeKey(nkey string, key string, value string) (err error) {
     if Db == nil {logs.Error("no access to database"); return errors.New("no access to database")}
     stmt, err := Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values(?,?,?);")

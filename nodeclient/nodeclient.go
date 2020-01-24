@@ -6,7 +6,7 @@ import (
     "encoding/json"
     "errors"
     "owlhmaster/utils"
-    "owlhmaster/database"    
+    "owlhmaster/database"
     "bytes"
     "time"
 )
@@ -42,15 +42,8 @@ type ZeekNodeStatus struct {
     Nodes       int                 `json:"nodes"`
 }
 
-func init() {
 
-}
- 
-func Echo() {
-    logs.Info("NODE CLIENT -> ECHO")
-}
-
-func PingNode(ip string, port string) (err error) {
+func PingNode(ip string, port string) (nodeResp map[string]string, err error) {
     url := "https://"+ip+":"+port+"/node/ping"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
@@ -68,23 +61,28 @@ func PingNode(ip string, port string) (err error) {
         if controlError!=nil { logs.Error("PingNode error creating incident: "+controlError.Error()) }
 
         logs.Error("nodeClient/PingNode ERROR connection through http new Request: "+err.Error())
-        return err
+        return nil,err
     }
-    
 
     body, err := ioutil.ReadAll(resp.Body)
     defer resp.Body.Close()
-    if err != nil { logs.Error("nodeclient/SyncClusterFileNode ERROR reading request data: "+err.Error()); return err}
+    if err != nil { logs.Error("nodeclient/PingNode ERROR reading request data: "+err.Error()); return nil,err}
 
     returnValues := make(map[string]string)
     err = json.Unmarshal(body, &returnValues)
-    if err != nil { logs.Error("nodeclient/SyncClusterFileNode ERROR doing unmarshal JSON: "+err.Error()); return err}
-
-    if returnValues["ack"] == "false"{
-        return errors.New(returnValues["error"])
+    if err != nil { logs.Error("nodeclient/PingNode ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+    
+    if returnValues["nodeToken"] == "none"{
+        logs.Debug(returnValues)
+        logs.Error("nodeclient/PingNode ERROR from node: "+returnValues["error"])
+        values := make(map[string]string)
+        values["nodeToken"] = "none"
+        values["error"] = "nodeclient/PingNode Node token ERROR: "+values["error"]
+        values["ack"] = "false"
+        return values,nil
     }
 
-    return nil
+    return nil,nil
 }
 
 func UpdateNodeData(ipData string, portData string, loadFile map[string]map[string]string)(err error){
@@ -216,11 +214,18 @@ func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
     url := "https://"+ipData+":"+portData+"/node/suricata/sync"
     valuesJSON,err := json.Marshal(values)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {
-        logs.Error("nodeclient/SetRuleset ERROR connection through http new Request: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("nodeclient/SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
     defer resp.Body.Close()
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/SyncRulesetToNode ERROR reading request data: "+err.Error()); return err}
+    nodeResponse := make(map[string]string)
+    err = json.Unmarshal(body, &nodeResponse)
+    if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if nodeResponse["ack"] == "false" {
+        return errors.New(nodeResponse["error"])
+    }
+
     return nil
 }
 
@@ -1788,4 +1793,22 @@ func SuricataGroupService(ipData string, portData string, data map[string]string
     }
 
     return nil
+}
+
+func GetNodeToken(ipData string, portData string)(token string, err error){
+    url := "https://"+ipData+":"+portData+"/node/autentication"
+    resp,err := utils.NewRequestHTTP("GET", url, nil)
+    if err != nil {logs.Error("nodeclient/GetNodeAutentication ERROR connection through http new Request: "+err.Error()); return "", err}
+    
+    defer resp.Body.Close()
+    
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR reading request data: "+err.Error()); return "",err}
+    data := make(map[string]string)
+    err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR doing unmarshal JSON: "+err.Error()); return "",err}
+    if data["ack"] == "false" {
+        return "", errors.New(data["error"])
+    }
+    return data["token"], nil
 }

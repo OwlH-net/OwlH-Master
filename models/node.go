@@ -48,10 +48,10 @@ func UpdateNode(n map[string]string) (err error) {
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/node/ping/:uuid \
 // }
-func PingNode(n string) (err error) {
-    err = node.NodePing(n)
+func PingNode(n string) (nodeResp map[string]string, err error) {
+    nodeResp,err = node.NodePing(n)
     changecontrol.ChangeControlInsertData(err, "Ping node")
-    return err
+    return nodeResp, err
 }
 
 // curl -X GET \

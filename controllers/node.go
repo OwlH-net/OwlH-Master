@@ -129,19 +129,24 @@ func (n *NodeController) UpdateNode() {
 func (n *NodeController) GetPong() {
     err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
+        logs.Error("Error PingNode Master token: %s",err)
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
         nid := n.GetString(":nid")
-        n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
-        if nid != "" {
-            err := models.PingNode(nid)
-            n.Data["json"] = map[string]string{"ping": "pong", "nid": nid}
-            if err != nil {
-                n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+        nodeResp, err := models.PingNode(nid)
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{
+            logs.Warn(nodeResp)
+            logs.Warn(nodeResp)
+            logs.Warn(nodeResp)
+            n.Data["json"] = map[string]string{"ping": "pong"}
+            if nodeResp != nil{
+                n.Data["json"] = map[string]string{"nodeToken": nodeResp["nodeToken"], "error": nodeResp["error"]}
             }
         }
-
     }
+
     n.ServeJSON()
 }
 
@@ -269,6 +274,7 @@ func (n *NodeController) GetAllNodes() {
     // //check token
     err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if err != nil {
+        logs.Error("Error checking Master token: %s", err)
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
         nodes, err := models.GetAllNodes()
