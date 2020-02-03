@@ -311,10 +311,8 @@ func CheckField(field Field)(ok bool){
     loadDataSQL[field.Fconn] = map[string]string{}
     loadDataSQL[field.Fconn]["path"] = ""
     loadDataSQL, err := utils.GetConf(loadDataSQL)
-    if err != nil {
-        logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf")
-        return false
-    }
+    if err != nil {logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf"); return false}
+    
     dbpath := loadDataSQL[field.Fconn]["path"]
 
     exists := FieldExists(dbpath, field.Fquery)

@@ -328,6 +328,15 @@ func SyncAll(uuid string, data map[string]map[string]string)(err error) {
 }
 
 func AddCluster(anode map[string]string)(err error) {
+    AddClusterMap := map[string]map[string]string{}
+    AddClusterMap["group"] = map[string]string{}
+    AddClusterMap["group"]["conf"] = ""
+    AddClusterMap, err = utils.GetConf(AddClusterMap)
+    if err != nil {
+        logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf")
+        return false
+    }
+
     //check if exists path
     if _, err := os.Stat(anode["path"]); os.IsNotExist(err) {
         logs.Warn("Cluster path doesn't exists. Creating..."); 
@@ -339,7 +348,7 @@ func AddCluster(anode map[string]string)(err error) {
         if err != nil{logs.Error("Error creating cluster file: "+err.Error()); return err }                
     }
     //read file data
-    data, err := ioutil.ReadFile("conf/node.cfg")
+    data, err := ioutil.ReadFile(AddClusterMap["group"]["conf"])
     if err != nil {logs.Error("Error opening node.cfg file: "+err.Error()); return err }        
     
     //write file data
