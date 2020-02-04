@@ -31,6 +31,7 @@ type Ruleset struct {
     Name            string          `json:"name"`
     Uuid            string          `json:"uuid"`
     SourceType      string          `json:"sourceType"`
+    Type            string          `json:"type"`
     Node            []string        `json:"node"`
 }
 var RulesIndex []Rule = nil
@@ -156,6 +157,7 @@ func BuildRuleIndexLocal()(){
         rset.File = allRulesets[x]["path"]
         rset.Name = allRulesets[x]["name"]
         rset.SourceType = allRulesets[x]["sourceType"]
+        rset.Type = allRulesets[x]["type"]
         for y := range currentRules {            
             rset.Status = currentRules[y]["enabled"]
             rset.Uuid = x

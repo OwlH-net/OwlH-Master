@@ -721,14 +721,10 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
                 linesAreAdded := false
                 for q := range fileOrig{
                     for w := range fileDst{
-                        logs.Notice(q)
-                        logs.Warn(w)
-                        logs.Debug("------------------------------------------")
                         if q == w {
                             linesAreAdded = true
                         }
                     }
-                    logs.Debug(linesAreAdded)
                     if !linesAreAdded{
                         logs.Warn("Not Lines ADDED")
                         err = ndb.UpdateRuleFiles(x, "linesAdded", "false")

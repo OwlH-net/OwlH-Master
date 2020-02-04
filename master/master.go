@@ -49,6 +49,7 @@ func GetFileContent(file string) (data map[string]string, err error) {
     sendBackArray["fileContent"] = string(fileReaded)
     sendBackArray["fileName"] = file
 
+    logs.Notice(sendBackArray)
     return sendBackArray, nil
 }
 
@@ -242,6 +243,12 @@ func ModifyStapValuesMaster(anode map[string]string)(err error) {
 }
 
 func CheckServicesStatus()(){
+    loadDataValue := map[string]map[string]string{}
+    loadDataValue["plugins"] = map[string]string{}
+    loadDataValue["plugins"]["socat"] = ""
+    loadDataValue, err := utils.GetConf(loadDataValue)
+    if err != nil {logs.Error("GetNodeFile error getting path from main.conf")}
+
     allPlugins,err := ndb.PingPlugins()
     if err != nil {logs.Error("CheckServicesStatus error getting all master plugins: "+err.Error())}
 
@@ -254,13 +261,15 @@ func CheckServicesStatus()(){
                 
                 if pidValue[0] == ""{
                     if allPlugins[w]["type"] == "socket-network"{
-                        cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
+                        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
+                        cmd := exec.Command("bash","-c",loadDataValue["plugins"]["socat"]+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
                         if err != nil {logs.Error("CheckServicesStatus deploying Error socket-network: "+err.Error())}        
                     }else{
-                        cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
+                        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
+                        cmd := exec.Command("bash","-c",loadDataValue["plugins"]["socat"]+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
@@ -275,26 +284,6 @@ func CheckServicesStatus()(){
                     }
                     logs.Notice("Socket-network deploy after Master stops: PID: "+pidValue[0])
                 }
-            // }else if  allPlugins[w]["type"] == "socket-pcap"{
-            //     pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
-            //     if err != nil {logs.Error("CheckServicesStatus Checking previous PID for socket-pcap: "+err.Error())}
-            //     pidValue := strings.Split(string(pid), "\n")
-                
-            //     if pidValue[0] == ""{
-            //         cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
-            //         var errores bytes.Buffer
-            //         cmd.Stdout = &errores
-            //         err = cmd.Start()
-            //         if err != nil {logs.Error("CheckServicesStatus deploying Error socket-pcap: "+err.Error())}        
-
-            //         pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
-            //         if err != nil {logs.Error("CheckServicesStatus deploy socket-pcap Error: "+err.Error())}
-            //         pidValue = strings.Split(string(pid), "\n")
-            //         if pidValue[0] != "" {
-            //             err = ndb.UpdatePluginValueMaster(w,"pid",pidValue[0]); if err != nil {logs.Error("CheckServicesStatus change pid to value Error socket-pcap: "+err.Error())}
-            //         }
-            //         logs.Notice("Socket-network deploy after Master stops: PID: "+pidValue[0])
-            //     }
             }
         }
     }
@@ -318,19 +307,29 @@ func PingPlugins()(data map[string]map[string]string, err error) {
 }
 
 func DeployStapServiceMaster(anode map[string]string)(err error) { 
+    loadDataValue := map[string]map[string]string{}
+    loadDataValue["plugins"] = map[string]string{}
+    loadDataValue["plugins"]["socat"] = ""
+    loadDataValue, err = utils.GetConf(loadDataValue)
+    if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return err}
+
+    logs.Notice(loadDataValue["plugins"]["socat"])
+
+
+    
     allPlugins,err := ndb.PingPlugins()
     if anode["type"] == "socket-network" {
         pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
-        // logs.Error(pidValue)
+
         if pidValue[0] != "" {
             logs.Error("Socket to network deployed. Can't deploy more than one stap service at the same port")
             return errors.New("Can't deploy more than one socket at the same port")
         }
-        // logs.Debug("ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'")
-        // logs.Debug("/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
-        cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
+
+        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
+        cmd := exec.Command("bash","-c",loadDataValue["plugins"]["socat"]+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
@@ -347,14 +346,14 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
         pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
-        // logs.Error(pidValue)
+        
         if pidValue[0] != "" {
             logs.Error("Socket to pcap deployed. Can't deploy more than one stap service at the same port")
             return errors.New("Can't deploy more than one socket at the same port")   
         }
-        // logs.Debug("ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'")
-        // logs.Debug("/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
-        cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
+        
+        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
+        cmd := exec.Command("bash","-c",loadDataValue["plugins"]["socat"]+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()

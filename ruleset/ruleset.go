@@ -44,11 +44,9 @@ func ReadSID(sid map[string]string)(sidLine map[string]string ,err error){
         return
     }
 
-    logs.Info("SID -> %s", sidMap)
     var validID = regexp.MustCompile(`sid:\s?`+sidMap+`;`)
     scanner := bufio.NewScanner(data)
     for scanner.Scan(){
-        logs.Info("line -> %s = %s", sidMap, scanner.Text())
         if validID.MatchString(scanner.Text()){
             sidLine := make(map[string]string)
             sidLine["raw"] = scanner.Text()

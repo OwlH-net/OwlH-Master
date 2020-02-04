@@ -332,10 +332,7 @@ func AddCluster(anode map[string]string)(err error) {
     AddClusterMap["group"] = map[string]string{}
     AddClusterMap["group"]["conf"] = ""
     AddClusterMap, err = utils.GetConf(AddClusterMap)
-    if err != nil {
-        logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf")
-        return false
-    }
+    if err != nil {logs.Error("AddCluster error getting path from main.conf"); return err}
 
     //check if exists path
     if _, err := os.Stat(anode["path"]); os.IsNotExist(err) {

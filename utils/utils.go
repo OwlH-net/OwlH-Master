@@ -283,6 +283,7 @@ func ReplaceLines(data map[string]string)(err error){
     sourceDownload := map[string]map[string]string{}
     sourceDownload["ruleset"] = map[string]string{}
     sourceDownload["ruleset"]["sourceDownload"] = ""
+    sourceDownload["ruleset"]["ruleFile"] = ""
     sourceDownload,err = GetConf(sourceDownload)
     pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
     if err != nil {
@@ -325,7 +326,8 @@ func ReplaceLines(data map[string]string)(err error){
     }
 
     input, err := ioutil.ReadFile("_creating-new-file.txt")
-    err = ioutil.WriteFile("rules/drop.rules", input, 0644)
+    // err = ioutil.WriteFile("rules/drop.rules", input, 0644)
+    err = ioutil.WriteFile(sourceDownload["ruleset"]["ruleFile"], input, 0644)
 
     _ = os.Remove("_creating-new-file.txt")
 
