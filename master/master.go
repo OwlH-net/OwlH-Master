@@ -503,3 +503,56 @@ func Login(data map[string]string)(newToken string, err error){
 
     return "", errors.New("There are not token. Error creating Token")
 }
+
+func AddUser(data map[string]string)(err error){ 
+    passHashed, err := validation.HashPassword(data["pass"])
+    if err != nil{logs.Error("master/AddUser Error creating hash password: "+err.Error()); return err}    
+    
+    //insert username into db
+    uuid := utils.Generate()
+    secret := utils.Generate()
+    err = ndb.InsertUser(uuid, "user", data["user"])
+    if err != nil{logs.Error("master/AddUser Error inserting user into db: "+err.Error()); return err}    
+    err = ndb.InsertUser(uuid, "pass", passHashed)
+    if err != nil{logs.Error("master/AddUser Error inserting pass into db: "+err.Error()); return err}    
+    err = ndb.InsertUser(uuid, "secret", secret)
+    if err != nil{logs.Error("master/AddUser Error inserting secret into db: "+err.Error()); return err}    
+
+    return nil
+}
+
+func GetAllUsers()(data map[string]map[string]string, err error) {
+    users,err := ndb.GetLoginData()
+    if err != nil{logs.Error("master/GetAllUsers Error getting users: "+err.Error()); return nil, err}    
+
+    //delete private data
+    for id := range users{
+        delete(users[id],"pass")
+        delete(users[id],"secret")
+    }
+
+    return users, err
+}
+
+func DeleteUser(anode map[string]string)(err error){
+    err = ndb.DeleteUser(anode["id"])
+    if err != nil{logs.Error("master/DeleteUser Error deleting user: "+err.Error()); return err}    
+
+    return nil
+}
+
+func AddGroup(anode map[string]string) (err error) {
+    uuid := utils.Generate()
+    err = ndb.InsertGroupUsers(uuid, "name", anode["group"])
+    if err != nil{logs.Error("master/AddUser Error inserting user into db: "+err.Error()); return err}    
+
+    return nil
+}
+
+func AddRole(anode map[string]string) (err error) {
+    uuid := utils.Generate()
+    err = ndb.InsertRoleUsers(uuid, "name", anode["role"])
+    if err != nil{logs.Error("master/AddUser Error inserting user into db: "+err.Error()); return err}    
+   
+    return nil
+}

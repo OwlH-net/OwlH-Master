@@ -351,6 +351,67 @@ func SaveFilePathContent(anode map[string]string) (err error) {
 // }
 func Login(anode map[string]string) (token string, err error) {
     token, err = master.Login(anode)
-    changecontrol.ChangeControlInsertData(err, "ChangePluginStatus")
+    changecontrol.ChangeControlInsertData(err, "Login")
     return token, err
+}
+
+// curl -X POST \
+//   https://52.47.197.22:50002/v1/master/addUser \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "user": "v",
+//     "pass": "v"
+// }
+func AddUser(anode map[string]string)(err error){
+    err = master.AddUser(anode)
+    changecontrol.ChangeControlInsertData(err, "AddUser")
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getAllUsers \
+// }
+func GetAllUsers()(data map[string]map[string]string, err error) {
+    data, err = master.GetAllUsers()
+    changecontrol.ChangeControlInsertData(err, "GetAllUsers")
+    return data, err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteUser \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v"
+//  }
+// }
+func DeleteUser(anode map[string]string)(err error){
+    err = master.DeleteUser(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteUser")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addGroupUsers \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "group": "v"
+//  }
+// }
+func AddGroup(anode map[string]string) (err error) {
+    err = master.AddGroup(anode)
+    changecontrol.ChangeControlInsertData(err, "AddGroup")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "role": "v"
+//  }
+// }
+func AddRole(anode map[string]string) (err error) {
+    err = master.AddRole(anode)
+    changecontrol.ChangeControlInsertData(err, "AddRole")
+    return err
 }

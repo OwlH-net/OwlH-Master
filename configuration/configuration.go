@@ -75,6 +75,22 @@ func checkDatabases()(ok bool){
 func checkTables()(ok bool){
     var table Table
 
+    table.Tname = "userRoles"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE userRoles (ur_id integer PRIMARY KEY AUTOINCREMENT,ur_uniqueid text NOT NULL,ur_param text NOT NULL,ur_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "userGroups"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE userGroups (ug_id integer PRIMARY KEY AUTOINCREMENT,ug_uniqueid text NOT NULL,ug_param text NOT NULL,ug_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "users"
     table.Tconn = "masterConn"
     table.Tcreate = "CREATE TABLE users (user_id integer PRIMARY KEY AUTOINCREMENT,user_uniqueid text NOT NULL,user_param text NOT NULL,user_value text NOT NULL)"

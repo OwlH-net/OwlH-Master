@@ -577,3 +577,51 @@ func GetLoginData()(groups map[string]map[string]string, err error){
     } 
     return allusers, nil
 }
+
+func DeleteUser(uuid string)(err error){
+    DeleteUserDB, err := Mdb.Prepare("delete from users where user_uniqueid = ?;")
+    if (err != nil){ logs.Error("DeleteUser UPDATE prepare error: "+err.Error()); return err}
+
+    _, err = DeleteUserDB.Exec(&uuid)
+    if (err != nil){ logs.Error("DeleteUser exec error: "+err.Error()); return err}
+
+    defer DeleteUserDB.Close()
+    
+    return nil
+}
+
+func InsertUser(uuid string, param string, value string)(err error){
+    insertUserDB, err := Mdb.Prepare("insert into users(user_uniqueid, user_param, user_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertUser INSERT prepare error: "+err.Error()); return err}
+
+    _, err = insertUserDB.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertUser INSERT exec error: "+err.Error()); return err}
+
+    defer insertUserDB.Close()
+    
+    return nil
+}
+
+func InsertGroupUsers(uuid string, param string, value string)(err error){
+    insertGroupDB, err := Mdb.Prepare("insert into userGroups(ug_uniqueid, ug_param, ug_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertGroupUsers INSERT prepare error: "+err.Error()); return err}
+
+    _, err = insertGroupDB.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertGroupUsers INSERT exec error: "+err.Error()); return err}
+
+    defer insertGroupDB.Close()
+    
+    return nil
+}
+
+func InsertRoleUsers(uuid string, param string, value string)(err error){
+    insertRoleDB, err := Mdb.Prepare("insert into userRoles(ur_uniqueid, ur_param, ur_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertRoleUsers INSERT prepare error: "+err.Error()); return err}
+
+    _, err = insertRoleDB.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertRoleUsers INSERT exec error: "+err.Error()); return err}
+
+    defer insertRoleDB.Close()
+    
+    return nil
+}
