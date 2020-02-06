@@ -53,13 +53,7 @@ func main() {
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.12.0.20200205")
-
-    cancontinue := configuration.MainCheck()
-    if !cancontinue {
-        logs.Error("can't continue, see previous logs")
-        // return 
-    }
+    logs.Info("Version OwlH Master: 0.12.0.20200206")
 
     //operative system values
     data:=OperativeSystemValues()
@@ -74,6 +68,13 @@ func main() {
     // ndb.GConn()    
     ndb.MConn()    
     
+    //check database values
+    cancontinue := configuration.MainCheck()
+    if !cancontinue {
+        logs.Error("can't continue, see previous logs")
+        // return 
+    }
+
     //CheckServicesStatus
     master.CheckServicesStatus()
 

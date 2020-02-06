@@ -9,6 +9,7 @@ import (
     // "io"
     // "errors"
     "owlhmaster/utils"
+    "owlhmaster/validation"
     "os"
     // "time"
     // "os/exec"
@@ -74,6 +75,14 @@ func checkDatabases()(ok bool){
 
 func checkTables()(ok bool){
     var table Table
+
+    table.Tname = "usergrouproles"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE usergrouproles (ugr_id integer PRIMARY KEY AUTOINCREMENT,ugr_uniqueid text NOT NULL,ugr_param text NOT NULL,ugr_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
 
     table.Tname = "userRoles"
     table.Tconn = "masterConn"
@@ -226,7 +235,85 @@ func checkTables()(ok bool){
 func checkFields()(ok bool){
 
     var field Field
+    
+    //add admin user by default
+    secret := utils.Generate()
+    pass,err := validation.HashPassword("admin")
+    if err!=nil {logs.Error("Error hashing password at configuration.")}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='user' and user_value='admin'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','user','admin')"
+    field.Fname      = "users - user"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='secret' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
+    // field.Fquery     = "select user_param from users where user_param='secret'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','secret','"+secret+"')"
+    field.Fname      = "users - secret"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='pass' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
+    // field.Fquery     = "select user_param from users where user_param='pass'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','pass','"+pass+"')"
+    field.Fname      = "users - pass"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='deleteable' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
+    // field.Fquery     = "select user_param from users where user_param='deleteable'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','deleteable','false')"
+    field.Fname      = "users - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
 
+    //add admin to role admin status
+    field.Fconn      = "masterConn"
+    field.Ftable     = "userRoles"
+    field.Fquery     = "select ur_param from userRoles where ur_param='role' and ur_value='admin'"
+    field.Finsert    = "insert into userRoles (ur_uniqueid,ur_param,ur_value) values ('00000000-0000-0000-0000-000000000001','role','admin')"
+    field.Fname      = "userRoles - role"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //add admin to group admin status
+    field.Fconn      = "masterConn"
+    field.Ftable     = "userGroups"
+    field.Fquery     = "select ug_param from userGroups where ug_param='group' and ug_value='admin'"
+    field.Finsert    = "insert into userGroups (ug_uniqueid,ug_param,ug_value) values ('00000000-0000-0000-0000-000000000002','group','admin')"
+    field.Fname      = "userGroups - group"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    ugrUUID := utils.Generate()
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_param from usergrouproles where ugr_param='user' and ugr_value='00000000-0000-0000-0000-000000000000'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('"+ugrUUID+"','user','00000000-0000-0000-0000-000000000000')"
+    field.Fname      = "usergrouproles - user"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_param from usergrouproles where ugr_param='role' and ugr_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('"+ugrUUID+"','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname      = "usergrouproles - role"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_param from usergrouproles where ugr_param='group' and ugr_value='00000000-0000-0000-0000-000000000002'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('"+ugrUUID+"','group','00000000-0000-0000-0000-000000000002')"
+    field.Fname      = "usergrouproles - group"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //add dispatcher status
     field.Fconn      = "masterConn"
     field.Ftable     = "plugins"
     field.Fquery     = "select plugin_param from plugins where plugin_param='status' and plugin_uniqueid='dispatcher'"
@@ -345,7 +432,7 @@ func CheckField(field Field)(ok bool){
     return true
 }
 
-func FieldExists (dbpath, qry string)(ok bool){
+func FieldExists(dbpath, qry string)(ok bool){
     dblink, err := sql.Open("sqlite3", dbpath)
     if err != nil {
         logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: "+err.Error())

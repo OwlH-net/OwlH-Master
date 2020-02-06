@@ -684,3 +684,64 @@ func (n *MasterController) AddRole() {
     }
     n.ServeJSON()
 }
+
+// @Title GetRolesForUser
+// @Description Get all user roles
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getRolesForUser/:uuid [get]
+func (n *MasterController) GetRolesForUser() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        id := n.GetString(":uuid")
+        data, err := models.GetRolesForUser(id)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetGroupsForUser
+// @Description Get all user roles
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getGroupsForUser/:uuid [get]
+func (n *MasterController) GetGroupsForUser() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        id := n.GetString(":uuid")
+        data, err := models.GetGroupsForUser(id)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title AddUsersTo
+// @Description Add user to a group or role
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /addUsersTo [put]
+func (n *MasterController) AddUsersTo() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.AddUsersTo(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

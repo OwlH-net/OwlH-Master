@@ -625,3 +625,75 @@ func InsertRoleUsers(uuid string, param string, value string)(err error){
     
     return nil
 }
+
+func InsertUserGroupRole(uuid string, param string, value string)(err error){
+    insertDB, err := Mdb.Prepare("insert into usergrouproles(ugr_uniqueid, ugr_param, ugr_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertUserGroupRole INSERT prepare error: "+err.Error()); return err}
+
+    _, err = insertDB.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertUserGroupRole INSERT exec error: "+err.Error()); return err}
+
+    defer insertDB.Close()
+    
+    return nil
+}
+
+func GetUserGroups()(groups map[string]map[string]string, err error){
+    var allgroups = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Mdb == nil { logs.Error("no access to database"); return nil, err}
+    
+    sql := "select ug_uniqueid, ug_param, ug_value from userGroups;"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetUserGroups Mdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetUserGroups rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allgroups[uniqid] == nil { allgroups[uniqid] = map[string]string{}}
+        allgroups[uniqid][param]=value
+    } 
+    return allgroups, nil
+}
+
+func GetUserRoles()(groups map[string]map[string]string, err error){
+    var allroles = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Mdb == nil { logs.Error("no access to database"); return nil, err}
+    
+    sql := "select ur_uniqueid, ur_param, ur_value from userRoles;"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetUserRoles Mdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetUserRoles rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allroles[uniqid] == nil { allroles[uniqid] = map[string]string{}}
+        allroles[uniqid][param]=value
+    } 
+    return allroles, nil
+}
+
+func GetUserGroupRoles()(groups map[string]map[string]string, err error){
+    var allgrouproles = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Mdb == nil { logs.Error("no access to database"); return nil, err}
+    
+    sql := "select ugr_uniqueid, ugr_param, ugr_value from usergrouproles;"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetUserGroupRoles Mdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetUserGroupRoles rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allgrouproles[uniqid] == nil { allgrouproles[uniqid] = map[string]string{}}
+        allgrouproles[uniqid][param]=value
+    } 
+    return allgrouproles, nil
+}

@@ -415,3 +415,36 @@ func AddRole(anode map[string]string) (err error) {
     changecontrol.ChangeControlInsertData(err, "AddRole")
     return err
 }
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getRolesForUser/:roleID \
+// }
+func GetRolesForUser(id string)(data map[string]map[string]string, err error) {
+    data, err = master.GetRolesForUser(id)
+    changecontrol.ChangeControlInsertData(err, "GetRolesForUser")
+    return data, err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getGroupsForUser/:groupID \
+// }
+func GetGroupsForUser(id string)(data map[string]map[string]string, err error) {
+    data, err = master.GetGroupsForUser(id)
+    changecontrol.ChangeControlInsertData(err, "GetGroupsForUser")
+    return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addUsersTo \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "user": "v",
+//     "type": "v",
+//     "values": [x,y,z]
+//  }
+// }
+func AddUsersTo(anode map[string]string) (err error) {
+    err = master.AddUsersTo(anode)
+    changecontrol.ChangeControlInsertData(err, "AddUsersTo")
+    return err
+}
