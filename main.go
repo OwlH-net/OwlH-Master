@@ -62,18 +62,20 @@ func main() {
             logs.Info(x +" -- "+data[x])
         }
     }
-    //Init database connection
-    ndb.Conn()
-    ndb.RConn()
-    // ndb.GConn()    
-    ndb.MConn()    
-    
+
     //check database values
     cancontinue := configuration.MainCheck()
     if !cancontinue {
         logs.Error("can't continue, see previous logs")
         // return 
     }
+
+    //Init database connection
+    ndb.Conn()
+    ndb.RConn()
+    // ndb.GConn()    
+    ndb.MConn()    
+    
 
     //CheckServicesStatus
     master.CheckServicesStatus()
