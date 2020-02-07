@@ -73,7 +73,6 @@ func PingNode(ip string, port string) (nodeResp map[string]string, err error) {
     if err != nil { logs.Error("nodeclient/PingNode ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
     
     if returnValues["nodeToken"] == "none"{
-        logs.Debug(returnValues)
         logs.Error("nodeclient/PingNode ERROR from node: "+returnValues["error"])
         values := make(map[string]string)
         values["nodeToken"] = "none"
