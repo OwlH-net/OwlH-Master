@@ -250,7 +250,6 @@ func checkFields()(ok bool){
     field.Fconn      = "masterConn"
     field.Ftable     = "users"
     field.Fquery     = "select user_param from users where user_param='secret' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
-    // field.Fquery     = "select user_param from users where user_param='secret'"
     field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','secret','"+secret+"')"
     field.Fname      = "users - secret"
     ok = CheckField(field)
@@ -258,7 +257,6 @@ func checkFields()(ok bool){
     field.Fconn      = "masterConn"
     field.Ftable     = "users"
     field.Fquery     = "select user_param from users where user_param='pass' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
-    // field.Fquery     = "select user_param from users where user_param='pass'"
     field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','pass','"+pass+"')"
     field.Fname      = "users - pass"
     ok = CheckField(field)
@@ -266,7 +264,6 @@ func checkFields()(ok bool){
     field.Fconn      = "masterConn"
     field.Ftable     = "users"
     field.Fquery     = "select user_param from users where user_param='deleteable' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
-    // field.Fquery     = "select user_param from users where user_param='deleteable'"
     field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','deleteable','false')"
     field.Fname      = "users - deleteable"
     ok = CheckField(field)

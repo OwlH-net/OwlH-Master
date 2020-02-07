@@ -448,3 +448,17 @@ func AddUsersTo(anode map[string]string) (err error) {
     changecontrol.ChangeControlInsertData(err, "AddUsersTo")
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/changePassword \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "user": "v",
+//     "pass": "v",
+//  }
+// }
+func ChangePassword(anode map[string]string) (err error) {
+    err = master.ChangePassword(anode)
+    changecontrol.ChangeControlInsertData(err, "ChangePassword")
+    return err
+}

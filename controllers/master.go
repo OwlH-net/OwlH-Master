@@ -745,3 +745,24 @@ func (n *MasterController) AddUsersTo() {
     }
     n.ServeJSON()
 }
+
+// @Title ChangePassword
+// @Description Add user to a group or role
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /changePassword [put]
+func (n *MasterController) ChangePassword() {
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.ChangePassword(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

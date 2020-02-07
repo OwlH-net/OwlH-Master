@@ -606,8 +606,16 @@ func AddUsersTo(anode map[string]string) (err error) {
             err = ndb.InsertUserGroupRole(uuid,"group", x)
             if err != nil{logs.Error("master/AddUsersTo Error inserting group into InsertUserGroupRole: "+err.Error()); return err}    
         }
-
     }
+    return nil
+}
+
+func ChangePassword(anode map[string]string) (err error) {
+    hashed,err := validation.HashPassword(anode["pass"])
+    if err != nil{logs.Error("master/ChangePassword Error hashing new password: "+err.Error()); return err}
+
+    err = ndb.UpdateUser(anode["user"], "pass", hashed)
+    if err != nil{logs.Error("master/ChangePassword Error updating password: "+err.Error()); return err}
 
     return nil
 }

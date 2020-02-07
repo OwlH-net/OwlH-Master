@@ -697,3 +697,14 @@ func GetUserGroupRoles()(groups map[string]map[string]string, err error){
     } 
     return allgrouproles, nil
 }
+
+func UpdateUser(uuid string, param string, value string) (err error) {
+    updateData, err := Mdb.Prepare("update users set user_value = ? where user_uniqueid = ? and user_param = ?;")
+    if (err != nil){logs.Error("UpdateUser UPDATE prepare error: "+err.Error()); return err}
+
+    _, err = updateData.Exec(&value, &uuid, &param)
+    defer updateData.Close()
+    if (err != nil){logs.Error("UpdateUser UPDATE error: "+err.Error()); return err}
+
+    return nil
+}
