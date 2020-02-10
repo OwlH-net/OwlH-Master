@@ -41,10 +41,10 @@ type NodeController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *NodeController) CreateNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else{
+    // err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    // if err != nil {
+    //     n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    // }else{
         var anode map[string]interface{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -68,7 +68,7 @@ func (n *NodeController) CreateNode() {
                 n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
             }
         }
-    }
+    // }
     
     n.ServeJSON()
 }

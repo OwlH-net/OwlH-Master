@@ -49,6 +49,44 @@ import (
 //     return portData,nil
 // }
 
+func AddNode(n map[string]string) (err error) {
+    //check if exists a node with the same ip and port
+    nodes,err:= ndb.GetAllNodes()
+    for id := range nodes {
+        if nodes[id]["ip"] == n["ip"]{
+            if nodes[id]["port"] == n["port"]{
+                return errors.New("AddNode - There is already a node with the same IP and Port")
+            }
+        }
+    }
+    
+    //Get token from node  
+    token,err := nodeclient.GetNodeToken(n["ip"],n["port"])
+    if err != nil {logs.Error("AddNode Error updating node data"); return err}    
+    
+    //add node token to db
+    uuid := utils.Generate()
+    err = ndb.InsertNodeKey(uuid, "nodeuser", n["nodeuser"]); if err != nil {logs.Error("AddNode Insert node user error: "+err.Error()); return err}
+    err = ndb.InsertNodeKey(uuid, "nodepass", n["nodepass"]); if err != nil {logs.Error("AddNode Insert node pass error: "+err.Error()); return err}
+    err = ndb.InsertNodeKey(uuid, "name", n["name"]); if err != nil {logs.Error("AddNode Insert node name error: "+err.Error()); return err}
+    err = ndb.InsertNodeKey(uuid, "port", n["port"]); if err != nil {logs.Error("AddNode Insert node port error: "+err.Error()); return err}
+    err = ndb.InsertNodeKey(uuid, "ip", n["ip"]); if err != nil {logs.Error("AddNode Insert node ip error: "+err.Error()); return err}
+    err = ndb.InsertNodeKey(uuid, "token", token); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
+    
+    //Load token
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("AddNode Error loading node token: %s",err); return err}
+    //Save node values into node db  
+    nodeValues, err := ndb.GetNodeById(uuid); if err!=nil{logs.Error("AddNode Error loading node values: %s",err); return err}
+    //delete data for node
+    delete(nodeValues[uuid], "nodeuser")
+    delete(nodeValues[uuid], "nodepass")
+    delete(nodeValues[uuid], "token")
+    err = nodeclient.SaveNodeInformation(n["ip"],n["port"], nodeValues)
+    if err != nil {logs.Error("AddNode Error updating node data"); return err}    
+    
+    return nil
+}
+
 func findNode(s string) (id string, err error) {
     if ndb.Db == nil {
         logs.Error("Find Node -> no access to database")
@@ -77,12 +115,13 @@ func findNode(s string) (id string, err error) {
 }
 
 func DeleteNode(nodeid string)(err error) {
-    logs.Info("NODE Delete -> IN")
+    //get node ip and port
+    ipData,portData,err := ndb.ObtainPortIp(nodeid)
+    if err != nil {logs.Error("node/DeleteNode ERROR getting node port/ip: "+err.Error()); return err}    
 
     //delete node from database
     err = ndb.DeleteNode(nodeid)
     if err != nil {logs.Error("DeleteNode error for uuid: "+nodeid+": "+ err.Error()); return err}
-    
     
     //delete ruleset for this node
     err = ndb.DeleteRulesetNodeByNode(nodeid)
@@ -94,7 +133,11 @@ func DeleteNode(nodeid string)(err error) {
     for x := range groupnodes{
         err = ndb.DeleteNodeGroupById(x)
         if err != nil {logs.Error("DeleteNode error for uuid: "+x+": "+ err.Error()); return err}
-    }
+    } 
+
+    //delete node information at node db
+    err = nodeclient.DeleteNode(ipData,portData)
+    if err != nil {logs.Error("node/DeleteNode nodeclient ERROR: "+err.Error()); return err}   
 
     return nil
 }
@@ -185,31 +228,6 @@ func nodeExists(nodeid string) (err error) {
 //     return err
 // }
 
-func AddNode(n map[string]string) (err error) {
-    //check if exists a node with the same ip and port
-    nodes,err:= ndb.GetAllNodes()
-    for id := range nodes {
-        if nodes[id]["ip"] == n["ip"]{
-            if nodes[id]["port"] == n["port"]{
-                return errors.New("There is already a node with the same IP and Port")
-            }
-        }
-    }
-    
-    //Get token from node  
-    token,err := nodeclient.GetNodeToken(n["ip"],n["port"])
-    if err != nil {logs.Error("Error updating node data"); return err}    
-
-    //add node token to db
-    uuid := utils.Generate()
-    err = ndb.InsertNodeKey(uuid, "name", n["name"]); if err != nil {logs.Error("Insert node name error: "+err.Error()); return err}
-    err = ndb.InsertNodeKey(uuid, "port", n["port"]); if err != nil {logs.Error("Insert node port error: "+err.Error()); return err}
-    err = ndb.InsertNodeKey(uuid, "ip", n["ip"]); if err != nil {logs.Error("Insert node ip error: "+err.Error()); return err}
-    err = ndb.InsertNodeKey(uuid, "token", token); if err != nil {logs.Error("Insert node token error: "+err.Error()); return err}
-
-    return nil
-}
-
 func UpdateNode(n map[string]string) (err error) {
     //cehck if exists a node with the same ip and port
     nodes,err:= ndb.GetAllNodes()
@@ -228,7 +246,7 @@ func UpdateNode(n map[string]string) (err error) {
     err = ndb.UpdateNode(n["id"], "ip", n["ip"]);  if err != nil {logs.Error("UpdateNode ip error: "+err.Error()); return err}
     err = ndb.UpdateNode(n["id"], "port", n["port"]);  if err != nil {logs.Error("UpdateNode port error: "+err.Error()); return err}
 
-    // //update node
+    //update node
     nodeValues, err := ndb.GetNodeById(n["id"])
     if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}
 

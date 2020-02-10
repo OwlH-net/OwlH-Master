@@ -1811,3 +1811,44 @@ func GetNodeToken(ipData string, portData string)(token string, err error){
     }
     return data["token"], nil
 }
+
+func SaveNodeInformation(ipnid string, portnid string, data map[string]map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/ping/saveNodeInformation"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SaveNodeInformation ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        logs.Error("nodeclient/SaveNodeInformation ERROR reading request data: "+err.Error())
+        return err
+    }
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SaveNodeInformation ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    defer resp.Body.Close()
+    return nil
+}
+
+func DeleteNode(ipData string, portData string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/ping"
+    resp,err := utils.NewRequestHTTP("DELETE", url, nil)
+    if err != nil {logs.Error("nodeclient/DeleteNode ERROR connection through http new Request: "+err.Error()); return err}
+    
+    defer resp.Body.Close()
+    
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/DeleteNode ERROR reading request data: "+err.Error()); return err}
+    data := make(map[string]string)
+    err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/DeleteNode ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if data["ack"] == "false" {
+        return errors.New(data["error"])
+    }
+    return nil
+}
