@@ -1794,9 +1794,11 @@ func SuricataGroupService(ipData string, portData string, data map[string]string
     return nil
 }
 
-func GetNodeToken(ipData string, portData string)(token string, err error){
+func GetNodeToken(ipData string, portData string, login map[string]string)(token string, err error){
     url := "https://"+ipData+":"+portData+"/node/autentication"
-    resp,err := utils.NewRequestHTTP("GET", url, nil)
+    valuesJSON,err := json.Marshal(login)
+
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
     if err != nil {logs.Error("nodeclient/GetNodeAutentication ERROR connection through http new Request: "+err.Error()); return "", err}
     
     defer resp.Body.Close()

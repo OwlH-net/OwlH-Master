@@ -60,10 +60,16 @@ func AddNode(n map[string]string) (err error) {
         }
     }
     
+    login := make(map[string]string)
+    masterid, err := ndb.LoadMasterID()
+    login["user"] = n["nodeuser"]
+    login["pass"] = n["nodepass"]
+    login["master"] = masterid
+
     //Get token from node  
-    token,err := nodeclient.GetNodeToken(n["ip"],n["port"])
+    token,err := nodeclient.GetNodeToken(n["ip"],n["port"], login)
     if err != nil {logs.Error("AddNode Error updating node data"); return err}    
-    
+
     //add node token to db
     uuid := utils.Generate()
     err = ndb.InsertNodeKey(uuid, "nodeuser", n["nodeuser"]); if err != nil {logs.Error("AddNode Insert node user error: "+err.Error()); return err}

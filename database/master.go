@@ -127,6 +127,24 @@ func UpdateMasterNetworkInterface(anode map[string]string) (err error) {
     return nil
 }
 
+func LoadMasterID()(id string, err error){
+    var masterConfigID string
+
+    sql := "select config_value from masterconfig where config_uniqueid='master' and config_param='id'";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("LoadMasterID Mdb.Query Error : %s", err.Error())
+        return "", err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&masterConfigID); err != nil {
+            logs.Error("LoadMasterID -- Query return error: %s", err.Error())
+            return "", err
+        }
+    } 
+    return masterConfigID,nil
+}
+
 func LoadMasterNetworkValuesSelected()(path map[string]map[string]string, err error){
     var pingData = map[string]map[string]string{}
     var uniqid string
@@ -706,5 +724,17 @@ func UpdateUser(uuid string, param string, value string) (err error) {
     defer updateData.Close()
     if (err != nil){logs.Error("UpdateUser UPDATE error: "+err.Error()); return err}
 
+    return nil
+}
+
+func InsertMasterconfigValues(uuid string, param string, value string)(err error){
+    insertMasterconfig, err := Mdb.Prepare("insert into masterconfig(config_uniqueid, config_param, config_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertMasterconfigValues INSERT prepare error: "+err.Error()); return err}
+
+    _, err = insertMasterconfig.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertMasterconfigValues INSERT exec error: "+err.Error()); return err}
+
+    defer insertMasterconfig.Close()
+    
     return nil
 }

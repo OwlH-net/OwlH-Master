@@ -270,6 +270,16 @@ func checkFields()(ok bool){
     if !ok {return false}
 
     //add admin to role admin status
+    masterUUID := utils.Generate()
+    field.Fconn      = "masterConn"
+    field.Ftable     = "masterconfig"
+    field.Fquery     = "select config_param from masterconfig where config_param='id'"
+    field.Finsert    = "insert into masterconfig (config_uniqueid,config_param,config_value) values ('master','id','"+masterUUID+"')"
+    field.Fname      = "masterconfig - id"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //add admin to role admin status
     field.Fconn      = "masterConn"
     field.Ftable     = "userRoles"
     field.Fquery     = "select ur_param from userRoles where ur_param='role' and ur_value='admin'"
