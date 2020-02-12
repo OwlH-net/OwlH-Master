@@ -133,17 +133,15 @@ func (n *NodeController) GetPong() {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
         nid := n.GetString(":nid")
-        nodeResp, err := models.PingNode(nid)
+        // nodeResp, err := models.PingNode(nid)
+        _, err := models.PingNode(nid)
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }else{
-            logs.Warn(nodeResp)
-            logs.Warn(nodeResp)
-            logs.Warn(nodeResp)
             n.Data["json"] = map[string]string{"ping": "pong"}
-            if nodeResp != nil{
-                n.Data["json"] = map[string]string{"nodeToken": nodeResp["nodeToken"], "error": nodeResp["error"]}
-            }
+        //     if nodeResp != nil{
+        //         n.Data["json"] = map[string]string{"nodeToken": nodeResp["nodeToken"], "error": nodeResp["error"]}
+        //     }
         }
     }
 

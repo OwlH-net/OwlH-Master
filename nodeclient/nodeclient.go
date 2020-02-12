@@ -53,7 +53,7 @@ func PingNode(ip string, port string) (nodeResp map[string]string, err error) {
         currentTime := time.Now()
         timeFormated := currentTime.Format("2006-01-02T15:04:05")
         controlError = ndb.PutIncident(uuid, "date", timeFormated)
-        controlError = ndb.PutIncident(uuid, "desc", "Thisa Master description")
+        controlError = ndb.PutIncident(uuid, "desc", "Master description")
         controlError = ndb.PutIncident(uuid, "status", "new") // new, open, closed, delayed
         controlError = ndb.PutIncident(uuid, "level", "info") // warning, info or danger
         controlError = ndb.PutIncident(uuid, "NodeIp", ip) // warning, info or danger
@@ -72,16 +72,16 @@ func PingNode(ip string, port string) (nodeResp map[string]string, err error) {
     err = json.Unmarshal(body, &returnValues)
     if err != nil { logs.Error("nodeclient/PingNode ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
     
-    if returnValues["nodeToken"] == "none"{
-        logs.Error("nodeclient/PingNode ERROR from node: "+returnValues["error"])
-        values := make(map[string]string)
-        values["nodeToken"] = "none"
-        values["error"] = "nodeclient/PingNode Node token ERROR: "+values["error"]
-        values["ack"] = "false"
-        return values,nil
-    }
+    // if returnValues["nodeToken"] == "none"{
+    //     logs.Error("nodeclient/PingNode ERROR from node: "+returnValues["error"])
+    //     values := make(map[string]string)
+    //     values["nodeToken"] = "none"
+    //     values["error"] = "nodeclient/PingNode Node token ERROR: "+values["error"]
+    //     values["ack"] = "false"
+    //     return values,nil
+    // }
 
-    return nil,nil
+    return returnValues,nil
 }
 
 func UpdateNodeData(ipData string, portData string, loadFile map[string]map[string]string)(err error){
@@ -1799,7 +1799,11 @@ func GetNodeToken(ipData string, portData string, login map[string]string)(token
     valuesJSON,err := json.Marshal(login)
 
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/GetNodeAutentication ERROR connection through http new Request: "+err.Error()); return "", err}
+    if err != nil {
+        logs.Error("nodeclient/GetNodeAutentication ERROR connection through http new Request: "+err.Error())
+        //add to db with wait status
+        return "", err
+    }
     
     defer resp.Body.Close()
     
@@ -1852,5 +1856,28 @@ func DeleteNode(ipData string, portData string)(err error){
     if data["ack"] == "false" {
         return errors.New(data["error"])
     }
+    return nil
+}
+
+func SyncUsersToNode(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/autentication/addUser"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SyncUsersToNode ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        logs.Error("nodeclient/SyncUsersToNode ERROR reading request data: "+err.Error())
+        return err
+    }
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SyncUsersToNode ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    defer resp.Body.Close()
     return nil
 }

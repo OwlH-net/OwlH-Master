@@ -9,6 +9,7 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     "owlhmaster/dispatcher"
+    "owlhmaster/node"
     "owlhmaster/master"
     "owlhmaster/search"
     "owlhmaster/scheduler"
@@ -86,6 +87,8 @@ func main() {
     go scheduler.Init()
     //Load all rulesets
     go search.Init()
+    //Synchronize users to every node
+    // go node.SyncUsersToNode()
 
     //Beego API documentation
     if beego.BConfig.RunMode == "dev" {

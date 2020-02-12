@@ -517,7 +517,7 @@ func AddUser(data map[string]string)(err error){
     if err != nil{logs.Error("master/AddUser Error inserting pass into db: "+err.Error()); return err}    
     err = ndb.InsertUser(uuid, "secret", secret)
     if err != nil{logs.Error("master/AddUser Error inserting secret into db: "+err.Error()); return err}    
-
+    
     return nil
 }
 
