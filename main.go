@@ -9,7 +9,7 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     "owlhmaster/dispatcher"
-    "owlhmaster/node"
+    // "owlhmaster/node"
     "owlhmaster/master"
     "owlhmaster/search"
     "owlhmaster/scheduler"
