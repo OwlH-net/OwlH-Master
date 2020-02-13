@@ -505,18 +505,33 @@ func Login(data map[string]string)(newToken string, err error){
 }
 
 func AddUser(data map[string]string)(err error){ 
+    //check if this username already exists
+    users,err := ndb.GetLoginData()
+    for id := range users{
+        if users[id]["user"] == data["user"]{
+            return errors.New("This username is already in use")
+        }
+    }
+
     passHashed, err := validation.HashPassword(data["pass"])
     if err != nil{logs.Error("master/AddUser Error creating hash password: "+err.Error()); return err}    
     
     //insert username into db
     uuid := utils.Generate()
     secret := utils.Generate()
+    privID := utils.Generate()
+    //user
     err = ndb.InsertUser(uuid, "user", data["user"])
     if err != nil{logs.Error("master/AddUser Error inserting user into db: "+err.Error()); return err}    
     err = ndb.InsertUser(uuid, "pass", passHashed)
     if err != nil{logs.Error("master/AddUser Error inserting pass into db: "+err.Error()); return err}    
     err = ndb.InsertUser(uuid, "secret", secret)
-    if err != nil{logs.Error("master/AddUser Error inserting secret into db: "+err.Error()); return err}    
+    if err != nil{logs.Error("master/AddUser Error inserting secret into db: "+err.Error()); return err}
+    //user privileges    
+    err = ndb.InsertPrivilege(privID, "user", uuid)
+    if err != nil{logs.Error("master/AddUser Error inserting user privilege into db: "+err.Error()); return err}    
+    err = ndb.InsertPrivilege(privID, "privilege", data["privilege"])
+    if err != nil{logs.Error("master/AddUser Error inserting privilege into db: "+err.Error()); return err}    
     
     return nil
 }
@@ -534,7 +549,7 @@ func GetAllUsers()(data map[string]map[string]string, err error) {
     return users, err
 }
 
-func DeleteUser(anode map[string]string)(err error){
+func DeleteUser(anode map[string]string)(err error){    
     err = ndb.DeleteUser(anode["id"])
     if err != nil{logs.Error("master/DeleteUser Error deleting user: "+err.Error()); return err}    
 

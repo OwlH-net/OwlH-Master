@@ -41,7 +41,7 @@ type NodeController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *NodeController) CreateNode() {
-    // err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    // err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     // if err != nil {
     //     n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     // }else{
@@ -81,7 +81,7 @@ func (n *NodeController) CreateNode() {
 // @router /deploy/:nid [post]
 // @router /:nid/deploy [post]
 func (n *NodeController) DeployNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -103,7 +103,7 @@ func (n *NodeController) DeployNode() {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *NodeController) UpdateNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -127,7 +127,7 @@ func (n *NodeController) UpdateNode() {
 // @router /ping/:nid [get]
 // @router /:nid/ping [get]
 func (n *NodeController) GetPong() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         logs.Error("Error PingNode Master token: %s",err)
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
@@ -155,7 +155,7 @@ func (n *NodeController) GetPong() {
 // @router /suricata/:nid [get]
 // @router /:nid/suricata [get]
 func (n *NodeController) GetSuricata() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -179,7 +179,7 @@ func (n *NodeController) GetSuricata() {
 // @router /zeek/:nid [get]
 // @router /:nid/zeek [get]
 func (n *NodeController) GetZeek() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -203,7 +203,7 @@ func (n *NodeController) GetZeek() {
 // @router /wazuh/:nid [get]
 // @router /:nid/wazuh [get]
 func (n *NodeController) GetWazuh() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -247,7 +247,7 @@ func (n *NodeController) GetWazuh() {
 // @Failure 403 :nid is empty
 // @router /suricata/bpf [put]
 func (n *NodeController) PutSuricataBPF() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -269,10 +269,9 @@ func (n *NodeController) PutSuricataBPF() {
 // @Success 200 {object} models.Node
 // @router / [get]
 func (n *NodeController) GetAllNodes() {
-    // //check token
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    //check token
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        logs.Error("Error checking Master token: %s", err)
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
         nodes, err := models.GetAllNodes()
@@ -290,7 +289,7 @@ func (n *NodeController) GetAllNodes() {
 // @Success 200 {object} models.Node
 // @router /pingservice/:uuid [get]
 func (n *NodeController) GetServiceStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -310,7 +309,7 @@ func (n *NodeController) GetServiceStatus() {
 // @Success 200 {object} models.Node
 // @router /deployservice/:uuid [put]
 func (n *NodeController) DeployService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -332,7 +331,7 @@ func (n *NodeController) DeployService() {
 // @Success 200 {string} node deleted
 // @router /:nid [delete]
 func (n *NodeController) DeleteNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -355,7 +354,7 @@ func (n *NodeController) DeleteNode() {
 // @Success 200 {object} models.Node
 // @router /ruleset/set [put]
 func (n *NodeController) SyncRulesetToNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -376,7 +375,7 @@ func (n *NodeController) SyncRulesetToNode() {
 // @Success 200 {object} models.Node
 // @router /loadfile/:uuid/:fileName [get]
 func (n *NodeController) GetNodeFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -399,7 +398,7 @@ func (n *NodeController) GetNodeFile() {
 // @Success 200 {object} models.Node
 // @router /savefile [put]
 func (n *NodeController) SetNodeFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -421,7 +420,7 @@ func (n *NodeController) SetNodeFile() {
 // @Success 200 {object} models.Node
 // @router /getAllFiles/:uuid [get]
 func (n *NodeController) GetAllFiles() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {        
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -441,7 +440,7 @@ func (n *NodeController) GetAllFiles() {
 // @Success 200 {object} models.Node
 // @router /RunSuricata/:uuid [put]
 func (n *NodeController) RunSuricata() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -462,7 +461,7 @@ func (n *NodeController) RunSuricata() {
 // @Success 200 {object} models.Node
 // @router /StopSuricata/:uuid [put]
 func (n *NodeController) StopSuricata() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -482,7 +481,7 @@ func (n *NodeController) StopSuricata() {
 // @Success 200 {object} models.Node
 // @router /RunZeek/:uuid [put]
 func (n *NodeController) RunZeek() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -501,7 +500,7 @@ func (n *NodeController) RunZeek() {
 // @Success 200 {object} models.Node
 // @router /StopZeek/:uuid [put]
 func (n *NodeController) StopZeek() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -520,7 +519,7 @@ func (n *NodeController) StopZeek() {
 // @Success 200 {object} models.Node
 // @router /RunWazuh/:uuid [put]
 func (n *NodeController) RunWazuh() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -539,7 +538,7 @@ func (n *NodeController) RunWazuh() {
 // @Success 200 {object} models.Node
 // @router /StopWazuh/:uuid [put]
 func (n *NodeController) StopWazuh() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -560,7 +559,7 @@ func (n *NodeController) StopWazuh() {
 // @router /deploy/:nid [get]
 // @router /:nid/deploy [get]
 func (n *NodeController) DeployZeek() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -584,7 +583,7 @@ func (n *NodeController) DeployZeek() {
 // @router /PingPorts/:nid [get]
 // @router /:nid/PingPorts [get]
 func (n *NodeController) PingPorts() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -609,7 +608,7 @@ func (n *NodeController) PingPorts() {
 // @router /ports/:nid [get]
 // @router /:nid/ports [get]
 func (n *NodeController) ShowPorts() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -632,7 +631,7 @@ func (n *NodeController) ShowPorts() {
 // @Failure 403 :uuid is empty
 // @router /ports/delete/:uuid [put]
 func (n *NodeController) DeletePorts() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -656,7 +655,7 @@ func (n *NodeController) DeletePorts() {
 // @Failure 403 :uuid is empty
 // @router /ports/deleteAll/:uuid [put]
 func (n *NodeController) DeleteAllPorts() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -677,7 +676,7 @@ func (n *NodeController) DeleteAllPorts() {
 // @Failure 403 Error
 // @router /mode [put]
 func (n *NodeController) ChangeMode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -698,7 +697,7 @@ func (n *NodeController) ChangeMode() {
 // @Failure 403 Error
 // @router /status [put]
 func (n *NodeController) ChangeStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -722,7 +721,7 @@ func (n *NodeController) ChangeStatus() {
 // @router /PingPluginsNode/:nid [get]
 // @router /:nid/PingPluginsNode [get]
 func (n *NodeController) PingPluginsNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -745,7 +744,7 @@ func (n *NodeController) PingPluginsNode() {
 // @router /getMainconfData/:nid [get]
 // @router /:nid/getMainconfData [get]
 func (n *NodeController) GetMainconfData() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -767,7 +766,7 @@ func (n *NodeController) GetMainconfData() {
 // @router /PingAnalyzer/:uuid [get]
 // @router /:nid/PingAnalyzer [get]
 func (n *NodeController) PingAnalyzer() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -789,7 +788,7 @@ func (n *NodeController) PingAnalyzer() {
 // @Failure 403 :uuid is empty
 // @router /analyzer [put]
 func (n *NodeController) ChangeAnalyzerStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -811,7 +810,7 @@ func (n *NodeController) ChangeAnalyzerStatus() {
 // @Failure 403 :uuid is empty
 // @router /deployNode [put]
 func (n *NodeController) Deploy() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -833,7 +832,7 @@ func (n *NodeController) Deploy() {
 // @Failure 403 :uuid is empty
 // @router /checkDeploy/:uuid [get]
 func (n *NodeController) CheckDeploy() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -850,7 +849,7 @@ func (n *NodeController) CheckDeploy() {
 // @Failure 403 :uuid is empty
 // @router /changeDataflowValues [put]
 func (n *NodeController) ChangeDataflowValues() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -872,7 +871,7 @@ func (n *NodeController) ChangeDataflowValues() {
 // @Failure 403 :uuid is empty
 // @router /loadDataflowValues/:uuid [get]
 func (n *NodeController) LoadDataflowValues() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -893,7 +892,7 @@ func (n *NodeController) LoadDataflowValues() {
 // @Failure 403 :uuid is empty
 // @router /loadNetworkValues/:uuid [get]
 func (n *NodeController) LoadNetworkValues() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -914,7 +913,7 @@ func (n *NodeController) LoadNetworkValues() {
 // @Failure 403 :uuid is empty
 // @router /loadNetworkValuesSelected/:uuid [get]
 func (n *NodeController) LoadNetworkValuesSelected() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -935,7 +934,7 @@ func (n *NodeController) LoadNetworkValuesSelected() {
 // @Success 200 {object} models.Master
 // @router /updateNetworkInterface [put]
 func (n *NodeController) UpdateNetworkInterface() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -955,7 +954,7 @@ func (n *NodeController) UpdateNetworkInterface() {
 // @Success 200 {object} models.Node
 // @router /saveSocketToNetwork [put]
 func (n *NodeController) SaveSocketToNetwork() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -976,7 +975,7 @@ func (n *NodeController) SaveSocketToNetwork() {
 // @Success 200 {object} models.Node
 // @router /saveNewLocal [put]
 func (n *NodeController) SaveNewLocal() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -996,7 +995,7 @@ func (n *NodeController) SaveNewLocal() {
 // @Success 200 {object} models.Node
 // @router /saveVxLAN [put]
 func (n *NodeController) SaveVxLAN() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1017,7 +1016,7 @@ func (n *NodeController) SaveVxLAN() {
 // @Failure 403 :uuid is empty
 // @router /socketToNetworkList/:uuid [get]
 func (n *NodeController) SocketToNetworkList() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1037,7 +1036,7 @@ func (n *NodeController) SocketToNetworkList() {
 // @Success 200 {object} models.Node
 // @router /saveSocketToNetworkSelected [put]
 func (n *NodeController) SaveSocketToNetworkSelected() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1057,7 +1056,7 @@ func (n *NodeController) SaveSocketToNetworkSelected() {
 // @Success 200 {object} models.Node
 // @router /deleteDataFlowValueSelected [delete]
 func (n *NodeController) DeleteDataFlowValueSelected() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1077,7 +1076,7 @@ func (n *NodeController) DeleteDataFlowValueSelected() {
 // @Success 200 {object} models.Node
 // @router /pingmonitor/:uuid [get]
 func (n *NodeController) GetNodeMonitor() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1098,7 +1097,7 @@ func (n *NodeController) GetNodeMonitor() {
 // @Failure 403 Connection Failure
 // @router /add [post]
 func (n *NodeController) AddPluginService() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1120,7 +1119,7 @@ func (n *NodeController) AddPluginService() {
 // @Failure 403 :uuid is empty
 // @router /ChangeServiceStatus [put]
 func (n *NodeController) ChangeServiceStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1141,7 +1140,7 @@ func (n *NodeController) ChangeServiceStatus() {
 // @Success 200 {object} models.Node
 // @router /mainconfStatus [put]
 func (n *NodeController) ChangeMainServiceStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1163,7 +1162,7 @@ func (n *NodeController) ChangeMainServiceStatus() {
 // @Success 200 {object} models.Node
 // @router /deleteService [delete]
 func (n *NodeController) DeleteService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1185,7 +1184,7 @@ func (n *NodeController) DeleteService() {
 // @Success 200 {object} models.Node
 // @router /saveSuricataInterface [put]
 func (n *NodeController) SaveSuricataInterface() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1207,7 +1206,7 @@ func (n *NodeController) SaveSuricataInterface() {
 // @Success 200 {object} models.Node
 // @router /deployStapService [put]
 func (n *NodeController) DeployStapService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1229,7 +1228,7 @@ func (n *NodeController) DeployStapService() {
 // @Success 200 {object} models.Node
 // @router /stopStapService [put]
 func (n *NodeController) StopStapService() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1251,7 +1250,7 @@ func (n *NodeController) StopStapService() {
 // @Success 200 {object} models.Node
 // @router /modifyStapValues [put]
 func (n *NodeController) ModifyStapValues() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1274,7 +1273,7 @@ func (n *NodeController) ModifyStapValues() {
 // @Failure 403 :uuid is empty
 // @router /pingWazuhFiles/:uuid [get]
 func (n *NodeController) PingWazuhFiles() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1293,7 +1292,7 @@ func (n *NodeController) PingWazuhFiles() {
 // @Success 200 {object} models.Node
 // @router /deleteWazuhFile [delete]
 func (n *NodeController) DeleteWazuhFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1316,7 +1315,7 @@ func (n *NodeController) DeleteWazuhFile() {
 // @Success 200 {object} models.Node
 // @router /addWazuhFile [put]
 func (n *NodeController) AddWazuhFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1339,7 +1338,7 @@ func (n *NodeController) AddWazuhFile() {
 // @Success 200 {object} models.Node
 // @router /wazuh/loadLines [put]
 func (n *NodeController) LoadFileLastLines() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1362,7 +1361,7 @@ func (n *NodeController) LoadFileLastLines() {
 // @Success 200 {object} models.Node
 // @router /wazuh/saveFileContentWazuh [put]
 func (n *NodeController) SaveFileContentWazuh() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1387,7 +1386,7 @@ func (n *NodeController) SaveFileContentWazuh() {
 // @router /reloadFilesData/:uuid [get]
 // @router /:nid/reloadFilesData [get]
 func (n *NodeController) ReloadFilesData() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1407,7 +1406,7 @@ func (n *NodeController) ReloadFilesData() {
 // @Failure 403 body is empty
 // @router /monitor/addFile [post]
 func (n *NodeController) AddMonitorFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1429,7 +1428,7 @@ func (n *NodeController) AddMonitorFile() {
 // @router /monitor/pingMonitorFiles/:uuid [get]
 // @router /monitor/:nid/pingMonitorFiles [get]
 func (n *NodeController) PingMonitorFiles() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1449,7 +1448,7 @@ func (n *NodeController) PingMonitorFiles() {
 // @Failure 403 body is empty
 // @router /monitor/deleteFile [delete]
 func (n *NodeController) DeleteMonitorFile() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1469,7 +1468,7 @@ func (n *NodeController) DeleteMonitorFile() {
 // @Success 200 {object} models.Node
 // @router /zeek/changeZeekMode [put]
 func (n *NodeController) ChangeZeekMode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1493,7 +1492,7 @@ func (n *NodeController) ChangeZeekMode() {
 // @Failure 403 body is empty
 // @router /addClusterValue [post]
 func (n *NodeController) AddClusterValue() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1514,7 +1513,7 @@ func (n *NodeController) AddClusterValue() {
 // @Failure 403 body is empty
 // @router /pingCluster/:uuid [get]
 func (n *NodeController) PingCluster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1533,7 +1532,7 @@ func (n *NodeController) PingCluster() {
 // @Success 200 {object} models.Node
 // @router /zeek/editClusterValue [put]
 func (n *NodeController) EditClusterValue() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1556,7 +1555,7 @@ func (n *NodeController) EditClusterValue() {
 // @Success 200 {object} models.Node
 // @router /zeek/deleteClusterValue [delete]
 func (n *NodeController) DeleteClusterValue() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1579,7 +1578,7 @@ func (n *NodeController) DeleteClusterValue() {
 // @Success 200 {object} models.Node
 // @router /zeek/syncCluster [put]
 func (n *NodeController) SyncCluster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1600,7 +1599,7 @@ func (n *NodeController) SyncCluster() {
 // @Failure 403 body is empty
 // @router /changecontrol/:uuid [get]
 func (n *NodeController) GetChangeControlNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1620,7 +1619,7 @@ func (n *NodeController) GetChangeControlNode() {
 // @Success 200 {object} models.Master
 // @router /incidents/:uuid [get]
 func (n *NodeController) GetIncidentsNode() {   
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1656,7 +1655,7 @@ func (n *NodeController) GetIncidentsNode() {
 // @Success 200 {object} models.Node
 // @router /plugin/changeSuricataTable [put]
 func (n *NodeController) ChangeSuricataTable() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1678,7 +1677,7 @@ func (n *NodeController) ChangeSuricataTable() {
 // @Success 200 {object} models.Node
 // @router /ruleset/syncGroups [put]
 func (n *NodeController) SyncRulesetToAllGroupNodes() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1700,7 +1699,7 @@ func (n *NodeController) SyncRulesetToAllGroupNodes() {
 // @Success 200 {object} models.Node
 // @router /analyzer/sync [put]
 func (n *NodeController) SyncAnalyzerToAllGroupNodes() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1721,7 +1720,7 @@ func (n *NodeController) SyncAnalyzerToAllGroupNodes() {
 // @Success 200 {object} models.Node
 // @router /StartSuricataMain [put]
 func (n *NodeController) StartSuricataMainConf() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1740,7 +1739,7 @@ func (n *NodeController) StartSuricataMainConf() {
 // @Success 200 {object} models.Node
 // @router /StopSuricataMain [put]
 func (n *NodeController) StopSuricataMainConf() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1759,7 +1758,7 @@ func (n *NodeController) StopSuricataMainConf() {
 // @Success 200 {object} models.Node
 // @router /KillSuricataMain [put]
 func (n *NodeController) KillSuricataMainConf() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1778,7 +1777,7 @@ func (n *NodeController) KillSuricataMainConf() {
 // @Success 200 {object} models.Node
 // @router /ReloadSuricataMain [put]
 func (n *NodeController) ReloadSuricataMainConf() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1798,7 +1797,7 @@ func (n *NodeController) ReloadSuricataMainConf() {
 // @Success 200 {object} models.Node
 // @router /LaunchZeekMainConf [put]
 func (n *NodeController) LaunchZeekMainConf() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -1818,7 +1817,7 @@ func (n *NodeController) LaunchZeekMainConf() {
 // @Success 200 {object} models.Node
 // @router /zeek/syncZeekValues [put]
 func (n *NodeController) SyncZeekValues() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{

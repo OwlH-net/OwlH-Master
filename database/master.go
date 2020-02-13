@@ -620,6 +620,18 @@ func InsertUser(uuid string, param string, value string)(err error){
     return nil
 }
 
+func InsertPrivilege(uuid string, param string, value string)(err error){
+    InsertPrivilegeDB, err := Mdb.Prepare("insert into userPrivileges(priv_uniqueid, priv_param, priv_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertPrivilege INSERT prepare error: "+err.Error()); return err}
+
+    _, err = InsertPrivilegeDB.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertPrivilege INSERT exec error: "+err.Error()); return err}
+
+    defer InsertPrivilegeDB.Close()
+    
+    return nil
+}
+
 func InsertGroupUsers(uuid string, param string, value string)(err error){
     insertGroupDB, err := Mdb.Prepare("insert into userGroups(ug_uniqueid, ug_param, ug_value) values (?,?,?);")
     if (err != nil){ logs.Error("InsertGroupUsers INSERT prepare error: "+err.Error()); return err}
@@ -737,4 +749,24 @@ func InsertMasterconfigValues(uuid string, param string, value string)(err error
     defer insertMasterconfig.Close()
     
     return nil
+}
+
+func GetUserPrivileges()(privileges map[string]map[string]string, err error){
+    var allprivileges = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Mdb == nil { logs.Error("no access to database"); return nil, err}
+    
+    sql := "select priv_uniqueid, priv_param, priv_value from userPrivileges;"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetUserPrivileges Mdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetUserPrivileges rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allprivileges[uniqid] == nil { allprivileges[uniqid] = map[string]string{}}
+        allprivileges[uniqid][param]=value
+    } 
+    return allprivileges, nil
 }

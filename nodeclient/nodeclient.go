@@ -1859,7 +1859,7 @@ func DeleteNode(ipData string, portData string)(err error){
     return nil
 }
 
-func SyncUsersToNode(ipnid string, portnid string, data map[string]string)(err error){
+func SyncUsersToNode(ipnid string, portnid string, data map[string]map[string]string)(err error){
     url := "https://"+ipnid+":"+portnid+"/node/autentication/addUser"
     valuesJSON,err := json.Marshal(data)
     resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))

@@ -19,7 +19,7 @@ type SearchController struct {
 // @Failure 403 Connection Failure
 // @router /getRulesetsBySearch [put]
 func (n *SearchController) GetRulesetsBySearch() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{

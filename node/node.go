@@ -1234,29 +1234,30 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
 func SyncUsersToNode()(){
     for {                 
         masterID,err := ndb.LoadMasterID()
-        if err != nil{logs.Error("master/AddUser Error getting master ID: "+err.Error())}    
-    
+        if err != nil{logs.Error("node/SyncUsersToNode Error getting master ID: "+err.Error())}    
+        //get all users
+        users,err:= ndb.GetLoginData()
+        if err != nil{logs.Error("node/SyncUsersToNode Error getting users: "+err.Error())}    
+        userValues := make(map[string]map[string]string)
+        for user := range users {
+            userValues[user] = map[string]string{}
+            userValues[user]["masterID"] = masterID
+            userValues[user]["user"] = users[user]["user"]
+            userValues[user]["type"] = "master"
+            userValues[user]["status"] = "exists"
+        }
+
         nodes,err:= ndb.GetAllNodes()
         if err != nil{logs.Error("node/SyncUsersToNode Error getting allNodes: "+err.Error())}    
         for id := range nodes {
-            users,err:= ndb.GetLoginData()
-            if err != nil{logs.Error("node/SyncUsersToNode Error getting users: "+err.Error())}    
-            for user := range users {
+            ipnid,portnid,err := ndb.ObtainPortIp(id)
+            if err != nil{logs.Error("node/SyncUsersToNode Error getting Node ip and port: "+err.Error())}  
 
-                values := make(map[string]string)
-                values["master"] = masterID
-                values["user"] = users[user]["user"]
-                values["type"] = "master"
-
-                ipnid,portnid,err := ndb.ObtainPortIp(id)
-                if err != nil{logs.Error("node/SyncUsersToNode Error getting Node ip and port: "+err.Error())}  
-
-                err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncUsersToNode Error loading node token: %s",err)}  
-                err = nodeclient.SyncUsersToNode(ipnid,portnid,values)
-                if err != nil{logs.Error("node/SyncUsersToNode Error: "+err.Error())}    
-            }
+            err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncUsersToNode Error loading node token: %s",err)}  
+            err = nodeclient.SyncUsersToNode(ipnid,portnid,userValues)
+            if err != nil{logs.Error("node/SyncUsersToNode Error: "+err.Error())}    
         }
         logs.Info("Users synchronized to nodes")
-        time.Sleep(time.Second*60)
+        time.Sleep(time.Minute*10)
     }
 }

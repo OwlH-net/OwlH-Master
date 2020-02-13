@@ -39,7 +39,7 @@ func (n *MasterController) GetMasterTitle() {
 // @Success 200 {object} models.Master
 // @router /editFile/:file [get]
 func (n *MasterController) GetFileContent() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -59,7 +59,7 @@ func (n *MasterController) GetFileContent() {
 // @Success 200 {object} models.Master
 // @router /savefile [put]
 func (n *MasterController) SaveFileContent() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -80,7 +80,7 @@ func (n *MasterController) SaveFileContent() {
 // @Success 200 {object} models.Master
 // @router /pingPlugins [get]
 func (n *MasterController) PingPlugins() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -99,7 +99,7 @@ func (n *MasterController) PingPlugins() {
 // @Success 200 {object} models.Master
 // @router /pingFlow [get]
 func (n *MasterController) PingFlow() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -118,7 +118,7 @@ func (n *MasterController) PingFlow() {
 // @Success 200 {object} models.Master
 // @router /changePluginStatus [put]
 func (n *MasterController) ChangePluginStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -139,7 +139,7 @@ func (n *MasterController) ChangePluginStatus() {
 // @Success 200 {object} models.Master
 // @router /saveStapInterface [put]
 func (n *MasterController) SaveStapInterface() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -160,7 +160,7 @@ func (n *MasterController) SaveStapInterface() {
 // @Success 200 {object} models.Master
 // @router /changeDataflowStatus [put]
 func (n *MasterController) ChangeDataflowStatus() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -181,7 +181,7 @@ func (n *MasterController) ChangeDataflowStatus() {
 // @Success 200 {object} models.Master
 // @router /interface [get]
 func (n *MasterController) GetNetworkInterface() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -200,7 +200,7 @@ func (n *MasterController) GetNetworkInterface() {
 // @Success 200 {object} models.Master
 // @router /deployMaster [put]
 func (n *MasterController) DeployMaster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -223,7 +223,7 @@ func (n *MasterController) DeployMaster() {
 // @Success 200 {object} models.Master
 // @router /updateMasterNetworkInterface [put]
 func (n *MasterController) UpdateMasterNetworkInterface() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -246,7 +246,7 @@ func (n *MasterController) UpdateMasterNetworkInterface() {
 // @Success 200 {object} models.Master
 // @router /loadMasterNetworkValuesSelected [get]
 func (n *MasterController) LoadMasterNetworkValuesSelected() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -265,7 +265,7 @@ func (n *MasterController) LoadMasterNetworkValuesSelected() {
 // @Success 200 {object} models.Master
 // @router /pingservice [get]
 func (n *MasterController) PingServiceMaster() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -284,7 +284,7 @@ func (n *MasterController) PingServiceMaster() {
 // @Success 200 {object} models.Master
 // @router /deployservice [put]
 func (n *MasterController) DeployServiceMaster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -303,7 +303,7 @@ func (n *MasterController) DeployServiceMaster() {
 // @Failure 403 Connection Failure
 // @router /add [put]
 func (n *MasterController) AddPluginServiceMaster() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -323,7 +323,7 @@ func (n *MasterController) AddPluginServiceMaster() {
 // @Description delete a specific plugin service
 // @router /deleteService [delete]
 func (n *MasterController) DeleteServiceMaster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -342,7 +342,7 @@ func (n *MasterController) DeleteServiceMaster() {
 // @Description delete a specific plugin service
 // @router /modifyStapValues [put]
 func (n *MasterController) ModifyStapValuesMaster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -363,7 +363,7 @@ func (n *MasterController) ModifyStapValuesMaster() {
 // @Failure 403 Connection Failure
 // @router /updateMasterStapInterface [put]
 func (n *MasterController) UpdateMasterStapInterface() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -385,7 +385,7 @@ func (n *MasterController) UpdateMasterStapInterface() {
 // @Failure 403 Connection Failure
 // @router /setbpf [put]
 func (n *MasterController) SetBPF() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -406,7 +406,7 @@ func (n *MasterController) SetBPF() {
 // @Success 200 {object} models.Master
 // @router /deployStapServiceMaster [put]
 func (n *MasterController) DeployStapServiceMaster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -428,7 +428,7 @@ func (n *MasterController) DeployStapServiceMaster() {
 // @Success 200 {object} models.Master
 // @router /stopStapServiceMaster [put]
 func (n *MasterController) StopStapServiceMaster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -451,7 +451,7 @@ func (n *MasterController) StopStapServiceMaster() {
 // @Success 200 {object} models.Master
 // @router /incidents [get]
 func (n *MasterController) GetIncidents() {  
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -486,7 +486,7 @@ func (n *MasterController) GetIncidents() {
 // @Success 200 {object} models.Master
 // @router /zeek/saveZeekValues [put]
 func (n *MasterController) SaveZeekValues() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -509,7 +509,7 @@ func (n *MasterController) SaveZeekValues() {
 // @Success 200 {object} models.Master
 // @router /pingPlugins [get]
 func (n *MasterController) PingPluginsMaster() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -528,7 +528,7 @@ func (n *MasterController) PingPluginsMaster() {
 // @Success 200 {object} models.Master
 // @router /editPathFile/:param [get]
 func (n *MasterController) GetPathFileContent() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -548,7 +548,7 @@ func (n *MasterController) GetPathFileContent() {
 // @Success 200 {object} models.Master
 // @router /savefilePath [put]
 func (n *MasterController) SaveFilePathContent() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -589,7 +589,7 @@ func (n *MasterController) Login() {
 // @Success 200 {object} models.Master
 // @router /addUser [post]
 func (n *MasterController) AddUser() {  
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -611,7 +611,7 @@ func (n *MasterController) AddUser() {
 // @Success 200 {object} models.Master
 // @router /getAllUsers [get]
 func (n *MasterController) GetAllUsers() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -628,7 +628,7 @@ func (n *MasterController) GetAllUsers() {
 // @Description delete a specific user
 // @router /deleteUser [delete]
 func (n *MasterController) DeleteUser() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -649,7 +649,7 @@ func (n *MasterController) DeleteUser() {
 // @Success 200 {object} models.Master
 // @router /addGroupUsers [put]
 func (n *MasterController) AddGroup() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -670,7 +670,7 @@ func (n *MasterController) AddGroup() {
 // @Success 200 {object} models.Master
 // @router /addRole [put]
 func (n *MasterController) AddRole() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -691,7 +691,7 @@ func (n *MasterController) AddRole() {
 // @Success 200 {object} models.Master
 // @router /getRolesForUser/:uuid [get]
 func (n *MasterController) GetRolesForUser() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -711,7 +711,7 @@ func (n *MasterController) GetRolesForUser() {
 // @Success 200 {object} models.Master
 // @router /getGroupsForUser/:uuid [get]
 func (n *MasterController) GetGroupsForUser() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -731,7 +731,7 @@ func (n *MasterController) GetGroupsForUser() {
 // @Success 200 {object} models.Master
 // @router /addUsersTo [put]
 func (n *MasterController) AddUsersTo() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -752,7 +752,7 @@ func (n *MasterController) AddUsersTo() {
 // @Success 200 {object} models.Master
 // @router /changePassword [put]
 func (n *MasterController) ChangePassword() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{

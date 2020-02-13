@@ -18,7 +18,7 @@ type RulesetSourceController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *RulesetSourceController) CreateRulesetSource() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -41,7 +41,7 @@ func (n *RulesetSourceController) CreateRulesetSource() {
 // @Failure 403 body is empty
 // @router /custom [post]
 func (n *RulesetSourceController) CreateCustomRulesetSource() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -62,7 +62,7 @@ func (n *RulesetSourceController) CreateCustomRulesetSource() {
 // @Success 200 {object} models.RulesetSource
 // @router / [get]
 func (n *RulesetSourceController) GetAllRulesetSource() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -80,7 +80,7 @@ func (n *RulesetSourceController) GetAllRulesetSource() {
 // @Success 200 {object} models.DeleteRulesetSource
 // @router /DeleteRulesetSource [delete]
 func (n *RulesetSourceController) DeleteRulesetSource() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -100,7 +100,7 @@ func (n *RulesetSourceController) DeleteRulesetSource() {
 // @Success 200 {object} models.DeleteRulesetFile
 // @router /DeleteRulesetFile/:uuid [delete]
 func (n *RulesetSourceController) DeleteRulesetFile() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -119,7 +119,7 @@ func (n *RulesetSourceController) DeleteRulesetFile() {
 // @Success 200 {object} models.RulesetSource
 // @router /EditRulesetSource [put]
 func (n *RulesetSourceController) EditRulesetSource() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -140,7 +140,7 @@ func (n *RulesetSourceController) EditRulesetSource() {
 // @Success 200 {object} models.RulesetSource
 // @router /downloadFile [put]
 func (n *RulesetSourceController) DownloadFile() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -161,7 +161,7 @@ func (n *RulesetSourceController) DownloadFile() {
 // @Success 200 {object} models.RulesetSource
 // @router /overwriteDownload [put]
 func (n *RulesetSourceController) OverwriteDownload() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -183,7 +183,7 @@ func (n *RulesetSourceController) OverwriteDownload() {
 // @Success 200 {object} models.RulesetSource
 // @router /compareSourceFiles/:uuid [get]
 func (n *RulesetSourceController) CompareFiles() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -202,7 +202,7 @@ func (n *RulesetSourceController) CompareFiles() {
 // @Success 200 {object} models.RulesetSource
 // @router /AddNewLinesToRuleset/:uuid [put]
 func (n *RulesetSourceController) AddNewLinesToRuleset() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -236,7 +236,7 @@ func (n *RulesetSourceController) AddNewLinesToRuleset() {
 // @Success 200 {object} models.RulesetSource
 // @router /getDetails/:uuid [get]
 func (n *RulesetSourceController) GetDetails() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -257,7 +257,7 @@ func (n *RulesetSourceController) GetDetails() {
 // @Success 200 {object} models.RulesetSource
 // @router /GetFileUUIDfromRulesetUUID/:uuid [get]
 func (n *RulesetSourceController) GetFileUUIDfromRulesetUUID() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -276,7 +276,7 @@ func (n *RulesetSourceController) GetFileUUIDfromRulesetUUID() {
 // @Success 200 {object} models.OverwriteRuleFile
 // @router /OverwriteRuleFile/:uuid [put]
 func (n *RulesetSourceController) OverwriteRuleFile() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{

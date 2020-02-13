@@ -9,7 +9,7 @@ import (
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     "owlhmaster/dispatcher"
-    // "owlhmaster/node"
+    "owlhmaster/node"
     "owlhmaster/master"
     "owlhmaster/search"
     "owlhmaster/scheduler"
@@ -54,7 +54,7 @@ func main() {
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.12.0.20200207")
+    logs.Info("Version OwlH Master: 0.12.0.20200213")
 
     //operative system values
     data:=OperativeSystemValues()
@@ -88,7 +88,7 @@ func main() {
     //Load all rulesets
     go search.Init()
     //Synchronize users to every node
-    // go node.SyncUsersToNode()
+    go node.SyncUsersToNode()
 
     //Beego API documentation
     if beego.BConfig.RunMode == "dev" {

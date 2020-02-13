@@ -46,16 +46,21 @@ func CheckPasswordHash(password string, hash string) (bool, error) {
     return true, nil
 }
 
-func CheckToken(token string, user string, uuid string)(err error){
+func CheckToken(token string, user string, uuid string, privilege string)(err error){
 	users,err := ndb.GetLoginData()
 	for x := range users{
 		if (x == uuid) && (users[x]["user"] == user){
-			tkn, err := Encode(uuid, user, users[x]["secret"])
+			tkn, err := Encode(uuid, users[x]["user"], users[x]["secret"])
 			if err != nil {
 				logs.Error("Error checking token: %s", err); return err
 			}else{
 				if token == tkn {
-					return nil
+					status,err := UserPrivilegeValidation(uuid, privilege); if err != nil {logs.Error("Privileges error: %s",err); return err}
+					if status{
+						return nil
+					}else{
+						return errors.New("This user has not enough privileges level")
+					}
 				}else{
 					return errors.New("The token retrieved is false")
 				}

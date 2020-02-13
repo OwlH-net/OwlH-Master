@@ -19,7 +19,7 @@ type RulesetController struct {
 // @Failure 403 ruleset is empty
 // @router /default [get]
 func (n *RulesetController) GetRules(){ 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -40,7 +40,7 @@ func (n *RulesetController) GetRules(){
 // @Failure 403 SID not exist
 // @router /rule/:sid/:uuid [get]
 func (n *RulesetController) GetRuleSID(){ 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -82,7 +82,7 @@ func (n *RulesetController) GetRuleSID(){
 // @Success 200 {object} models.ruleset
 // @router / [get]
 func (n *RulesetController) GetAllRulesets() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -102,7 +102,7 @@ func (n *RulesetController) GetAllRulesets() {
 // @router /rules/:uuid [get]
 // @router /:uuid/rules [get]
 func (n *RulesetController) GetRulesetRules() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -124,7 +124,7 @@ func (n *RulesetController) GetRulesetRules() {
 // @Failure 403 Connection Failure
 // @router /set [put]
 func (n *RulesetController) SetRuleSelected() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -146,7 +146,7 @@ func (n *RulesetController) SetRuleSelected() {
 // @router /get/:uuid [get]
 // @router /:uuid/get [get]
 func (n *RulesetController) GetRuleSelected() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -169,7 +169,7 @@ func (n *RulesetController) GetRuleSelected() {
 // @router /:uuid/get/name [get]
 // @router /get/:uuid/name [get]
 func (n *RulesetController) GetRuleName() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -207,7 +207,7 @@ func (n *RulesetController) GetRuleName() {
 // @Failure 403 Connection Failure
 // @router /action [put]
 func (n *RulesetController) SetRulesetAction() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -228,7 +228,7 @@ func (n *RulesetController) SetRulesetAction() {
 // @Failure 403 Connection Failure
 // @router /getnote/:uuid/:sid [get]
 func (n *RulesetController) GetRuleNote() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -252,7 +252,7 @@ func (n *RulesetController) GetRuleNote() {
 // @Failure 403 Connection Failure
 // @router /note [put]
 func (n *RulesetController) SetRuleNote() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -273,7 +273,7 @@ func (n *RulesetController) SetRuleNote() {
 // @Failure 403 Connection failure
 // @router /deleteRuleset [delete]
 func (n *RulesetController) DeleteNode() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -294,7 +294,7 @@ func (n *RulesetController) DeleteNode() {
 // @Failure 403 Connection Failure
 // @router /synchronize [put]
 func (n *RulesetController) SyncRulesetToAllNodes() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -317,7 +317,7 @@ func (n *RulesetController) SyncRulesetToAllNodes() {
 // @Failure 403 Connection Failure
 // @router /getAllRuleData [get]
 func (n *RulesetController) GetAllRuleData() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -336,7 +336,7 @@ func (n *RulesetController) GetAllRuleData() {
 // @Failure 403 Connection Failure
 // @router /addNewRuleset [put]
 func (n *RulesetController) AddNewRuleset() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -363,7 +363,7 @@ func (n *RulesetController) AddNewRuleset() {
 // @Failure 403 Connection Failure
 // @router /custom [get]
 func (n *RulesetController) GetAllCustomRulesets() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -382,7 +382,7 @@ func (n *RulesetController) GetAllCustomRulesets() {
 // @Failure 403 Connection Failure
 // @router /syncAllRulesets [put]
 func (n *RulesetController) SynchronizeAllRulesets() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -402,7 +402,7 @@ func (n *RulesetController) SynchronizeAllRulesets() {
 // @Failure 403 Connection Failure
 // @router /addRulesToCustom [put]
 func (n *RulesetController) AddRulesToCustomRuleset() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -423,7 +423,7 @@ func (n *RulesetController) AddRulesToCustomRuleset() {
 // @Failure 403 Connection Failure
 // @router /readRuleset/:uuid [put]
 func (n *RulesetController) ReadRulesetData() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -443,7 +443,7 @@ func (n *RulesetController) ReadRulesetData() {
 // @Failure 403 Connection Failure
 // @router /saveRuleset/ [put]
 func (n *RulesetController) SaveRulesetData() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
@@ -496,7 +496,7 @@ func (n *RulesetController) SaveRulesetData() {
 // @Failure 403 Connection Failure
 // @router /updateRule [put]
 func (n *RulesetController) UpdateRule() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     }else{
