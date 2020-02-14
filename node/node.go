@@ -79,7 +79,6 @@ func AddNode(n map[string]string) (err error) {
     //Get token from node  
     token,err := nodeclient.GetNodeToken(n["ip"],n["port"], login)
     if err != nil {
-        logs.Error("AddNode Error updating node data")
         err = ndb.InsertNodeKey(uuid, "token", "wait"); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
         return err
     }else{
@@ -205,6 +204,7 @@ func GetAllNodes()(data map[string]map[string]string, err error){
             ipData,portData,err := ndb.ObtainPortIp(id)
             if err != nil { logs.Error("node/GetAllNodes ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}     
             token,err := nodeclient.GetNodeToken(ipData, portData, login)
+            logs.Notice(token)
             if err != nil {
                 logs.Emergency("node/GetAllNodes ERROR getting node id. Pending registering...")
             }else{

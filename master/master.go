@@ -559,6 +559,7 @@ func DeleteUser(anode map[string]string)(err error){
 func AddGroup(anode map[string]string) (err error) {
     uuid := utils.Generate()
     err = ndb.InsertGroupUsers(uuid, "group", anode["group"])
+    err = ndb.InsertGroupUsers(uuid, "privileges", anode["privileges"])
     if err != nil{logs.Error("master/AddUser Error inserting user into db: "+err.Error()); return err}    
 
     return nil
@@ -567,6 +568,7 @@ func AddGroup(anode map[string]string) (err error) {
 func AddRole(anode map[string]string) (err error) {
     uuid := utils.Generate()
     err = ndb.InsertRoleUsers(uuid, "role", anode["role"])
+    err = ndb.InsertRoleUsers(uuid, "privileges", anode["privileges"])
     if err != nil{logs.Error("master/AddUser Error inserting user into db: "+err.Error()); return err}    
    
     return nil

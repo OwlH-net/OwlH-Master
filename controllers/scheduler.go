@@ -17,9 +17,11 @@ type SchedulerController struct {
 // @Failure 403 Connection Failure
 // @router /add [put]
 func (n *SchedulerController) SchedulerTask() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
@@ -39,9 +41,11 @@ func (n *SchedulerController) SchedulerTask() {
 // @Failure 403 Connection Failure
 // @router /stop [put]
 func (n *SchedulerController) StopTask() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -60,9 +64,11 @@ func (n *SchedulerController) StopTask() {
 // @Failure 403 Connection Failure
 // @router /log/:uuid [get]
 func (n *SchedulerController) GetLog() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         uuid := n.GetString(":uuid")
         logReg,err := models.GetLog(uuid)    

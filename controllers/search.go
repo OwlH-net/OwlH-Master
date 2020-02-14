@@ -19,9 +19,12 @@ type SearchController struct {
 // @Failure 403 Connection Failure
 // @router /getRulesetsBySearch [put]
 func (n *SearchController) GetRulesetsBySearch() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    //this is a get. Used put because is needed to send json from UI
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get") 
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

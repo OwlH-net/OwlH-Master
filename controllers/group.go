@@ -18,9 +18,11 @@ type GroupController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *GroupController) AddGroupElement() {
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -40,9 +42,11 @@ func (n *GroupController) AddGroupElement() {
 // @Success 200 {object} models.Groups
 // @router / [get]
 func (n *GroupController) GetAllGroups() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         groups, err := models.GetAllGroups()
         n.Data["json"] = groups
@@ -58,9 +62,11 @@ func (n *GroupController) GetAllGroups() {
 // @Success 200 {object} models.Groups
 // @router /DeleteGroup/:uuid [delete]
 func (n *GroupController) DeleteGroup() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         uuid := n.GetString(":uuid") 
         err := models.DeleteGroup(uuid)
@@ -77,9 +83,11 @@ func (n *GroupController) DeleteGroup() {
 // @Success 200 {object} models.Groups
 // @router /editGroup [put]
 func (n *GroupController) EditGroup() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -97,9 +105,11 @@ func (n *GroupController) EditGroup() {
 // @Success 200 {object} models.Groups
 // @router /getAllNodesGroup/:uuid [get]
 func (n *GroupController) GetAllNodesGroup() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         uuid := n.GetString(":uuid") 
         groups, err := models.GetAllNodesGroup(uuid)
@@ -116,9 +126,11 @@ func (n *GroupController) GetAllNodesGroup() {
 // @Success 200 {object} models.Groups
 // @router /addGroupNodes [put]
 func (n *GroupController) AddGroupNodes() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]interface{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -136,9 +148,11 @@ func (n *GroupController) AddGroupNodes() {
 // @Success 200 {object} models.Groups
 // @router /pingGroupNodes [get]
 func (n *GroupController) PingGroupNodes() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         groups, err := models.PingGroupNodes()
         n.Data["json"] = groups
@@ -154,9 +168,11 @@ func (n *GroupController) PingGroupNodes() {
 // @Success 200 {object} models.Groups
 // @router /getNodeValues/:uuid [get]
 func (n *GroupController) GetNodeValues() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         uuid := n.GetString(":uuid") 
         groups, err := models.GetNodeValues(uuid)
@@ -173,9 +189,11 @@ func (n *GroupController) GetNodeValues() {
 // @Success 200 {object} models.Groups
 // @router /deleteNodeGroup/:uuid [delete]
 func (n *GroupController) DeleteNodeGroup() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         uuid := n.GetString(":uuid") 
         err := models.DeleteNodeGroup(uuid)
@@ -192,9 +210,11 @@ func (n *GroupController) DeleteNodeGroup() {
 // @Success 200 {object} models.Groups
 // @router /changeGroupRuleset [put]
 func (n *GroupController) ChangeGroupRuleset() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -212,9 +232,11 @@ func (n *GroupController) ChangeGroupRuleset() {
 // @Success 200 {object} models.Groups
 // @router /changePaths [put]
 func (n *GroupController) ChangePathsGroups() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -232,9 +254,11 @@ func (n *GroupController) ChangePathsGroups() {
 // @Success 200 {object} models.Groups
 // @router /syncPathGroup [post]
 func (n *GroupController) SyncPathGroup() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -252,9 +276,11 @@ func (n *GroupController) SyncPathGroup() {
 // @Success 200 {object} models.Groups
 // @router /updateGroupService [put]
 func (n *GroupController) UpdateGroupService() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -272,9 +298,11 @@ func (n *GroupController) UpdateGroupService() {
 // @Success 200 {object} models.Groups
 // @router /syncAll/:uuid [put]
 func (n *GroupController) SyncAll() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         uuid := n.GetString(":uuid") 
         var anode map[string]map[string]string
@@ -294,9 +322,11 @@ func (n *GroupController) SyncAll() {
 // @Success 200 {object} models.Groups
 // @router /addCluster [post]
 func (n *GroupController) AddCluster() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -314,9 +344,11 @@ func (n *GroupController) AddCluster() {
 // @Success 200 {object} models.Groups
 // @router /getClusterFiles/:uuid [get]
 func (n *GroupController) GetClusterFiles() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         uuid := n.GetString(":uuid") 
     
@@ -334,9 +366,11 @@ func (n *GroupController) GetClusterFiles() {
 // @Success 200 {object} models.Groups
 // @router /deleteCluster [delete]
 func (n *GroupController) DeleteCluster() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -354,9 +388,11 @@ func (n *GroupController) DeleteCluster() {
 // @Success 200 {object} models.Groups
 // @router /changeClusterValue [put]
 func (n *GroupController) ChangeClusterValue() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -374,9 +410,11 @@ func (n *GroupController) ChangeClusterValue() {
 // @Success 200 {object} models.Groups
 // @router /getClusterFileContent/:uuid [get]
 func (n *GroupController) GetClusterFileContent() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         uuid := n.GetString(":uuid") 
     
@@ -394,9 +432,11 @@ func (n *GroupController) GetClusterFileContent() {
 // @Success 200 {object} models.Groups
 // @router /saveClusterFileContent [put]
 func (n *GroupController) SaveClusterFileContent() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -414,9 +454,11 @@ func (n *GroupController) SaveClusterFileContent() {
 // @Success 200 {object} models.Groups
 // @router /syncClusterFile [put]
 func (n *GroupController) SyncClusterFile() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -434,9 +476,11 @@ func (n *GroupController) SyncClusterFile() {
 // @Success 200 {object} models.Groups
 // @router /syncAllGroupCluster [put]
 func (n *GroupController) SyncAllGroupCluster() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -454,9 +498,11 @@ func (n *GroupController) SyncAllGroupCluster() {
 // @Success 200 {object} models.Groups
 // @router /syncAllSuricataGroup [put]
 func (n *GroupController) SyncAllSuricataGroup() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -475,9 +521,11 @@ func (n *GroupController) SyncAllSuricataGroup() {
 // @Success 200 {object} models.Groups
 // @router /suricata [put]
 func (n *GroupController) SuricataGroupService() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -496,9 +544,11 @@ func (n *GroupController) SuricataGroupService() {
 // @Success 200 {object} models.Groups
 // @router /suricata/status/:uuid [get]
 func (n *GroupController) SuricataNodesStatus() { 
-    err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
     }else{
         uuid := n.GetString(":uuid") 
     
