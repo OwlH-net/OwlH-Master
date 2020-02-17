@@ -770,3 +770,79 @@ func GetUserPrivileges()(privileges map[string]map[string]string, err error){
     } 
     return allprivileges, nil
 }
+
+func GetuserRoleByUUID(id string)(role map[string]map[string]string, err error){
+    var userRole = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Mdb == nil { logs.Error("no access to database"); return nil, err}
+    
+    sql := "select ur_uniqueid, ur_param, ur_value from userRoles where ur_uniqueid = '"+id+"';"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetuserRoleByUUID Mdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetuserRoleByUUID rows.Scan: %s", err.Error()); return nil, err}
+        
+        if userRole[uniqid] == nil { userRole[uniqid] = map[string]string{}}
+        userRole[uniqid][param]=value
+    } 
+    return userRole, nil
+}
+
+func GetuserGroupByUUID(id string)(role map[string]map[string]string, err error){
+    var userGroup = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Mdb == nil { logs.Error("no access to database"); return nil, err}
+    
+    sql := "select ug_uniqueid, ug_param, ug_value from userGroups where ug_uniqueid = '"+id+"';"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetuserGroupByUUID Mdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetuserGroupByUUID rows.Scan: %s", err.Error()); return nil, err}
+        
+        if userGroup[uniqid] == nil { userGroup[uniqid] = map[string]string{}}
+        userGroup[uniqid][param]=value
+    } 
+    return userGroup, nil
+}
+
+func DeleteUserGroup(uuid string)(err error){
+    DeleteUserDB, err := Mdb.Prepare("delete from userGroups where ug_uniqueid = ?;")
+    if (err != nil){ logs.Error("DeleteUserGroup DELETE prepare error: "+err.Error()); return err}
+
+    _, err = DeleteUserDB.Exec(&uuid)
+    if (err != nil){ logs.Error("DeleteUserGroup exec error: "+err.Error()); return err}
+
+    defer DeleteUserDB.Close()
+    
+    return nil
+}
+
+func DeleteUserRole(uuid string)(err error){
+    DeleteUserDB, err := Mdb.Prepare("delete from userRoles where ur_uniqueid = ?;")
+    if (err != nil){ logs.Error("DeleteUserRole DELETE prepare error: "+err.Error()); return err}
+
+    _, err = DeleteUserDB.Exec(&uuid)
+    if (err != nil){ logs.Error("DeleteUserRole exec error: "+err.Error()); return err}
+
+    defer DeleteUserDB.Close()
+    
+    return nil
+}
+
+func DeleteUserGroupRole(uuid string)(err error){
+    DeleteUserDB, err := Mdb.Prepare("delete from usergrouproles where ugr_uniqueid = ?;")
+    if (err != nil){ logs.Error("DeleteUserRole DELETE prepare error: "+err.Error()); return err}
+
+    _, err = DeleteUserDB.Exec(&uuid)
+    if (err != nil){ logs.Error("DeleteUserRole exec error: "+err.Error()); return err}
+
+    defer DeleteUserDB.Close()
+    
+    return nil
+}

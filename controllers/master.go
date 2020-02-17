@@ -836,3 +836,45 @@ func (n *MasterController) ChangePassword() {
     }
     n.ServeJSON()
 }
+
+// @Title DeleteUserRole
+// @Description delete a specific plugin service
+// @router /deleteUserRole [delete]
+func (n *MasterController) DeleteUserRole() {
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteUserRole(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteUserGroup
+// @Description delete a specific plugin service
+// @router /deleteUserGroup [delete]
+func (n *MasterController) DeleteUserGroup() {
+    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !privileges{
+        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteUserGroup(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

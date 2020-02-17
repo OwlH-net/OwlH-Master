@@ -92,13 +92,13 @@ func checkTables()(ok bool){
         return false
     }
 
-    table.Tname = "userPrivileges"
-    table.Tconn = "masterConn"
-    table.Tcreate = "CREATE TABLE userPrivileges (priv_id integer PRIMARY KEY AUTOINCREMENT,priv_uniqueid text NOT NULL,priv_param text NOT NULL,priv_value text NOT NULL)"
-    ok = CheckTable(table)
-    if !ok {
-        return false
-    }
+    // table.Tname = "userPrivileges"
+    // table.Tconn = "masterConn"
+    // table.Tcreate = "CREATE TABLE userPrivileges (priv_id integer PRIMARY KEY AUTOINCREMENT,priv_uniqueid text NOT NULL,priv_param text NOT NULL,priv_value text NOT NULL)"
+    // ok = CheckTable(table)
+    // if !ok {
+    //     return false
+    // }
 
     table.Tname = "userGroups"
     table.Tconn = "masterConn"
@@ -277,22 +277,22 @@ func checkFields()(ok bool){
     ok = CheckField(field)
     if !ok {return false}
 
-    //add user privileges
-    privUUID := utils.Generate()
-    field.Fconn      = "masterConn"
-    field.Ftable     = "userPrivileges"
-    field.Fquery     = "select priv_uniqueid from userPrivileges where priv_param='user' and priv_value='00000000-0000-0000-0000-000000000000'"
-    field.Finsert    = "insert into userPrivileges (priv_uniqueid,priv_param,priv_value) values ('"+privUUID+"','user','00000000-0000-0000-0000-000000000000')"
-    field.Fname      = "userPrivileges - user"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "masterConn"
-    field.Ftable     = "userPrivileges"
-    field.Fquery     = "select priv_uniqueid from userPrivileges where priv_param='privilege' and priv_value='/'"
-    field.Finsert    = "insert into userPrivileges (priv_uniqueid,priv_param,priv_value) values ('"+privUUID+"','privilege','/')"
-    field.Fname      = "userPrivileges - privilege"
-    ok = CheckField(field)
-    if !ok {return false}
+    // //add user privileges
+    // privUUID := utils.Generate()
+    // field.Fconn      = "masterConn"
+    // field.Ftable     = "userPrivileges"
+    // field.Fquery     = "select priv_uniqueid from userPrivileges where priv_param='user' and priv_value='00000000-0000-0000-0000-000000000000'"
+    // field.Finsert    = "insert into userPrivileges (priv_uniqueid,priv_param,priv_value) values ('"+privUUID+"','user','00000000-0000-0000-0000-000000000000')"
+    // field.Fname      = "userPrivileges - user"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "masterConn"
+    // field.Ftable     = "userPrivileges"
+    // field.Fquery     = "select priv_uniqueid from userPrivileges where priv_param='privilege' and priv_value='/'"
+    // field.Finsert    = "insert into userPrivileges (priv_uniqueid,priv_param,priv_value) values ('"+privUUID+"','privilege','/')"
+    // field.Fname      = "userPrivileges - privilege"
+    // ok = CheckField(field)
+    // if !ok {return false}
 
     //add admin to role admin status
     masterUUID := utils.Generate()
@@ -328,13 +328,13 @@ func checkFields()(ok bool){
     field.Fname      = "userGroups - group"
     ok = CheckField(field)
     if !ok {return false}
-    field.Fconn      = "masterConn"
-    field.Ftable     = "userGroups"
-    field.Fquery     = "select ug_param from userGroups where ug_param='privileges'"
-    field.Finsert    = "insert into userGroups (ug_uniqueid,ug_param,ug_value) values ('00000000-0000-0000-0000-000000000002','privileges','get,put,post,delete')"
-    field.Fname      = "userGroups - group"
-    ok = CheckField(field)
-    if !ok {return false}
+    // field.Fconn      = "masterConn"
+    // field.Ftable     = "userGroups"
+    // field.Fquery     = "select ug_param from userGroups where ug_param='privileges'"
+    // field.Finsert    = "insert into userGroups (ug_uniqueid,ug_param,ug_value) values ('00000000-0000-0000-0000-000000000002','privileges','get,put,post,delete')"
+    // field.Fname      = "userGroups - group"
+    // ok = CheckField(field)
+    // if !ok {return false}
 
     ugrUUID := utils.Generate()
     field.Fconn      = "masterConn"

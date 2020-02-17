@@ -462,3 +462,27 @@ func ChangePassword(anode map[string]string) (err error) {
     changecontrol.ChangeControlInsertData(err, "ChangePassword")
     return err
 }
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteUserRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "role": "v"
+func DeleteUserRole(anode map[string]string) (err error) {
+    err = master.DeleteUserRole(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteUserRole")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteUserGroup \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "group": "v"
+func DeleteUserGroup(anode map[string]string) (err error) {
+    err = master.DeleteUserGroup(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteUserGroup")
+    return err
+}
