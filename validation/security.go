@@ -10,37 +10,37 @@ import (
     // "owlhmaster/utils"
 )
 
-// Check user privileges
-func UserPrivilegeValidation(uuid string, privilege string) (val bool, err error) {
-		allPrivileges, err := ndb.GetUserGroupRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting privileges: %s",err); return false, err}
+// Check user permissions
+func UserPrivilegeValidation(uuid string, permission string) (val bool, err error) {
+		allPrivileges, err := ndb.GetUserGroupRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting permissions: %s",err); return false, err}
 		for x := range allPrivileges{
 			if allPrivileges[x]["user"] == uuid{
-				//Compare with group privileges
+				//Compare with group permissions
 				groups, err := ndb.GetUserGroups(); if err != nil {logs.Error("UserPrivilegeValidation error getting user groups: %s",err); return false, err}
-				allPrivilegesGroups := strings.Split(groups[allPrivileges[x]["group"]]["privileges"], ",")
+				allPrivilegesGroups := strings.Split(groups[allPrivileges[x]["group"]]["permissions"], ",")
 				for p := range allPrivilegesGroups{
-					if allPrivilegesGroups[p] == privilege{
+					if allPrivilegesGroups[p] == permission{
 						return true, nil
 					}
 				}
-				//Compare with role privileges
+				//Compare with role permissions
 				roles, err := ndb.GetUserRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting user roles: %s",err); return false, err}
-				allPrivilegesRoles := strings.Split(roles[allPrivileges[x]["role"]]["privileges"], ",")
+				allPrivilegesRoles := strings.Split(roles[allPrivileges[x]["role"]]["permissions"], ",")
 				for r := range allPrivilegesRoles{
-					if allPrivilegesRoles[r] == privilege{
+					if allPrivilegesRoles[r] == permission{
 						return true, nil
 					}
 				}
 			}
 		}
-		// allPrivileges, err := ndb.GetUserPrivileges(); if err != nil {logs.Error("UserPrivilegeValidation error getting privileges: %s",err); return false, err}
+		// allPrivileges, err := ndb.GetUserPermissions(); if err != nil {logs.Error("UserPrivilegeValidation error getting permissions: %s",err); return false, err}
 		// hasPrivileges := false
 		// for x := range allPrivileges{
 		// 	if allPrivileges[x]["user"] == uuid {
-		// 		if allPrivileges[x]["privilege"] == "/"{
+		// 		if allPrivileges[x]["permission"] == "/"{
 		// 			return true, nil
 		// 		}
-		// 		if allPrivileges[x]["privilege"] == privilege{
+		// 		if allPrivileges[x]["permission"] == permission{
 		// 			hasPrivileges = true
 		// 		}
 		// 	}

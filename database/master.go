@@ -751,7 +751,7 @@ func InsertMasterconfigValues(uuid string, param string, value string)(err error
     return nil
 }
 
-func GetUserPrivileges()(privileges map[string]map[string]string, err error){
+func GetUserPermissions()(permissions map[string]map[string]string, err error){
     var allprivileges = map[string]map[string]string{}
     var uniqid string
     var param string
@@ -760,10 +760,10 @@ func GetUserPrivileges()(privileges map[string]map[string]string, err error){
     
     sql := "select priv_uniqueid, priv_param, priv_value from userPrivileges;"
     rows, err := Mdb.Query(sql)
-    if err != nil { logs.Error("GetUserPrivileges Mdb.Query Error : %s", err.Error()); return nil, err}
+    if err != nil { logs.Error("GetUserPermissions Mdb.Query Error : %s", err.Error()); return nil, err}
     
     for rows.Next() {
-        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetUserPrivileges rows.Scan: %s", err.Error()); return nil, err}
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetUserPermissions rows.Scan: %s", err.Error()); return nil, err}
         
         if allprivileges[uniqid] == nil { allprivileges[uniqid] = map[string]string{}}
         allprivileges[uniqid][param]=value
@@ -844,5 +844,27 @@ func DeleteUserGroupRole(uuid string)(err error){
 
     defer DeleteUserDB.Close()
     
+    return nil
+}
+
+func UpdateUserRole(uuid string, param string, value string) (err error) {
+    updateData, err := Mdb.Prepare("update userRoles set ur_value = ? where ur_uniqueid = ? and ur_param = ?;")
+    if (err != nil){logs.Error("UpdateUserRole UPDATE prepare error: "+err.Error()); return err}
+
+    _, err = updateData.Exec(&value, &uuid, &param)
+    defer updateData.Close()
+    if (err != nil){logs.Error("UpdateUserRole UPDATE error: "+err.Error()); return err}
+
+    return nil
+}
+
+func UpdateUserGroup(uuid string, param string, value string) (err error) {
+    updateData, err := Mdb.Prepare("update userGroups set ug_value = ? where ug_uniqueid = ? and ug_param = ?;")
+    if (err != nil){logs.Error("UpdateUserGroup UPDATE prepare error: "+err.Error()); return err}
+
+    _, err = updateData.Exec(&value, &uuid, &param)
+    defer updateData.Close()
+    if (err != nil){logs.Error("UpdateUserGroup UPDATE error: "+err.Error()); return err}
+
     return nil
 }

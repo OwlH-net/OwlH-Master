@@ -18,11 +18,11 @@ type RulesetSourceController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *RulesetSourceController) CreateRulesetSource() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -43,11 +43,11 @@ func (n *RulesetSourceController) CreateRulesetSource() {
 // @Failure 403 body is empty
 // @router /custom [post]
 func (n *RulesetSourceController) CreateCustomRulesetSource() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -66,11 +66,11 @@ func (n *RulesetSourceController) CreateCustomRulesetSource() {
 // @Success 200 {object} models.RulesetSource
 // @router / [get]
 func (n *RulesetSourceController) GetAllRulesetSource() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         rulesetSource, err := models.GetAllRulesetSource()
         n.Data["json"] = rulesetSource
@@ -86,11 +86,11 @@ func (n *RulesetSourceController) GetAllRulesetSource() {
 // @Success 200 {object} models.DeleteRulesetSource
 // @router /DeleteRulesetSource [delete]
 func (n *RulesetSourceController) DeleteRulesetSource() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -108,11 +108,11 @@ func (n *RulesetSourceController) DeleteRulesetSource() {
 // @Success 200 {object} models.DeleteRulesetFile
 // @router /DeleteRulesetFile/:uuid [delete]
 func (n *RulesetSourceController) DeleteRulesetFile() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid") 
         err := models.DeleteRulesetFile(uuid)
@@ -129,11 +129,11 @@ func (n *RulesetSourceController) DeleteRulesetFile() {
 // @Success 200 {object} models.RulesetSource
 // @router /EditRulesetSource [put]
 func (n *RulesetSourceController) EditRulesetSource() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -152,11 +152,11 @@ func (n *RulesetSourceController) EditRulesetSource() {
 // @Success 200 {object} models.RulesetSource
 // @router /downloadFile [put]
 func (n *RulesetSourceController) DownloadFile() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -175,11 +175,11 @@ func (n *RulesetSourceController) DownloadFile() {
 // @Success 200 {object} models.RulesetSource
 // @router /overwriteDownload [put]
 func (n *RulesetSourceController) OverwriteDownload() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -199,11 +199,11 @@ func (n *RulesetSourceController) OverwriteDownload() {
 // @Success 200 {object} models.RulesetSource
 // @router /compareSourceFiles/:uuid [get]
 func (n *RulesetSourceController) CompareFiles() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         mapData,err := models.CompareFiles(uuid)
@@ -220,11 +220,11 @@ func (n *RulesetSourceController) CompareFiles() {
 // @Success 200 {object} models.RulesetSource
 // @router /AddNewLinesToRuleset/:uuid [put]
 func (n *RulesetSourceController) AddNewLinesToRuleset() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         err := models.AddNewLinesToRuleset(uuid)
@@ -256,11 +256,11 @@ func (n *RulesetSourceController) AddNewLinesToRuleset() {
 // @Success 200 {object} models.RulesetSource
 // @router /getDetails/:uuid [get]
 func (n *RulesetSourceController) GetDetails() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.GetDetails(uuid)
@@ -279,11 +279,11 @@ func (n *RulesetSourceController) GetDetails() {
 // @Success 200 {object} models.RulesetSource
 // @router /GetFileUUIDfromRulesetUUID/:uuid [get]
 func (n *RulesetSourceController) GetFileUUIDfromRulesetUUID() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         value := n.GetString(":uuid")
         rulesetSource, err := models.GetFileUUIDfromRulesetUUID(value)
@@ -300,11 +300,11 @@ func (n *RulesetSourceController) GetFileUUIDfromRulesetUUID() {
 // @Success 200 {object} models.OverwriteRuleFile
 // @router /OverwriteRuleFile/:uuid [put]
 func (n *RulesetSourceController) OverwriteRuleFile() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid") 
         err := models.OverwriteRuleFile(uuid)

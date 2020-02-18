@@ -41,7 +41,7 @@ type NodeController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *NodeController) CreateNode() {
-    // privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
+    // permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     // if err != nil {
     //     n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
     // }else{
@@ -81,11 +81,11 @@ func (n *NodeController) CreateNode() {
 // @router /deploy/:nid [post]
 // @router /:nid/deploy [post]
 func (n *NodeController) DeployNode() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         logs.Info("NODE DEPLOY -> In")
         nid := n.GetString(":nid")
@@ -105,11 +105,11 @@ func (n *NodeController) DeployNode() {
 // @Failure 403 body is empty
 // @router / [put]
 func (n *NodeController) UpdateNode() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -131,12 +131,12 @@ func (n *NodeController) UpdateNode() {
 // @router /ping/:nid [get]
 // @router /:nid/ping [get]
 func (n *NodeController) GetPong() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         logs.Error("Error PingNode Master token: %s",err)
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.GetString(":nid")
         // nodeResp, err := models.PingNode(nid)
@@ -161,11 +161,11 @@ func (n *NodeController) GetPong() {
 // @router /suricata/:nid [get]
 // @router /:nid/suricata [get]
 func (n *NodeController) GetSuricata() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.GetString(":nid")
         data,err := models.Suricata(nid)
@@ -187,11 +187,11 @@ func (n *NodeController) GetSuricata() {
 // @router /zeek/:nid [get]
 // @router /:nid/zeek [get]
 func (n *NodeController) GetZeek() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.GetString(":nid")
         data,err := models.Zeek(nid)
@@ -213,11 +213,11 @@ func (n *NodeController) GetZeek() {
 // @router /wazuh/:nid [get]
 // @router /:nid/wazuh [get]
 func (n *NodeController) GetWazuh() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.GetString(":nid")
         n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
@@ -259,11 +259,11 @@ func (n *NodeController) GetWazuh() {
 // @Failure 403 :nid is empty
 // @router /suricata/bpf [put]
 func (n *NodeController) PutSuricataBPF() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -284,11 +284,11 @@ func (n *NodeController) PutSuricataBPF() {
 // @router / [get]
 func (n *NodeController) GetAllNodes() {
     //check token
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nodes, err := models.GetAllNodes()
         n.Data["json"] = nodes
@@ -305,11 +305,11 @@ func (n *NodeController) GetAllNodes() {
 // @Success 200 {object} models.Node
 // @router /pingservice/:uuid [get]
 func (n *NodeController) GetServiceStatus() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         err := models.GetServiceStatus(uuid)
@@ -327,11 +327,11 @@ func (n *NodeController) GetServiceStatus() {
 // @Success 200 {object} models.Node
 // @router /deployservice/:uuid [put]
 func (n *NodeController) DeployService() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         err := models.DeployService(uuid)
@@ -351,11 +351,11 @@ func (n *NodeController) DeployService() {
 // @Success 200 {string} node deleted
 // @router /:nid [delete]
 func (n *NodeController) DeleteNode() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.Ctx.Input.Param(":nid")
         n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
@@ -376,11 +376,11 @@ func (n *NodeController) DeleteNode() {
 // @Success 200 {object} models.Node
 // @router /ruleset/set [put]
 func (n *NodeController) SyncRulesetToNode() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -399,11 +399,11 @@ func (n *NodeController) SyncRulesetToNode() {
 // @Success 200 {object} models.Node
 // @router /loadfile/:uuid/:fileName [get]
 func (n *NodeController) GetNodeFile() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         logs.Info("Inside GetNodeFile")
         anode := make(map[string]string)
@@ -424,11 +424,11 @@ func (n *NodeController) GetNodeFile() {
 // @Success 200 {object} models.Node
 // @router /savefile [put]
 func (n *NodeController) SetNodeFile() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -448,11 +448,11 @@ func (n *NodeController) SetNodeFile() {
 // @Success 200 {object} models.Node
 // @router /getAllFiles/:uuid [get]
 func (n *NodeController) GetAllFiles() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {        
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.GetAllFiles(uuid)
@@ -470,11 +470,11 @@ func (n *NodeController) GetAllFiles() {
 // @Success 200 {object} models.Node
 // @router /RunSuricata/:uuid [put]
 func (n *NodeController) RunSuricata() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.RunSuricata(uuid)
@@ -493,11 +493,11 @@ func (n *NodeController) RunSuricata() {
 // @Success 200 {object} models.Node
 // @router /StopSuricata/:uuid [put]
 func (n *NodeController) StopSuricata() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.StopSuricata(uuid)
@@ -515,11 +515,11 @@ func (n *NodeController) StopSuricata() {
 // @Success 200 {object} models.Node
 // @router /RunZeek/:uuid [put]
 func (n *NodeController) RunZeek() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.RunZeek(uuid)
@@ -536,11 +536,11 @@ func (n *NodeController) RunZeek() {
 // @Success 200 {object} models.Node
 // @router /StopZeek/:uuid [put]
 func (n *NodeController) StopZeek() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.StopZeek(uuid)
@@ -557,11 +557,11 @@ func (n *NodeController) StopZeek() {
 // @Success 200 {object} models.Node
 // @router /RunWazuh/:uuid [put]
 func (n *NodeController) RunWazuh() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.RunWazuh(uuid)
@@ -578,11 +578,11 @@ func (n *NodeController) RunWazuh() {
 // @Success 200 {object} models.Node
 // @router /StopWazuh/:uuid [put]
 func (n *NodeController) StopWazuh() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.StopWazuh(uuid)
@@ -601,11 +601,11 @@ func (n *NodeController) StopWazuh() {
 // @router /deploy/:nid [get]
 // @router /:nid/deploy [get]
 func (n *NodeController) DeployZeek() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.GetString(":nid")
         n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
@@ -627,11 +627,11 @@ func (n *NodeController) DeployZeek() {
 // @router /PingPorts/:nid [get]
 // @router /:nid/PingPorts [get]
 func (n *NodeController) PingPorts() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.GetString(":nid")
         n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
@@ -654,11 +654,11 @@ func (n *NodeController) PingPorts() {
 // @router /ports/:nid [get]
 // @router /:nid/ports [get]
 func (n *NodeController) ShowPorts() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.GetString(":nid")
         n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
@@ -679,11 +679,11 @@ func (n *NodeController) ShowPorts() {
 // @Failure 403 :uuid is empty
 // @router /ports/delete/:uuid [put]
 func (n *NodeController) DeletePorts() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         anode := make(map[string]string)
@@ -705,11 +705,11 @@ func (n *NodeController) DeletePorts() {
 // @Failure 403 :uuid is empty
 // @router /ports/deleteAll/:uuid [put]
 func (n *NodeController) DeleteAllPorts() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         err := models.DeleteAllPorts(uuid)
@@ -728,11 +728,11 @@ func (n *NodeController) DeleteAllPorts() {
 // @Failure 403 Error
 // @router /mode [put]
 func (n *NodeController) ChangeMode() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -751,11 +751,11 @@ func (n *NodeController) ChangeMode() {
 // @Failure 403 Error
 // @router /status [put]
 func (n *NodeController) ChangeStatus() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -777,11 +777,11 @@ func (n *NodeController) ChangeStatus() {
 // @router /PingPluginsNode/:nid [get]
 // @router /:nid/PingPluginsNode [get]
 func (n *NodeController) PingPluginsNode() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.GetString(":nid")
         data, err := models.PingPluginsNode(nid)
@@ -802,11 +802,11 @@ func (n *NodeController) PingPluginsNode() {
 // @router /getMainconfData/:nid [get]
 // @router /:nid/getMainconfData [get]
 func (n *NodeController) GetMainconfData() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         nid := n.GetString(":nid")
         data, err := models.GetMainconfData(nid)
@@ -826,11 +826,11 @@ func (n *NodeController) GetMainconfData() {
 // @router /PingAnalyzer/:uuid [get]
 // @router /:nid/PingAnalyzer [get]
 func (n *NodeController) PingAnalyzer() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.PingAnalyzer(uuid)
@@ -850,11 +850,11 @@ func (n *NodeController) PingAnalyzer() {
 // @Failure 403 :uuid is empty
 // @router /analyzer [put]
 func (n *NodeController) ChangeAnalyzerStatus() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -874,11 +874,11 @@ func (n *NodeController) ChangeAnalyzerStatus() {
 // @Failure 403 :uuid is empty
 // @router /deployNode [put]
 func (n *NodeController) Deploy() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -898,11 +898,11 @@ func (n *NodeController) Deploy() {
 // @Failure 403 :uuid is empty
 // @router /checkDeploy/:uuid [get]
 func (n *NodeController) CheckDeploy() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         anode := models.CheckDeploy(uuid)
@@ -917,11 +917,11 @@ func (n *NodeController) CheckDeploy() {
 // @Failure 403 :uuid is empty
 // @router /changeDataflowValues [put]
 func (n *NodeController) ChangeDataflowValues() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -941,11 +941,11 @@ func (n *NodeController) ChangeDataflowValues() {
 // @Failure 403 :uuid is empty
 // @router /loadDataflowValues/:uuid [get]
 func (n *NodeController) LoadDataflowValues() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.LoadDataflowValues(uuid)
@@ -964,11 +964,11 @@ func (n *NodeController) LoadDataflowValues() {
 // @Failure 403 :uuid is empty
 // @router /loadNetworkValues/:uuid [get]
 func (n *NodeController) LoadNetworkValues() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.LoadNetworkValues(uuid)
@@ -987,11 +987,11 @@ func (n *NodeController) LoadNetworkValues() {
 // @Failure 403 :uuid is empty
 // @router /loadNetworkValuesSelected/:uuid [get]
 func (n *NodeController) LoadNetworkValuesSelected() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.LoadNetworkValuesSelected(uuid)
@@ -1010,11 +1010,11 @@ func (n *NodeController) LoadNetworkValuesSelected() {
 // @Success 200 {object} models.Master
 // @router /updateNetworkInterface [put]
 func (n *NodeController) UpdateNetworkInterface() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1032,11 +1032,11 @@ func (n *NodeController) UpdateNetworkInterface() {
 // @Success 200 {object} models.Node
 // @router /saveSocketToNetwork [put]
 func (n *NodeController) SaveSocketToNetwork() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1055,11 +1055,11 @@ func (n *NodeController) SaveSocketToNetwork() {
 // @Success 200 {object} models.Node
 // @router /saveNewLocal [put]
 func (n *NodeController) SaveNewLocal() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1077,11 +1077,11 @@ func (n *NodeController) SaveNewLocal() {
 // @Success 200 {object} models.Node
 // @router /saveVxLAN [put]
 func (n *NodeController) SaveVxLAN() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1100,11 +1100,11 @@ func (n *NodeController) SaveVxLAN() {
 // @Failure 403 :uuid is empty
 // @router /socketToNetworkList/:uuid [get]
 func (n *NodeController) SocketToNetworkList() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.SocketToNetworkList(uuid)
@@ -1122,11 +1122,11 @@ func (n *NodeController) SocketToNetworkList() {
 // @Success 200 {object} models.Node
 // @router /saveSocketToNetworkSelected [put]
 func (n *NodeController) SaveSocketToNetworkSelected() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1144,11 +1144,11 @@ func (n *NodeController) SaveSocketToNetworkSelected() {
 // @Success 200 {object} models.Node
 // @router /deleteDataFlowValueSelected [delete]
 func (n *NodeController) DeleteDataFlowValueSelected() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1166,11 +1166,11 @@ func (n *NodeController) DeleteDataFlowValueSelected() {
 // @Success 200 {object} models.Node
 // @router /pingmonitor/:uuid [get]
 func (n *NodeController) GetNodeMonitor() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.GetNodeMonitor(uuid)
@@ -1189,11 +1189,11 @@ func (n *NodeController) GetNodeMonitor() {
 // @Failure 403 Connection Failure
 // @router /add [post]
 func (n *NodeController) AddPluginService() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1213,11 +1213,11 @@ func (n *NodeController) AddPluginService() {
 // @Failure 403 :uuid is empty
 // @router /ChangeServiceStatus [put]
 func (n *NodeController) ChangeServiceStatus() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1236,11 +1236,11 @@ func (n *NodeController) ChangeServiceStatus() {
 // @Success 200 {object} models.Node
 // @router /mainconfStatus [put]
 func (n *NodeController) ChangeMainServiceStatus() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1260,11 +1260,11 @@ func (n *NodeController) ChangeMainServiceStatus() {
 // @Success 200 {object} models.Node
 // @router /deleteService [delete]
 func (n *NodeController) DeleteService() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1284,11 +1284,11 @@ func (n *NodeController) DeleteService() {
 // @Success 200 {object} models.Node
 // @router /saveSuricataInterface [put]
 func (n *NodeController) SaveSuricataInterface() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1308,11 +1308,11 @@ func (n *NodeController) SaveSuricataInterface() {
 // @Success 200 {object} models.Node
 // @router /deployStapService [put]
 func (n *NodeController) DeployStapService() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1332,11 +1332,11 @@ func (n *NodeController) DeployStapService() {
 // @Success 200 {object} models.Node
 // @router /stopStapService [put]
 func (n *NodeController) StopStapService() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1356,11 +1356,11 @@ func (n *NodeController) StopStapService() {
 // @Success 200 {object} models.Node
 // @router /modifyStapValues [put]
 func (n *NodeController) ModifyStapValues() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1381,11 +1381,11 @@ func (n *NodeController) ModifyStapValues() {
 // @Failure 403 :uuid is empty
 // @router /pingWazuhFiles/:uuid [get]
 func (n *NodeController) PingWazuhFiles() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data,err := models.PingWazuhFiles(uuid)
@@ -1402,11 +1402,11 @@ func (n *NodeController) PingWazuhFiles() {
 // @Success 200 {object} models.Node
 // @router /deleteWazuhFile [delete]
 func (n *NodeController) DeleteWazuhFile() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]interface{})
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1427,11 +1427,11 @@ func (n *NodeController) DeleteWazuhFile() {
 // @Success 200 {object} models.Node
 // @router /addWazuhFile [put]
 func (n *NodeController) AddWazuhFile() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]interface{})
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1452,11 +1452,11 @@ func (n *NodeController) AddWazuhFile() {
 // @Success 200 {object} models.Node
 // @router /wazuh/loadLines [put]
 func (n *NodeController) LoadFileLastLines() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1477,11 +1477,11 @@ func (n *NodeController) LoadFileLastLines() {
 // @Success 200 {object} models.Node
 // @router /wazuh/saveFileContentWazuh [put]
 func (n *NodeController) SaveFileContentWazuh() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1504,11 +1504,11 @@ func (n *NodeController) SaveFileContentWazuh() {
 // @router /reloadFilesData/:uuid [get]
 // @router /:nid/reloadFilesData [get]
 func (n *NodeController) ReloadFilesData() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.ReloadFilesData(uuid)
@@ -1526,11 +1526,11 @@ func (n *NodeController) ReloadFilesData() {
 // @Failure 403 body is empty
 // @router /monitor/addFile [post]
 func (n *NodeController) AddMonitorFile() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1550,11 +1550,11 @@ func (n *NodeController) AddMonitorFile() {
 // @router /monitor/pingMonitorFiles/:uuid [get]
 // @router /monitor/:nid/pingMonitorFiles [get]
 func (n *NodeController) PingMonitorFiles() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.PingMonitorFiles(uuid)
@@ -1572,11 +1572,11 @@ func (n *NodeController) PingMonitorFiles() {
 // @Failure 403 body is empty
 // @router /monitor/deleteFile [delete]
 func (n *NodeController) DeleteMonitorFile() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1594,11 +1594,11 @@ func (n *NodeController) DeleteMonitorFile() {
 // @Success 200 {object} models.Node
 // @router /zeek/changeZeekMode [put]
 func (n *NodeController) ChangeZeekMode() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1620,11 +1620,11 @@ func (n *NodeController) ChangeZeekMode() {
 // @Failure 403 body is empty
 // @router /addClusterValue [post]
 func (n *NodeController) AddClusterValue() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1643,11 +1643,11 @@ func (n *NodeController) AddClusterValue() {
 // @Failure 403 body is empty
 // @router /pingCluster/:uuid [get]
 func (n *NodeController) PingCluster() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data,err := models.PingCluster(uuid)
@@ -1664,11 +1664,11 @@ func (n *NodeController) PingCluster() {
 // @Success 200 {object} models.Node
 // @router /zeek/editClusterValue [put]
 func (n *NodeController) EditClusterValue() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1689,11 +1689,11 @@ func (n *NodeController) EditClusterValue() {
 // @Success 200 {object} models.Node
 // @router /zeek/deleteClusterValue [delete]
 func (n *NodeController) DeleteClusterValue() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1714,11 +1714,11 @@ func (n *NodeController) DeleteClusterValue() {
 // @Success 200 {object} models.Node
 // @router /zeek/syncCluster [put]
 func (n *NodeController) SyncCluster() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1737,11 +1737,11 @@ func (n *NodeController) SyncCluster() {
 // @Failure 403 body is empty
 // @router /changecontrol/:uuid [get]
 func (n *NodeController) GetChangeControlNode() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.GetChangeControlNode(uuid)
@@ -1759,11 +1759,11 @@ func (n *NodeController) GetChangeControlNode() {
 // @Success 200 {object} models.Master
 // @router /incidents/:uuid [get]
 func (n *NodeController) GetIncidentsNode() {   
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data,err := models.GetIncidentsNode(uuid)
@@ -1797,11 +1797,11 @@ func (n *NodeController) GetIncidentsNode() {
 // @Success 200 {object} models.Node
 // @router /plugin/changeSuricataTable [put]
 func (n *NodeController) ChangeSuricataTable() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1821,11 +1821,11 @@ func (n *NodeController) ChangeSuricataTable() {
 // @Success 200 {object} models.Node
 // @router /ruleset/syncGroups [put]
 func (n *NodeController) SyncRulesetToAllGroupNodes() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1845,11 +1845,11 @@ func (n *NodeController) SyncRulesetToAllGroupNodes() {
 // @Success 200 {object} models.Node
 // @router /analyzer/sync [put]
 func (n *NodeController) SyncAnalyzerToAllGroupNodes() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1868,11 +1868,11 @@ func (n *NodeController) SyncAnalyzerToAllGroupNodes() {
 // @Success 200 {object} models.Node
 // @router /StartSuricataMain [put]
 func (n *NodeController) StartSuricataMainConf() { 
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1889,11 +1889,11 @@ func (n *NodeController) StartSuricataMainConf() {
 // @Success 200 {object} models.Node
 // @router /StopSuricataMain [put]
 func (n *NodeController) StopSuricataMainConf() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1910,11 +1910,11 @@ func (n *NodeController) StopSuricataMainConf() {
 // @Success 200 {object} models.Node
 // @router /KillSuricataMain [put]
 func (n *NodeController) KillSuricataMainConf() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1931,11 +1931,11 @@ func (n *NodeController) KillSuricataMainConf() {
 // @Success 200 {object} models.Node
 // @router /ReloadSuricataMain [put]
 func (n *NodeController) ReloadSuricataMainConf() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1953,11 +1953,11 @@ func (n *NodeController) ReloadSuricataMainConf() {
 // @Success 200 {object} models.Node
 // @router /LaunchZeekMainConf [put]
 func (n *NodeController) LaunchZeekMainConf() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
@@ -1975,11 +1975,11 @@ func (n *NodeController) LaunchZeekMainConf() {
 // @Success 200 {object} models.Node
 // @router /zeek/syncZeekValues [put]
 func (n *NodeController) SyncZeekValues() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)

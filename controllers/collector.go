@@ -17,11 +17,11 @@ type CollectorController struct {
 // @Failure 403 body is empty
 // @router /play/:uuid [get]
 func (n *CollectorController) PlayCollector() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         err := models.PlayCollector(uuid)
@@ -41,11 +41,11 @@ func (n *CollectorController) PlayCollector() {
 // @Failure 403 body is empty
 // @router /stop/:uuid [get]
 func (n *CollectorController) StopCollector() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         err := models.StopCollector(uuid)
@@ -65,11 +65,11 @@ func (n *CollectorController) StopCollector() {
 // @Failure 403 body is empty
 // @router /show/:uuid [get]
 func (n *CollectorController) ShowCollector() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
         data, err := models.ShowCollector(uuid)
@@ -88,11 +88,11 @@ func (n *CollectorController) ShowCollector() {
 // @Failure 403 body is empty
 // @router /playMasterCollector [put]
 func (n *CollectorController) PlayMasterCollector() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         err := models.PlayMasterCollector()
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -111,11 +111,11 @@ func (n *CollectorController) PlayMasterCollector() {
 // @Failure 403 body is empty
 // @router /stopMasterCollector [put]
 func (n *CollectorController) StopMasterCollector() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         err := models.StopMasterCollector()
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -134,11 +134,11 @@ func (n *CollectorController) StopMasterCollector() {
 // @Failure 403 body is empty
 // @router /showMasterCollector [get]
 func (n *CollectorController) ShowMasterCollector() {
-    privileges,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !privileges{
-        n.Data["json"] = map[string]string{"ack": "false","privileges":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         data, err := models.ShowMasterCollector()
         n.Data["json"] = data

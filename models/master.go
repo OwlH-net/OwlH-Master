@@ -486,3 +486,38 @@ func DeleteUserGroup(anode map[string]string) (err error) {
     changecontrol.ChangeControlInsertData(err, "DeleteUserGroup")
     return err
 }
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getAllRoles \
+// }
+func GetAllRoles() (data map[string]map[string]string, err error) {
+    data, err = master.GetAllRoles()
+    changecontrol.ChangeControlInsertData(err, "GetAllRoles")
+    return data, err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v"
+func DeleteRole(anode map[string]string) (err error) {
+    err = master.DeleteRole(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteRole")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/editRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "name": "v",
+//     "permissions": "v",
+//  }
+// }
+func EditRole(anode map[string]string) (err error) {
+    err = master.EditRole(anode)
+    changecontrol.ChangeControlInsertData(err, "EditRole")
+    return err
+}
