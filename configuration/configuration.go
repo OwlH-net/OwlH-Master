@@ -311,6 +311,13 @@ func checkFields()(ok bool){
     field.Fname      = "userGroups - group"
     ok = CheckField(field)
     if !ok {return false}
+    // field.Fconn      = "masterConn"
+    // field.Ftable     = "userGroups"
+    // field.Fquery     = "select ug_param from userGroups where ug_param='permissions'"
+    // field.Finsert    = "insert into userGroups (ug_uniqueid,ug_param,ug_value) values ('00000000-0000-0000-0000-000000000002','permissions','get,put,post,delete')"
+    // field.Fname      = "userGroups - group"
+    // ok = CheckField(field)
+    // if !ok {return false}
 
     //create usergrouproles admin values
     field.Fconn      = "masterConn"

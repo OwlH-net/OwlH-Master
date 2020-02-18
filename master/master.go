@@ -577,11 +577,11 @@ func DeleteUser(anode map[string]string)(err error){
     return nil
 }
 
-func AddGroup(anode map[string]string) (err error) {
+func AddGroupUsers(anode map[string]string) (err error) {
     uuid := utils.Generate()
     err = ndb.InsertGroupUsers(uuid, "group", anode["group"])
-    err = ndb.InsertGroupUsers(uuid, "permissions", anode["permissions"])
-    if err != nil{logs.Error("master/AddGroup Error inserting user into db: "+err.Error()); return err}    
+    // err = ndb.InsertGroupUsers(uuid, "permissions", anode["permissions"])
+    if err != nil{logs.Error("master/AddGroupUsers Error inserting user into db: "+err.Error()); return err}    
 
     return nil
 }
@@ -676,24 +676,6 @@ func DeleteUserRole(anode map[string]string) (err error) {
     return err
 }
 
-func DeleteUserGroup(anode map[string]string) (err error) {
-    allGroups, err := ndb.GetUserGroups()
-    if err != nil{logs.Error("master/DeleteUserRole Error getting groups: "+err.Error()); return err}
-    userGroupRole, err := ndb.GetUserGroupRoles()
-    if err != nil{logs.Error("master/DeleteUserRole Error getting userGroupRoles: "+err.Error()); return err}
-    for x := range allGroups{
-        if allGroups[x]["group"] == anode["group"]{
-            for y := range userGroupRole{
-                if userGroupRole[y]["group"] == x && userGroupRole[y]["user"] == anode["id"] { 
-                    err = ndb.DeleteUserGroupRole(y)
-                }
-            }
-        }        
-    }
-
-    return err
-}
-
 func GetAllRoles() (data map[string]map[string]string, err error) {
     allRoles, err := ndb.GetUserRoles()
     if err != nil{logs.Error("master/GetAllRoles Error getting roles data: "+err.Error()); return nil,err}
@@ -742,6 +724,24 @@ func DeleteRole(anode map[string]string) (err error) {
     return nil
 }
 
+func DeleteUserGroup(anode map[string]string) (err error) {
+    //delete role
+    err = ndb.DeleteUserGroup(anode["id"])
+    if err != nil{logs.Error("master/DeleteUserGroup Error deleting roles: "+err.Error()); return err}
+    
+    //delete usergrouproles
+    userGroupRole, err := ndb.GetUserGroupRoles()
+    if err != nil{logs.Error("master/DeleteUserGroup Error getting userGroupRoles: "+err.Error()); return err}
+    for y := range userGroupRole{
+        if userGroupRole[y]["group"] == anode["id"] { 
+            err = ndb.DeleteUserGroupRole(y)
+            if err != nil{logs.Error("master/DeleteUserGroup Error getting userGroupRoles: "+err.Error()); return err}
+        }
+    }
+
+    return nil
+}
+
 func EditRole(anode map[string]string) (err error) {
     logs.Notice(anode)
     //update name
@@ -752,4 +752,76 @@ func EditRole(anode map[string]string) (err error) {
     if err != nil{logs.Error("master/EditRole Error updating role permissions: "+err.Error()); return err}
 
     return err
+}
+
+func EditUserGroup(anode map[string]string) (err error) {
+    logs.Notice(anode)
+    //update name
+    err = ndb.UpdateUserGroup(anode["id"], "group", anode["group"])
+    if err != nil{logs.Error("master/EditUserGroup Error updating group name: "+err.Error()); return err}
+    //update permissions
+    // err = ndb.UpdateUserGroup(anode["id"], "permissions", anode["permissions"])
+    // if err != nil{logs.Error("master/EditUserGroup Error updating group permissions: "+err.Error()); return err}
+
+    return err
+}
+
+func GetAllUserGroups() (data map[string]map[string]string, err error) {
+    // allRoles, err := ndb.GetUserRoles()
+    // if err != nil{logs.Error("master/GetAllUserGroups Error getting roles data: "+err.Error()); return nil,err}
+    allGroups, err := ndb.GetUserGroups()
+    if err != nil{logs.Error("master/GetAllUserGroups Error getting roles data: "+err.Error()); return nil,err}
+    // allUsers, err := ndb.GetLoginData()
+    // if err != nil{logs.Error("master/GetAllUserGroups Error getting users data: "+err.Error()); return nil,err}
+    // allGroups, err := ndb.GetUserGroups()
+    // if err != nil{logs.Error("master/GetAllUserGroups Error getting users data: "+err.Error()); return nil,err}
+    
+    // allElements, err :=ndb.GetUserGroupRoles()
+    // if err != nil{logs.Error("master/GetAllUserGroups Error getting usergrouprole data: "+err.Error()); return nil,err}
+    // for x := range allGroups{
+    //     var userNames []string 
+    //     var groupNames []string 
+    //     for y := range allElements{
+    //         if x == allElements[y]["role"]{
+    //             if allElements[y]["user"] != "" {
+    //                 userNames = append(userNames, allUsers[allElements[y]["user"]]["user"])                                        
+    //             }
+    //             if allElements[y]["group"] != "" {
+    //                 groupNames = append(groupNames, allGroups[allElements[y]["group"]]["group"])                                        
+    //             }
+    //         }
+    //     }
+    //     allGroups[x]["users"] = strings.Join(userNames, ",")
+    //     allGroups[x]["groups"] = strings.Join(groupNames, ",")
+    // }
+
+    return allGroups, err
+}
+
+func GetRolesForGroups(roleID string)(data map[string]map[string]string, err error) {
+    roles,err := ndb.GetUserRoles()
+    if err != nil{logs.Error("master/GetRolesForGroups Error getting roles: "+err.Error()); return nil, err}    
+    all,err := ndb.GetUserGroupRoles()
+    if err != nil{logs.Error("master/GetRolesForGroups Error getting all: "+err.Error()); return nil, err}    
+    for x := range all{
+        for y := range roles{
+            if all[x]["role"] == y && all[x]["group"] == roleID{ delete(roles,y) }
+        }
+    }
+
+    if err != nil{logs.Error("master/GetRolesForGroups Error getting roles: "+err.Error()); return nil, err}    
+    return roles, err
+}
+
+func AddRoleToGroup(anode map[string]string) (err error) {
+    values := strings.Split(anode["values"], ",")
+    for _,x := range values{
+        uuid := utils.Generate()
+        err = ndb.InsertUserGroupRole(uuid,"group", anode["group"])
+        if err != nil{logs.Error("master/AddRoleToGroup Error inserting user into InsertUserGroupRole: "+err.Error()); return err} 
+        err = ndb.InsertUserGroupRole(uuid,"role", x)
+        if err != nil{logs.Error("master/AddRoleToGroup Error inserting role into InsertUserGroupRole: "+err.Error()); return err}    
+    }
+    
+    return nil
 }

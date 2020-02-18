@@ -397,9 +397,9 @@ func DeleteUser(anode map[string]string)(err error){
 //     "group": "v"
 //  }
 // }
-func AddGroup(anode map[string]string) (err error) {
-    err = master.AddGroup(anode)
-    changecontrol.ChangeControlInsertData(err, "AddGroup")
+func AddGroupUsers(anode map[string]string) (err error) {
+    err = master.AddGroupUsers(anode)
+    changecontrol.ChangeControlInsertData(err, "AddGroupUsers")
     return err
 }
 
@@ -514,10 +514,50 @@ func DeleteRole(anode map[string]string) (err error) {
 //     "id": "v",
 //     "name": "v",
 //     "permissions": "v",
-//  }
-// }
 func EditRole(anode map[string]string) (err error) {
     err = master.EditRole(anode)
     changecontrol.ChangeControlInsertData(err, "EditRole")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/editUserGroup \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "name": "v"
+func EditUserGroup(anode map[string]string) (err error) {
+    err = master.EditUserGroup(anode)
+    changecontrol.ChangeControlInsertData(err, "EditUserGroup")
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getAllUserGroups \
+// }
+func GetAllUserGroups() (data map[string]map[string]string, err error) {
+    data, err = master.GetAllUserGroups()
+    changecontrol.ChangeControlInsertData(err, "GetAllUserGroups")
+    return data, err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getRolesForGroups/:roleID \
+// }
+func GetRolesForGroups(id string)(data map[string]map[string]string, err error) {
+    data, err = master.GetRolesForGroups(id)
+    changecontrol.ChangeControlInsertData(err, "GetRolesForGroups")
+    return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addRoleToGroup \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "id",
+//     "name": "get,put"
+func AddRoleToGroup(anode map[string]string) (err error) {
+    err = master.AddRoleToGroup(anode)
+    changecontrol.ChangeControlInsertData(err, "AddRoleToGroup")
     return err
 }
