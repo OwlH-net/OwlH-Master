@@ -36,7 +36,6 @@ func Encode(uuid string, user string, secret string) (val string, err error) {
 
 func HashPassword(password string) (string, error) {
     bytes, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-    logs.Info("NEW HASH PASSWD--> "+string(bytes))
     return string(bytes), err
 }
 

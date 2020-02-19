@@ -1878,6 +1878,7 @@ func (n *NodeController) StartSuricataMainConf() {
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         err := models.StartSuricataMainConf(anode)
     
+        n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
@@ -1898,7 +1899,7 @@ func (n *NodeController) StopSuricataMainConf() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         err := models.StopSuricataMainConf(anode)
-    
+        n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
@@ -1919,7 +1920,7 @@ func (n *NodeController) KillSuricataMainConf() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         err := models.KillSuricataMainConf(anode)
-    
+        n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
@@ -1940,7 +1941,7 @@ func (n *NodeController) ReloadSuricataMainConf() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         err := models.ReloadSuricataMainConf(anode)
-    
+        n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
