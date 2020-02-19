@@ -348,6 +348,20 @@ func checkFields()(ok bool){
     field.Fname      = "user - usergrouproles"
     ok = CheckField(field)
     if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000005' and ugr_param='role' and ugr_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000005','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname      = "role - usergrouproles"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000005' and ugr_param='group' and ugr_value='00000000-0000-0000-0000-000000000002'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000005','group','00000000-0000-0000-0000-000000000002')"
+    field.Fname      = "group - usergrouproles"
+    ok = CheckField(field)
+    if !ok {return false}
 
     //add dispatcher status
     field.Fconn      = "masterConn"

@@ -561,3 +561,51 @@ func AddRoleToGroup(anode map[string]string) (err error) {
     changecontrol.ChangeControlInsertData(err, "AddRoleToGroup")
     return err
 }
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteRoleUser \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "user": "v"
+func DeleteRoleUser(anode map[string]string) (err error) {
+    err = master.DeleteRoleUser(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteRoleUser")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteRoleGroup \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "group": "v"
+func DeleteRoleGroup(anode map[string]string) (err error) {
+    err = master.DeleteRoleGroup(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteRoleGroup")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteGroupUser \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "user": "v"
+func DeleteGroupUser(anode map[string]string) (err error) {
+    err = master.DeleteGroupUser(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteGroupUser")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteGroupRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "role": "v"
+func DeleteGroupRole(anode map[string]string) (err error) {
+    err = master.DeleteGroupRole(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteGroupRole")
+    return err
+}

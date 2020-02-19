@@ -1055,3 +1055,87 @@ func (n *MasterController) AddRoleToGroup() {
     }
     n.ServeJSON()
 }
+
+// @Title DeleteRoleUser
+// @Description delete a specific user at role
+// @router /deleteRoleUser [delete]
+func (n *MasterController) DeleteRoleUser() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteRoleUser(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteRoleGroup
+// @Description delete a specific group at role
+// @router /deleteRoleGroup [delete]
+func (n *MasterController) DeleteRoleGroup() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteRoleGroup(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteGroupUser
+// @Description delete a specific user at group
+// @router /deleteGroupUser [delete]
+func (n *MasterController) DeleteGroupUser() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteGroupUser(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteGroupRole
+// @Description delete a specific user at group
+// @router /deleteGroupRole [delete]
+func (n *MasterController) DeleteGroupRole() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteGroupRole(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

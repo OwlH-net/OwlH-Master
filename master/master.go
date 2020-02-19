@@ -673,7 +673,83 @@ func DeleteUserRole(anode map[string]string) (err error) {
         }        
     }
 
-    return err
+    return nil
+}
+
+func DeleteRoleUser(anode map[string]string) (err error) {
+    allUsers, err := ndb.GetLoginData()
+    if err != nil{logs.Error("master/DeleteRoleUser Error getting users: "+err.Error()); return err}
+    userGroupRole, err := ndb.GetUserGroupRoles()
+    if err != nil{logs.Error("master/DeleteRoleUser Error getting userGroupRoles: "+err.Error()); return err}
+
+    for x := range allUsers{
+        if allUsers[x]["user"] == anode["user"]{
+            for y := range userGroupRole{
+                if userGroupRole[y]["user"] == x && userGroupRole[y]["role"] == anode["id"] { 
+                    err = ndb.DeleteUserGroupRole(y)
+                    if err != nil{logs.Error("master/DeleteRoleUser Error deleting userGroupRole user: "+err.Error()); return err}
+                }
+            }
+        }        
+    }
+    return nil
+}
+
+func DeleteRoleGroup(anode map[string]string) (err error) {
+    allGroups, err := ndb.GetUserGroups()
+    if err != nil{logs.Error("master/DeleteRoleGroup Error getting users: "+err.Error()); return err}
+    userGroupRole, err := ndb.GetUserGroupRoles()
+    if err != nil{logs.Error("master/DeleteRoleGroup Error getting userGroupRoles: "+err.Error()); return err}
+
+    for x := range allGroups{
+        if allGroups[x]["group"] == anode["group"]{
+            for y := range userGroupRole{
+                if userGroupRole[y]["group"] == x && userGroupRole[y]["role"] == anode["id"] { 
+                    err = ndb.DeleteUserGroupRole(y)
+                    if err != nil{logs.Error("master/DeleteRoleGroup Error deleting userGroupRole group: "+err.Error()); return err}
+                }
+            }
+        }        
+    }
+    return nil
+}
+
+func DeleteGroupUser(anode map[string]string) (err error) {
+    allUsers, err := ndb.GetLoginData()
+    if err != nil{logs.Error("master/DeleteGroupUser Error getting users: "+err.Error()); return err}
+    userGroupRole, err := ndb.GetUserGroupRoles()
+    if err != nil{logs.Error("master/DeleteGroupUser Error getting userGroupRoles: "+err.Error()); return err}
+
+    for x := range allUsers{
+        if allUsers[x]["user"] == anode["user"]{
+            for y := range userGroupRole{
+                if userGroupRole[y]["user"] == x && userGroupRole[y]["group"] == anode["id"] { 
+                    err = ndb.DeleteUserGroupRole(y)
+                    if err != nil{logs.Error("master/DeleteGroupUser Error deleting userGroupRole user group: "+err.Error()); return err}
+                }
+            }
+        }        
+    }
+    return nil
+}
+//todo
+func DeleteGroupRole(anode map[string]string) (err error) {
+    allRoles, err := ndb.GetUserRoles()
+    if err != nil{logs.Error("master/DeleteGroupRole Error getting users: "+err.Error()); return err}
+    userGroupRole, err := ndb.GetUserGroupRoles()
+    if err != nil{logs.Error("master/DeleteGroupRole Error getting userGroupRoles: "+err.Error()); return err}
+
+    for x := range allRoles{
+        if allRoles[x]["role"] == anode["role"]{
+            for y := range userGroupRole{
+                if userGroupRole[y]["role"] == x && userGroupRole[y]["group"] == anode["id"] { 
+                    err = ndb.DeleteUserGroupRole(y)
+                    if err != nil{logs.Error("master/DeleteGroupRole Error deleting userGroupRole user role: "+err.Error()); return err}
+                }
+            }
+        }        
+    }
+    return nil
 }
 
 func GetAllRoles() (data map[string]map[string]string, err error) {
@@ -682,7 +758,7 @@ func GetAllRoles() (data map[string]map[string]string, err error) {
     allUsers, err := ndb.GetLoginData()
     if err != nil{logs.Error("master/GetAllRoles Error getting users data: "+err.Error()); return nil,err}
     allGroups, err := ndb.GetUserGroups()
-    if err != nil{logs.Error("master/GetAllRoles Error getting users data: "+err.Error()); return nil,err}
+    if err != nil{logs.Error("master/GetAllRoles Error getting groups data: "+err.Error()); return nil,err}
     
     allElements, err :=ndb.GetUserGroupRoles()
     if err != nil{logs.Error("master/GetAllRoles Error getting usergrouprole data: "+err.Error()); return nil,err}
@@ -726,17 +802,19 @@ func DeleteRole(anode map[string]string) (err error) {
 
 func DeleteUserGroup(anode map[string]string) (err error) {
     //delete role
-    err = ndb.DeleteUserGroup(anode["id"])
-    if err != nil{logs.Error("master/DeleteUserGroup Error deleting roles: "+err.Error()); return err}
-    
-    //delete usergrouproles
+    allGroups, err := ndb.GetUserGroups()
+    if err != nil{logs.Error("master/DeleteUserGroup Error getting groups: "+err.Error()); return err}
     userGroupRole, err := ndb.GetUserGroupRoles()
-    if err != nil{logs.Error("master/DeleteUserGroup Error getting userGroupRoles: "+err.Error()); return err}
-    for y := range userGroupRole{
-        if userGroupRole[y]["group"] == anode["id"] { 
-            err = ndb.DeleteUserGroupRole(y)
-            if err != nil{logs.Error("master/DeleteUserGroup Error getting userGroupRoles: "+err.Error()); return err}
-        }
+    if err != nil{logs.Error("master/DeleteUserRole Error getting userGroupRoles: "+err.Error()); return err}
+
+    for x := range allGroups{
+        if allGroups[x]["group"] == anode["group"]{
+            for y := range userGroupRole{
+                if userGroupRole[y]["group"] == x && userGroupRole[y]["user"] == anode["id"] { 
+                    err = ndb.DeleteUserGroupRole(y)
+                }
+            }
+        }        
     }
 
     return nil
@@ -767,33 +845,33 @@ func EditUserGroup(anode map[string]string) (err error) {
 }
 
 func GetAllUserGroups() (data map[string]map[string]string, err error) {
-    // allRoles, err := ndb.GetUserRoles()
-    // if err != nil{logs.Error("master/GetAllUserGroups Error getting roles data: "+err.Error()); return nil,err}
-    allGroups, err := ndb.GetUserGroups()
+    allRoles, err := ndb.GetUserRoles()
     if err != nil{logs.Error("master/GetAllUserGroups Error getting roles data: "+err.Error()); return nil,err}
-    // allUsers, err := ndb.GetLoginData()
-    // if err != nil{logs.Error("master/GetAllUserGroups Error getting users data: "+err.Error()); return nil,err}
-    // allGroups, err := ndb.GetUserGroups()
-    // if err != nil{logs.Error("master/GetAllUserGroups Error getting users data: "+err.Error()); return nil,err}
-    
-    // allElements, err :=ndb.GetUserGroupRoles()
-    // if err != nil{logs.Error("master/GetAllUserGroups Error getting usergrouprole data: "+err.Error()); return nil,err}
-    // for x := range allGroups{
-    //     var userNames []string 
-    //     var groupNames []string 
-    //     for y := range allElements{
-    //         if x == allElements[y]["role"]{
-    //             if allElements[y]["user"] != "" {
-    //                 userNames = append(userNames, allUsers[allElements[y]["user"]]["user"])                                        
-    //             }
-    //             if allElements[y]["group"] != "" {
-    //                 groupNames = append(groupNames, allGroups[allElements[y]["group"]]["group"])                                        
-    //             }
-    //         }
-    //     }
-    //     allGroups[x]["users"] = strings.Join(userNames, ",")
-    //     allGroups[x]["groups"] = strings.Join(groupNames, ",")
-    // }
+    allGroups, err := ndb.GetUserGroups()   
+    if err != nil{logs.Error("master/GetAllUserGroups Error getting groups data: "+err.Error()); return nil,err}
+    allUsers, err := ndb.GetLoginData()
+    if err != nil{logs.Error("master/GetAllUserGroups Error getting users data: "+err.Error()); return nil,err}
+    allElements, err :=ndb.GetUserGroupRoles()
+    if err != nil{logs.Error("master/GetAllUserGroups Error getting usergrouprole data: "+err.Error()); return nil,err}
+
+    for y := range allGroups{
+        var groupUsers []string 
+        var groupRoles []string 
+            for x := range allElements{
+            if allElements[x]["group"] != "" && allElements[x]["group"] == y {
+                if allElements[x]["user"] != ""{
+                    logs.Notice(allUsers[allElements[x]["user"]]["user"])
+                    groupUsers = append(groupUsers, allUsers[allElements[x]["user"]]["user"])  
+                }
+                if allElements[x]["role"] != ""{
+                    logs.Warn(allRoles[allElements[x]["role"]]["role"])
+                    groupRoles = append(groupRoles, allRoles[allElements[x]["role"]]["role"])  
+                }
+            }
+        }
+        allGroups[y]["roles"] = strings.Join(groupRoles, ",") 
+        allGroups[y]["users"] = strings.Join(groupUsers, ",")
+    }
 
     return allGroups, err
 }
