@@ -1261,3 +1261,21 @@ func SyncUsersToNode()(){
         time.Sleep(time.Minute*10)
     }
 }
+
+
+func ChangeRotationStatus(anode map[string]string)(err error){
+    //get node data by uuid
+    if ndb.Db == nil { logs.Error("node/ChangeRotationStatus -- Can't acces to database"); return err}
+    
+    //load token for this node
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("node/ChangeRotationStatus Error loading node token: %s",err); return err}
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil { logs.Error("node/ChangeRotationStatus ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+    //send Suricata services to node
+    err = nodeclient.ChangeRotationStatus(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/ChangeRotationStatus ERROR http data request: "+err.Error()); return err}
+    
+
+    return nil
+}

@@ -1927,6 +1927,7 @@ func (n *NodeController) KillSuricataMainConf() {
     }
     n.ServeJSON()
 }
+
 // @Title ReloadSuricataMainConf
 // @Description Kill Suricata Main Conf
 // @Success 200 {object} models.Node
@@ -1985,6 +1986,28 @@ func (n *NodeController) SyncZeekValues() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         err := models.SyncZeekValues(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title ChangeRotationStatus
+// @Description Change rotation file status at node
+// @Success 200 {object} models.Node
+// @router /monitor/changeRotationStatus [put]
+func (n *NodeController) ChangeRotationStatus() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.ChangeRotationStatus(anode)
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

@@ -993,3 +993,15 @@ func SyncZeekValues(anode map[string]string)(err error){
     changecontrol.ChangeControlInsertData(err, "SyncZeekValues")
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/monitor/changeRotationStatus \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "file": "v"}
+func ChangeRotationStatus(n map[string]string) (err error) {
+    err = node.ChangeRotationStatus(n)
+    changecontrol.ChangeControlInsertData(err, "ChangeRotationStatus")
+    return err
+}

@@ -1881,3 +1881,13 @@ func SyncUsersToNode(ipnid string, portnid string, data map[string]map[string]st
     defer resp.Body.Close()
     return nil
 }
+
+func ChangeRotationStatus(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/monitor/changeRotationStatus"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/ChangeRotationStatus ERROR connection through http new Request: "+err.Error()); return err}
+
+    defer resp.Body.Close()
+    return nil
+}
