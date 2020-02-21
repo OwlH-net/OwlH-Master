@@ -1262,7 +1262,6 @@ func SyncUsersToNode()(){
     }
 }
 
-
 func ChangeRotationStatus(anode map[string]string)(err error){
     //get node data by uuid
     if ndb.Db == nil { logs.Error("node/ChangeRotationStatus -- Can't acces to database"); return err}
@@ -1275,6 +1274,21 @@ func ChangeRotationStatus(anode map[string]string)(err error){
     //send Suricata services to node
     err = nodeclient.ChangeRotationStatus(ipnid,portnid,anode)
     if err != nil { logs.Error("node/ChangeRotationStatus ERROR http data request: "+err.Error()); return err}
+    
+
+    return nil
+}
+
+func EditRotation(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("node/EditRotation -- Can't acces to database"); return err}
+    
+    //load token for this node
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("node/EditRotation Error loading node token: %s",err); return err}
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil { logs.Error("node/EditRotation ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+    err = nodeclient.EditRotation(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/EditRotation ERROR http data request: "+err.Error()); return err}
     
 
     return nil

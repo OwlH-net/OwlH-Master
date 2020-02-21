@@ -2015,3 +2015,25 @@ func (n *NodeController) ChangeRotationStatus() {
     }
     n.ServeJSON()
 }
+
+// @Title EditRotation
+// @Description Edit rotation parameters at node
+// @Success 200 {object} models.Node
+// @router /monitor/editRotation [put]
+func (n *NodeController) EditRotation() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.EditRotation(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

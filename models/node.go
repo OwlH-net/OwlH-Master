@@ -1005,3 +1005,19 @@ func ChangeRotationStatus(n map[string]string) (err error) {
     changecontrol.ChangeControlInsertData(err, "ChangeRotationStatus")
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/monitor/editRotation \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "file": "v"
+//     "path": "v"
+//     "size": "v"
+//     "lines": "v"
+//     "days": "v"
+func EditRotation(n map[string]string) (err error) {
+    err = node.EditRotation(n)
+    changecontrol.ChangeControlInsertData(err, "EditRotation")
+    return err
+}

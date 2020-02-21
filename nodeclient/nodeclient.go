@@ -1863,15 +1863,11 @@ func SyncUsersToNode(ipnid string, portnid string, data map[string]map[string]st
     url := "https://"+ipnid+":"+portnid+"/node/autentication/addUser"
     valuesJSON,err := json.Marshal(data)
     resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
-    if err != nil {
-        logs.Error("nodeclient/SyncUsersToNode ERROR connection through http new Request: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("nodeclient/SyncUsersToNode ERROR connection through http new Request: "+err.Error()); return err}
+
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        logs.Error("nodeclient/SyncUsersToNode ERROR reading request data: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("nodeclient/SyncUsersToNode ERROR reading request data: "+err.Error()); return err}
+
     mapData := make(map[string]string)
     err = json.Unmarshal(body, &mapData)
     if err != nil { logs.Error("nodeclient/SyncUsersToNode ERROR doing unmarshal JSON: "+err.Error()); return err}
@@ -1888,6 +1884,37 @@ func ChangeRotationStatus(ipnid string, portnid string, data map[string]string)(
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
     if err != nil {logs.Error("nodeclient/ChangeRotationStatus ERROR connection through http new Request: "+err.Error()); return err}
 
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/ChangeRotationStatus ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/ChangeRotationStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+
     defer resp.Body.Close()
     return nil
 }
+
+func EditRotation(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/monitor/editRotation"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/EditRotation ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/EditRotation ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/EditRotation ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+
+    defer resp.Body.Close()
+    return nil
+}
+
