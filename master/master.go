@@ -49,7 +49,6 @@ func GetFileContent(file string) (data map[string]string, err error) {
     sendBackArray["fileContent"] = string(fileReaded)
     sendBackArray["fileName"] = file
 
-    logs.Notice(sendBackArray)
     return sendBackArray, nil
 }
 
@@ -236,7 +235,6 @@ func ModifyStapValuesMaster(anode map[string]string)(err error) {
         if allPlugins[anode["uuid"]]["pid"] != "none"{
             err = StopStapServiceMaster(anode); if err != nil {logs.Error("ModifyStapValuesMaster "+anode["type"]+" Error stopping service: "+err.Error()); return err}
             err = DeployStapServiceMaster(anode); if err != nil {logs.Error("ModifyStapValuesMaster "+anode["type"]+" Error deploying service: "+err.Error()); return err}
-            logs.Notice(allPlugins[anode["uuid"]]["name"]+" service updated!!!")
         }        
     }
     return nil
@@ -313,10 +311,6 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
     loadDataValue, err = utils.GetConf(loadDataValue)
     if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return err}
 
-    logs.Notice(loadDataValue["plugins"]["socat"])
-
-
-    
     allPlugins,err := ndb.PingPlugins()
     if anode["type"] == "socket-network" {
         pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
@@ -782,6 +776,7 @@ func GetAllRoles() (data map[string]map[string]string, err error) {
     return allRoles, err
 }
 
+//delete roles for role management
 func DeleteRole(anode map[string]string) (err error) {
     //delete role
     err = ndb.DeleteUserRole(anode["id"])
@@ -793,25 +788,26 @@ func DeleteRole(anode map[string]string) (err error) {
     for y := range userGroupRole{
         if userGroupRole[y]["role"] == anode["id"] { 
             err = ndb.DeleteUserGroupRole(y)
-            if err != nil{logs.Error("master/DeleteRole Error getting userGroupRoles: "+err.Error()); return err}
+            if err != nil{logs.Error("master/DeleteRole Error deleting a role: "+err.Error()); return err}
         }
     }
 
     return nil
 }
 
+//delete groups for group management
 func DeleteUserGroup(anode map[string]string) (err error) {
-    //delete role
-    allGroups, err := ndb.GetUserGroups()
+    err = ndb.DeleteUserGroup(anode["id"])
     if err != nil{logs.Error("master/DeleteUserGroup Error getting groups: "+err.Error()); return err}
     userGroupRole, err := ndb.GetUserGroupRoles()
     if err != nil{logs.Error("master/DeleteUserRole Error getting userGroupRoles: "+err.Error()); return err}
 
-    for x := range allGroups{
-        if allGroups[x]["group"] == anode["group"]{
+    for x := range userGroupRole{
+        if userGroupRole[x]["group"] == anode["group"]{
             for y := range userGroupRole{
                 if userGroupRole[y]["group"] == x && userGroupRole[y]["user"] == anode["id"] { 
                     err = ndb.DeleteUserGroupRole(y)
+                    if err != nil{logs.Error("master/DeleteUserGroup Error deleting a role: "+err.Error()); return err}
                 }
             }
         }        
@@ -820,8 +816,8 @@ func DeleteUserGroup(anode map[string]string) (err error) {
     return nil
 }
 
+//edit roles for role management
 func EditRole(anode map[string]string) (err error) {
-    logs.Notice(anode)
     //update name
     err = ndb.UpdateUserRole(anode["id"], "role", anode["role"])
     if err != nil{logs.Error("master/EditRole Error updating role name: "+err.Error()); return err}
@@ -832,14 +828,11 @@ func EditRole(anode map[string]string) (err error) {
     return err
 }
 
+//edit groups for group management
 func EditUserGroup(anode map[string]string) (err error) {
-    logs.Notice(anode)
     //update name
     err = ndb.UpdateUserGroup(anode["id"], "group", anode["group"])
     if err != nil{logs.Error("master/EditUserGroup Error updating group name: "+err.Error()); return err}
-    //update permissions
-    // err = ndb.UpdateUserGroup(anode["id"], "permissions", anode["permissions"])
-    // if err != nil{logs.Error("master/EditUserGroup Error updating group permissions: "+err.Error()); return err}
 
     return err
 }
@@ -860,11 +853,9 @@ func GetAllUserGroups() (data map[string]map[string]string, err error) {
             for x := range allElements{
             if allElements[x]["group"] != "" && allElements[x]["group"] == y {
                 if allElements[x]["user"] != ""{
-                    logs.Notice(allUsers[allElements[x]["user"]]["user"])
                     groupUsers = append(groupUsers, allUsers[allElements[x]["user"]]["user"])  
                 }
                 if allElements[x]["role"] != ""{
-                    logs.Warn(allRoles[allElements[x]["role"]]["role"])
                     groupRoles = append(groupRoles, allRoles[allElements[x]["role"]]["role"])  
                 }
             }

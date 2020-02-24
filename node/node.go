@@ -1262,6 +1262,102 @@ func SyncUsersToNode()(){
     }
 }
 
+func SyncRolesToNode()(){
+    for {                 
+        masterID,err := ndb.LoadMasterID()
+        if err != nil{logs.Error("node/SyncRolesToNode Error getting master ID: "+err.Error())}    
+        //get all roles
+        roles,err:= ndb.GetUserRoles()
+        if err != nil{logs.Error("node/SyncRolesToNode Error getting roles: "+err.Error())}    
+        roleValues := make(map[string]map[string]string)
+        for role := range roles {
+            roleValues[role] = map[string]string{}
+            roleValues[role]["masterID"] = masterID
+            roleValues[role]["role"] = roles[role]["role"]
+            roleValues[role]["permissions"] = roles[role]["permissions"]
+            roleValues[role]["type"] = "master"
+            roleValues[role]["status"] = "exists"
+        }
+
+        nodes,err:= ndb.GetAllNodes()
+        if err != nil{logs.Error("node/SyncRolesToNode Error getting allNodes: "+err.Error())}    
+        for id := range nodes {
+            ipnid,portnid,err := ndb.ObtainPortIp(id)
+            if err != nil{logs.Error("node/SyncRolesToNode Error getting Node ip and port: "+err.Error())}  
+
+            err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncRolesToNode Error loading node token: %s",err)}  
+            err = nodeclient.SyncRolesToNode(ipnid,portnid,roleValues)
+            if err != nil{logs.Error("node/SyncRolesToNode Error: "+err.Error())}    
+        }
+        logs.Info("Roles synchronized to nodes")
+        time.Sleep(time.Minute*10)
+    }
+}
+
+func SyncGroupsToNode()(){
+    for {                 
+        masterID,err := ndb.LoadMasterID()
+        if err != nil{logs.Error("node/SyncGroupsToNode Error getting master ID: "+err.Error())}    
+        //get all groups
+        groups,err:= ndb.GetUserGroups()
+        if err != nil{logs.Error("node/SyncGroupsToNode Error getting groups: "+err.Error())}    
+        groupValues := make(map[string]map[string]string)
+        for group := range groups {
+            groupValues[group] = map[string]string{}
+            groupValues[group]["masterID"] = masterID
+            groupValues[group]["group"] = groups[group]["group"]
+            groupValues[group]["type"] = "master"
+            groupValues[group]["status"] = "exists"
+        }
+
+        nodes,err:= ndb.GetAllNodes()
+        if err != nil{logs.Error("node/SyncGroupsToNode Error getting allNodes: "+err.Error())}    
+        for id := range nodes {
+            ipnid,portnid,err := ndb.ObtainPortIp(id)
+            if err != nil{logs.Error("node/SyncGroupsToNode Error getting Node ip and port: "+err.Error())}  
+
+            err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncGroupsToNode Error loading node token: %s",err)}  
+            err = nodeclient.SyncGroupsToNode(ipnid,portnid,groupValues)
+            if err != nil{logs.Error("node/SyncGroupsToNode Error: "+err.Error())}    
+        }
+        logs.Info("groups synchronized to nodes")
+        time.Sleep(time.Minute*10)
+    }
+}
+
+func SyncUserGroupRolesToNode()(){
+    for {                 
+        masterID,err := ndb.LoadMasterID()
+        if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error getting master ID: "+err.Error())}    
+        //get all ugr
+        ugr,err:= ndb.GetUserGroupRoles()
+        if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error getting groups: "+err.Error())}    
+        ugrValues := make(map[string]map[string]string)
+        for id := range ugr {
+            ugrValues[id] = map[string]string{}
+            ugrValues[id]["masterID"] = masterID
+            ugrValues[id]["type"] = "master"
+            ugrValues[id]["status"] = "exists"
+            if ugr[id]["user"] != "" { ugrValues[id]["user"] = ugr[id]["user"] }
+            if ugr[id]["group"] != "" { ugrValues[id]["group"] = ugr[id]["group"] }
+            if ugr[id]["role"] != "" { ugrValues[id]["role"] = ugr[id]["role"] }
+        }
+
+        nodes,err:= ndb.GetAllNodes()
+        if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error getting allNodes: "+err.Error())}    
+        for id := range nodes {
+            ipnid,portnid,err := ndb.ObtainPortIp(id)
+            if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error getting Node ip and port: "+err.Error())}  
+
+            err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncUserGroupRolesToNode Error loading node token: %s",err)}  
+            err = nodeclient.SyncUserGroupRolesToNode(ipnid,portnid,ugrValues)
+            if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error: "+err.Error())}    
+        }
+        logs.Info("userGroupValues synchronized to nodes")
+        time.Sleep(time.Minute*10)
+    }
+}
+
 func ChangeRotationStatus(anode map[string]string)(err error){
     //get node data by uuid
     if ndb.Db == nil { logs.Error("node/ChangeRotationStatus -- Can't acces to database"); return err}

@@ -54,7 +54,7 @@ func main() {
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.12.0.20200221")
+    logs.Info("Version OwlH Master: 0.12.0.20200224")
 
     //operative system values
     data:=OperativeSystemValues()
@@ -89,6 +89,9 @@ func main() {
     go search.Init()
     //Synchronize users to every node
     go node.SyncUsersToNode()
+    go node.SyncRolesToNode()
+    go node.SyncGroupsToNode()
+    go node.SyncUserGroupRolesToNode()
 
     //Beego API documentation
     if beego.BConfig.RunMode == "dev" {

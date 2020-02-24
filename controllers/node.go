@@ -703,7 +703,7 @@ func (n *NodeController) DeletePorts() {
 // @Description delete all ports from knownports
 // @Success 200 {object} models.Node
 // @Failure 403 :uuid is empty
-// @router /ports/deleteAll/:uuid [put]
+// @router /ports/deleteAll/:uuid [delete]
 func (n *NodeController) DeleteAllPorts() {
     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
