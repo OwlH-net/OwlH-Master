@@ -484,13 +484,22 @@ func Login(data map[string]string)(newToken string, err error){
     //check values
     for x := range users{
         if users[x]["user"] == data["user"]{
-            check, err := validation.CheckPasswordHash(data["password"], users[x]["pass"])
-            if err != nil{return "", err}
-            if check{
-                // userExists = true
-                token, err := validation.Encode(x, data["user"], users[x]["secret"])
+            if users[x]["ldap"] == "enabled" {
+                check, err := validation.CheckLdap(data["password"], users[x]["pass"])
                 if err != nil {return "",err}
-                return token,nil
+                if check{
+                    token, err := validation.Encode(x, data["user"], users[x]["secret"])
+                    if err != nil {return "",err}
+                    return token,nil
+                }
+            }else{
+                check, err := validation.CheckPasswordHash(data["password"], users[x]["pass"])
+                if err != nil {return "",err}
+                if check{
+                    token, err := validation.Encode(x, data["user"], users[x]["secret"])
+                    if err != nil {return "",err}
+                    return token,nil
+                }
             }
         }
     }
@@ -520,6 +529,8 @@ func AddUser(data map[string]string)(err error){
     if err != nil{logs.Error("master/AddUser Error inserting pass into db: "+err.Error()); return err}    
     err = ndb.InsertUser(uuid, "secret", secret)
     if err != nil{logs.Error("master/AddUser Error inserting secret into db: "+err.Error()); return err}
+    err = ndb.InsertUser(uuid, "ldap", data["ldap"])
+    if err != nil{logs.Error("master/AddUser Error inserting ldap into db: "+err.Error()); return err}
     
     return nil
 }

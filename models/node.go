@@ -23,6 +23,8 @@ func GetAllNodes() (anode map[string]map[string]string, err error) {
 //     "name": "v",
 //     "port": "v",
 //     "ip": "v"
+//     "nodeuser": "admin"
+//     "nodepass": "admin"
 // }
 func AddNode(n map[string]string) (err error) {
     err = node.AddNode(n)
@@ -211,14 +213,14 @@ func SyncRulesetToNode(anode map[string]string)(err error){
     return err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/node/deploy/:nid  \
+// // curl -X GET \
+// //   https://52.47.197.22:50002/v1/node/deploy/:nid  \
+// // }
+// func DeployZeek(uuid string)(err error){
+//     err = node.DeployZeek(uuid)
+//     changecontrol.ChangeControlInsertData(err, "Deploy Zeek")
+//     return err
 // }
-func DeployZeek(uuid string)(err error){
-    err = node.DeployZeek(uuid)
-    changecontrol.ChangeControlInsertData(err, "Deploy Zeek")
-    return err
-}
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/node/ports/:nid \

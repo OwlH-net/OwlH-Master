@@ -63,25 +63,25 @@ func StopZeek(uuid string)(data string, err error){
     return data,nil
 }
 
-func DeployZeek(uuid string)(err error){
-    if ndb.Db == nil {
-        logs.Error("DeployZeek -- Can't acces to database")
-        return errors.New("DeployZeek -- Can't acces to database")
-    }
+// func DeployZeek(uuid string)(err error){
+//     if ndb.Db == nil {
+//         logs.Error("DeployZeek -- Can't acces to database")
+//         return errors.New("DeployZeek -- Can't acces to database")
+//     }
     
-    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("Error loading node token: %s",err); return err}
-    ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-    if err != nil {
-        logs.Error("node/DeployZeek ERROR Obtaining Port and Ip: "+err.Error())
-        return err
-    }
-    err = nodeclient.DeployZeek(ipnid,portnid)
-    if err != nil {
-        logs.Error("node/DeployZeek ERROR http data request: "+err.Error())
-        return err
-    }
-    return nil
-}
+//     err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("Error loading node token: %s",err); return err}
+//     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
+//     if err != nil {
+//         logs.Error("node/DeployZeek ERROR Obtaining Port and Ip: "+err.Error())
+//         return err
+//     }
+//     err = nodeclient.DeployZeek(ipnid,portnid)
+//     if err != nil {
+//         logs.Error("node/DeployZeek ERROR http data request: "+err.Error())
+//         return err
+//     }
+//     return nil
+// }
 
 func ChangeZeekMode(anode map[string]string)(err error){
     if ndb.Db == nil { logs.Error("ChangeZeekMode -- Can't acces to database"); return err}

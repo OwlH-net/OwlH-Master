@@ -41,10 +41,12 @@ type NodeController struct {
 // @Failure 403 body is empty
 // @router / [post]
 func (n *NodeController) CreateNode() {
-    // permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
-    // if err != nil {
-    //     n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    // }else{
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
         var anode map[string]interface{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         n.Data["json"] = map[string]string{"ack": "true"}
@@ -68,7 +70,7 @@ func (n *NodeController) CreateNode() {
                 n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
             }
         }
-    // }
+    }
     
     n.ServeJSON()
 }
@@ -594,31 +596,31 @@ func (n *NodeController) StopWazuh() {
     n.ServeJSON()
 }
 
-// @Title DeployZeek
-// @Description Get Pong from Node
-// @Success 200 {object} models.Node
-// @Failure 403 :nid is empty
-// @router /deploy/:nid [get]
-// @router /:nid/deploy [get]
-func (n *NodeController) DeployZeek() {
-    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
-    }else if !permissions{
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{
-        nid := n.GetString(":nid")
-        n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
-        if nid != "" {
-            err := models.DeployZeek(nid)
-            n.Data["json"] = map[string]string{"ping": "pong", "nid": nid}
-            if err != nil {
-                n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
-            }
-        }
-    }
-    n.ServeJSON()
-}
+// // @Title DeployZeek
+// // @Description Get Pong from Node
+// // @Success 200 {object} models.Node
+// // @Failure 403 :nid is empty
+// // @router /deploy/:nid [get]
+// // @router /:nid/deploy [get]
+// func (n *NodeController) DeployZeek() {
+//     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+//     }else if !permissions{
+//         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+//     }else{
+//         nid := n.GetString(":nid")
+//         n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
+//         if nid != "" {
+//             err := models.DeployZeek(nid)
+//             n.Data["json"] = map[string]string{"ping": "pong", "nid": nid}
+//             if err != nil {
+//                 n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
+//             }
+//         }
+//     }
+//     n.ServeJSON()
+// }
 
 // @Title PingPorts
 // @Description Get Ping from ports
