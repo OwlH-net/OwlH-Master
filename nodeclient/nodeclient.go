@@ -63,20 +63,24 @@ func PingNode(ip string, port string) (nodeResp map[string]string, err error) {
         logs.Error("nodeClient/PingNode ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
-    
+
     body, err := ioutil.ReadAll(resp.Body)
     defer resp.Body.Close()
     if err != nil { logs.Error("nodeclient/PingNode ERROR reading request data: "+err.Error()); return nil,err}
-    
+
     returnValues := make(map[string]string)
     err = json.Unmarshal(body, &returnValues)
     if err != nil { logs.Error("nodeclient/PingNode ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
-        
-    //check for node permissions
-    if returnValues["permissions"] == "none" {
-        return nil, errors.New("utils/CheckHttpResponse permissions ERROR")
-    }
     
+    // if returnValues["nodeToken"] == "none"{
+    //     logs.Error("nodeclient/PingNode ERROR from node: "+returnValues["error"])
+    //     values := make(map[string]string)
+    //     values["nodeToken"] = "none"
+    //     values["error"] = "nodeclient/PingNode Node token ERROR: "+values["error"]
+    //     values["ack"] = "false"
+    //     return values,nil
+    // }
+
     return returnValues,nil
 }
 
@@ -84,19 +88,11 @@ func UpdateNodeData(ipData string, portData string, loadFile map[string]map[stri
     url := "https://"+ipData+":"+portData+"/node/ping/updateNode"
     valuesJSON,err := json.Marshal(loadFile)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/UpdateNodeData ERROR connection through http new Request: "+err.Error()); return err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/UpdateNodeData ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
+    defer resp.Body.Close()
     return nil
 }
 
@@ -104,22 +100,21 @@ func Suricata(ip string, port string) (data map[string]bool, err error ) {
     logs.Info("NodeClient suricata status -> %s, %s", ip, port)
     url := "https://"+ip+":"+port+"/node/suricata"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeClient/Suricata ERROR connection through http new Request: "+err.Error()); return nil,err}
-  
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeClient/Suricata ERROR connection through http new Request: "+err.Error())
+        return nil,err
     }
-
+      defer resp.Body.Close()
+    logs.Info("response Status:", resp.Status)
+    logs.Info("response Headers:", resp.Header)
+    body, _ := ioutil.ReadAll(resp.Body)
+    
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("nodeClient/Suricata -- ERROR JSON unmarshal: "+err.Error()); return nil,err}
+    if err != nil {
+        logs.Error("nodeClient/Suricata -- ERROR JSON unmarshal: "+err.Error())
+        return nil,err
+    }
     return data,nil
 }
 
@@ -127,23 +122,21 @@ func Zeek(ip string, port string) (data ZeekData, err error ) {
     logs.Info("NodeClient zeek status -> %s, %s", ip, port)
     url := "https://"+ip+":"+port+"/node/zeek"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeClient/Zeek ERROR connection through http new Request: "+err.Error()); return data,err}
+    if err != nil {
+        logs.Error("nodeClient/Zeek ERROR connection through http new Request: "+err.Error())
+        return data,err
+    }
+    logs.Info("response Status:", resp.Status)
+    logs.Info("response Headers:", resp.Header)
+    body, _ := ioutil.ReadAll(resp.Body)
     
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return data, errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return data, errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return data, errors.New("CheckHttpResponse permissions ERROR")
-    }  
-
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("nodeClient/Zeek -- ERROR JSON unmarshal: "+err.Error()); return data,err}
-
+    if err != nil {
+        logs.Error("nodeClient/Zeek -- ERROR JSON unmarshal: "+err.Error())
+        return data,err
+    }
+    defer resp.Body.Close()
     return data,nil
 }
 
@@ -151,23 +144,20 @@ func Wazuh(ip string, port string) (data map[string]bool, err error ) {
     logs.Info("NodeClient wazuh status -> %s, %s", ip, port)
     url := "https://"+ip+":"+port+"/node/wazuh"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeClient/Wazuh ERROR connection through http new Request: "+err.Error()); return nil,err}
-    
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
-    }  
+    if err != nil {
+        logs.Error("nodeClient/Wazuh ERROR connection through http new Request: "+err.Error())
+        return nil,err
+    }
+    logs.Info("response Status:", resp.Status)
+    logs.Info("response Headers:", resp.Header)
+    body, _ := ioutil.ReadAll(resp.Body)
     
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
-    if err != nil {return nil,err}
-
+    if err != nil {
+        return nil,err
+    }
+    defer resp.Body.Close()
     return data,nil
 }
 
@@ -175,45 +165,45 @@ func Stap(ip string, port string, uuid string) (data map[string]bool, err error 
     logs.Info("NodeClient Stap status -> %s, %s", ip, port)
     url := "https://"+ip+":"+port+"/node/stap/ping/"+uuid
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeClient/Stap ERROR connection through http new Request: "+err.Error()); return nil,err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
-    }  
+    if err != nil {
+        logs.Error("nodeClient/Stap ERROR connection through http new Request: "+err.Error())
+        return nil,err
+    }
+    logs.Info("response Status:", resp.Status)
+    logs.Info("response Headers:", resp.Header)
+    body, _ := ioutil.ReadAll(resp.Body)
+    
+    // data[status ] = resp.status
+    // data[data] = restp.body 
      
     //Convert []byte to map[string]bool
     err = json.Unmarshal(body, &data)
-    if err != nil {return nil,err}
-
+    if err != nil {
+        return nil,err
+    }
+    defer resp.Body.Close()
     return data,nil
 }
 
 func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]string, err error){
     url := "https://"+ipData+":"+portData+"/node/file"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error());return nil,err}
+    if err != nil {
+        logs.Error("node/GetAllFiles ERROR connection through http new Request: "+err.Error())
+        return nil,err
+    }
     
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
-    }  
+    logs.Info("GetAllFiles response Status:", resp.Status)
+    logs.Info("GetAllFiles response Headers:", resp.Header)
+    responseData, err := ioutil.ReadAll(resp.Body)
+    logs.Info("GetAllFiles response Body:", responseData)
     
-    json.Unmarshal(body, &rData)
+    json.Unmarshal(responseData, &rData)
+    logs.Info("rData Response: ")
+    logs.Info(rData)
     rData["nodeUUID"] = uuid
     
+    defer resp.Body.Close()
     return rData,nil;
 }
 
@@ -231,9 +221,6 @@ func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
     nodeResponse := make(map[string]string)
     err = json.Unmarshal(body, &nodeResponse)
     if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if nodeResponse["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
-    }
     if nodeResponse["ack"] == "false" {
         return errors.New(nodeResponse["error"])
     }
@@ -245,19 +232,11 @@ func SetNodeFile(ipData string, portData string, loadFile map[string]string)(err
     url := "https://"+ipData+":"+portData+"/node/file"
     valuesJSON,err := json.Marshal(loadFile)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/SetNodeFile ERROR connection through http new Request: "+err.Error()); return err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/SetNodeFile ERROR connection through http new Request: "+err.Error())
+        return err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
-    }  
-    
     return nil
 }
 
@@ -265,19 +244,11 @@ func GetNodeFile(ipData string, portData string, loadFile map[string]string)(rDa
     url := "https://"+ipData+":"+portData+"/node/file/"+loadFile["file"]
     resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {logs.Error("nodeclient/GetNodeFile ERROR connection through http new Request: "+err.Error()); return nil, err}
+    responseData, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/GetNodeFile ERROR reading file: "+err.Error()); return nil, err}
 
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
-    }  
-
-    json.Unmarshal(body, &rData)
+    json.Unmarshal(responseData, &rData)
     if rData["ack"] == "false"{
         return nil, errors.New("GetNodeFile Error getting node file: "+rData["error"])
     }
@@ -292,17 +263,7 @@ func PutSuricataBPF(ipnid string, portnid string, anode map[string]string)(err e
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
     if err != nil {logs.Error("nodeclient/PutSuricataBPF ERROR connection through http new Request: "+err.Error()); return err}
 
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
-    }  
-    
     return  nil
 }
 
@@ -326,284 +287,255 @@ func PutSuricataBPF(ipnid string, portnid string, anode map[string]string)(err e
 func RunSuricata(ipnid string, portnid string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/suricata/RunSuricata"
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/RunSuricata ERROR connection through http new Request: "+err.Error()); return "", err}
+    if err != nil {
+        logs.Error("nodeclient/RunSuricata ERROR connection through http new Request: "+err.Error())
+        return "", err
+    }
     
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/RunSuricata ERROR reading request data: "+err.Error())
+        return "",err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
-    }  
-
     return string(body),nil
 }
 
 func StopSuricata(ipnid string, portnid string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/suricata/StopSuricata"
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/StopSuricata ERROR connection through http new Request: "+err.Error()); return "", err}
+    if err != nil {
+        logs.Error("nodeclient/StopSuricata ERROR connection through http new Request: "+err.Error())
+        return "", err
+    }
     
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/StopSuricata ERROR reading request data: "+err.Error())
+        return "",err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
-    }  
-    
     return string(body),nil
 }
 
 func RunWazuh(ipnid string, portnid string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/wazuh/RunWazuh"
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/RunWazuh ERROR connection through http new Request: "+err.Error()); return "", err}
+    if err != nil {
+        logs.Error("nodeclient/RunWazuh ERROR connection through http new Request: "+err.Error())
+        return "", err
+    }
     
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/RunWazuh ERROR reading request data: "+err.Error())
+        return "",err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
-    }  
-    
     return string(body),nil
 }
 
 func StopWazuh(ipnid string, portnid string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/wazuh/StopWazuh"
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/RunWazuh ERROR connection through http new Request: "+err.Error()); return "", err}
+    if err != nil {
+        logs.Error("nodeclient/RunWazuh ERROR connection through http new Request: "+err.Error())
+        return "", err
+    }
     
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/RunWazuh ERROR reading request data: "+err.Error())
+        return "",err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
-    }  
-    
     return string(body),nil
 }
 
 func RunZeek(ipnid string, portnid string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/zeek/RunZeek"
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/RunZeek ERROR connection through http new Request: "+err.Error()); return "", err}
+    if err != nil {
+        logs.Error("nodeclient/RunZeek ERROR connection through http new Request: "+err.Error())
+        return "", err
+    }
     
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/RunZeek ERROR reading request data: "+err.Error())
+        return "",err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
-    }  
-    
     return string(body),nil
 }
 
 func StopZeek(ipnid string, portnid string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/zeek/StopZeek"
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/StopZeek ERROR connection through http new Request: "+err.Error()); return "", err}
+    if err != nil {
+        logs.Error("nodeclient/StopZeek ERROR connection through http new Request: "+err.Error())
+        return "", err
+    }
     
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/StopZeek ERROR reading request data: "+err.Error())
+        return "",err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
-    }  
-    
     return string(body),nil
 }
 
 func AddServer(ipuuid string,portuuid string, data map[string]string )(err error){
     url := "https://"+ipuuid+":"+portuuid+"/node/stap/"
     valuesJSON,err := json.Marshal(data)
-    if err != nil {logs.Error("nodeclient/AddServer Error Marshal new JSON data: "+err.Error()); return err}
+    if err != nil {
+        logs.Error("nodeclient/AddServer Error Marshal new JSON data: "+err.Error())
+        return err
+    }
     resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/AddServer ERROR on the new HTTP request response: "+err.Error()); return err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/AddServer ERROR on the new HTTP request response: "+err.Error())
+        return err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
-    }  
-
     return nil
 }
 
 func GetAllServers(ipuuid string,portuuid string)(data map[string]map[string]string, err error){
     url := "https://"+ipuuid+":"+portuuid+"/node/stap/"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("GetAllServers ERROR on the new HTTP request response: "+err.Error()); return nil,err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("GetAllServers ERROR on the new HTTP request response: "+err.Error())
+        return nil,err
+    }
+    responseData, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        logs.Error("GetAllServers ERROR reading requested data: "+err.Error())
+        return nil,err
+    }
+    json.Unmarshal(responseData, &data)
     defer resp.Body.Close()
-
-    err = json.Unmarshal(body, &data)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if data["node"]["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
-    }  
-
     return data,nil
 }
 
 func GetServer(ipuuid string,portuuid string, serveruuid string)(data map[string]map[string]string, err error){
     url := "https://"+ipuuid+":"+portuuid+"/node/stap/server/"+serveruuid
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("GetServer ERROR on the new HTTP request response: "+err.Error()); return nil,err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("GetServer ERROR on the new HTTP request response: "+err.Error())
+        return nil,err
+    }
+    responseData, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        logs.Error("GetServer ERROR reading requested data: "+err.Error())
+        return nil,err
+    }
+    json.Unmarshal(responseData, &data)
     defer resp.Body.Close()
-
-    err = json.Unmarshal(body, &data)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if data["node"]["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
-    }  
-
     return data,nil
 }
 
 func RunStap(ipnid string, portnid string, uuid string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/stap/RunStap/"+uuid
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/RunStap ERROR connection through http new Request: "+err.Error()); return "", err}
+    if err != nil {
+        logs.Error("nodeclient/RunStap ERROR connection through http new Request: "+err.Error())
+        return "", err
+    }
     
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/RunStap ERROR reading request data: "+err.Error())
+        return "",err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
-    }  
-
     return string(body),nil
 }
 
 func StopStap(ipnid string, portnid string, uuid string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/stap/StopStap/"+uuid
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/StopStap ERROR connection through http new Request: "+err.Error()); return "", err}
+    if err != nil {
+        logs.Error("nodeclient/StopStap ERROR connection through http new Request: "+err.Error())
+        return "", err
+    }
     
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
+    if err != nil {
+        logs.Error("nodeclient/StopStap ERROR reading request data: "+err.Error())
+        return "",err
+    }
     defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
-    }  
-    
     return string(body),nil
 }
 
 func RunStapServer(ipnid string, portnid string, server string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/stap/RunStapServer/"+server
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/RunStapServer ERROR connection through http new Request: "+err.Error()); return "", err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/RunStapServer ERROR connection through http new Request: "+err.Error())
+        return "", err
     }
-
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        logs.Error("nodeclient/RunStapServer ERROR reading request data: "+err.Error())
+        return "",err
+    }
+    defer resp.Body.Close()
     return string(body),nil
 }
 
 func StopStapServer(ipnid string, portnid string, server string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/stap/StopStapServer/"+server
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/StopStapServer ERROR connection through http new Request: "+err.Error()); return "", err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/StopStapServer ERROR connection through http new Request: "+err.Error())
+        return "", err
     }
-
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        logs.Error("nodeclient/StopStapServer ERROR reading request data: "+err.Error())
+        return "",err
+    }
+    defer resp.Body.Close()
     return string(body),nil
 }
 
 func DeleteStapServer(ipnid string, portnid string, server string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/stap/DeleteStapServer/"+server
     resp,err := utils.NewRequestHTTP("PUT", url, nil)
-    if err != nil {logs.Error("nodeclient/DeleteStapServer ERROR connection through http new Request: "+err.Error()); return "", err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "", errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return "", errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/DeleteStapServer ERROR connection through http new Request: "+err.Error())
+        return "", err
     }
-
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        logs.Error("nodeclient/DeleteStapServer ERROR reading request data: "+err.Error())
+        return "",err
+    }
+    defer resp.Body.Close()
     return string(body),nil
 }
 
 func PingServerStap(ipnid string, portnid string, server string)(data map[string]string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/stap/PingServerStap/"+server
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/PingServerStap ERROR connection through http new Request: "+err.Error()); return nil, err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    err = json.Unmarshal(body, &data)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if data["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/PingServerStap ERROR connection through http new Request: "+err.Error())
+        return nil, err
     }
-
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        logs.Error("nodeclient/PingServerStap ERROR reading request data: "+err.Error())
+        return nil,err
+    }
+    err = json.Unmarshal(body, &data)
+    if err != nil {
+        logs.Error("PingServerStap ERROR doing unmarshal JSON: "+err.Error())
+        return nil,err
+    }
+    defer resp.Body.Close()
     return data,nil
 }
 
@@ -611,111 +543,86 @@ func EditStapServer(ip string, port string, data map[string]string)(err error){
     url := "https://"+ip+":"+port+"/node/stap/EditStapServer"
     valuesJSON,err := json.Marshal(data)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("EditStapServer ERROR on the new HTTP request response: "+err.Error()); return err}
-    
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("EditStapServer ERROR on the new HTTP request response: "+err.Error())
+        return err
     }
-    
+    defer resp.Body.Close()
     return nil
 }
 
 func PlayCollector(ipnid string, portnid string)(err error){
     url := "https://"+ipnid+":"+portnid+"/node/collector/play"
-    resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/playCollector ERROR connection through http new Request: "+err.Error()); return err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    _,err = utils.NewRequestHTTP("GET", url, nil)
+    if err != nil {
+        logs.Error("nodeclient/playCollector ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
     return nil
 }
 func StopCollector(ipnid string, portnid string)(err error){
     url := "https://"+ipnid+":"+portnid+"/node/collector/stop"
-    resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/StopCollector ERROR connection through http new Request: "+err.Error()); return err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    _,err = utils.NewRequestHTTP("GET", url, nil)
+    if err != nil {
+        logs.Error("nodeclient/StopCollector ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
     return nil
 }
-
-func ShowCollector(ipnid string, portnid string)(val string, err error){
+func ShowCollector(ipnid string, portnid string)(data string, err error){
     url := "https://"+ipnid+":"+portnid+"/node/collector/show"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/ShowCollector ERROR connection through http new Request: "+err.Error()); return "",err}
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return "",errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    data := make(map[string]string)
-    err = json.Unmarshal(body, &data)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return "",errors.New("CheckHttpResponse ERROR reading request data")}
-    if data["permissions"] == "none" {
-        return "",errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/ShowCollector ERROR connection through http new Request: "+err.Error())
+        return "",err
     }
+    body, err := ioutil.ReadAll(resp.Body)
 
-    return data["data"],nil
+    if err != nil {
+        logs.Error("nodeclient/ShowCollector ERROR reading request data: "+err.Error())
+        return "",err
+    }
+    err = json.Unmarshal(body, &data)
+    if err != nil {
+        logs.Error("ShowCollector ERROR doing unmarshal JSON: "+err.Error())
+        return "",err
+    }
+    defer resp.Body.Close()
+    return data,nil
 }
 
-// func DeployZeek(ipnid string, portnid string)(err error){
-//     url := "https://"+ipnid+":"+portnid+"/node/zeek/DeployZeek"
-//     resp,err := utils.NewRequestHTTP("GET", url, nil)
-//     if err != nil {logs.Error("nodeclient/DeployZeek ERROR connection through http new Request: "+err.Error()); return err}
+func DeployZeek(ipnid string, portnid string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/zeek/DeployZeek"
+    resp,err := utils.NewRequestHTTP("GET", url, nil)
+    if err != nil {
+        logs.Error("nodeclient/DeployZeek ERROR connection through http new Request: "+err.Error())
+        return err
+    }
 
-//     body, err := ioutil.ReadAll(resp.Body)
-//     if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-//     defer resp.Body.Close()
-
-//     mapData := make(map[string]map[string]string)
-//     err = json.Unmarshal(body, &mapData)
-//     if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-//     if mapData["node"]["permissions"] == "none" {
-//         return errors.New("CheckHttpResponse permissions ERROR")
-//     }
-
-//     return nil
-// }
+    defer resp.Body.Close()
+    return nil
+}
 
 func ShowPorts(ipnid string, portnid string)(data map[string]map[string]string ,err error){
     url := "https://"+ipnid+":"+portnid+"/node/ports/"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/ShowPorts ERROR connection through http new Request: "+err.Error()); return data,err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    err = json.Unmarshal(body, &data)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if data["node"]["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/ShowPorts ERROR connection through http new Request: "+err.Error())
+        return data,err
     }
 
+    body, err := ioutil.ReadAll(resp.Body)
+
+    if err != nil {
+        logs.Error("nodeclient/ShowPorts ERROR reading request data: "+err.Error())
+        return data,err
+    }
+    err = json.Unmarshal(body, &data)
+    if err != nil {
+        logs.Error("ShowPorts ERROR doing unmarshal JSON: "+err.Error())
+        return data,err
+    }
+    defer resp.Body.Close()
     return data,nil
 }
 
@@ -723,15 +630,17 @@ func PingPluginsNode(ipnid string, portnid string)(data map[string]map[string]st
     url := "https://"+ipnid+":"+portnid+"/node/ping/PingPluginsNode/"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {logs.Error("nodeclient/PingPluginsNode ERROR connection through http new Request: "+err.Error()); return data,err}
-    
+
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
     defer resp.Body.Close()
+    if err != nil {logs.Error("nodeclient/PingPluginsNode ERROR reading request data: "+err.Error()); return data,err}
+
+    errorMap := make(map[string]string)
+    _ = json.Unmarshal(body, &errorMap)
+    if errorMap["ack"] == "false"{ logs.Error("nodeclient/PingPluginsNode ERROR: "+err.Error()); return nil,errors.New(errorMap["error"])}
+    
     err = json.Unmarshal(body, &data)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return nil, errors.New("CheckHttpResponse ERROR reading request data")}
-    if data["node"]["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
-    }
+    if err != nil {logs.Error("nodeclient/PingPluginsNode ERROR doing unmarshal JSON: "+err.Error())}
 
     return data,nil
 }
@@ -742,35 +651,24 @@ func ChangeMode(ipnid string, portnid string, mode string)(err error){
     values["mode"] = mode
     valuesJSON,err := json.Marshal(values)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/ChangeMode ERROR connection through http new Request: "+err.Error()); return err}
-    
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("CheckHttpResponse ERROR reading request data: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    defer resp.Body.Close()
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("CheckHttpResponse ERROR doing unmarshal JSON: "+err.Error()); return errors.New("CheckHttpResponse ERROR reading request data")}
-    if mapData["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/ChangeMode ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
+    defer resp.Body.Close()
     return nil
 }
 
 func PingPorts(ipnid string, portnid string)(data map[string]map[string]string ,err error){
     url := "https://"+ipnid+":"+portnid+"/node/ports/PingPorts/"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR connection through http new Request: "+err.Error());return nil,err}
+    if err != nil {logs.Error("nodeclient/PingPorts ERROR connection through http new Request: "+err.Error());return data,err}
 
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return nil,err}
+    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return data,err}
     err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
-    if data["node"]["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
-    }
-
+    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return data,err}
+    
     defer resp.Body.Close()
     return data,nil
 }
@@ -781,17 +679,11 @@ func ChangeStatus(ipnid string, portnid string, status string)(err error){
     values["status"] = status
     valuesJSON,err := json.Marshal(values)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/ChangeStatus ERROR connection through http new Request: "+err.Error()); return err}
-
-    data := make(map[string]string)
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if data["permissions"] == "none" {
-        return  errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/ChangeStatus ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
+    defer resp.Body.Close()
     return nil
 }
 
@@ -800,34 +692,22 @@ func DeletePorts(ipnid string, portnid string, ports map[string]string)(err erro
  
     valuesJSON,err := json.Marshal(ports)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/DeletePorts ERROR connection through http new Request: "+err.Error()); return err}
-
-    data := make(map[string]string)
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if data["permissions"] == "none" {
-        return  errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/DeletePorts ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
+    defer resp.Body.Close()
     return nil
 }
 
 func DeleteAllPorts(ipnid string, portnid string)(err error){
     url := "https://"+ipnid+":"+portnid+"/node/ports/deleteAll"
-    resp,err := utils.NewRequestHTTP("DELETE", url, nil)
-    if err != nil {logs.Error("nodeclient/DeleteAllPorts ERROR connection through http new Request: "+err.Error()); return err}
-    
-    data := make(map[string]string)
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if data["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    resp,err := utils.NewRequestHTTP("PUT", url, nil)
+    if err != nil {
+        logs.Error("nodeclient/DeleteAllPorts ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
+    defer resp.Body.Close()
     return nil
 }
 
@@ -837,13 +717,10 @@ func PingAnalyzer(ipnid string, portnid string)(data map[string]string ,err erro
     if err != nil {logs.Error("nodeclient/PingAnalyzer ERROR connection through http new Request: "+err.Error()); return data,err}
 
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil { logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error()); return nil,err}
+    if err != nil { logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error()); return data,err}
 
     err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
-    if data["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
-    }
+    if err != nil {logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error()); return data,err}
 
     defer resp.Body.Close()
     return data,nil
@@ -853,17 +730,11 @@ func ChangeAnalyzerStatus(ipnid string, portnid string, anode map[string]string)
     url := "https://"+ipnid+":"+portnid+"/node/analyzer/changeAnalyzerStatus/"
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/ChangeAnalyzerStatus ERROR connection through http new Request: "+err.Error()); return err}
-    
-    data := make(map[string]string)
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if data["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/ChangeAnalyzerStatus ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
+    defer resp.Body.Close()
     return nil
 }
 
@@ -871,32 +742,34 @@ func DeployNode(ipData string, portData string, anode map[string]string)(err err
     url := "https://"+ipData+":"+portData+"/node/deploy"
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/Deploy ERROR connection through http new Request: "+err.Error()); return err}
-    
-    data := make(map[string]string)
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if data["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/Deploy ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
+    defer resp.Body.Close()
     return nil
 }
 
 func CheckDeploy(ipData string, portData string)(data map[string]string){
     url := "https://"+ipData+":"+portData+"/node/deploy"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/CheckDeploy ERROR connection through http new Request: "+err.Error()); return nil}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return nil}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return nil}
-    if data["permissions"] == "none" {
+    if err != nil {
+        logs.Error("nodeclient/CheckDeploy ERROR connection through http new Request: "+err.Error())
         return nil
     }
+    body, err := ioutil.ReadAll(resp.Body)
+
+    if err != nil {
+        logs.Error("nodeclient/PingAnalyzer ERROR reading request data: "+err.Error())
+        return nil
+    }
+    err = json.Unmarshal(body, &data)
+    if err != nil {
+        logs.Error("PingAnalyzer ERROR doing unmarshal JSON: "+err.Error())
+        return nil
+    }
+    
+    defer resp.Body.Close()
     return data
 }
 
@@ -904,17 +777,11 @@ func ChangeDataflowValues(ipData string, portData string, anode map[string]strin
     url := "https://"+ipData+":"+portData+"/node/dataflow/changeDataflowValues"
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/ChangeDataflowValues ERROR connection through http new Request: "+err.Error()); return err}
-    
-    data := make(map[string]string)
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if data["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/ChangeDataflowValues ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
+    defer resp.Body.Close()
     return nil
 }
 
@@ -922,65 +789,68 @@ func UpdateNetworkInterface(ipData string, portData string, anode map[string]str
     url := "https://"+ipData+":"+portData+"/node/net"
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/UpdateNetworkInterface ERROR connection through http new Request: "+err.Error()); return err}
-    
-    data := make(map[string]string)
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if data["permissions"] == "none" {
-        return errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/UpdateNetworkInterface ERROR connection through http new Request: "+err.Error())
+        return err
     }
-
+    defer resp.Body.Close()
     return nil
 }
 
 func LoadDataflowValues(ipData string, portData string)(data map[string]map[string]string, err error){
     url := "https://"+ipData+":"+portData+"/node/dataflow/loadDataflowValues"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/LoadDataflowValues ERROR connection through http new Request: "+err.Error()); return nil,err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return nil,err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
-    if data["node"]["permissions"] == "none" {
-        return nil,errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/LoadDataflowValues ERROR connection through http new Request: "+err.Error())
+        return nil,err
     }
+    body, err := ioutil.ReadAll(resp.Body)
 
+    if err != nil {
+        logs.Error("nodeclient/LoadDataflowValues ERROR reading request data: "+err.Error())
+        return nil,err
+    }
+    err = json.Unmarshal(body, &data)
+    if err != nil {
+        logs.Error("LoadDataflowValues ERROR doing unmarshal JSON: "+err.Error())
+        return nil,err
+    }
+    
+    defer resp.Body.Close()
     return data,nil
 }
 
 func LoadNetworkValues(ipData string, portData string)(data map[string]string, err error){
     url := "https://"+ipData+":"+portData+"/node/net/"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/LoadNetworkValues ERROR connection through http new Request: "+err.Error()); return nil,err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return nil, err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return nil, err}
-    if data["permissions"] == "none" {
-        return nil, errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/LoadNetworkValues ERROR connection through http new Request: "+err.Error())
+        return nil,err
     }
-    
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/LoadNetworkValues ERROR reading request data: "+err.Error());return nil,err}
+
+    err = json.Unmarshal(body, &data)
+    if err != nil {logs.Error("LoadNetworkValues ERROR doing unmarshal JSON: "+err.Error());return nil,err}
+
+    defer resp.Body.Close()
     return data,nil
 }
 
 func LoadNetworkValuesSelected(ipData string, portData string)(data map[string]map[string]string, err error){
     url := "https://"+ipData+":"+portData+"/node/net/values"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {logs.Error("nodeclient/LoadNetworkValuesSelected ERROR connection through http new Request: "+err.Error()); return nil,err}
-    
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/PingPorts ERROR reading request data: "+err.Error()); return nil,err}
-    err = json.Unmarshal(body, &data)
-    if err != nil {logs.Error("PingPorts ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
-    if data["node"]["permissions"] == "none" {
-        return nil,errors.New("CheckHttpResponse permissions ERROR")
+    if err != nil {
+        logs.Error("nodeclient/LoadNetworkValuesSelected ERROR connection through http new Request: "+err.Error())
+        return nil,err
     }
-    
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/LoadNetworkValuesSelected ERROR reading request data: "+err.Error());return nil,err}
+
+    err = json.Unmarshal(body, &data)
+    if err != nil {logs.Error("LoadNetworkValuesSelected ERROR doing unmarshal JSON: "+err.Error());return nil,err}
+
+    defer resp.Body.Close()
     return data,nil
 }
 
@@ -1985,6 +1855,46 @@ func DeleteNode(ipData string, portData string)(err error){
     return nil
 }
 
+func ChangeRotationStatus(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/monitor/changeRotationStatus"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/ChangeRotationStatus ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/ChangeRotationStatus ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/ChangeRotationStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+
+    defer resp.Body.Close()
+    return nil
+}
+
+func EditRotation(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/monitor/editRotation"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/EditRotation ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/EditRotation ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/EditRotation ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+
+    defer resp.Body.Close()
+    return nil
+}
+
 func SyncUsersToNode(ipnid string, portnid string, data map[string]map[string]string)(err error){
     url := "https://"+ipnid+":"+portnid+"/node/autentication/addUser"
     valuesJSON,err := json.Marshal(data)
@@ -2031,6 +1941,7 @@ func SyncGroupsToNode(ipnid string, portnid string, data map[string]map[string]s
 
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil {logs.Error("nodeclient/SyncGroupsToNode ERROR reading request data: "+err.Error()); return err}
+    defer resp.Body.Close()
 
     mapData := make(map[string]string)
     err = json.Unmarshal(body, &mapData)
@@ -2038,7 +1949,6 @@ func SyncGroupsToNode(ipnid string, portnid string, data map[string]map[string]s
     if mapData["ack"] == "false" {
         return errors.New(mapData["error"])
     }
-    defer resp.Body.Close()
     return nil
 }
 
@@ -2060,44 +1970,3 @@ func SyncUserGroupRolesToNode(ipnid string, portnid string, data map[string]map[
     defer resp.Body.Close()
     return nil
 }
-
-func ChangeRotationStatus(ipnid string, portnid string, data map[string]string)(err error){
-    url := "https://"+ipnid+":"+portnid+"/node/monitor/changeRotationStatus"
-    valuesJSON,err := json.Marshal(data)
-    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/ChangeRotationStatus ERROR connection through http new Request: "+err.Error()); return err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/ChangeRotationStatus ERROR reading request data: "+err.Error()); return err}
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("nodeclient/ChangeRotationStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if mapData["ack"] == "false" {
-        return errors.New(mapData["error"])
-    }
-
-    defer resp.Body.Close()
-    return nil
-}
-
-func EditRotation(ipnid string, portnid string, data map[string]string)(err error){
-    url := "https://"+ipnid+":"+portnid+"/node/monitor/editRotation"
-    valuesJSON,err := json.Marshal(data)
-    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/EditRotation ERROR connection through http new Request: "+err.Error()); return err}
-
-    body, err := ioutil.ReadAll(resp.Body)
-    if err != nil {logs.Error("nodeclient/EditRotation ERROR reading request data: "+err.Error()); return err}
-
-    mapData := make(map[string]string)
-    err = json.Unmarshal(body, &mapData)
-    if err != nil { logs.Error("nodeclient/EditRotation ERROR doing unmarshal JSON: "+err.Error()); return err}
-    if mapData["ack"] == "false" {
-        return errors.New(mapData["error"])
-    }
-
-    defer resp.Body.Close()
-    return nil
-}
-

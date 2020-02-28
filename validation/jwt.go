@@ -6,7 +6,7 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"errors"
     "owlhmaster/database"
-    // "owlhmaster/utils"
+    "owlhmaster/utils"
 )
 
 // Encode generates a jwt.
@@ -56,6 +56,9 @@ func CheckToken(token string, user string, uuid string, permission string)(hasPr
 				if token == tkn {
 					status,err := UserPrivilegeValidation(uuid, permission); if err != nil {logs.Error("permissions error: %s",err); return false,err}
 					if status{
+						masterID,err := ndb.LoadMasterID(); if err != nil {logs.Error("Error getting Master information: %s",err); return false,err}
+						utils.TokenMasterUuid = masterID
+						utils.TokenMasterUser = x
 						return true,nil
 					}else{
 						return false,nil

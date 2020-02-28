@@ -80,10 +80,11 @@ func GetNodeById(uuid string) (nodes map[string]map[string]string, err error) {
 }
 
 func GetTokenByUuid(uuid string)(err error)  {
-    if Db == nil {logs.Error("obtainPortIp -> Error conexión DB"); return err}
+    if Db == nil {logs.Error("GetTokenByUuid obtainPortIp -> Error conexión DB"); return err}
     
     var token string
-    row1 := Db.QueryRow("SELECT node_value FROM nodes WHERE node_uniqueid = \""+uuid+"\" and node_param = \"token\";")
+    query := "SELECT node_value FROM nodes WHERE node_uniqueid = '"+uuid+"' and node_param = 'token';"
+    row1 := Db.QueryRow(query)
     err = row1.Scan(&token)
     if err != nil {logs.Error("GetTokenByUuid error: %s", err.Error()); return err}
 
