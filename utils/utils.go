@@ -53,7 +53,11 @@ func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]ma
     }
 
     var anode map[string]map[string]string
-    json.Unmarshal(jsonPathBpf, &anode)
+    _ = json.Unmarshal(jsonPathBpf, &anode)
+
+    // if err != nil {
+    //     panic("Error readding main.conf. Please contact the administrator or check the file.")
+    // }
 
     for k,y := range loadData {
         for y,_ := range y {

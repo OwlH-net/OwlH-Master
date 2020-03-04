@@ -61,7 +61,7 @@ func MainCheck()(cancontinue bool){
 }
 
 func checkDatabases()(ok bool){
-    dbs := []string{"masterConn","dbsConn","rulesetConn"}
+    dbs := []string{"masterConn","dbsConn","rulesetConn","groupConn","rulesetSourceConn"}
     for db := range dbs {
         logs.Warn("lets check db -> "+dbs[db])
         ok := CheckDB(dbs[db])
@@ -257,6 +257,13 @@ func checkFields()(ok bool){
     if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='type' and user_value='local'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','type','local')"
+    field.Fname      = "users - type"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
     field.Fquery     = "select user_param from users where user_param='secret' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
     field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','secret','"+secret+"')"
     field.Fname      = "users - secret"
@@ -445,10 +452,7 @@ func CheckDB(conn string)(ok bool) {
     loadDataSQL[conn] = map[string]string{}
     loadDataSQL[conn]["path"] = ""
     loadDataSQL, err := utils.GetConf(loadDataSQL)
-    if err != nil {
-        logs.Error("Configuration -> Can't get "+conn+" path from main.conf")
-        return false
-    }
+    if err != nil {logs.Error("Configuration -> Can't get "+conn+" path from main.conf"); return false}
     dbpath := loadDataSQL[conn]["path"]
 
     exists := DbExists(dbpath)

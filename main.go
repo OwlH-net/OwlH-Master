@@ -27,7 +27,7 @@ import (
 
 func main() {
 
-    logs.Info("Version OwlH Master: 0.12.0.20200228")
+    logs.Info("Version OwlH Master: 0.12.0.20200302")
     
     //Configuration for the logger
     var err error
