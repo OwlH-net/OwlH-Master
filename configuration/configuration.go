@@ -286,7 +286,7 @@ func checkFields()(ok bool){
     field.Fconn      = "masterConn"
     field.Ftable     = "users"
     field.Fquery     = "select user_param from users where user_param='ldap' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
-    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','ldap','enabled')"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','ldap','disabled')"
     field.Fname      = "users - deleteable"
     ok = CheckField(field)
     if !ok {return false}
