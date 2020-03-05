@@ -74,20 +74,15 @@ func StopMasterCollector() (err error) {
 }
 
 func ShowMasterCollector() (data string, err error) {
-    stapCollector := map[string]map[string]string{}
-    stapCollector["stapCollector"] = map[string]string{}
-    stapCollector["stapCollector"]["status"] = ""
-    stapCollector["stapCollector"]["param"] = ""
-    stapCollector["stapCollector"]["command"] = ""
-    stapCollector,err = utils.GetConf(stapCollector)
-    status := stapCollector["stapCollector"]["status"]
-    param := stapCollector["stapCollector"]["param"]
-    command := stapCollector["stapCollector"]["command"]
+    status, err := utils.GetKeyValueString("stapCollector", "status")
+    if err != nil{logs.Error("ShowMasterCollector Errorgetting data from main.conf: "+err.Error()); return "",err}
+    param, err := utils.GetKeyValueString("stapCollector", "param")
+    if err != nil{logs.Error("ShowMasterCollector Errorgetting data from main.conf: "+err.Error()); return "",err}
+    command, err := utils.GetKeyValueString("stapCollector", "command")
+    if err != nil{logs.Error("ShowMasterCollector Errorgetting data from main.conf: "+err.Error()); return "",err}
 
     output, err := exec.Command(command, param, status).Output()
-    if err != nil{
-        logs.Error("ShowMasterCollector Error executing command in ShowCollector function: "+err.Error())
-        return "",err    
-    }
+    if err != nil{logs.Error("ShowMasterCollector Error executing command in ShowCollector function: "+err.Error()); return "",err}
+
     return string(output),nil
 }

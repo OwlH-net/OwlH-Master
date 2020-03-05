@@ -33,20 +33,22 @@ func userAuthentication(user string, password string)(check bool, err error) {
 }
 
 func readLdapConfig()(err error) {
-	mainconfLdap := map[string]map[string]string{}
-	mainconfLdap["ldap"] = map[string]string{}
-    mainconfLdap["ldap"]["enabled"] = ""
-    mainconfLdap["ldap"]["server"] = ""
-    mainconfLdap["ldap"]["port"] = ""
-    mainconfLdap["ldap"]["DN"] = ""
-    mainconfLdap["ldap"]["skipverify"] = ""
-    mainconfLdap,err = utils.GetConf(mainconfLdap)
-    if err != nil {logs.Error("ldap/readLdapConfig -- Error getting mainconf data: "+err.Error()); return err}
-	isEnabled, err := strconv.ParseBool(mainconfLdap["ldap"]["enabled"]); configLdap.Enabled = isEnabled
-	configLdap.Server =  mainconfLdap["ldap"]["server"]
-	port, err := strconv.Atoi(mainconfLdap["ldap"]["port"]); configLdap.Port = port
-	configLdap.DN =  mainconfLdap["ldap"]["DN"]
-	isVerified, err := strconv.ParseBool(mainconfLdap["ldap"]["skipverify"]); configLdap.SkipVerify = isVerified
+	ldapEnabled, err := utils.GetKeyValueString("ldap", "enabled")
+	if err != nil {logs.Error("ldap/readLdapConfig -- Error getting mainconf data: "+err.Error()); return err}
+	ldapServer, err := utils.GetKeyValueString("ldap", "server")
+	if err != nil {logs.Error("ldap/readLdapConfig -- Error getting mainconf data: "+err.Error()); return err}
+	ldapPort, err := utils.GetKeyValueString("ldap", "port")
+	if err != nil {logs.Error("ldap/readLdapConfig -- Error getting mainconf data: "+err.Error()); return err}
+	ldapDN, err := utils.GetKeyValueString("ldap", "DN")
+	if err != nil {logs.Error("ldap/readLdapConfig -- Error getting mainconf data: "+err.Error()); return err}
+	ldapVerify, err := utils.GetKeyValueString("ldap", "skipverify")
+	if err != nil {logs.Error("ldap/readLdapConfig -- Error getting mainconf data: "+err.Error()); return err}
+	
+	isEnabled, err := strconv.ParseBool(ldapEnabled); configLdap.Enabled = isEnabled
+	configLdap.Server =  ldapServer
+	port, err := strconv.Atoi(ldapPort); configLdap.Port = port
+	configLdap.DN =  ldapDN
+	isVerified, err := strconv.ParseBool(ldapVerify); configLdap.SkipVerify = isVerified
 
 	if !isVerified {
 		return errors.New("This user has not enough permissions for validate using LDAP")

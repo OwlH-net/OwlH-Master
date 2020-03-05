@@ -11,13 +11,10 @@ import (
 )
 
 func Init() {
-    schedulerConf := map[string]map[string]string{}
-    schedulerConf["scheduler"] = map[string]string{}
-    schedulerConf["scheduler"]["minutes"] = ""
-    schedulerConf["scheduler"]["status"] = ""
-    schedulerConf,_ = utils.GetConf(schedulerConf)
-    minutes := schedulerConf["scheduler"]["minutes"]
-    status := schedulerConf["scheduler"]["status"]
+    minutes, err := utils.GetKeyValueString("scheduler", "minutes")
+    if err != nil {logs.Error("Scheduler Error getting data from main.conf: "+err.Error())}
+    status, err := utils.GetKeyValueString("scheduler", "status")
+    if err != nil {logs.Error("Scheduler Error getting data from main.conf: "+err.Error())}
 
     for status == "enabled"{
         RunScheduler()

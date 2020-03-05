@@ -17,29 +17,21 @@ import (
 
 //Obtain title for webpage from main.conf
 func GetMasterTitle() (data string, err error) {
-    loadData := map[string]map[string]string{}
-    loadData["master"] = map[string]string{}
-    loadData["master"]["name"] = ""
-    loadData,err = utils.GetConf(loadData)
+    name, err := utils.GetKeyValueString("master", "name")
     if err != nil {
         logs.Error("Error getting Master title from main.conf")
         return "-",err
     }
-    return loadData["master"]["name"], nil
+    return name, nil
 }
 
 func GetFileContent(file string) (data map[string]string, err error) {
     sendBackArray := make(map[string]string)
-    
-    //create map and obtain file
-    loadData := map[string]map[string]string{}
-    loadData["files"] = map[string]string{}
-    loadData["files"][file] = ""
-    loadData,err = utils.GetConf(loadData)
+
+    fileConfPath, err := utils.GetKeyValueString("files", file)
     if err != nil {logs.Error("SendFile Error getting data from main.conf"); return nil,err}
         
     //save url from file selected and open file
-    fileConfPath := loadData["files"][file]
     fileReaded, err := ioutil.ReadFile(fileConfPath) // just pass the file name
     if err != nil {
         logs.Error("Error reading file for path: "+fileConfPath)
@@ -53,17 +45,11 @@ func GetFileContent(file string) (data map[string]string, err error) {
 }
 
 func SaveFileContent(file map[string]string) (err error) {
-        //Get full path
-        loadData := map[string]map[string]string{}
-        loadData["files"] = map[string]string{}
-        loadData["files"][file["file"]] = ""
-        loadData,err = utils.GetConf(loadData)
-        if err != nil {
-            logs.Error("SaveFile Error getting data from main.conf")
-        }
+        filePath, err := utils.GetKeyValueString("files", file["file"])
+        if err != nil {logs.Error("SaveFile Error getting data from main.conf"); return err}
     
         //make file backup before overwrite
-        err = utils.BackupFullPath(loadData["files"][file["file"]])
+        err = utils.BackupFullPath(filePath)
         if err != nil {
             logs.Info("SaveFile. Error doing backup with function BackupFullPath: "+err.Error())
             return err
@@ -71,7 +57,7 @@ func SaveFileContent(file map[string]string) (err error) {
     
         //make byte array for save the file modified
         bytearray := []byte(file["content"])
-        err = utils.WriteNewDataOnFile(loadData["files"][file["file"]], bytearray)
+        err = utils.WriteNewDataOnFile(filePath, bytearray)
         if err != nil {
             logs.Info("SaveFile. Error doing backup with function WriteNewDataOnFile: "+err.Error())
             return err
@@ -94,14 +80,11 @@ func GetNetworkInterface()(values map[string]string, err error) {
 }
 
 func DeployMaster(anode map[string]string)(err error) {
-    loadData := map[string]map[string]string{}
-    loadData["deploy"] = map[string]string{}
-    loadData["deploy"][anode["value"]] = ""
-    loadData,err = utils.GetConf(loadData)
+    value, err := utils.GetKeyValueString("deploy", anode["value"])
     if err != nil { logs.Error("DeployMaster Error getting data from main.conf"); return err}
     
-    _,err = exec.Command("bash", "-c", loadData["deploy"][anode["value"]]).Output()
-    if err != nil{logs.Error("DeployMaster Error deploying "+loadData["deploy"][anode["value"]]+": "+err.Error()); return err}
+    _,err = exec.Command("bash", "-c", value).Output()
+    if err != nil{logs.Error("DeployMaster Error deploying "+value+": "+err.Error()); return err}
     
     return nil
 }
@@ -125,14 +108,10 @@ func LoadMasterNetworkValuesSelected()(data map[string]map[string]string ,err er
 }
 
 func PingServiceMaster()(err error) {
-    masterService := map[string]map[string]string{}
-    masterService["service"] = map[string]string{}
-    masterService["service"]["dstPath"] = ""
-    masterService["service"]["file"] = ""
-    masterService,err = utils.GetConf(masterService)
-    if err != nil {logs.Error("master/PingServiceMaster -- Error GetConf service data: "+err.Error()); return err}
-    dstPath := masterService["service"]["dstPath"]
-    file := masterService["service"]["file"]
+    dstPath, err := utils.GetKeyValueString("service", "dstPath")
+    if err != nil {logs.Error("master/PingServiceMaster -- Error main.conf service data: "+err.Error()); return err}
+    file, err := utils.GetKeyValueString("service", "file")
+    if err != nil {logs.Error("master/PingServiceMaster -- Error main.conf service data: "+err.Error()); return err}
 
     if _, err := os.Stat(dstPath+file); os.IsNotExist(err) {
         return errors.New("Service don't exists")
@@ -143,20 +122,16 @@ func PingServiceMaster()(err error) {
 }
 
 func DeployServiceMaster()(err error) {
-    masterService := map[string]map[string]string{}
-    masterService["service"] = map[string]string{}
-    masterService["service"]["dstPath"] = ""
-    masterService["service"]["file"] = ""
-    masterService["service"]["origPath"] = ""
-    masterService["service"]["reload"] = ""
-    masterService["service"]["enable"] = ""
-    masterService,err = utils.GetConf(masterService)
-    if err != nil {logs.Error("master/DeployServiceMaster -- Error GetConf service data: "+err.Error()); return err}
-    dstPath := masterService["service"]["dstPath"]
-    file := masterService["service"]["file"]
-    origPath := masterService["service"]["origPath"]
-    reload := masterService["service"]["reload"]
-    enable := masterService["service"]["enable"]
+    dstPath, err := utils.GetKeyValueString("service", "dstPath")
+    if err != nil {logs.Error("master/DeployServiceMaster -- Error main.conf service data: "+err.Error()); return err}
+    file, err := utils.GetKeyValueString("service", "file")
+    if err != nil {logs.Error("master/DeployServiceMaster -- Error main.conf service data: "+err.Error()); return err}
+    origPath, err := utils.GetKeyValueString("service", "origPath")
+    if err != nil {logs.Error("master/DeployServiceMaster -- Error main.conf service data: "+err.Error()); return err}
+    reload, err := utils.GetKeyValueString("service", "reload")
+    if err != nil {logs.Error("master/DeployServiceMaster -- Error main.conf service data: "+err.Error()); return err}
+    enable, err := utils.GetKeyValueString("service", "enable")
+    if err != nil {logs.Error("master/DeployServiceMaster -- Error main.conf service data: "+err.Error()); return err}
 
     if _, err := os.Stat(dstPath+file); os.IsNotExist(err) {
         // //copy file
@@ -241,10 +216,7 @@ func ModifyStapValuesMaster(anode map[string]string)(err error) {
 }
 
 func CheckServicesStatus()(){
-    loadDataValue := map[string]map[string]string{}
-    loadDataValue["plugins"] = map[string]string{}
-    loadDataValue["plugins"]["socat"] = ""
-    loadDataValue, err := utils.GetConf(loadDataValue)
+    socat, err := utils.GetKeyValueString("plugins", "socat")
     if err != nil {logs.Error("GetNodeFile error getting path from main.conf")}
 
     allPlugins,err := ndb.PingPlugins()
@@ -260,14 +232,14 @@ func CheckServicesStatus()(){
                 if pidValue[0] == ""{
                     if allPlugins[w]["type"] == "socket-network"{
                         // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
-                        cmd := exec.Command("bash","-c",loadDataValue["plugins"]["socat"]+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
+                        cmd := exec.Command("bash","-c",socat+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
                         if err != nil {logs.Error("CheckServicesStatus deploying Error socket-network: "+err.Error())}        
                     }else{
                         // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
-                        cmd := exec.Command("bash","-c",loadDataValue["plugins"]["socat"]+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
+                        cmd := exec.Command("bash","-c",socat+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
@@ -305,10 +277,7 @@ func PingPlugins()(data map[string]map[string]string, err error) {
 }
 
 func DeployStapServiceMaster(anode map[string]string)(err error) { 
-    loadDataValue := map[string]map[string]string{}
-    loadDataValue["plugins"] = map[string]string{}
-    loadDataValue["plugins"]["socat"] = ""
-    loadDataValue, err = utils.GetConf(loadDataValue)
+    socat, err := utils.GetKeyValueString("plugins", "socat")
     if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return err}
 
     allPlugins,err := ndb.PingPlugins()
@@ -323,7 +292,7 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
         }
 
         // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
-        cmd := exec.Command("bash","-c",loadDataValue["plugins"]["socat"]+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
+        cmd := exec.Command("bash","-c",socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
@@ -347,7 +316,7 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
         }
         
         // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
-        cmd := exec.Command("bash","-c",loadDataValue["plugins"]["socat"]+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
+        cmd := exec.Command("bash","-c",socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()

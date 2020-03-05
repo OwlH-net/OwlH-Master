@@ -2,7 +2,6 @@ package utils
 
 
 import (
-    "encoding/json"
     "github.com/astaxie/beego/logs"
     "io/ioutil"
     "io"
@@ -43,34 +42,6 @@ func Generate()(uuid string)  {
     return uuid
 }
 
-//Read main.conf and return a map data
-func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) {
-    confFilePath := "conf/main.conf"
-    jsonPathBpf, err := ioutil.ReadFile(confFilePath)
-    if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)
-        return nil, err
-    }
-
-    var anode map[string]map[string]string
-    _ = json.Unmarshal(jsonPathBpf, &anode)
-
-    // if err != nil {
-    //     panic("Error readding main.conf. Please contact the administrator or check the file.")
-    // }
-
-    for k,y := range loadData {
-        for y,_ := range y {
-            if v, ok := anode[k][y]; ok {
-                loadData[k][y] = v
-            }else{
-                loadData[k][y] = "None"
-            }
-        }
-    }
-    return loadData, nil
-}
-
 //create conection through http.
 func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Response, err error){
     req, err := http.NewRequest(order, url, values)
@@ -90,11 +61,7 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
 
 //create a backup of selected file
 func BackupFile(path string, fileName string) (err error) {
-    loadData := map[string]map[string]string{}
-    loadData["files"] = map[string]string{}
-    loadData["files"]["backupPath"] = ""
-    loadData,err = GetConf(loadData)
-    backupFolder := loadData["files"]["backupPath"]
+    backupFolder, err := GetKeyValueString("files", "backupPath")
     if err != nil {logs.Error("Error BackupFile Creating backup: "+err.Error()); return err}
 
     // check if folder exists
@@ -288,16 +255,10 @@ func MergeAllFiles(files []string)(content []byte, err error){
 
 //replace lines between 2 files selected
 func ReplaceLines(data map[string]string)(err error){
-    sourceDownload := map[string]map[string]string{}
-    sourceDownload["ruleset"] = map[string]string{}
-    sourceDownload["ruleset"]["sourceDownload"] = ""
-    sourceDownload["ruleset"]["ruleFile"] = ""
-    sourceDownload,err = GetConf(sourceDownload)
-    pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
-    if err != nil {
-        logs.Error("ReplaceLines error loading data from main.conf: "+ err.Error())
-        return err
-    }
+    pathDownloaded, err := GetKeyValueString("ruleset", "sourceDownload")
+    if err != nil {logs.Error("ReplaceLines error loading data from main.conf: "+ err.Error());return err}
+    ruleFile, err := GetKeyValueString("ruleset", "ruleFile")
+    if err != nil {logs.Error("ReplaceLines error loading data from main.conf: "+ err.Error());return err}
 
     //split path
     splitPath := strings.Split(data["path"], "/")
@@ -335,7 +296,7 @@ func ReplaceLines(data map[string]string)(err error){
 
     input, err := ioutil.ReadFile("_creating-new-file.txt")
     // err = ioutil.WriteFile("rules/drop.rules", input, 0644)
-    err = ioutil.WriteFile(sourceDownload["ruleset"]["ruleFile"], input, 0644)
+    err = ioutil.WriteFile(ruleFile, input, 0644)
 
     _ = os.Remove("_creating-new-file.txt")
 

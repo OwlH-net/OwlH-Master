@@ -13,17 +13,12 @@ var (
 )
 
 func MConn() {
-    var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["masterConn"] = map[string]string{}
-    loadDataSQL["masterConn"]["path"] = ""
-    loadDataSQL["masterConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)    
-    path := loadDataSQL["masterConn"]["path"]
-    cmd := loadDataSQL["masterConn"]["cmd"]
-    if err != nil {
-        logs.Error("MConn Error getting data from main.conf at master: "+err.Error())
-    }
+    var err error   
+    path, err := utils.GetKeyValueString("masterConn", "path")
+    if err != nil {logs.Error("MConn Error getting data from main.conf at master: "+err.Error())}
+    cmd, err := utils.GetKeyValueString("masterConn", "cmd")
+    if err != nil {logs.Error("MConn Error getting data from main.conf at master: "+err.Error())}
+
     _, err = os.Stat(path) 
     if err != nil {
         panic("Error: dbs/node DB -- DB Open Failed: "+err.Error())

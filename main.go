@@ -27,30 +27,25 @@ import (
 
 func main() {
 
-    logs.Info("Version OwlH Master: 0.12.0.20200302")
+    logs.Info("Version OwlH Master: 0.12.0.20200305")
+    utils.Load()
+
+    //get logger data
+    filename, err := utils.GetKeyValueString("logs", "filename")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    maxlines, err := utils.GetKeyValueString("logs", "maxlines")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    maxsize, err := utils.GetKeyValueString("logs", "maxsize")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    daily, err := utils.GetKeyValueString("logs", "daily")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    maxdays, err := utils.GetKeyValueString("logs", "maxdays")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    rotate, err := utils.GetKeyValueString("logs", "rotate")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    level, err := utils.GetKeyValueString("logs", "level")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
     
-    //Configuration for the logger
-    var err error
-    loadDataLogger := map[string]map[string]string{}
-    loadDataLogger["logs"] = map[string]string{}
-    loadDataLogger["logs"]["filename"] = ""
-    loadDataLogger["logs"]["maxlines"] = ""
-    loadDataLogger["logs"]["maxsize"] = ""
-    loadDataLogger["logs"]["daily"] = ""
-    loadDataLogger["logs"]["maxdays"] = ""
-    loadDataLogger["logs"]["rotate"] = ""
-    loadDataLogger["logs"]["level"] = ""
-    loadDataLogger, err = utils.GetConf(loadDataLogger)    
-    filename := loadDataLogger["logs"]["filename"]
-    maxlines := loadDataLogger["logs"]["maxlines"]
-    maxsize := loadDataLogger["logs"]["maxsize"]
-    daily := loadDataLogger["logs"]["daily"]
-    maxdays := loadDataLogger["logs"]["maxdays"]
-    rotate := loadDataLogger["logs"]["rotate"]
-    level := loadDataLogger["logs"]["level"]
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())
-    }
     logs.NewLogger(10000)
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 

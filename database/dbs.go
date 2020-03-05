@@ -22,17 +22,12 @@ func Close() {
 }
 
 func Conn() {
-    var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["dbsConn"] = map[string]string{}
-    loadDataSQL["dbsConn"]["path"] = ""
-    loadDataSQL["dbsConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)    
-    path := loadDataSQL["dbsConn"]["path"]
-    cmd := loadDataSQL["dbsConn"]["cmd"]
-    if err != nil {
-        logs.Error("Conn Error getting data from main.conf at master: "+err.Error())
-    }
+    var err error  
+    path, err := utils.GetKeyValueString("dbsConn", "path")
+    if err != nil {logs.Error("Conn Error getting data from main.conf at master: "+err.Error())}
+    cmd, err := utils.GetKeyValueString("dbsConn", "cmd")
+    if err != nil {logs.Error("Conn Error getting data from main.conf at master: "+err.Error())}
+    
     _, err = os.Stat(path) 
     if err != nil {
         panic("Error: dbs/node DB -- DB Open Failed: "+err.Error())

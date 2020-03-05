@@ -357,15 +357,12 @@ func DeployService(uuid string)(err error){
 
 //Get specific file from node files
 func GetNodeFile(loadFile map[string]string) (values map[string]string, err error) {  
-    loadDataValue := map[string]map[string]string{}
-    loadDataValue["analyzer"] = map[string]string{}
-    loadDataValue["analyzer"]["conf"] = ""
-    loadDataValue, err = utils.GetConf(loadDataValue)
+    conf, err := utils.GetKeyValueString("analyzer", "conf")
     if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return nil,err}
 
     rData := make(map[string]string)
     if loadFile["file"] == "group-analyzer"{        
-        fileReaded, err := ioutil.ReadFile(loadDataValue["analyzer"]["conf"])
+        fileReaded, err := ioutil.ReadFile(conf)
         if err != nil {logs.Error("node/GetNodeFile ERROR getting analyzer from master: "+err.Error()); return nil, err}
 
         rData["fileContent"] = string(fileReaded)
@@ -385,15 +382,12 @@ func GetNodeFile(loadFile map[string]string) (values map[string]string, err erro
 
 //Get specific file from node files
 func SetNodeFile(saveFile map[string]string) (err error) {
-    loadDataValue := map[string]map[string]string{}
-    loadDataValue["analyzer"] = map[string]string{}
-    loadDataValue["analyzer"]["conf"] = ""
-    loadDataValue, err = utils.GetConf(loadDataValue)
+    conf, err := utils.GetKeyValueString("analyzer", "conf")
     if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return err}
 
     if saveFile["uuid"] == "local"{
         bytearray := []byte(saveFile["content"])
-        err = utils.WriteNewDataOnFile(loadDataValue["analyzer"]["conf"], bytearray)
+        err = utils.WriteNewDataOnFile(conf, bytearray)
     }else{
         err = ndb.GetTokenByUuid(saveFile["uuid"]); if err!=nil{logs.Error("SetNodeFile Error loading node token: %s",err); return err}
         ipData,portData,err := ndb.ObtainPortIp(saveFile["uuid"])
@@ -1176,10 +1170,7 @@ func PutSuricataServicesFromGroup(anode map[string]string)(err error){
 }
 
 func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[string]map[string]string, err error){
-    loadDataValue := map[string]map[string]string{}
-    loadDataValue["analyzer"] = map[string]string{}
-    loadDataValue["analyzer"]["conf"] = ""
-    loadDataValue, err = utils.GetConf(loadDataValue)
+    conf, err := utils.GetKeyValueString("analyzer", "conf")
     if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return nil,err}
 
     logSync := make(map[string]map[string]string)
@@ -1203,7 +1194,7 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
         if activeNode{
             //get analyzer file content
             // analyzerFile, err := ioutil.ReadFile("conf/analyzer.json")
-            analyzerFile, err := ioutil.ReadFile(loadDataValue["analyzer"]["conf"])
+            analyzerFile, err := ioutil.ReadFile(conf)
             if err != nil { 
                 logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR getting analyzer file content: "+err.Error())
                 if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }

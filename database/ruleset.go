@@ -14,17 +14,12 @@ var (
 )
 
 func RConn() {
-    var err error
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL["rulesetConn"] = map[string]string{}
-    loadDataSQL["rulesetConn"]["path"] = ""
-    loadDataSQL["rulesetConn"]["cmd"] = "" 
-    loadDataSQL, err = utils.GetConf(loadDataSQL)    
-    path := loadDataSQL["rulesetConn"]["path"]
-    cmd := loadDataSQL["rulesetConn"]["cmd"]
-    if err != nil {
-        logs.Error("RConn Error getting data from main.conf at master: "+err.Error())
-    }
+    var err error   
+    path, err := utils.GetKeyValueString("rulesetConn", "path")
+    if err != nil {logs.Error("RConn Error getting data from main.conf at master: "+err.Error())}
+    cmd, err := utils.GetKeyValueString("rulesetConn", "cmd")
+    if err != nil {logs.Error("RConn Error getting data from main.conf at master: "+err.Error())}
+
     _, err = os.Stat(path) 
     if err != nil {
         panic("ruleset/Ruleset DB -- DB Open Failed: "+err.Error())

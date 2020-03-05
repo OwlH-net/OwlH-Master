@@ -47,11 +47,8 @@ func CreateRulesetSource(n map[string]string) (err error) {
         return errors.New("rulesetSource exist")
     }
     
-    sourceDownload := map[string]map[string]string{}
-    sourceDownload["ruleset"] = map[string]string{}
-    sourceDownload["ruleset"]["sourceDownload"] = ""
-    sourceDownload,err = utils.GetConf(sourceDownload)
-    path := sourceDownload["ruleset"]["sourceDownload"]
+    path, err := utils.GetKeyValueString("ruleset", "sourceDownload")
+    if err != nil {logs.Error("DeleteRuleset Error getting data from main.conf for load data: "+err.Error()); return err}
 
 
     if _, err := os.Stat(path+n["name"]); !os.IsNotExist(err) {
@@ -110,12 +107,9 @@ func CreateCustomRulesetSource(n map[string]string)(err error){
         if err != nil {return errors.New("Error adding existing custom rule file data to database.")}
 
     }else{
-        customRulesets := map[string]map[string]string{}
-        customRulesets["ruleset"] = map[string]string{}
-        customRulesets["ruleset"]["customRulesets"] = ""
-        customRulesets,err = utils.GetConf(customRulesets)
-        path := customRulesets["ruleset"]["customRulesets"]
-    
+        path, err := utils.GetKeyValueString("ruleset", "customRulesets")
+        if err != nil {logs.Error("CreateCustomRulesetSource Error getting data from main.conf: "+err.Error()); return err}
+
         if _, err := os.Stat(path); os.IsNotExist(err) {
             err = os.MkdirAll(path, os.ModePerm)
             if err != nil {logs.Error("Error checking path: "+err.Error()); return err}
@@ -258,11 +252,9 @@ func DeleteRulesetSource(anode map[string]string) (err error) {
     // var pathToDelete string
     var uniqueid string
     var uuidArray []string
-    sourceDownload := map[string]map[string]string{}
-    sourceDownload["ruleset"] = map[string]string{}
-    sourceDownload["ruleset"]["sourceDownload"] = ""
-    sourceDownload,err = utils.GetConf(sourceDownload)
-    pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
+
+    pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
+    if err != nil {logs.Error("DeleteRulesetSource Error getting data from main.conf: "+err.Error()); return err}
 
     if ndb.Rdb == nil {
         logs.Error("DeleteRulesetSource -- Can't acces to database")
@@ -359,12 +351,8 @@ func OverwriteDownload(data map[string]string) (err error) {
     var newFilesDownloaded = make(map[string]string)
     var newFilesDB = make(map[string]map[string]string)
 
-    sourceDownload := map[string]map[string]string{}
-    sourceDownload["ruleset"] = map[string]string{}
-    sourceDownload["ruleset"]["sourceDownload"] = ""
-    sourceDownload,err = utils.GetConf(sourceDownload)
-    if err!=nil { logs.Error("Error getting main.conf from ruleset: "+err.Error()); return err}
-    pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
+    pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
+    if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error()); return err}
 
     splitPath := strings.Split(data["url"], "/")
     fileDownloaded := splitPath[len(splitPath)-1]
@@ -478,13 +466,8 @@ func OverwriteDownload(data map[string]string) (err error) {
 }
 
 func DownloadFile(data map[string]string) (err error) {
-
-    sourceDownload := map[string]map[string]string{}
-    sourceDownload["ruleset"] = map[string]string{}
-    sourceDownload["ruleset"]["sourceDownload"] = ""
-    sourceDownload,err = utils.GetConf(sourceDownload)
-    if err!=nil { logs.Error("Error getting main.conf data DownloadFile : "+err.Error()); return err}
-    pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
+    pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
+    if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error())}
 
     value,err := ndb.GetRulesetSourceValue(data["uuid"], "path")
     if err != nil {logs.Error("Error Getting path for download file from RulesetSource-> %s", err.Error());return err}
@@ -621,11 +604,8 @@ func CompareFiles(uuid string) (mapData map[string]map[string]string, err error)
 
 
 func CreateNewFile(data map[string]string) (err error) {
-    sourceDownload := map[string]map[string]string{}
-    sourceDownload["ruleset"] = map[string]string{}
-    sourceDownload["ruleset"]["backupPath"] = ""
-    sourceDownload,err = utils.GetConf(sourceDownload)
-    backupPath := sourceDownload["ruleset"]["backupPath"]
+    backupPath, err := utils.GetKeyValueString("ruleset", "backupPath")
+    if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error()); return err}
 
     splitPath := strings.Split(data["path"], "/")
     pathSelected := splitPath[len(splitPath)-2]
@@ -648,11 +628,8 @@ func CreateNewFile(data map[string]string) (err error) {
 
 //get data from local files for insert into DB
 func Details(data map[string]string) (files map[string]map[string]string, err error) {
-    sourceDownload := map[string]map[string]string{}
-    sourceDownload["ruleset"] = map[string]string{}
-    sourceDownload["ruleset"]["sourceDownload"] = ""
-    sourceDownload,err = utils.GetConf(sourceDownload)
-    pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
+    pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
+    if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error()); return nil, err}
 
     splitPath := strings.Split(data["path"], "/")
     pathSelected := splitPath[:len(splitPath)-1]

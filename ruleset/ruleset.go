@@ -327,12 +327,8 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
         logs.Error("rulesetExists -- Can't access to database")
         return errors.New("rulesetExists -- Can't access to database")
     }
-    //load path from main.conf
-    loadPath := map[string]map[string]string{}
-    loadPath["ruleset"] = map[string]string{}
-    loadPath["ruleset"]["path"] = ""
-    loadPath,err = utils.GetConf(loadPath)
-    path := loadPath["ruleset"]["path"]
+    path, err := utils.GetKeyValueString("ruleset", "path")
+    if err != nil {logs.Error("SetClonedRuleset Error getting data from main.conf for load data: "+err.Error())}
 
     // clonedRuleset := ruleCloned["cloned"]
     newName := ruleCloned["newName"]
@@ -475,14 +471,9 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
     uuid := rulesetMap["uuid"]
     name := rulesetMap["name"]
     rulesetFolderName := strings.Replace(name, " ", "_", -1)
-    // var uniqueid string
-    // var uuidArray []string    
 
-    localRulesets := map[string]map[string]string{}
-    localRulesets["ruleset"] = map[string]string{}
-    localRulesets["ruleset"]["localRulesets"] = ""
-    localRulesets,err = utils.GetConf(localRulesets)
-    localRulesetFiles := localRulesets["ruleset"]["localRulesets"]
+    localRulesetFiles, err := utils.GetKeyValueString("ruleset", "localRulesets")
+    if err != nil {logs.Error("DeleteRuleset Error getting data from main.conf for load data: "+err.Error()); return err}
 
     //delete LOG for scheduler
     err = ndb.DeleteSchedulerLog(uuid)
@@ -674,12 +665,9 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
     if err != nil {logs.Error("ruleset/AddNewRuleset -- duplicated error: %s", err.Error()); return nil,err}
 
     if ndb.Rdb == nil {logs.Error("ruleset/AddNewRuleset -- Can't access to database"); return nil,errors.New("ruleset/AddNewRuleset -- Can't access to database")}
-    
-    localRulesets := map[string]map[string]string{}
-    localRulesets["ruleset"] = map[string]string{}
-    localRulesets["ruleset"]["localRulesets"] = ""
-    localRulesets,err = utils.GetConf(localRulesets)
-    localFiles := localRulesets["ruleset"]["localRulesets"]
+
+    localFiles, err := utils.GetKeyValueString("ruleset", "localRulesets")
+    if err != nil {logs.Error("DeleteRuleset Error getting data from main.conf for load data: "+err.Error()); return duplicated, err}
 
     rulesetUUID := utils.Generate()
     rulesetCreated := false

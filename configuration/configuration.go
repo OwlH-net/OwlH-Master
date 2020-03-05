@@ -1,20 +1,11 @@
 package configuration
 
 import (
-    // "encoding/json"
-    // "strconv"
     "github.com/astaxie/beego/logs"
     "database/sql"
-    // "io/ioutil"
-    // "io"
-    // "errors"
     "owlhmaster/utils"
     "owlhmaster/validation"
     "os"
-    // "time"
-    // "os/exec"
-    // "fmt"
-    // "crypto/rand"
     _ "github.com/mattn/go-sqlite3"
 )
 
@@ -91,14 +82,6 @@ func checkTables()(ok bool){
     if !ok {
         return false
     }
-
-    // table.Tname = "userPrivileges"
-    // table.Tconn = "masterConn"
-    // table.Tcreate = "CREATE TABLE userPrivileges (priv_id integer PRIMARY KEY AUTOINCREMENT,priv_uniqueid text NOT NULL,priv_param text NOT NULL,priv_value text NOT NULL)"
-    // ok = CheckTable(table)
-    // if !ok {
-    //     return false
-    // }
 
     table.Tname = "userGroups"
     table.Tconn = "masterConn"
@@ -448,12 +431,8 @@ func checkFields()(ok bool){
 }
 
 func CheckDB(conn string)(ok bool) {
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[conn] = map[string]string{}
-    loadDataSQL[conn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+    dbpath, err := utils.GetKeyValueString(conn, "path")
     if err != nil {logs.Error("Configuration -> Can't get "+conn+" path from main.conf"); return false}
-    dbpath := loadDataSQL[conn]["path"]
 
     exists := DbExists(dbpath)
 
@@ -470,14 +449,9 @@ func CheckDB(conn string)(ok bool) {
     return true
 }
 
-func CheckField(field Field)(ok bool){
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[field.Fconn] = map[string]string{}
-    loadDataSQL[field.Fconn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
+func CheckField(field Field)(ok bool){  
+    dbpath, err := utils.GetKeyValueString(field.Fconn, "path")
     if err != nil {logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf"); return false}
-    
-    dbpath := loadDataSQL[field.Fconn]["path"]
 
     exists := FieldExists(dbpath, field.Fquery)
     if !exists {
@@ -532,15 +506,8 @@ func FieldCreate (dbpath string, insert string, name string)(ok bool){
 }
 
 func CheckTable(table Table)(ok bool){
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[table.Tconn] = map[string]string{}
-    loadDataSQL[table.Tconn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
-    if err != nil {
-        logs.Error("Configuration -> Can't get "+table.Tconn+" path from main.conf")
-        return false
-    }
-    dbpath := loadDataSQL[table.Tconn]["path"]
+    dbpath, err := utils.GetKeyValueString(table.Tconn, "path")
+    if err != nil {logs.Error("CheckTable -> Can't get DB "+table.Tconn+" path from main.conf"); return false}
 
     exists := TableExists(dbpath, table.Tname)
     if !exists {
@@ -602,15 +569,9 @@ func TableExists(db string, table string)(exists bool){
 
 func TableCreate(conn string, tablename string, create string)(ok bool){
     logs.Info("Configuration -> Creating table "+tablename+" in "+conn)
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[conn] = map[string]string{}
-    loadDataSQL[conn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
-    if err != nil {
-        logs.Error("Configuration -> Can't get "+conn+" path from main.conf -> "+err.Error())
-        return false
-    }
-    dbpath := loadDataSQL[conn]["path"]
+    dbpath, err := utils.GetKeyValueString(conn, "path")
+    if err != nil {logs.Error("Configuration -> Can't get "+conn+" path from main.conf -> "+err.Error()); return false}
+    
     db, err := sql.Open("sqlite3",dbpath)
     if err != nil {
         logs.Error("Configuration -> "+dbpath+" Open Failed -> err: "+err.Error())
