@@ -6,6 +6,7 @@ import (
     "owlhmaster/utils"
     "owlhmaster/validation"
     "owlhmaster/database"
+    "owlhmaster/node"
     "io/ioutil"
     "os"
     "errors"
@@ -501,6 +502,12 @@ func AddUser(data map[string]string)(err error){
     err = ndb.InsertUser(uuid, "ldap", data["ldap"])
     if err != nil{logs.Error("master/AddUser Error inserting ldap into db: "+err.Error()); return err}
     
+    //Sync user, group, roles and their relations to the new node
+    node.SyncUsersToNode()
+    // node.SyncRolesToNode()
+    // node.SyncGroupsToNode()
+    node.SyncUserGroupRolesToNode()
+
     return nil
 }
 
@@ -557,6 +564,12 @@ func AddGroupUsers(anode map[string]string) (err error) {
     // err = ndb.InsertGroupUsers(uuid, "permissions", anode["permissions"])
     if err != nil{logs.Error("master/AddGroupUsers Error inserting user into db: "+err.Error()); return err}    
 
+    //Sync user, group, roles and their relations to the new node
+    node.SyncUsersToNode()
+    // node.SyncRolesToNode()
+    node.SyncGroupsToNode()
+    node.SyncUserGroupRolesToNode()
+
     return nil
 }
 
@@ -566,6 +579,12 @@ func AddRole(anode map[string]string) (err error) {
     err = ndb.InsertRoleUsers(uuid, "permissions", anode["permissions"])
     if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
    
+    //Sync user, group, roles and their relations to the new node
+    node.SyncUsersToNode()
+    node.SyncRolesToNode()
+    // node.SyncGroupsToNode()
+    node.SyncUserGroupRolesToNode()
+
     return nil
 }
 
@@ -619,6 +638,13 @@ func AddUsersTo(anode map[string]string) (err error) {
             if err != nil{logs.Error("master/AddUsersTo Error inserting group into InsertUserGroupRole: "+err.Error()); return err}    
         }
     }
+
+    //Sync user, group, roles and their relations to the new node
+    node.SyncUsersToNode()
+    node.SyncRolesToNode()
+    node.SyncGroupsToNode()
+    node.SyncUserGroupRolesToNode()
+
     return nil
 }
 
@@ -706,7 +732,7 @@ func DeleteGroupUser(anode map[string]string) (err error) {
     }
     return nil
 }
-//todo
+
 func DeleteGroupRole(anode map[string]string) (err error) {
     allRoles, err := ndb.GetUserRoles()
     if err != nil{logs.Error("master/DeleteGroupRole Error getting users: "+err.Error()); return err}

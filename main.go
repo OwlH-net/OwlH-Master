@@ -15,8 +15,6 @@ import (
     "owlhmaster/scheduler"
     "owlhmaster/utils"
     "owlhmaster/configuration"
-    // "owlhmaster/validation"
-    // "owlhmaster/controllers"
     "os"
     "crypto/tls"
     "bufio"
@@ -27,7 +25,7 @@ import (
 
 func main() {
 
-    logs.Info("Version OwlH Master: 0.12.0.20200305")
+    logs.Info("Version OwlH Master: 0.12.0.20200306")
     utils.Load()
 
     //get logger data
@@ -83,10 +81,7 @@ func main() {
     //Load all rulesets
     go search.Init()
     //Synchronize users to every node
-    go node.SyncUsersToNode()
-    go node.SyncRolesToNode()
-    go node.SyncGroupsToNode()
-    go node.SyncUserGroupRolesToNode()
+    go node.SyncAllUserData()
 
     //Beego API documentation
     if beego.BConfig.RunMode == "dev" {

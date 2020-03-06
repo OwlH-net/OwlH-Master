@@ -3,12 +3,13 @@ package elk
 import (
     //elk7 "github.com/elastic/go-elasticsearch"
     //"github.com/elastic/go-elasticsearch/esapi"
-    // "github.com/astaxie/beego/logs"    
+    "github.com/astaxie/beego/logs"    
     "time"
     // "encoding/json"
     // "context"
     // "strings"
-    // "owlhmaster/utils"
+    "owlhmaster/utils"
+    "strconv"
 )
 
 func Init(jsonRules []string)(){
@@ -78,7 +79,10 @@ func WriteToELK(t string, cont int){
 
 func StartElasticSync()(){
     for {
+        t,err := utils.GetKeyValueString("loop", "elastic")
+        if err != nil {logs.Error("Search Error: Cannot load Elastic information.")}
+        tDuration, err := strconv.Atoi(t)
         
-        time.Sleep(30 * time.Minute)
+        time.Sleep(time.Minute * time.Duration(tDuration))
     }
 }

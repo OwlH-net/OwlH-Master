@@ -18,8 +18,11 @@ func Init() {
 
     for status == "enabled"{
         RunScheduler()
+        t,err := utils.GetKeyValueString("loop", "scheduler")
+        if err != nil {logs.Error("Search Error: Cannot load scheduler information.")}
+        tDuration, err := strconv.Atoi(t)
         for {            
-            time.Sleep(time.Second*60)
+            time.Sleep(time.Second * time.Duration(tDuration))
             _, currentMinutes, _ := time.Now().Clock()
             confMinutes,_ := strconv.Atoi(minutes)
 

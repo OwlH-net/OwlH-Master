@@ -39,7 +39,11 @@ func Init() {
         pluginData,err := ndb.PingPlugins()
         if err != nil {logs.Error("Error PingPlugins for check dispatcher status: %s", err.Error())}
         if pluginData["dispatcher"]["status"] == "disabled"{
-            time.Sleep(time.Second * 30)
+            t,err := utils.GetKeyValueString("loop", "dispatcher")
+            if err != nil {logs.Error("Search Error: Cannot load dispatcher information.")}
+            tDuration, err := strconv.Atoi(t)
+
+            time.Sleep(time.Second * time.Duration(tDuration))
             continue
         }
         nodesAndPcaps, err := loadNodesAndPcaps()
@@ -184,7 +188,12 @@ func dispatch(theList listOfNodesAndFolders) {
         files, areFiles := getFileFromSrcFolders(theList.Folders[i].Fpath)        
         if !areFiles{
             logs.Info("...waiting Files...")
-            time.Sleep(time.Second*10)
+
+            t,err := utils.GetKeyValueString("loop", "dispatch")
+            if err != nil {logs.Error("Search Error: Cannot load dispatcher information.")}
+            tDuration, err := strconv.Atoi(t)
+
+            time.Sleep(time.Second * time.Duration(tDuration))
             continue
         }
         
