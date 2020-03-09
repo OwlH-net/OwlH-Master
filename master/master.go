@@ -81,10 +81,13 @@ func GetNetworkInterface()(values map[string]string, err error) {
 }
 
 func DeployMaster(anode map[string]string)(err error) {
+    cmd, err := utils.GetKeyValueString("execute", "command")
+    if err != nil{logs.Error("DeployMaster Error getting data from main.conf: "+err.Error()); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil{logs.Error("DeployMaster Error getting data from main.conf: "+err.Error()); return err}
     value, err := utils.GetKeyValueString("deploy", anode["value"])
     if err != nil { logs.Error("DeployMaster Error getting data from main.conf"); return err}
-    
-    _,err = exec.Command("bash", "-c", value).Output()
+    _,err = exec.Command(cmd, param, value).Output()
     if err != nil{logs.Error("DeployMaster Error deploying "+value+": "+err.Error()); return err}
     
     return nil
@@ -133,18 +136,22 @@ func DeployServiceMaster()(err error) {
     if err != nil {logs.Error("master/DeployServiceMaster -- Error main.conf service data: "+err.Error()); return err}
     enable, err := utils.GetKeyValueString("service", "enable")
     if err != nil {logs.Error("master/DeployServiceMaster -- Error main.conf service data: "+err.Error()); return err}
+    cmd, err := utils.GetKeyValueString("execute", "command")
+    if err != nil{logs.Error("master/DeployServiceMaster Error getting data from main.conf: "+err.Error()); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil{logs.Error("master/DeployServiceMaster Error getting data from main.conf: "+err.Error()); return err}
 
     if _, err := os.Stat(dstPath+file); os.IsNotExist(err) {
         // //copy file
         err = utils.CopyFile(dstPath, origPath, file, 0)
-        if err != nil {logs.Error("master/Copy Error Copying file: "+err.Error()); return err}
+        if err != nil {logs.Error("DeployServiceMaster Copy Error Copying file: "+err.Error()); return err}
     
         // //exec reload
-        _,err = exec.Command("bash", "-c", reload).Output()
+        _,err = exec.Command(cmd, param, reload).Output()
         if err != nil{logs.Error("DeployServiceMaster Error reload service: "+err.Error()); return err}
 
         // //exec enable
-        _,err = exec.Command("bash", "-c", enable).Output()
+        _,err = exec.Command(cmd, param, enable).Output()
         if err != nil{logs.Error("DeployServiceMaster Error enabling service: "+err.Error()); return err}
 
         // //return nil
@@ -157,6 +164,12 @@ func DeployServiceMaster()(err error) {
 }
 
 func AddPluginServiceMaster(anode map[string]string) (err error) {
+    //check cert
+    if _, err := os.Stat(anode["cert"]); os.IsNotExist(err) {
+        return errors.New("The certificate does not exist.")
+    }
+    
+    //create plugin
     uuid := utils.Generate()
     err = ndb.InsertPluginService(uuid, "name", anode["name"]); if err != nil {logs.Error("InsertPluginService name Error: "+err.Error()); return err}
     err = ndb.InsertPluginService(uuid, "type", anode["type"]); if err != nil {logs.Error("InsertPluginService type Error: "+err.Error()); return err}
@@ -223,31 +236,60 @@ func CheckServicesStatus()(){
     allPlugins,err := ndb.PingPlugins()
     if err != nil {logs.Error("CheckServicesStatus error getting all master plugins: "+err.Error())}
 
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
+    socNetExec, err := utils.GetKeyValueString("execute", "socNetExec")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
+    socNetPID, err := utils.GetKeyValueString("execute", "socNetPID")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
+    socNetFile, err := utils.GetKeyValueString("execute", "socNetFile")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
+    socatPID, err := utils.GetKeyValueString("execute", "socatPID")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
+
     for w := range allPlugins {
         if allPlugins[w]["pid"] != "none"{
             if allPlugins[w]["type"] == "socket-network" || allPlugins[w]["type"] == "socket-pcap"{
-                pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                // pid, err := exec.Command(command, param, "ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                
+                //change <PORT> by correct port     
+                pid, err := exec.Command(command, param, strings.Replace(socNetPID, "<PORT>", allPlugins[w]["port"], -1)).Output()
                 if err != nil {logs.Error("CheckServicesStatus Checking previous PID for socket-network: "+err.Error())}
                 pidValue := strings.Split(string(pid), "\n")
                 
                 if pidValue[0] == ""{
                     if allPlugins[w]["type"] == "socket-network"{
-                        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
-                        cmd := exec.Command("bash","-c",socat+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
+                        // cmd := exec.Command(command, param, socat+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[w]["interface"]+" -\" &")
+
+                        //change <PORT>, <CERT> and <IFACE>
+                        changePort := strings.Replace(socNetExec, "<PORT>", allPlugins[w]["port"], -1)
+                        changeCert := strings.Replace(changePort, "<CERT>", allPlugins[w]["cert"], -1)
+                        allValues := strings.Replace(changeCert, "<IFACE>", allPlugins[w]["interface"], -1)
+                        cmd := exec.Command(command, param, socat+" "+allValues)
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
                         if err != nil {logs.Error("CheckServicesStatus deploying Error socket-network: "+err.Error())}        
                     }else{
-                        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
-                        cmd := exec.Command("bash","-c",socat+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
+                        // cmd := exec.Command(command, param, socat+" -d OPENSSL-LISTEN:"+allPlugins[w]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[w]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[w]["pcap-path"]+allPlugins[w]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[w]["bpf"]+"\" &")
+                        //change <PORT>, <CERT>, <PCAP_PATH>, <PCAP_PREFIX> and <BPF>
+                        changePort := strings.Replace(socNetFile, "<PORT>", allPlugins[w]["port"], -1)
+                        changeCert := strings.Replace(changePort, "<CERT>", allPlugins[w]["cert"], -1)
+                        changePcapPath := strings.Replace(changeCert, "<PCAP_PATH>", allPlugins[w]["pcap-path"], -1)
+                        changePcapPrefix := strings.Replace(changePcapPath, "<PCAP_PREFIX>", allPlugins[w]["pcap-prefix"], -1)
+                        allValues := strings.Replace(changePcapPrefix, "<BPF>", allPlugins[w]["bpf"], -1)
+                        cmd := exec.Command(command, param, socat+" "+allValues)
                         var errores bytes.Buffer
                         cmd.Stdout = &errores
                         err = cmd.Start()
                         if err != nil {logs.Error("CheckServicesStatus deploying Error socket-network: "+err.Error())}        
                     }                    
 
-                    pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                    // pid, err = exec.Command(command, param, "ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[w]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+                    changePort := strings.Replace(socatPID, "<PORT>", allPlugins[w]["port"], -1)
+                    pid, err = exec.Command(command, param, changePort).Output()
                     if err != nil {logs.Error("CheckServicesStatus deploy socket-network Error: "+err.Error())}
                     pidValue = strings.Split(string(pid), "\n")
                     if pidValue[0] != "" {
@@ -261,11 +303,19 @@ func CheckServicesStatus()(){
 }
 
 func PingPlugins()(data map[string]map[string]string, err error) {
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil{logs.Error("PingPlugins Error getting data from main.conf: "+err.Error()); return nil, err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil{logs.Error("PingPlugins Error getting data from main.conf: "+err.Error()); return nil, err}
+    socatPID, err := utils.GetKeyValueString("execute", "socatPID")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error()); return nil, err}
+
     allPlugins,err := ndb.PingPlugins()
     for x,_ := range allPlugins {
         //check if process is running even though database status is enabled
         if (allPlugins[x]["type"] == "socket-pcap" || allPlugins[x]["type"] == "socket-network") && allPlugins[x]["pid"] != "none"{
-            pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[x]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+            changePort := strings.Replace(socatPID, "<PORT>", allPlugins[x]["port"], -1)
+            pid, err := exec.Command(command, param, changePort).Output()
             if err != nil {logs.Error("ping/PingPluginsNode Checking STAP PID: "+err.Error())}
             if strings.Split(string(pid), "\n")[0] == "" {
                 allPlugins[x]["running"] = "false"
@@ -278,12 +328,26 @@ func PingPlugins()(data map[string]map[string]string, err error) {
 }
 
 func DeployStapServiceMaster(anode map[string]string)(err error) { 
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil {logs.Error("DeployStapServiceMaster Error getting data from main.conf"); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil {logs.Error("DeployStapServiceMaster Error getting data from main.conf"); return err}
     socat, err := utils.GetKeyValueString("plugins", "socat")
-    if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return err}
+    if err != nil {logs.Error("DeployStapServiceMaster error getting path from main.conf"); return err}
+    socNetExec, err := utils.GetKeyValueString("execute", "socNetExec")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
+    socatPID, err := utils.GetKeyValueString("execute", "socatPID")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
+    socNetFile, err := utils.GetKeyValueString("execute", "socNetFile")
+    if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
 
     allPlugins,err := ndb.PingPlugins()
     if anode["type"] == "socket-network" {
-        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        changePort := strings.Replace(socatPID, "<PORT>", allPlugins[anode["uuid"]]["port"], -1)
+        logs.Notice(changePort)
+        pid, err := exec.Command(command, param, changePort).Output()
+        logs.Notice(string(pid))
+ 
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
 
@@ -292,14 +356,21 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
             return errors.New("Can't deploy more than one socket at the same port")
         }
 
-        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
-        cmd := exec.Command("bash","-c",socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
+        changePort = strings.Replace(socNetExec, "<PORT>", allPlugins[anode["uuid"]]["port"], -1)
+        changeCert := strings.Replace(changePort, "<CERT>", allPlugins[anode["uuid"]]["cert"], -1)
+        allValues := strings.Replace(changeCert, "<IFACE>", allPlugins[anode["uuid"]]["interface"], -1)
+        cmd := exec.Command(command, param, socat+" "+allValues)
+        // cmd := exec.Command(command , param, socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
+
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}        
 
-        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        changePort = strings.Replace(socatPID, "<PORT>", allPlugins[anode["uuid"]]["port"], -1)
+        pid, err = exec.Command(command, param, changePort).Output()
+        // pid, err = exec.Command(command, param, "ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue = strings.Split(string(pid), "\n")
         if pidValue[0] != "" {
@@ -307,7 +378,10 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
         }
         logs.Notice("Deploy successful --> Type: "+allPlugins[anode["uuid"]]["type"]+" Description: "+allPlugins[anode["uuid"]]["name"]+"  --  SOCAT: "+pidValue[0])
     }else if anode["type"] == "socket-pcap" {
-        pid, err := exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+
+        changePort := strings.Replace(socatPID, "<PORT>", allPlugins[anode["uuid"]]["port"], -1)
+        pid, err := exec.Command(command, param, changePort).Output()
+        // pid, err := exec.Command(command, param, "ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue := strings.Split(string(pid), "\n")
         
@@ -316,14 +390,21 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
             return errors.New("Can't deploy more than one socket at the same port")   
         }
         
-        // cmd := exec.Command("bash","-c","/usr/bin/socat -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
-        cmd := exec.Command("bash","-c",socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
+        changePort = strings.Replace(socNetFile, "<PORT>", allPlugins[anode["uuid"]]["port"], -1)
+        changeCert := strings.Replace(changePort, "<CERT>", allPlugins[anode["uuid"]]["cert"], -1)
+        changePcapPath := strings.Replace(changeCert, "<PCAP_PATH>", allPlugins[anode["uuid"]]["pcap-path"], -1)
+        changePcapPrefix := strings.Replace(changePcapPath, "<PCAP_PREFIX>", allPlugins[anode["uuid"]]["pcap-prefix"], -1)
+        allValues := strings.Replace(changePcapPrefix, "<BPF>", allPlugins[anode["uuid"]]["bpf"], -1)
+        cmd := exec.Command(command, param, socat+" "+allValues)
+        // cmd := exec.Command(command, param, socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
         if err != nil {logs.Error("DeployStapService deploying Error: "+err.Error()); return err}        
 
-        pid, err = exec.Command("bash","-c","ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
+        changePort = strings.Replace(socatPID, "<PORT>", allPlugins[anode["uuid"]]["port"], -1)
+        pid, err = exec.Command(command, param, changePort).Output()
+        // pid, err = exec.Command(command, param, "ps -ef | grep socat | grep OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+" | grep -v grep | awk '{print $2}'").Output()
         if err != nil {logs.Error("DeployStapService deploy socket-network Error: "+err.Error()); return err}
         pidValue = strings.Split(string(pid), "\n")
         if pidValue[0] != "" {

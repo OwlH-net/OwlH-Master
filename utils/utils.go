@@ -97,11 +97,14 @@ func BackupFile(path string, fileName string) (err error) {
     srcFolder := path+fileName
     destFolder := backupFolder+newFile
 
+    copy, err := GetKeyValueString("execute", "copy")
+    if err != nil {logs.Error("BackupFile Error getting data from main.conf"); return err}
+
     //check if file exist
     if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
         return errors.New("utils.BackupFile error: Source file doesn't exists")
     }else{
-        cpCmd := exec.Command("cp", srcFolder, destFolder)
+        cpCmd := exec.Command(copy, srcFolder, destFolder)
         err = cpCmd.Run()
         if err != nil{logs.Error("utils.BackupFile Error exec cmd command: "+err.Error()); return err}
     }
@@ -140,8 +143,13 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
     base := filepath.Base(tarGzFile)
     fileType := strings.Split(base, ".")
 
+    wget, err := GetKeyValueString("execute", "command")
+    if err != nil {logs.Error("ExtractFile Error getting data from main.conf"); return err}
+    option, err := GetKeyValueString("execute", "option")
+    if err != nil {logs.Error("ExtractFile Error getting data from main.conf"); return err}
+
     if fileType[len(fileType)-1] == "rules"{
-        cmd := exec.Command("wget", tarGzFile, "-O", pathDownloads)
+        cmd := exec.Command(wget, tarGzFile, option, pathDownloads)
         cmd.Stdout = os.Stdout
         cmd.Stderr = os.Stderr
         cmd.Run()
@@ -347,9 +355,12 @@ func HumanTime(epoch int64)(date string){
 }
 
 func BackupFullPath(path string) (err error) {
+    copy, err := GetKeyValueString("execute", "copy")
+    if err != nil {logs.Error("BackupFullPath Error getting data from main.conf"); return err}
+
     t := time.Now()
     destFolder := path+"-"+strconv.FormatInt(t.Unix(), 10)
-    cpCmd := exec.Command("cp", path, destFolder)
+    cpCmd := exec.Command(copy, path, destFolder)
     err = cpCmd.Run()
     if err != nil{
         logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error())

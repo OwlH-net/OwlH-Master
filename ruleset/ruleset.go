@@ -323,10 +323,10 @@ func GetRuleName(nid string)(ruleset string, err error){
 
 //clone ruleset
 func SetClonedRuleset(ruleCloned map[string]string)(err error){
-    if ndb.Rdb == nil {
-        logs.Error("rulesetExists -- Can't access to database")
-        return errors.New("rulesetExists -- Can't access to database")
-    }
+    if ndb.Rdb == nil {logs.Error("rulesetExists -- Can't access to database"); return errors.New("rulesetExists -- Can't access to database")}
+
+    copy, err := utils.GetKeyValueString("execute", "copy")
+    if err != nil {logs.Error("SetClonedRuleset Error getting data from main.conf"); return err}
     path, err := utils.GetKeyValueString("ruleset", "path")
     if err != nil {logs.Error("SetClonedRuleset Error getting data from main.conf for load data: "+err.Error())}
 
@@ -343,7 +343,7 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     rows, err := ndb.Rdb.Query("SELECT * FROM ruleset WHERE ruleset_uniqueid = \""+newUUID+"\";")
     defer rows.Close()
     if !rows.Next(){
-        cpCmd := exec.Command("cp", clonedPath, pathNewRule)
+        cpCmd := exec.Command(copy, clonedPath, pathNewRule)
         err = cpCmd.Run()
         if err != nil{
             logs.Error("SetClonedRuleset --> Error exec cmd command: "+err.Error())
@@ -382,19 +382,24 @@ func insertRulesetValues(uuid string, param string, value string)(err error){
 
 //Change rule status to enabled or disabled
 func SetRulesetAction(ruleAction map[string]string)(err error){
+    cmd, err := utils.GetKeyValueString("execute", "command")
+    if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return err}
+
     sid := ruleAction["sid"]
     uuid := ruleAction["uuid"]
     action := ruleAction["action"]
     path, err := ndb.GetRulesetPath(uuid)
     if (action == "Enable"){
-        cmd := "sed -i '/sid:"+sid+"/s/^#//' "+path+""
-        _, err := exec.Command("bash", "-c", cmd).Output()
+        val := "sed -i '/sid:"+sid+"/s/^#//' "+path+""
+        _, err := exec.Command(cmd, param, val).Output()
         if err == nil {
             return nil
         }
     }else{
-        cmd := "sed -i '/sid:"+sid+"/s/^/#/' "+path+""
-        _, err := exec.Command("bash", "-c", cmd).Output()
+        val := "sed -i '/sid:"+sid+"/s/^/#/' "+path+""
+        _, err := exec.Command(cmd, param, val).Output()
         if err == nil {
             return nil
         }
@@ -689,7 +694,10 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
         }
         
         //copyfile
-        cpCmd := exec.Command("cp", data[x]["filePath"], path)
+        copy, err := utils.GetKeyValueString("execute", "copy")
+        if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return nil, err}
+
+        cpCmd := exec.Command(copy, data[x]["filePath"], path)
         err = cpCmd.Run()
         if err != nil {logs.Error("ruleset/AddNewRuleset -- Error copying new file: %s", err.Error()); return nil,err}
 
@@ -878,9 +886,14 @@ func UpdateRule(anode map[string]string)(err error) {
     path,err := ndb.GetRulesetPath(anode["uuid"])
     if err != nil {logs.Error("UpdateRule/GetRulesetPath Error: "+err.Error()); return err}
 
+    cmd, err := utils.GetKeyValueString("execute", "command")
+    if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return err}
+
     anode["line"] = strings.Replace(anode["line"], "/", "\\/", -1)
-    cmd := "sed -i '/sid:"+anode["sid"]+"/s/.*/"+anode["line"]+"/' "+path+""
-    _, err = exec.Command("bash", "-c", cmd).Output()
+    val := "sed -i '/sid:"+anode["sid"]+"/s/.*/"+anode["line"]+"/' "+path+""
+    _, err = exec.Command(cmd, param, val).Output()
     if err != nil {logs.Error("UpdateRule Error: "+err.Error()); return err}
 
    return nil

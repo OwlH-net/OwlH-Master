@@ -56,7 +56,14 @@ func ShowCollector(uuid string) (data string, err error) {
 }
 
 func PlayMasterCollector() (err error) {
-    _, err = exec.Command("bash","-c","ls -la").Output()
+    cmd, err := utils.GetKeyValueString("execute", "command")
+    if err != nil{logs.Error("PlayMasterCollector Error getting data from main.conf: "+err.Error()); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil{logs.Error("PlayMasterCollector Error getting data from main.conf: "+err.Error()); return err}
+    list, err := utils.GetKeyValueString("execute", "list")
+    if err != nil{logs.Error("PlayMasterCollector Error getting data from main.conf: "+err.Error()); return err}
+
+    _, err = exec.Command(cmd,param,list).Output()
     if err != nil{
         logs.Error("PlayMasterCollector Error executing command in StopCollector function: "+err.Error())
         return err    
@@ -65,7 +72,14 @@ func PlayMasterCollector() (err error) {
 }
 
 func StopMasterCollector() (err error) {
-    _, err = exec.Command("bash","-c","ls -la").Output()
+    cmd, err := utils.GetKeyValueString("execute", "command")
+    if err != nil{logs.Error("PlayMasterCollector Error getting data from main.conf: "+err.Error()); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil{logs.Error("PlayMasterCollector Error getting data from main.conf: "+err.Error()); return err}
+    list, err := utils.GetKeyValueString("execute", "list")
+    if err != nil{logs.Error("PlayMasterCollector Error getting data from main.conf: "+err.Error()); return err}
+    
+    _, err = exec.Command(cmd,param,list).Output()
     if err != nil{
         logs.Error("StopMasterCollector Error executing command in StopCollector function: "+err.Error())
         return err    
@@ -75,11 +89,11 @@ func StopMasterCollector() (err error) {
 
 func ShowMasterCollector() (data string, err error) {
     status, err := utils.GetKeyValueString("stapCollector", "status")
-    if err != nil{logs.Error("ShowMasterCollector Errorgetting data from main.conf: "+err.Error()); return "",err}
-    param, err := utils.GetKeyValueString("stapCollector", "param")
-    if err != nil{logs.Error("ShowMasterCollector Errorgetting data from main.conf: "+err.Error()); return "",err}
-    command, err := utils.GetKeyValueString("stapCollector", "command")
-    if err != nil{logs.Error("ShowMasterCollector Errorgetting data from main.conf: "+err.Error()); return "",err}
+    if err != nil{logs.Error("ShowMasterCollector Error getting data from main.conf: "+err.Error()); return "",err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil{logs.Error("ShowMasterCollector Error getting data from main.conf: "+err.Error()); return "",err}
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil{logs.Error("ShowMasterCollector Error getting data from main.conf: "+err.Error()); return "",err}
 
     output, err := exec.Command(command, param, status).Output()
     if err != nil{logs.Error("ShowMasterCollector Error executing command in ShowCollector function: "+err.Error()); return "",err}
