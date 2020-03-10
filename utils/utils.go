@@ -145,11 +145,9 @@ func ExtractFile(tarGzFile string, pathDownloads string)(err error){
 
     wget, err := GetKeyValueString("execute", "command")
     if err != nil {logs.Error("ExtractFile Error getting data from main.conf"); return err}
-    option, err := GetKeyValueString("execute", "option")
-    if err != nil {logs.Error("ExtractFile Error getting data from main.conf"); return err}
 
     if fileType[len(fileType)-1] == "rules"{
-        cmd := exec.Command(wget, tarGzFile, option, pathDownloads)
+        cmd := exec.Command(wget, tarGzFile, "-O", pathDownloads)
         cmd.Stdout = os.Stdout
         cmd.Stderr = os.Stderr
         cmd.Run()
