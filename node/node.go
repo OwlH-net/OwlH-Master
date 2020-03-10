@@ -69,24 +69,31 @@ func AddNode(n map[string]string) (err error) {
     login["pass"] = n["nodepass"]
     login["master"] = masterid
     
+    //insert node
     uuid := utils.Generate()
-    //Get token from node and insert data
-    token,err := nodeclient.GetNodeToken(n["ip"],n["port"], login)
-
-    if err != nil {
-        err = ndb.InsertNodeKey(uuid, "token", "wait"); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
-    }else{
-        err = ndb.InsertNodeKey(uuid, "token", token); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
-    }    
-
     if n["nodeuser"] != "" {err = ndb.InsertNodeKey(uuid, "nodeuser", n["nodeuser"]); if err != nil {logs.Error("AddNode Insert node user error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
     if n["nodepass"] != "" {err = ndb.InsertNodeKey(uuid, "nodepass", n["nodepass"]); if err != nil {logs.Error("AddNode Insert node pass error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
     if n["name"] != "" {err = ndb.InsertNodeKey(uuid, "name", n["name"]); if err != nil {logs.Error("AddNode Insert node name error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
     if n["port"] != "" {err = ndb.InsertNodeKey(uuid, "port", n["port"]); if err != nil {logs.Error("AddNode Insert node port error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
     if n["ip"] != "" {err = ndb.InsertNodeKey(uuid, "ip", n["ip"]); if err != nil {logs.Error("AddNode Insert node ip error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
 
+    //Get token from node and insert data
+    token,err := nodeclient.GetNodeToken(n["ip"],n["port"], login)
+    if err != nil {
+        logs.Error("AddNode Error getting node token: "+err.Error())
+        err = ndb.InsertNodeKey(uuid, "token", "wait"); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
+    }else{
+        err = ndb.InsertNodeKey(uuid, "token", token); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
+        //Sync user, group, roles and their relations to the new node
+        SyncUsersToNode()
+        SyncUserGroupRolesToNode()
+        SyncRolesToNode()
+        SyncGroupsToNode()
+    }
+
     //Load token
     err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("AddNode Error loading node token: %s",err); return err}
+
     //Save node values into node db  
     nodeValues, err := ndb.GetNodeById(uuid); if err!=nil{logs.Error("AddNode Error loading node values: %s",err); return err}
     //delete data for node
@@ -96,12 +103,6 @@ func AddNode(n map[string]string) (err error) {
     err = nodeclient.SaveNodeInformation(n["ip"],n["port"], nodeValues)
     if err != nil {logs.Error("AddNode Error updating node data"); return err}    
     
-    //Sync user, group, roles and their relations to the new node
-    SyncUsersToNode()
-    SyncUserGroupRolesToNode()
-    // SyncRolesToNode()
-    // SyncGroupsToNode()
-
     return nil
 }
 
@@ -210,18 +211,25 @@ func GetAllNodes()(data map[string]map[string]string, err error){
             ipData,portData,err := ndb.ObtainPortIp(id)
             if err != nil { logs.Error("node/GetAllNodes ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}     
             token,err := nodeclient.GetNodeToken(ipData, portData, login)
-            logs.Notice(token)
             if err != nil {
                 logs.Emergency("node/GetAllNodes ERROR getting node id. Pending registering...")
             }else{
                 err = ndb.UpdateNode(id, "token", token)  
-                if err != nil {logs.Error("node/GetAllNodes ERROR updating node token: "+err.Error()); return nil,err}  
+                if err != nil {logs.Error("node/GetAllNodes ERROR updating node token: "+err.Error()); return nil,err} 
+                
+                //Sync user, group, roles and their relations to the new node
+                SyncUsersToNode()
+                SyncUserGroupRolesToNode()
+                SyncRolesToNode()
+                SyncGroupsToNode()
+
                 allNodes[id]["token"] = token
                 //delete data for node
                 delete(allNodes[id], "nodeuser")
                 delete(allNodes[id], "nodepass")
                 delete(allNodes[id], "token")
                 err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("GetAllNodes Error loading node token: %s",err); return nil,err}
+
                 err = nodeclient.SaveNodeInformation(ipData, portData, allNodes)
                 if err != nil {logs.Error("GetAllNodes Error updating node data"); return nil,err}    
             }

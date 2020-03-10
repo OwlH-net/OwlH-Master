@@ -585,8 +585,8 @@ func AddUser(data map[string]string)(err error){
     
     //Sync user, group, roles and their relations to the new node
     node.SyncUsersToNode()
-    // node.SyncRolesToNode()
-    // node.SyncGroupsToNode()
+    node.SyncRolesToNode()
+    node.SyncGroupsToNode()
     node.SyncUserGroupRolesToNode()
 
     return nil
@@ -647,7 +647,7 @@ func AddGroupUsers(anode map[string]string) (err error) {
 
     //Sync user, group, roles and their relations to the new node
     node.SyncUsersToNode()
-    // node.SyncRolesToNode()
+    node.SyncRolesToNode()
     node.SyncGroupsToNode()
     node.SyncUserGroupRolesToNode()
 
@@ -663,7 +663,7 @@ func AddRole(anode map[string]string) (err error) {
     //Sync user, group, roles and their relations to the new node
     node.SyncUsersToNode()
     node.SyncRolesToNode()
-    // node.SyncGroupsToNode()
+    node.SyncGroupsToNode()
     node.SyncUserGroupRolesToNode()
 
     return nil
