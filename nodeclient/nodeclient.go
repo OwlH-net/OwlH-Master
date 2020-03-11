@@ -636,7 +636,7 @@ func PingPluginsNode(ipnid string, portnid string)(data map[string]map[string]st
     if err != nil {logs.Error("nodeclient/PingPluginsNode ERROR reading request data: "+err.Error()); return data,err}
 
     errorMap := make(map[string]string)
-    _ = json.Unmarshal(body, &errorMap)
+    err = json.Unmarshal(body, &errorMap)
     if errorMap["ack"] == "false"{ logs.Error("nodeclient/PingPluginsNode ERROR: "+err.Error()); return nil,errors.New(errorMap["error"])}
     
     err = json.Unmarshal(body, &data)
