@@ -1967,6 +1967,7 @@ func (n *NodeController) LaunchZeekMainConf() {
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         err := models.LaunchZeekMainConf(anode)
     
+        n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
