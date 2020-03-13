@@ -1970,3 +1970,19 @@ func SyncUserGroupRolesToNode(ipnid string, portnid string, data map[string]map[
     defer resp.Body.Close()
     return nil
 }
+
+func GetServiceCommands(ipnid string, portnid string, data map[string]string)(values map[string]map[string]string, err error){
+    url := "https://"+ipnid+":"+portnid+"/node/plugin/getCommands"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/GetServiceCommands ERROR connection through http new Request: "+err.Error()); return nil, err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/GetServiceCommands ERROR reading request data: "+err.Error()); return nil, err}
+
+    err = json.Unmarshal(body, &values)
+    if err != nil { logs.Error("nodeclient/GetServiceCommands ERROR doing unmarshal JSON: "+err.Error()); return nil, err}
+
+    defer resp.Body.Close()
+    return values, nil
+}

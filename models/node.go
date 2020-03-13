@@ -1023,3 +1023,17 @@ func EditRotation(n map[string]string) (err error) {
     changecontrol.ChangeControlInsertData(err, "EditRotation")
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/plugins/getCommands  \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "service": "v"
+// }
+// }
+func GetServiceCommands(anode map[string]string)(data map[string]map[string]string, err error){
+    data, err = node.GetServiceCommands(anode)
+    changecontrol.ChangeControlInsertData(err, "GetServiceCommands")
+    return data, err
+}

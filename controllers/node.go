@@ -2040,3 +2040,28 @@ func (n *NodeController) EditRotation() {
     }
     n.ServeJSON()
 }
+
+// @Title GetServiceCommands
+// @Description Get a servide commands
+// @Success 200 {object} models.Node
+// @Failure 403 Error
+// @router /plugins/getCommands [put]
+func (n *NodeController) GetServiceCommands() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        n.Data["json"] = map[string]string{"ack": "false", "error": "No hay NID"}
+        data,err := models.GetServiceCommands(anode)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+
+    n.ServeJSON()
+}

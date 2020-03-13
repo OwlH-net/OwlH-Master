@@ -1386,6 +1386,21 @@ func EditRotation(anode map[string]string)(err error){
     return nil
 }
 
+func GetServiceCommands(anode map[string]string)(values map[string]map[string]string,err error){
+    if ndb.Db == nil { logs.Error("node/GetServiceCommands -- Can't acces to database"); return nil, err}
+    
+    //load token for this node
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("node/GetServiceCommands Error loading node token: %s",err); return nil, err}
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil { logs.Error("node/GetServiceCommands ERROR Obtaining Port and Ip: "+err.Error()); return nil, err}
+
+    values, err = nodeclient.GetServiceCommands(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/GetServiceCommands ERROR http data request: "+err.Error()); return nil, err}
+    
+
+    return values, nil
+}
+
 func SyncAllUserData()(){
     for{
         t,err := utils.GetKeyValueString("loop", "usergrouproles")
