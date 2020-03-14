@@ -2,7 +2,6 @@ package utils
 
 
 import (
-    "encoding/json"
     "github.com/astaxie/beego/logs"
     "io/ioutil"
     "io"
@@ -26,6 +25,13 @@ import (
     "path/filepath"
 )
 
+//**********token global variables**********
+var TokenMasterValidated string
+var TokenMasterUser string
+var TokenMasterUuid string
+var NodeToken string
+//**********token global variables**********
+
 func Generate()(uuid string)  {
     b := make([]byte, 16)
     _, err := rand.Read(b)
@@ -36,38 +42,16 @@ func Generate()(uuid string)  {
     return uuid
 }
 
-//Read main.conf and return a map data
-func GetConf(loadData map[string]map[string]string)(loadDataReturn map[string]map[string]string, err error) { 
-    confFilePath := "conf/main.conf"
-    jsonPathBpf, err := ioutil.ReadFile(confFilePath)
-    if err != nil {
-        logs.Error("utils/GetConf -> can't open Conf file -> " + confFilePath)
-        return nil, err
-    }
-
-    var anode map[string]map[string]string
-    json.Unmarshal(jsonPathBpf, &anode)
-
-    for k,y := range loadData { 
-        for y,_ := range y {
-            if v, ok := anode[k][y]; ok {
-                loadData[k][y] = v
-            }else{
-                loadData[k][y] = "None"
-            }
-        }
-    }
-    return loadData, nil
-}
-
 //create conection through http.
 func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Response, err error){
     req, err := http.NewRequest(order, url, values)
+    req.Header.Set("token", TokenMasterValidated)
+    req.Header.Set("user", TokenMasterUser)
     if err != nil {
         logs.Error("Error Executing HTTP new request")
     }
     tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, DisableKeepAlives: true,}
-    client := &http.Client{Transport: tr}
+    client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
     resp, err = client.Do(req)
     if err != nil {
         logs.Error("Error Retrieving response from client HTTP new request")
@@ -76,26 +60,53 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
 }
 
 //create a backup of selected file
-func BackupFile(path string, fileName string) (err error) { 
-    loadData := map[string]map[string]string{}
-    loadData["files"] = map[string]string{}
-    loadData["files"]["backupPath"] = ""
-    loadData,err = GetConf(loadData)
-    backupPath := loadData["files"]["backupPath"]
-    if err != nil {
-        logs.Error("Error BackupFile Creating backup: "+err.Error())
-        return err
+func BackupFile(path string, fileName string) (err error) {
+    backupFolder, err := GetKeyValueString("files", "backupPath")
+    if err != nil {logs.Error("Error BackupFile Creating backup: "+err.Error()); return err}
+
+    // check if folder exists
+    if _, err := os.Stat(backupFolder); os.IsNotExist(err) {
+        err = os.MkdirAll(backupFolder, 0755)
+        if err != nil{logs.Error("utils.BackupFile Error creating main backup folder: "+err.Error()); return err}
     }
 
+    //get older backup file
+    listOfFiles,err := FilelistPathByFile(backupFolder, fileName)
+    if err != nil{logs.Error("utils.BackupFile Error walking through backup folder: "+err.Error()); return err}
+    count := 0
+    previousBck := ""
+    for x := range listOfFiles{
+        count++
+        if previousBck == "" {
+            previousBck = x
+            continue
+        }else if previousBck > x{
+            previousBck = x
+        }
+    }
+
+    //delete older bck file if there are 5 bck files
+    if count == 5 {
+        err = os.Remove(backupFolder+previousBck)
+        if err != nil{logs.Error("utils.BackupFile Error deleting older backup file: "+err.Error())}
+    }
+
+    //create backup
     t := time.Now()
     newFile := fileName+"-"+strconv.FormatInt(t.Unix(), 10)
     srcFolder := path+fileName
-    destFolder := backupPath+newFile
-    cpCmd := exec.Command("cp", srcFolder, destFolder)
-    err = cpCmd.Run()
-    if err != nil{
-        logs.Error("BackupFile Error exec cmd command: "+err.Error())
-        return err
+    destFolder := backupFolder+newFile
+
+    copy, err := GetKeyValueString("execute", "copy")
+    if err != nil {logs.Error("BackupFile Error getting data from main.conf"); return err}
+
+    //check if file exist
+    if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
+        return errors.New("utils.BackupFile error: Source file doesn't exists")
+    }else{
+        cpCmd := exec.Command(copy, srcFolder, destFolder)
+        err = cpCmd.Run()
+        if err != nil{logs.Error("utils.BackupFile Error exec cmd command: "+err.Error()); return err}
     }
     return nil
 }
@@ -103,7 +114,7 @@ func BackupFile(path string, fileName string) (err error) {
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
 func DownloadFile(filepath string, url string)(err error){
-    //Get the data    
+    //Get the data
     resp, err := http.Get(url)
     if err != nil {
         logs.Error("Error downloading file: "+err.Error())
@@ -128,65 +139,80 @@ func DownloadFile(filepath string, url string)(err error){
 }
 
 //extract tar.gz files
-// func ExtractTarGz(tarGzFile string, pathDownloads string, folder string)(err error){
-func ExtractTarGz(tarGzFile string, pathDownloads string)(err error){
-    file, err := os.Open(tarGzFile)
-    defer file.Close()
-    if err != nil {
-        return err
-    }
+func ExtractFile(tarGzFile string, pathDownloads string)(err error){
+    base := filepath.Base(tarGzFile)
+    fileType := strings.Split(base, ".")
 
-    uncompressedStream, err := gzip.NewReader(file)
-    if err != nil {
-        return err
-    }
+    wget, err := GetKeyValueString("execute", "command")
+    if err != nil {logs.Error("ExtractFile Error getting data from main.conf"); return err}
 
-    tarReader := tar.NewReader(uncompressedStream)
-    for true {
-        header, err := tarReader.Next()
-        if err == io.EOF {
-            break
-        }
-        if err != nil {
-            return err
-        }
+    if fileType[len(fileType)-1] == "rules"{
+        cmd := exec.Command(wget, tarGzFile, "-O", pathDownloads)
+        cmd.Stdout = os.Stdout
+        cmd.Stderr = os.Stderr
+        cmd.Run()
 
-        switch header.Typeflag {
-        case tar.TypeDir:
-            err := os.MkdirAll(pathDownloads+"/"+header.Name, 0755);
+    // }else if fileType[len(fileType)-1] == "gz"{
+    }else{
+        // if fileType[len(fileType)-2] == "tar"{
+            file, err := os.Open(tarGzFile)
+            defer file.Close()
             if err != nil {
-                logs.Error("TypeDir: "+err.Error())
                 return err
             }
-        case tar.TypeReg:
-            outFile, err := os.Create(pathDownloads+"/"+header.Name)
-            _, err = io.Copy(outFile, tarReader)
+
+            uncompressedStream, err := gzip.NewReader(file)
             if err != nil {
-                logs.Error("TypeReg: "+err.Error())
                 return err
             }
-        default:
-            logs.Error(
-                "ExtractTarGz: uknown type: %s in %s",
-                header.Typeflag,
-                header.Name)
-        }
+
+            tarReader := tar.NewReader(uncompressedStream)
+            for true {
+                header, err := tarReader.Next()
+                if err == io.EOF {
+                    break
+                }
+                if err != nil {
+                    return err
+                }
+
+                switch header.Typeflag {
+                case tar.TypeDir:
+                    err := os.MkdirAll(pathDownloads+"/"+header.Name, 0755);
+                    if err != nil {
+                        logs.Error("TypeDir: "+err.Error())
+                        return err
+                    }
+                case tar.TypeReg:
+                    outFile, err := os.Create(pathDownloads+"/"+header.Name)
+                    _, err = io.Copy(outFile, tarReader)
+                    if err != nil {
+                        logs.Error("TypeReg: "+err.Error())
+                        return err
+                    }
+                default:
+                    logs.Error(
+                        "ExtractTarGz: uknown type: %s in %s",
+                        header.Typeflag,
+                        header.Name)
+                }
+            }
+        // }
+    // }else if fileType[len(fileType)-1] == "tgz"{
     }
+
     return nil
 }
 
 //create a hashmap from file
 func MapFromFile(path string)(mapData map[string]map[string]string, err error){
     var mapFile = make(map[string]map[string]string)
-    var validID = regexp.MustCompile(`sid:(\d+);`)
+    var validID = regexp.MustCompile(`sid:\s?(\d+);`)
     var enablefield = regexp.MustCompile(`^#`)
-    
+
     file, err := os.Open(path)
-    if err != nil {
-        logs.Error("Openning File for export to map: "+ err.Error())
-        return nil, err
-    }
-    
+    if err != nil {logs.Error("utils/MapFromFile Error openning file for export to map: "+ err.Error()); return nil, err}
+
     scanner := bufio.NewScanner(file)
     for scanner.Scan() {
         sid := validID.FindStringSubmatch(scanner.Text())
@@ -212,17 +238,21 @@ func MergeAllFiles(files []string)(content []byte, err error){
         lines,err := MapFromFile(files[x])
         if err != nil {logs.Error("MergeAllFiles/MapFromFile error creating map from file: "+err.Error()); return nil,err}
         for y := range lines {
+            // exists := false
             if lines[y]["Enabled"] == "Enabled" {
                 if allFiles[y] == nil { allFiles[y] = map[string]string{}}
-                for z := range allFiles {
-                    if y != z {
-                        allFiles[y] = lines[y]
-                    }
-                }
+                allFiles[y] = lines[y]
+                // for z := range allFiles {
+                //     if y == z {
+                //         exists = true
+                //     }
+                // }
+                // if exists {allFiles[y] = lines[y]}
             }
         }
     }
     for r := range allFiles{
+        logs.Info(allFiles[r]["Line"])
         content = append(content, []byte(allFiles[r]["Line"])...)
         content = append(content, []byte("\n")...)
     }
@@ -231,24 +261,19 @@ func MergeAllFiles(files []string)(content []byte, err error){
 
 //replace lines between 2 files selected
 func ReplaceLines(data map[string]string)(err error){
-    sourceDownload := map[string]map[string]string{}
-    sourceDownload["ruleset"] = map[string]string{}
-    sourceDownload["ruleset"]["sourceDownload"] = ""
-    sourceDownload,err = GetConf(sourceDownload)
-    pathDownloaded := sourceDownload["ruleset"]["sourceDownload"]
-    if err != nil {
-        logs.Error("ReplaceLines error loading data from main.conf: "+ err.Error())
-        return err
-    }
-    
-    //split path 
+    pathDownloaded, err := GetKeyValueString("ruleset", "sourceDownload")
+    if err != nil {logs.Error("ReplaceLines error loading data from main.conf: "+ err.Error());return err}
+    ruleFile, err := GetKeyValueString("ruleset", "ruleFile")
+    if err != nil {logs.Error("ReplaceLines error loading data from main.conf: "+ err.Error());return err}
+
+    //split path
     splitPath := strings.Split(data["path"], "/")
     pathSelected := splitPath[len(splitPath)-2]
 
     saved := false
     rulesFile, err := os.Create("_creating-new-file.txt")
     defer rulesFile.Close()
-    var validID = regexp.MustCompile(`sid:(\d+);`)
+    var validID = regexp.MustCompile(`sid:\s?(\d+);`)
 
     newFileDownloaded, err := os.Open(pathDownloaded + pathSelected + "/rules/" + "drop.rules")
 
@@ -261,8 +286,8 @@ func ReplaceLines(data map[string]string)(err error){
                     saved = true
                     continue
                 }else{
-                    _, err = rulesFile.WriteString(string(data[x]))    
-                    _, err = rulesFile.WriteString("\n")    
+                    _, err = rulesFile.WriteString(string(data[x]))
+                    _, err = rulesFile.WriteString("\n")
                     saved = true
                     continue
                 }
@@ -270,13 +295,14 @@ func ReplaceLines(data map[string]string)(err error){
         }
         if !saved{
             _, err = rulesFile.WriteString(scanner.Text())
-            _, err = rulesFile.WriteString("\n")    
+            _, err = rulesFile.WriteString("\n")
         }
         saved = false
     }
 
     input, err := ioutil.ReadFile("_creating-new-file.txt")
-    err = ioutil.WriteFile("rules/drop.rules", input, 0644)
+    // err = ioutil.WriteFile("rules/drop.rules", input, 0644)
+    err = ioutil.WriteFile(ruleFile, input, 0644)
 
     _ = os.Remove("_creating-new-file.txt")
 
@@ -316,7 +342,7 @@ func VerifyPathExists(path string)(stauts string){
 }
 
 func EpochTime(date string)(epoch int64, err error){
-    t1 := time.Now() 
+    t1 := time.Now()
     t2,_ := time.ParseInLocation("2006-01-02T15:04:05", date, t1.Location())
 
     return t2.Unix(), nil
@@ -326,10 +352,13 @@ func HumanTime(epoch int64)(date string){
     return time.Unix(epoch , 0).String()
 }
 
-func BackupFullPath(path string) (err error) { 
+func BackupFullPath(path string) (err error) {
+    copy, err := GetKeyValueString("execute", "copy")
+    if err != nil {logs.Error("BackupFullPath Error getting data from main.conf"); return err}
+
     t := time.Now()
     destFolder := path+"-"+strconv.FormatInt(t.Unix(), 10)
-    cpCmd := exec.Command("cp", path, destFolder)
+    cpCmd := exec.Command(copy, path, destFolder)
     err = cpCmd.Run()
     if err != nil{
         logs.Error("utils.BackupFullPath Error exec cmd command: "+err.Error())
@@ -357,7 +386,7 @@ func CopyFile(dstfolder string, srcfolder string, file string, BUFFERSIZE int64)
     if !sourceFileStat.Mode().IsRegular() {
         logs.Error("%s is not a regular file.", sourceFileStat)
         return errors.New(sourceFileStat.Name()+" is not a regular file.")
-    } 
+    }
     source, err := os.Open(srcfolder+file)
     if err != nil {
         return err
@@ -404,7 +433,6 @@ func SortHashMap(data map[string]map[string]string)(dataSorted map[string]map[st
     for z := range val{
         for y := range data {
             if strings.ToLower(val[z]) == strings.ToLower(data[y]["name"]) {
-                logs.Info("EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS EQUALS ")
                 if sortedValues[y] == nil { sortedValues[y] = map[string]string{}}
                 sortedValues[y] = data[y]
             }
@@ -425,6 +453,27 @@ func ListFilepath(path string)(files map[string][]byte, err error){
             content, err := ioutil.ReadFile(file)
             if err != nil {logs.Error("Error filepath walk: "+err.Error()); return err}
             pathMap[pathSplit[len(pathSplit)-1]] = content
+        }
+        return nil
+    })
+    if err != nil {logs.Error("Error filepath walk finish: "+err.Error()); return nil, err}
+
+    return pathMap, nil
+}
+
+func FilelistPathByFile(path string, fileToSearch string)(files map[string][]byte, err error){
+    pathMap:= make(map[string][]byte)
+    err = filepath.Walk(path,
+        func(file string, info os.FileInfo, err error) error {
+        if err != nil {return err}
+
+        if !info.IsDir() {
+            pathSplit := strings.Split(file, "/")
+            if strings.Contains(pathSplit[len(pathSplit)-1], fileToSearch){
+                content, err := ioutil.ReadFile(file)
+                if err != nil {logs.Error("Error filepath walk: "+err.Error()); return err}
+                pathMap[pathSplit[len(pathSplit)-1]] = content
+            }
         }
         return nil
     })

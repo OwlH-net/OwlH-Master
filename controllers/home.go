@@ -14,7 +14,7 @@ type HomeController struct {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router / [get]
-func (m *HomeController) Home() {
-    m.Data["json"] = map[string]string{"ack": "true"}
-    m.ServeJSON()
+func (n *HomeController) Home() {
+    n.Data["json"] = map[string]string{"ack": "true"}
+    n.ServeJSON()
 }

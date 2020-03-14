@@ -93,3 +93,9 @@ CREATE TABLE groupcluster (
    gc_param text NOT NULL,
    gc_value text NOT NULL
 );
+CREATE TABLE users (
+   user_id integer PRIMARY KEY AUTOINCREMENT,
+   user_uniqueid text NOT NULL,
+   user_param text NOT NULL,
+   user_value text NOT NULL
+);

@@ -4,6 +4,7 @@ import (
     "owlhmaster/models"
     "encoding/json"
     "github.com/astaxie/beego"
+    "owlhmaster/validation"
 )
 
 type SchedulerController struct {
@@ -16,12 +17,20 @@ type SchedulerController struct {
 // @Failure 403 Connection Failure
 // @router /add [put]
 func (n *SchedulerController) SchedulerTask() { 
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
-    err := models.SchedulerTask(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
+        err := models.SchedulerTask(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+
     }
     n.ServeJSON()
 }
@@ -32,12 +41,19 @@ func (n *SchedulerController) SchedulerTask() {
 // @Failure 403 Connection Failure
 // @router /stop [put]
 func (n *SchedulerController) StopTask() { 
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.StopTask(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.StopTask(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -48,11 +64,18 @@ func (n *SchedulerController) StopTask() {
 // @Failure 403 Connection Failure
 // @router /log/:uuid [get]
 func (n *SchedulerController) GetLog() { 
-    uuid := n.GetString(":uuid")
-    logReg,err := models.GetLog(uuid)    
-    n.Data["json"] = logReg
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        uuid := n.GetString(":uuid")
+        logReg,err := models.GetLog(uuid)    
+        n.Data["json"] = logReg
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }

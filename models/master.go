@@ -42,7 +42,7 @@ func SaveFileContent(anode map[string]string) (err error) {
 //   https://52.47.197.22:50002/v1/master/pingPlugins \
 // }
 func PingPlugins() (data map[string]map[string]string, err error) {
-    data,err = ndb.PingPlugins()
+    data,err = master.PingPlugins()
     changecontrol.ChangeControlInsertData(err, "PingPlugins")
     return data,err
 }
@@ -292,5 +292,320 @@ func GetIncidents()(data map[string]map[string]string, err error){
 func PutIncident(anode map[string]string)(err error){
     err = master.PutIncident(anode)
     changecontrol.ChangeControlInsertData(err, "PutIncident")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/zeek/saveZeekValues \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "param": "v",
+//     "node": "v"
+// }
+func SaveZeekValues(anode map[string]string)(err error){
+    err = master.SaveZeekValues(anode)
+    changecontrol.ChangeControlInsertData(err, "SaveZeekValues")
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/incidents \
+// }
+func PingPluginsMaster()(data map[string]map[string]string, err error){
+    data,err = master.PingPluginsMaster()
+    changecontrol.ChangeControlInsertData(err, "PingPluginsMaster")
+    return data,err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/editPathFile/:path \
+// }
+func GetPathFileContent(param string) (data map[string]string, err error) {
+    data, err = master.GetPathFileContent(param)
+    changecontrol.ChangeControlInsertData(err, "GetPathFileContent")
+    return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/savefilePath \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "file": "v",
+//     "content": "v"
+//  }
+// }
+func SaveFilePathContent(anode map[string]string) (err error) {
+    err = master.SaveFilePathContent(anode)
+    changecontrol.ChangeControlInsertData(err, "SaveFilePathContent")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/login \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "user": "v",
+//     "password": "v"
+//  }
+// }
+func Login(anode map[string]string) (token string, err error) {
+    token, err = master.Login(anode)
+    changecontrol.ChangeControlInsertData(err, "Login")
+    return token, err
+}
+
+// curl -X POST \
+//   https://52.47.197.22:50002/v1/master/addUser \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "user": "v",
+//     "pass": "v"
+// }
+func AddUser(anode map[string]string)(err error){
+    err = master.AddUser(anode)
+    changecontrol.ChangeControlInsertData(err, "AddUser")
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getAllUsers \
+// }
+func GetAllUsers()(data map[string]map[string]string, err error) {
+    data, err = master.GetAllUsers()
+    changecontrol.ChangeControlInsertData(err, "GetAllUsers")
+    return data, err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteUser \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v"
+//  }
+// }
+func DeleteUser(anode map[string]string)(err error){
+    err = master.DeleteUser(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteUser")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addGroupUsers \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "group": "v"
+//  }
+// }
+func AddGroupUsers(anode map[string]string) (err error) {
+    err = master.AddGroupUsers(anode)
+    changecontrol.ChangeControlInsertData(err, "AddGroupUsers")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "role": "v"
+//  }
+// }
+func AddRole(anode map[string]string) (err error) {
+    err = master.AddRole(anode)
+    changecontrol.ChangeControlInsertData(err, "AddRole")
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getRolesForUser/:roleID \
+// }
+func GetRolesForUser(id string)(data map[string]map[string]string, err error) {
+    data, err = master.GetRolesForUser(id)
+    changecontrol.ChangeControlInsertData(err, "GetRolesForUser")
+    return data, err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getGroupsForUser/:groupID \
+// }
+func GetGroupsForUser(id string)(data map[string]map[string]string, err error) {
+    data, err = master.GetGroupsForUser(id)
+    changecontrol.ChangeControlInsertData(err, "GetGroupsForUser")
+    return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addUsersTo \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "user": "v",
+//     "type": "v",
+//     "values": [x,y,z]
+//  }
+// }
+func AddUsersTo(anode map[string]string) (err error) {
+    err = master.AddUsersTo(anode)
+    changecontrol.ChangeControlInsertData(err, "AddUsersTo")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/changePassword \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "user": "v",
+//     "pass": "v",
+//  }
+// }
+func ChangePassword(anode map[string]string) (err error) {
+    err = master.ChangePassword(anode)
+    changecontrol.ChangeControlInsertData(err, "ChangePassword")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteUserRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "role": "v"
+func DeleteUserRole(anode map[string]string) (err error) {
+    err = master.DeleteUserRole(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteUserRole")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteUserGroup \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "group": "v"
+func DeleteUserGroup(anode map[string]string) (err error) {
+    err = master.DeleteUserGroup(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteUserGroup")
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getAllRoles \
+// }
+func GetAllRoles() (data map[string]map[string]string, err error) {
+    data, err = master.GetAllRoles()
+    changecontrol.ChangeControlInsertData(err, "GetAllRoles")
+    return data, err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v"
+func DeleteRole(anode map[string]string) (err error) {
+    err = master.DeleteRole(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteRole")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/editRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "name": "v",
+//     "permissions": "v",
+func EditRole(anode map[string]string) (err error) {
+    err = master.EditRole(anode)
+    changecontrol.ChangeControlInsertData(err, "EditRole")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/editUserGroup \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "name": "v"
+func EditUserGroup(anode map[string]string) (err error) {
+    err = master.EditUserGroup(anode)
+    changecontrol.ChangeControlInsertData(err, "EditUserGroup")
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getAllUserGroups \
+// }
+func GetAllUserGroups() (data map[string]map[string]string, err error) {
+    data, err = master.GetAllUserGroups()
+    changecontrol.ChangeControlInsertData(err, "GetAllUserGroups")
+    return data, err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getRolesForGroups/:roleID \
+// }
+func GetRolesForGroups(id string)(data map[string]map[string]string, err error) {
+    data, err = master.GetRolesForGroups(id)
+    changecontrol.ChangeControlInsertData(err, "GetRolesForGroups")
+    return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addRoleToGroup \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "id",
+//     "name": "get,put"
+func AddRoleToGroup(anode map[string]string) (err error) {
+    err = master.AddRoleToGroup(anode)
+    changecontrol.ChangeControlInsertData(err, "AddRoleToGroup")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteRoleUser \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "user": "v"
+func DeleteRoleUser(anode map[string]string) (err error) {
+    err = master.DeleteRoleUser(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteRoleUser")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteRoleGroup \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "group": "v"
+func DeleteRoleGroup(anode map[string]string) (err error) {
+    err = master.DeleteRoleGroup(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteRoleGroup")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteGroupUser \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "user": "v"
+func DeleteGroupUser(anode map[string]string) (err error) {
+    err = master.DeleteGroupUser(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteGroupUser")
+    return err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/master/deleteGroupRole \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "id": "v",
+//     "role": "v"
+func DeleteGroupRole(anode map[string]string) (err error) {
+    err = master.DeleteGroupRole(anode)
+    changecontrol.ChangeControlInsertData(err, "DeleteGroupRole")
     return err
 }

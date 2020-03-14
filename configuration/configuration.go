@@ -1,19 +1,11 @@
 package configuration
 
 import (
-    // "encoding/json"
-    // "strconv"
     "github.com/astaxie/beego/logs"
     "database/sql"
-    // "io/ioutil"
-    // "io"
-    // "errors"
     "owlhmaster/utils"
+    "owlhmaster/validation"
     "os"
-    // "time"
-    // "os/exec"
-    // "fmt"
-    // "crypto/rand"
     _ "github.com/mattn/go-sqlite3"
 )
 
@@ -60,7 +52,7 @@ func MainCheck()(cancontinue bool){
 }
 
 func checkDatabases()(ok bool){
-    dbs := []string{"masterConn","dbsConn","rulesetConn"}
+    dbs := []string{"masterConn","dbsConn","rulesetConn","groupConn","rulesetSourceConn"}
     for db := range dbs {
         logs.Warn("lets check db -> "+dbs[db])
         ok := CheckDB(dbs[db])
@@ -74,6 +66,38 @@ func checkDatabases()(ok bool){
 
 func checkTables()(ok bool){
     var table Table
+
+    table.Tname = "usergrouproles"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE usergrouproles (ugr_id integer PRIMARY KEY AUTOINCREMENT,ugr_uniqueid text NOT NULL,ugr_param text NOT NULL,ugr_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "userRoles"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE userRoles (ur_id integer PRIMARY KEY AUTOINCREMENT,ur_uniqueid text NOT NULL,ur_param text NOT NULL,ur_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "userGroups"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE userGroups (ug_id integer PRIMARY KEY AUTOINCREMENT,ug_uniqueid text NOT NULL,ug_param text NOT NULL,ug_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "users"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE users (user_id integer PRIMARY KEY AUTOINCREMENT,user_uniqueid text NOT NULL,user_param text NOT NULL,user_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
 
     table.Tname = "plugins"
     table.Tconn = "masterConn"
@@ -202,7 +226,141 @@ func checkTables()(ok bool){
 func checkFields()(ok bool){
 
     var field Field
+    
+    //add admin user by default
+    secret := utils.Generate()
+    pass,err := validation.HashPassword("admin")
+    if err!=nil {logs.Error("Error hashing password at configuration.")}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='user' and user_value='admin'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','user','admin')"
+    field.Fname      = "users - user"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='type' and user_value='local'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','type','local')"
+    field.Fname      = "users - type"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='secret' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','secret','"+secret+"')"
+    field.Fname      = "users - secret"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='pass' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','pass','"+pass+"')"
+    field.Fname      = "users - pass"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='deleteable' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','deleteable','false')"
+    field.Fname      = "users - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='ldap' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','ldap','disabled')"
+    field.Fname      = "users - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
 
+    //add admin to role admin status
+    masterUUID := utils.Generate()
+    field.Fconn      = "masterConn"
+    field.Ftable     = "masterconfig"
+    field.Fquery     = "select config_param from masterconfig where config_param='id'"
+    field.Finsert    = "insert into masterconfig (config_uniqueid,config_param,config_value) values ('master','id','"+masterUUID+"')"
+    field.Fname      = "masterconfig - id"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //add admin to role admin status
+    field.Fconn      = "masterConn"
+    field.Ftable     = "userRoles"
+    field.Fquery     = "select ur_param from userRoles where ur_param='role' and ur_value='admin'"
+    field.Finsert    = "insert into userRoles (ur_uniqueid,ur_param,ur_value) values ('00000000-0000-0000-0000-000000000001','role','admin')"
+    field.Fname      = "userRoles - role"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "userRoles"
+    field.Fquery     = "select ur_param from userRoles where ur_param='permissions'"
+    field.Finsert    = "insert into userRoles (ur_uniqueid,ur_param,ur_value) values ('00000000-0000-0000-0000-000000000001','permissions','get,put,post,delete')"
+    field.Fname      = "userRoles - role"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //add admin to group admin status
+    field.Fconn      = "masterConn"
+    field.Ftable     = "userGroups"
+    field.Fquery     = "select ug_param from userGroups where ug_param='group' and ug_value='admin'"
+    field.Finsert    = "insert into userGroups (ug_uniqueid,ug_param,ug_value) values ('00000000-0000-0000-0000-000000000002','group','admin')"
+    field.Fname      = "userGroups - group"
+    ok = CheckField(field)
+    if !ok {return false}
+    // field.Fconn      = "masterConn"
+    // field.Ftable     = "userGroups"
+    // field.Fquery     = "select ug_param from userGroups where ug_param='permissions'"
+    // field.Finsert    = "insert into userGroups (ug_uniqueid,ug_param,ug_value) values ('00000000-0000-0000-0000-000000000002','permissions','get,put,post,delete')"
+    // field.Fname      = "userGroups - group"
+    // ok = CheckField(field)
+    // if !ok {return false}
+
+    //create usergrouproles admin values
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000003' and ugr_param='user' and ugr_value='00000000-0000-0000-0000-000000000000'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000003','user','00000000-0000-0000-0000-000000000000')"
+    field.Fname      = "usergrouproles - user"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000003' and ugr_param='role' and ugr_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000003','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname      = "usergrouproles - role"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_value from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000004' and ugr_value='00000000-0000-0000-0000-000000000002'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000004','group','00000000-0000-0000-0000-000000000002')"
+    field.Fname      = "usergrouproles - group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_value from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000004' and ugr_value='00000000-0000-0000-0000-000000000000'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000004','user','00000000-0000-0000-0000-000000000000')"
+    field.Fname      = "user - usergrouproles"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000005' and ugr_param='role' and ugr_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000005','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname      = "role - usergrouproles"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000005' and ugr_param='group' and ugr_value='00000000-0000-0000-0000-000000000002'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000005','group','00000000-0000-0000-0000-000000000002')"
+    field.Fname      = "group - usergrouproles"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //add dispatcher status
     field.Fconn      = "masterConn"
     field.Ftable     = "plugins"
     field.Fquery     = "select plugin_param from plugins where plugin_param='status' and plugin_uniqueid='dispatcher'"
@@ -213,19 +371,68 @@ func checkFields()(ok bool){
         return false
     }
 
+    //Create default Zeek values
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='nodeConfig'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','nodeConfig','')"
+    field.Fname      = "plugin - nodeConfig"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='networksConfig'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','networksConfig','')"
+    field.Fname      = "plugin - networksConfig"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='policiesMaster'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','policiesMaster','')"
+    field.Fname      = "plugin - policiesMaster"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='policiesNode'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','policiesNode','')"
+    field.Fname      = "plugin - policiesNode"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='variables1'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','variables1','')"
+    field.Fname      = "plugin - variables1"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+    field.Fconn      = "masterConn"
+    field.Ftable     = "plugins"
+    field.Fquery     = "select plugin_param from plugins where plugin_param='variables2'"
+    field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','variables2','')"
+    field.Fname      = "plugin - variables2"
+    ok = CheckField(field)
+    if !ok {
+        return false
+    }
+
     return true
 }
 
 func CheckDB(conn string)(ok bool) {
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[conn] = map[string]string{}
-    loadDataSQL[conn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
-    if err != nil {
-        logs.Error("Configuration -> Can't get "+conn+" path from main.conf")
-        return false
-    }
-    dbpath := loadDataSQL[conn]["path"]
+    dbpath, err := utils.GetKeyValueString(conn, "path")
+    if err != nil {logs.Error("Configuration -> Can't get "+conn+" path from main.conf"); return false}
 
     exists := DbExists(dbpath)
 
@@ -242,16 +449,9 @@ func CheckDB(conn string)(ok bool) {
     return true
 }
 
-func CheckField(field Field)(ok bool){
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[field.Fconn] = map[string]string{}
-    loadDataSQL[field.Fconn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
-    if err != nil {
-        logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf")
-        return false
-    }
-    dbpath := loadDataSQL[field.Fconn]["path"]
+func CheckField(field Field)(ok bool){  
+    dbpath, err := utils.GetKeyValueString(field.Fconn, "path")
+    if err != nil {logs.Error("Configuration -> Can't get DB "+field.Fconn+" path from main.conf"); return false}
 
     exists := FieldExists(dbpath, field.Fquery)
     if !exists {
@@ -267,7 +467,7 @@ func CheckField(field Field)(ok bool){
     return true
 }
 
-func FieldExists (dbpath, qry string)(ok bool){
+func FieldExists(dbpath, qry string)(ok bool){
     dblink, err := sql.Open("sqlite3", dbpath)
     if err != nil {
         logs.Error("Configuration -> Check Field -> db " + dbpath + " can't be opened -> err: "+err.Error())
@@ -306,15 +506,8 @@ func FieldCreate (dbpath string, insert string, name string)(ok bool){
 }
 
 func CheckTable(table Table)(ok bool){
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[table.Tconn] = map[string]string{}
-    loadDataSQL[table.Tconn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
-    if err != nil {
-        logs.Error("Configuration -> Can't get "+table.Tconn+" path from main.conf")
-        return false
-    }
-    dbpath := loadDataSQL[table.Tconn]["path"]
+    dbpath, err := utils.GetKeyValueString(table.Tconn, "path")
+    if err != nil {logs.Error("CheckTable -> Can't get DB "+table.Tconn+" path from main.conf"); return false}
 
     exists := TableExists(dbpath, table.Tname)
     if !exists {
@@ -376,15 +569,9 @@ func TableExists(db string, table string)(exists bool){
 
 func TableCreate(conn string, tablename string, create string)(ok bool){
     logs.Info("Configuration -> Creating table "+tablename+" in "+conn)
-    loadDataSQL := map[string]map[string]string{}
-    loadDataSQL[conn] = map[string]string{}
-    loadDataSQL[conn]["path"] = ""
-    loadDataSQL, err := utils.GetConf(loadDataSQL)
-    if err != nil {
-        logs.Error("Configuration -> Can't get "+conn+" path from main.conf -> "+err.Error())
-        return false
-    }
-    dbpath := loadDataSQL[conn]["path"]
+    dbpath, err := utils.GetKeyValueString(conn, "path")
+    if err != nil {logs.Error("Configuration -> Can't get "+conn+" path from main.conf -> "+err.Error()); return false}
+    
     db, err := sql.Open("sqlite3",dbpath)
     if err != nil {
         logs.Error("Configuration -> "+dbpath+" Open Failed -> err: "+err.Error())

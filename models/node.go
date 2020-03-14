@@ -2,6 +2,7 @@ package models
 
 import (
     "owlhmaster/node"
+    "owlhmaster/nodeclient"
     "owlhmaster/changeControl"
     "errors"
 )
@@ -22,6 +23,8 @@ func GetAllNodes() (anode map[string]map[string]string, err error) {
 //     "name": "v",
 //     "port": "v",
 //     "ip": "v"
+//     "nodeuser": "admin"
+//     "nodepass": "admin"
 // }
 func AddNode(n map[string]string) (err error) {
     err = node.AddNode(n)
@@ -47,10 +50,10 @@ func UpdateNode(n map[string]string) (err error) {
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/node/ping/:uuid \
 // }
-func PingNode(n string) (err error) {
-    err = node.NodePing(n)
+func PingNode(n string) (nodeResp map[string]string, err error) {
+    nodeResp,err = node.NodePing(n)
     changecontrol.ChangeControlInsertData(err, "Ping node")
-    return err
+    return nodeResp, err
 }
 
 // curl -X GET \
@@ -62,8 +65,8 @@ func Suricata(n string) (data map[string]bool, err error) {
 }
 
 // curl -X GET \
-//   https://52.47.197.22:50002/v1/node/xeek/:uuid \
-func Zeek(n string) (data  map[string]bool, err error) {
+//   https://52.47.197.22:50002/v1/node/zeek/:uuid \
+func Zeek(n string) (data nodeclient.ZeekData, err error) {
     data,err = node.Zeek(n)
     changecontrol.ChangeControlInsertData(err, "Ping Zeek")
     return data,err
@@ -210,14 +213,14 @@ func SyncRulesetToNode(anode map[string]string)(err error){
     return err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/node/deploy/:nid  \
+// // curl -X GET \
+// //   https://52.47.197.22:50002/v1/node/deploy/:nid  \
+// // }
+// func DeployZeek(uuid string)(err error){
+//     err = node.DeployZeek(uuid)
+//     changecontrol.ChangeControlInsertData(err, "Deploy Zeek")
+//     return err
 // }
-func DeployZeek(uuid string)(err error){
-    err = node.DeployZeek(uuid)
-    changecontrol.ChangeControlInsertData(err, "Deploy Zeek")
-    return err
-}
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/node/ports/:nid \
@@ -919,4 +922,104 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
     log,err = node.SyncAnalyzerToAllGroupNodes(anode)
     changecontrol.ChangeControlInsertData(err, "SyncAnalyzerToAllGroupNodes")
     return log,err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/StartSuricataMain \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v"
+// }
+func StartSuricataMainConf(uuid map[string]string)(err error) {
+    err = node.StartSuricataMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "StartSuricataMainConf")
+    return err
+}
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/StopSuricataMain \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v"
+// }
+func StopSuricataMainConf(uuid map[string]string)(err error) {
+    err = node.StopSuricataMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "StopSuricataMainConf")
+    return err
+}
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/KillSuricataMain \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "pid": "v"
+// }
+func KillSuricataMainConf(uuid map[string]string)(err error) {
+    err = node.KillSuricataMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "KillSuricataMainConf")
+    return err
+}
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/ReloadSuricataMain \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "pid": "v"
+// }
+func ReloadSuricataMainConf(uuid map[string]string)(err error) {
+    err = node.ReloadSuricataMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "ReloadSuricataMainConf")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/LaunchZeekMainConf \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "param": "v"
+// }
+func LaunchZeekMainConf(uuid map[string]string)(err error) {
+    err = node.LaunchZeekMainConf(uuid)
+    changecontrol.ChangeControlInsertData(err, "LaunchZeekMainConf")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/zeek/syncZeekValues \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v"
+// }
+func SyncZeekValues(anode map[string]string)(err error){
+    err = node.SyncZeekValues(anode)
+    changecontrol.ChangeControlInsertData(err, "SyncZeekValues")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/monitor/changeRotationStatus \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "file": "v"}
+func ChangeRotationStatus(n map[string]string) (err error) {
+    err = node.ChangeRotationStatus(n)
+    changecontrol.ChangeControlInsertData(err, "ChangeRotationStatus")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/monitor/editRotation \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "file": "v"
+//     "path": "v"
+//     "size": "v"
+//     "lines": "v"
+//     "days": "v"
+func EditRotation(n map[string]string) (err error) {
+    err = node.EditRotation(n)
+    changecontrol.ChangeControlInsertData(err, "EditRotation")
+    return err
 }

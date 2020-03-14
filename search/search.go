@@ -1,20 +1,15 @@
 package search
 
 import(
-    // "regexp"
-    // "os"
-    // "os/exec"
     "encoding/json"
     "owlhmaster/database"
     "time"
     "owlhmaster/ruleset"
     "owlhmaster/elk"
-    // "errors"
-    // "database/sql"
     "strings"
-    // "strconv"
+    "owlhmaster/utils"
+    "strconv"
     "regexp"
-    // "io/ioutil"
     "github.com/astaxie/beego/logs"
 )
 
@@ -31,6 +26,7 @@ type Ruleset struct {
     Name            string          `json:"name"`
     Uuid            string          `json:"uuid"`
     SourceType      string          `json:"sourceType"`
+    Type            string          `json:"type"`
     Node            []string        `json:"node"`
 }
 var RulesIndex []Rule = nil
@@ -73,9 +69,12 @@ func GetRulesetsBySearch(anode map[string]string)(data []Rule, err error) {
 }
 
 func Init()(){
+    t,err := utils.GetKeyValueString("loop", "search")
+    if err != nil {logs.Error("Search Error: Cannot load search information.")}
+    tDuration, err := strconv.Atoi(t)
     for {
         BuildRuleIndex()
-        time.Sleep(5 * time.Minute)
+        time.Sleep(time.Minute * time.Duration(tDuration))
     }    
 }
 
@@ -101,17 +100,18 @@ func BuildRuleIndexElastic()(){
             sid := validID.FindStringSubmatch(currentRules[r]["raw"])
 
             match := strings.Split(sid[1], " ")
-            currentRuleData["raw"] =         currentRules[r]["raw"]
-            currentRuleData["status"] =     currentRules[r]["enabled"]
-            currentRuleData["type"] =         strings.Trim(match[0], "#")
-            currentRuleData["proto"] =         match[1]
-            currentRuleData["srcip"] =         match[2]
-            currentRuleData["srcport"] =     match[3]
-            currentRuleData["direction"] =     match[4]
-            currentRuleData["dstip"] =         match[5]
-            currentRuleData["dstport"] =     match[6]
-            currentRuleData["fileName"] =     allRulesets[x]["path"]
-            currentRuleData["RulesetName"] =allRulesets[x]["name"]
+
+            currentRuleData["raw"] = currentRules[r]["raw"]
+            currentRuleData["status"] = currentRules[r]["enabled"]
+            currentRuleData["type"] = strings.Trim(match[0], "#")
+            currentRuleData["proto"] = match[1]
+            currentRuleData["srcip"] = match[2]
+            currentRuleData["srcport"] = match[3]
+            currentRuleData["direction"] = match[4]
+            currentRuleData["dstip"] = match[5]
+            currentRuleData["dstport"] = match[6]
+            currentRuleData["fileName"] = allRulesets[x]["path"]
+            currentRuleData["RulesetName"] = allRulesets[x]["name"]
 
             matchContent := strings.Split(sid[2], ";")
             for h := range matchContent{
@@ -156,6 +156,7 @@ func BuildRuleIndexLocal()(){
         rset.File = allRulesets[x]["path"]
         rset.Name = allRulesets[x]["name"]
         rset.SourceType = allRulesets[x]["sourceType"]
+        rset.Type = allRulesets[x]["type"]
         for y := range currentRules {            
             rset.Status = currentRules[y]["enabled"]
             rset.Uuid = x

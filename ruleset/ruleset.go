@@ -1,7 +1,7 @@
 package ruleset
 
 import(
-    "fmt"
+    // "fmt"
     "github.com/astaxie/beego/logs"
     "bufio"
     "regexp"
@@ -21,27 +21,30 @@ import(
 
 type LinesID struct {
     Counter     int `json:"counter"`
-    Values        []Values `json:"values"`
+    Values      []Values `json:"values"`
 }
 type Values struct {
-    Path         string `json:"path"`
+    Path        string `json:"path"`
+    Enabled     string `json:"enabled"`
     FileName    string `json:"fileName"`
     Line        string `json:"line"`
+    Sid         string `json:"sid"`
 }
 
 
 //read rule raw data
 func ReadSID(sid map[string]string)(sidLine map[string]string ,err error){
+    logs.Info("SID detail %v",sid)
     sidMap := sid["sid"]
     uuidMap := sid["uuid"]
     path, err := ndb.GetRulesetPath(uuidMap)
     data, err := os.Open(path)
     if err != nil {
-        fmt.Println("File reading error", err)
+        logs.Error("File reading error: %s", err.Error())
         return
     }
 
-    var validID = regexp.MustCompile(`sid:`+sidMap+`;`)
+    var validID = regexp.MustCompile(`sid:\s?`+sidMap+`;`)
     scanner := bufio.NewScanner(data)
     for scanner.Scan(){
         if validID.MatchString(scanner.Text()){
@@ -56,22 +59,26 @@ func ReadSID(sid map[string]string)(sidLine map[string]string ,err error){
 //Read ruleset rules data
 func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
     data, err := os.Open(path)
-    if err != nil {fmt.Println("File reading error", err) }
-
-    var validID = regexp.MustCompile(`sid:(\d+);`)
-    var msgfield = regexp.MustCompile(`msg:\"([^"]+)\"`)
+    if err != nil {
+        logs.Error("File reading error %s", err.Error()) 
+    }
+    
+    var validID = regexp.MustCompile(`sid:\s?(\d+);`)
+    var msgfield = regexp.MustCompile(`msg:\s?\"([^"]+)\"`)
     var ipfield = regexp.MustCompile(`^([^\(]+)\(`)
     var enablefield = regexp.MustCompile(`^#`)
 
     scanner := bufio.NewScanner(data)
     rules = make(map[string]map[string]string)
     for scanner.Scan(){
-        if validID.MatchString(scanner.Text()){
-            sid := validID.FindStringSubmatch(scanner.Text())
-            msg := msgfield.FindStringSubmatch(scanner.Text())
-            ip := ipfield.FindStringSubmatch(scanner.Text())
+        replaceFirst := strings.Replace(scanner.Text(), "“", "\"", -1)
+        replaceSecond := strings.Replace(replaceFirst, "”", "\"", -1)
+        if validID.MatchString(replaceSecond){
+            sid := validID.FindStringSubmatch(replaceSecond)
+            msg := msgfield.FindStringSubmatch(replaceSecond)
+            ip := ipfield.FindStringSubmatch(replaceSecond)
             rule := make(map[string]string)
-            if enablefield.MatchString(scanner.Text()){
+            if enablefield.MatchString(replaceSecond){
                 rule["enabled"]="Disabled"
             }else{
                 rule["enabled"]="Enabled"
@@ -79,9 +86,10 @@ func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
             rule["sid"]=sid[1]
             rule["msg"]=msg[1]
             rule["ip"]=ip[1]
-            rule["raw"]=scanner.Text()
+            rule["raw"]=replaceSecond
             rules[sid[1]]=rule
         }
+
     }
     return rules,err
 }
@@ -315,16 +323,12 @@ func GetRuleName(nid string)(ruleset string, err error){
 
 //clone ruleset
 func SetClonedRuleset(ruleCloned map[string]string)(err error){
-    if ndb.Rdb == nil {
-        logs.Error("rulesetExists -- Can't access to database")
-        return errors.New("rulesetExists -- Can't access to database")
-    }
-    //load path from main.conf
-    loadPath := map[string]map[string]string{}
-    loadPath["ruleset"] = map[string]string{}
-    loadPath["ruleset"]["path"] = ""
-    loadPath,err = utils.GetConf(loadPath)
-    path := loadPath["ruleset"]["path"]
+    if ndb.Rdb == nil {logs.Error("rulesetExists -- Can't access to database"); return errors.New("rulesetExists -- Can't access to database")}
+
+    copy, err := utils.GetKeyValueString("execute", "copy")
+    if err != nil {logs.Error("SetClonedRuleset Error getting data from main.conf"); return err}
+    path, err := utils.GetKeyValueString("ruleset", "path")
+    if err != nil {logs.Error("SetClonedRuleset Error getting data from main.conf for load data: "+err.Error())}
 
     // clonedRuleset := ruleCloned["cloned"]
     newName := ruleCloned["newName"]
@@ -339,7 +343,7 @@ func SetClonedRuleset(ruleCloned map[string]string)(err error){
     rows, err := ndb.Rdb.Query("SELECT * FROM ruleset WHERE ruleset_uniqueid = \""+newUUID+"\";")
     defer rows.Close()
     if !rows.Next(){
-        cpCmd := exec.Command("cp", clonedPath, pathNewRule)
+        cpCmd := exec.Command(copy, clonedPath, pathNewRule)
         err = cpCmd.Run()
         if err != nil{
             logs.Error("SetClonedRuleset --> Error exec cmd command: "+err.Error())
@@ -378,19 +382,24 @@ func insertRulesetValues(uuid string, param string, value string)(err error){
 
 //Change rule status to enabled or disabled
 func SetRulesetAction(ruleAction map[string]string)(err error){
+    cmd, err := utils.GetKeyValueString("execute", "command")
+    if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return err}
+
     sid := ruleAction["sid"]
     uuid := ruleAction["uuid"]
     action := ruleAction["action"]
     path, err := ndb.GetRulesetPath(uuid)
     if (action == "Enable"){
-        cmd := "sed -i '/sid:"+sid+"/s/^#//' "+path+""
-        _, err := exec.Command("bash", "-c", cmd).Output()
+        val := "sed -i '/sid:"+sid+"/s/^#//' "+path+""
+        _, err := exec.Command(cmd, param, val).Output()
         if err == nil {
             return nil
         }
     }else{
-        cmd := "sed -i '/sid:"+sid+"/s/^/#/' "+path+""
-        _, err := exec.Command("bash", "-c", cmd).Output()
+        val := "sed -i '/sid:"+sid+"/s/^/#/' "+path+""
+        _, err := exec.Command(cmd, param, val).Output()
         if err == nil {
             return nil
         }
@@ -467,14 +476,9 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
     uuid := rulesetMap["uuid"]
     name := rulesetMap["name"]
     rulesetFolderName := strings.Replace(name, " ", "_", -1)
-    // var uniqueid string
-    // var uuidArray []string    
 
-    localRulesets := map[string]map[string]string{}
-    localRulesets["ruleset"] = map[string]string{}
-    localRulesets["ruleset"]["localRulesets"] = ""
-    localRulesets,err = utils.GetConf(localRulesets)
-    localRulesetFiles := localRulesets["ruleset"]["localRulesets"]
+    localRulesetFiles, err := utils.GetKeyValueString("ruleset", "localRulesets")
+    if err != nil {logs.Error("DeleteRuleset Error getting data from main.conf for load data: "+err.Error()); return err}
 
     //delete LOG for scheduler
     err = ndb.DeleteSchedulerLog(uuid)
@@ -508,7 +512,6 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
     //delete all ruleset source rules for specific uuid
     rules,err := ndb.GetRulesFromRuleset(uuid)
     if err != nil {logs.Error("GetRulesFromRuleset -> ERROR getting all rule_files for delete local ruleset: "+err.Error());return err}
-    
     for sourceUUID := range rules{
         err = ndb.DeleteRuleFilesByUuid(sourceUUID)
         if err != nil {logs.Error("DeleteRuleFilesByUuid -> ERROR deleting all local ruleset rule files associated: "+err.Error());return err}
@@ -517,7 +520,6 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
     //update to nil group ruleset
     rulesetsForGroups, err := ndb.GetAllGroupsBValue(uuid)
     if err != nil {logs.Error("GetAllGroupsBValue -> ERROR getting all groups by ruleset uuid: "+err.Error()); return err}
-    
     for y := range rulesetsForGroups {
         err = ndb.UpdateGroupValue(y, "ruleset", "")
         if err != nil {logs.Error("Error updating to null rulesets into group table: "+err.Error()); return err}
@@ -577,7 +579,7 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
         defer rows.Close()
         for rows.Next() {
             if err = rows.Scan(&uniqidSub, &paramSub, &valueSub); err != nil {
-                logs.Error("GetDetails rows.Scan: %s", err.Error())
+                logs.Error("GetAllRuleData rows.Scan: %s", err.Error())
                 return nil, err
             }
             if allRuleDetails[uniqidSub] == nil { allRuleDetails[uniqidSub] = map[string]string{}}
@@ -590,20 +592,20 @@ func GetAllRuleData()(data map[string]map[string]string,err error) {
 func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated []byte, err error){
     allSids := make(map[string]LinesID)
     allSidsResult := make(map[string]LinesID)
-    
     for x := range data {
         sidLines,err := ReadRuleset(data[x]["filePath"])
         if err != nil {
             logs.Error("ERROR --> "+err.Error())
             return nil,err
         }
-
         for y := range sidLines {
             values := Values{}
             linesID := LinesID{}
+            values.Enabled = sidLines[y]["enabled"]
             values.Path = data[x]["filePath"]
             values.FileName = data[x]["fileName"]
             values.Line = sidLines[y]["raw"]
+            values.Sid = sidLines[y]["sid"]
             if _, exists := allSids[y]; exists { //exist                
                 linesID.Counter = allSids[y].Counter 
                 linesID.Counter += 1
@@ -623,15 +625,38 @@ func FindDuplicatedSIDs(data map[string]map[string]string)(duplicated []byte, er
             allSidsResult[n] = allSids[n]
         }
     }
+
     //check if response array is empty
     if len(allSidsResult) == 0{
         return nil,nil
     }else{
-        LinesOutput, err := json.Marshal(allSidsResult)
-        if err != nil {
-            logs.Error("ERROR Marshal allSidsResult --> "+err.Error())
-            return nil,err
+        for w := range allSidsResult{
+            CheckLinesID := LinesID{}
+            var bothEnabled string
+            var shouldDelete bool
+            count := 0
+            CheckLinesID = allSidsResult[w] 
+            for r := range CheckLinesID.Values{
+                if count == 0 {
+                    count++
+                    bothEnabled = CheckLinesID.Values[r].Enabled
+                }else{
+                    if ((bothEnabled != CheckLinesID.Values[r].Enabled) || ((bothEnabled == CheckLinesID.Values[r].Enabled) && (bothEnabled != "Enabled"))){
+                        shouldDelete = true
+                    }
+                }
+            }
+            if shouldDelete {
+                allSidsResult[w] = LinesID{}
+                delete(allSidsResult, w)
+                shouldDelete = false
+            }
         }
+
+        if len(allSidsResult) == 0{return nil,nil}    
+
+        LinesOutput, err := json.Marshal(allSidsResult)
+        if err != nil {logs.Error("ERROR Marshal allSidsResult --> "+err.Error()); return nil,err}
         return LinesOutput, nil
     }
 }
@@ -642,25 +667,15 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
     if duplicated,err = FindDuplicatedSIDs(data); duplicated != nil {
         return duplicated, nil
     }
-    if err != nil {
-        logs.Error("ruleset/AddNewRuleset -- duplicated error: %s", err.Error())
-        return nil,err
-    }
+    if err != nil {logs.Error("ruleset/AddNewRuleset -- duplicated error: %s", err.Error()); return nil,err}
 
-    if ndb.Rdb == nil {
-        logs.Error("ruleset/AddNewRuleset -- Can't access to database")
-        return nil,errors.New("ruleset/AddNewRuleset -- Can't access to database")
-    }
-    
-    localRulesets := map[string]map[string]string{}
-    localRulesets["ruleset"] = map[string]string{}
-    localRulesets["ruleset"]["localRulesets"] = ""
-    localRulesets,err = utils.GetConf(localRulesets)
-    localFiles := localRulesets["ruleset"]["localRulesets"]
+    if ndb.Rdb == nil {logs.Error("ruleset/AddNewRuleset -- Can't access to database"); return nil,errors.New("ruleset/AddNewRuleset -- Can't access to database")}
+
+    localFiles, err := utils.GetKeyValueString("ruleset", "localRulesets")
+    if err != nil {logs.Error("DeleteRuleset Error getting data from main.conf for load data: "+err.Error()); return duplicated, err}
 
     rulesetUUID := utils.Generate()
     rulesetCreated := false
-    
     for x := range data {        
         rulesetFolderName := strings.Replace(data[x]["rulesetName"], " ", "_", -1)
         path := localFiles + rulesetFolderName + "/" + data[x]["fileName"]
@@ -669,10 +684,7 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
             err = insertRulesetValues(rulesetUUID, "type", "local")
             err = insertRulesetValues(rulesetUUID, "name", data[x]["rulesetName"])
             err = insertRulesetValues(rulesetUUID, "desc", data[x]["rulesetDesc"])
-            if err != nil {
-                logs.Error("ruleset/AddNewRuleset -- Insert error: %s", err.Error())
-                return nil,err
-            }
+            if err != nil {logs.Error("ruleset/AddNewRuleset -- Insert error: %s", err.Error()); return nil,err}
             rulesetCreated = true
         }
                 
@@ -682,12 +694,12 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
         }
         
         //copyfile
-        cpCmd := exec.Command("cp", data[x]["filePath"], path)
+        copy, err := utils.GetKeyValueString("execute", "copy")
+        if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return nil, err}
+
+        cpCmd := exec.Command(copy, data[x]["filePath"], path)
         err = cpCmd.Run()
-        if err != nil {
-            logs.Error("ruleset/AddNewRuleset -- Error copying new file: %s", err.Error())
-            return nil,err
-        }
+        if err != nil {logs.Error("ruleset/AddNewRuleset -- Error copying new file: %s", err.Error()); return nil,err}
 
         //add md5 for every file
         md5,err := utils.CalculateMD5(path)
@@ -704,6 +716,7 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
         err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "isUpdated", "false")
         err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "md5", md5)
         err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceType", data[x]["sourceType"])
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "linesAdded", "true")
         if err != nil {logs.Error("ruleset/AddNewRuleset -- Error Inserting Ruleset: %s", err.Error());return nil,err}
     }
 
@@ -729,7 +742,7 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
     sidsSplit := strings.Split(anode["sids"], ",")
     path,err := ndb.GetRulesetSourceValue(anode["dest"], "path") 
     for uuid := range sidsSplit{
-        var validID = regexp.MustCompile(`sid:`+sidsSplit[uuid]+`;`)
+        var validID = regexp.MustCompile(`sid:\s?`+sidsSplit[uuid]+`;`)
         readSidsData := make(map[string]string)
         readSidsData["sid"] = sidsSplit[uuid]
         readSidsData["uuid"] = anode["orig"]
@@ -741,11 +754,6 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
             return nil,err
         }
 
-        // path,err := ndb.GetRulesetSourceValue(anode["dest"], "path") 
-        if err != nil {
-            logs.Error("AddRulesToCustomRuleset -- Error getting GetRulesetSourceValue: %s", err.Error())
-            return nil,err
-        }
         file, err := os.Open(path)
         defer file.Close()
 
@@ -831,24 +839,28 @@ func ReadRulesetData(uuid string)(content map[string]string, err error) {
 }
 
 func SaveRulesetData(anode map[string]string)(err error) {
+    logs.Notice(anode["uuid"])
     uuid := anode["uuid"]
     content := anode["content"]
+    //replace quotes
+    replaceFirst := strings.Replace(content, "“", "\"", -1)
+    replaceSecond := strings.Replace(replaceFirst, "”", "\"", -1)
     
     path,err := ndb.GetRulesetPath(uuid)
 
     file, err := os.OpenFile(path, os.O_RDWR, 0644)
-    if err != nil {
-        logs.Error("SaveRulesetData failed opening file: %s", err)
-        return err
-    }
+    if err != nil {logs.Error("SaveRulesetData failed opening file: %s", err); return err}
+
     defer file.Close()
     file.Truncate(0)
     file.Seek(0,0)
-    _, err = file.WriteAt([]byte(content), 0) // Write at 0 beginning
-    if err != nil {
-        logs.Error("SaveRulesetData failed writing to file: %s", err)
-        return err
-    }
+    _, err = file.WriteAt([]byte(replaceSecond), 0) // Write at 0 beginning
+    if err != nil {logs.Error("SaveRulesetData failed writing to file: %s", err); return err}
+    
+    //update md5
+    allFiles,err := ndb.GetAllRuleFiles()
+    sourceMD5,err := utils.CalculateMD5(allFiles[uuid]["path"]); if err != nil {logs.Error("SaveRulesetData Error calculating source md5: %s", err.Error()); return err}    
+    err = ndb.UpdateRuleFiles(uuid, "md5", sourceMD5); if err != nil {logs.Error("SaveRulesetData Error updating source md5: %s", err.Error()); return err}                  
     
     return nil
 }
@@ -874,9 +886,14 @@ func UpdateRule(anode map[string]string)(err error) {
     path,err := ndb.GetRulesetPath(anode["uuid"])
     if err != nil {logs.Error("UpdateRule/GetRulesetPath Error: "+err.Error()); return err}
 
+    cmd, err := utils.GetKeyValueString("execute", "command")
+    if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return err}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil {logs.Error("SetRulesetAction Error getting data from main.conf"); return err}
+
     anode["line"] = strings.Replace(anode["line"], "/", "\\/", -1)
-    cmd := "sed -i '/sid:"+anode["sid"]+"/s/.*/"+anode["line"]+"/' "+path+""
-    _, err = exec.Command("bash", "-c", cmd).Output()
+    val := "sed -i '/sid:"+anode["sid"]+"/s/.*/"+anode["line"]+"/' "+path+""
+    _, err = exec.Command(cmd, param, val).Output()
     if err != nil {logs.Error("UpdateRule Error: "+err.Error()); return err}
 
    return nil

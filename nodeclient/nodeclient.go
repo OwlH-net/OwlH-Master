@@ -11,15 +11,39 @@ import (
     "time"
 )
 
-func init() {
-
+//Zeek data struct
+type ZeekData struct {
+    Path        bool                `json:"path"`
+    Rol         string              `json:"role"`
+    Bin         bool                `json:"bin"`
+    Action      string              `json:"action"`
+    Running     []ZeekNodeStatus    `json:"running"`
+    Mode        string              `json:"mode"`
+    Managed     bool                `json:"managed"`
+    Nodes       []ZeekNode          `json:"nodes"`
+    Extra       map[string]string   `json:"extra"`
 }
- 
-func Echo() {
-    logs.Info("NODE CLIENT -> ECHO")
+type ZeekKeys struct {
+    Key         string              `json:"key"`
+    Value       string              `json:"value"`
+}
+type ZeekNode struct {
+    Name        string              `json:"name"`
+    Host        string              `json:"host"`
+    Status      string              `json:"status"`
+    Type        string              `json:"type"`
+    NInterface  string              `json:"interface"`
+    Pid         string              `json:"pid"`
+    Started     string              `json:"started"`
+    Extra       []ZeekKeys          `json:"extra"`
+}
+type ZeekNodeStatus struct {
+    Status      string              `json:"status"`
+    Nodes       int                 `json:"nodes"`
 }
 
-func PingNode(ip string, port string) (err error) {
+
+func PingNode(ip string, port string) (nodeResp map[string]string, err error) {
     url := "https://"+ip+":"+port+"/node/ping"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
@@ -29,7 +53,7 @@ func PingNode(ip string, port string) (err error) {
         currentTime := time.Now()
         timeFormated := currentTime.Format("2006-01-02T15:04:05")
         controlError = ndb.PutIncident(uuid, "date", timeFormated)
-        controlError = ndb.PutIncident(uuid, "desc", "Thisa Master description")
+        controlError = ndb.PutIncident(uuid, "desc", "Master description")
         controlError = ndb.PutIncident(uuid, "status", "new") // new, open, closed, delayed
         controlError = ndb.PutIncident(uuid, "level", "info") // warning, info or danger
         controlError = ndb.PutIncident(uuid, "NodeIp", ip) // warning, info or danger
@@ -37,11 +61,27 @@ func PingNode(ip string, port string) (err error) {
         if controlError!=nil { logs.Error("PingNode error creating incident: "+controlError.Error()) }
 
         logs.Error("nodeClient/PingNode ERROR connection through http new Request: "+err.Error())
-        return err
+        return nil,err
     }
-    
+
+    body, err := ioutil.ReadAll(resp.Body)
     defer resp.Body.Close()
-    return nil
+    if err != nil { logs.Error("nodeclient/PingNode ERROR reading request data: "+err.Error()); return nil,err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/PingNode ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+    
+    // if returnValues["nodeToken"] == "none"{
+    //     logs.Error("nodeclient/PingNode ERROR from node: "+returnValues["error"])
+    //     values := make(map[string]string)
+    //     values["nodeToken"] = "none"
+    //     values["error"] = "nodeclient/PingNode Node token ERROR: "+values["error"]
+    //     values["ack"] = "false"
+    //     return values,nil
+    // }
+
+    return returnValues,nil
 }
 
 func UpdateNodeData(ipData string, portData string, loadFile map[string]map[string]string)(err error){
@@ -78,13 +118,13 @@ func Suricata(ip string, port string) (data map[string]bool, err error ) {
     return data,nil
 }
 
-func Zeek(ip string, port string) (data map[string]bool, err error ) {
+func Zeek(ip string, port string) (data ZeekData, err error ) {
     logs.Info("NodeClient zeek status -> %s, %s", ip, port)
     url := "https://"+ip+":"+port+"/node/zeek"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
         logs.Error("nodeClient/Zeek ERROR connection through http new Request: "+err.Error())
-        return nil,err
+        return data,err
     }
     logs.Info("response Status:", resp.Status)
     logs.Info("response Headers:", resp.Header)
@@ -94,7 +134,7 @@ func Zeek(ip string, port string) (data map[string]bool, err error ) {
     err = json.Unmarshal(body, &data)
     if err != nil {
         logs.Error("nodeClient/Zeek -- ERROR JSON unmarshal: "+err.Error())
-        return nil,err
+        return data,err
     }
     defer resp.Body.Close()
     return data,nil
@@ -173,11 +213,18 @@ func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
     url := "https://"+ipData+":"+portData+"/node/suricata/sync"
     valuesJSON,err := json.Marshal(values)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {
-        logs.Error("nodeclient/SetRuleset ERROR connection through http new Request: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("nodeclient/SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
     defer resp.Body.Close()
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/SyncRulesetToNode ERROR reading request data: "+err.Error()); return err}
+    nodeResponse := make(map[string]string)
+    err = json.Unmarshal(body, &nodeResponse)
+    if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if nodeResponse["ack"] == "false" {
+        return errors.New(nodeResponse["error"])
+    }
+
     return nil
 }
 
@@ -196,19 +243,17 @@ func SetNodeFile(ipData string, portData string, loadFile map[string]string)(err
 func GetNodeFile(ipData string, portData string, loadFile map[string]string)(rData map[string]string, err error){
     url := "https://"+ipData+":"+portData+"/node/file/"+loadFile["file"]
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {
-        logs.Error("nodeclient/GetNodeFile ERROR connection through http new Request: "+err.Error())
-        return nil, err
-    }
+    if err != nil {logs.Error("nodeclient/GetNodeFile ERROR connection through http new Request: "+err.Error()); return nil, err}
     responseData, err := ioutil.ReadAll(resp.Body)
-    if err != nil {
-        logs.Error("nodeclient/GetNodeFile ERROR reading file: "+err.Error())
-        return nil, err
-    }
+    if err != nil {logs.Error("nodeclient/GetNodeFile ERROR reading file: "+err.Error()); return nil, err}
+
+    defer resp.Body.Close()
     json.Unmarshal(responseData, &rData)
+    if rData["ack"] == "false"{
+        return nil, errors.New("GetNodeFile Error getting node file: "+rData["error"])
+    }
     rData["nodeUUID"] = loadFile["uuid"]
     
-    defer resp.Body.Close()
     return rData, nil
 }
 
@@ -216,10 +261,8 @@ func PutSuricataBPF(ipnid string, portnid string, anode map[string]string)(err e
     valuesJSON,err := json.Marshal(anode)
     url := "https://"+ipnid+":"+portnid+"/node/suricata/bpf"
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {
-        logs.Error("nodeclient/PutSuricataBPF ERROR connection through http new Request: "+err.Error())
-        return err
-    }
+    if err != nil {logs.Error("nodeclient/PutSuricataBPF ERROR connection through http new Request: "+err.Error()); return err}
+
     defer resp.Body.Close()
     return  nil
 }
@@ -586,23 +629,19 @@ func ShowPorts(ipnid string, portnid string)(data map[string]map[string]string ,
 func PingPluginsNode(ipnid string, portnid string)(data map[string]map[string]string ,err error){
     url := "https://"+ipnid+":"+portnid+"/node/ping/PingPluginsNode/"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
-    if err != nil {
-        logs.Error("nodeclient/PingPluginsNode ERROR connection through http new Request: "+err.Error())
-        return data,err
-    }
+    if err != nil {logs.Error("nodeclient/PingPluginsNode ERROR connection through http new Request: "+err.Error()); return data,err}
 
     body, err := ioutil.ReadAll(resp.Body)
-
-    if err != nil {
-        logs.Error("nodeclient/PingPluginsNode ERROR reading request data: "+err.Error())
-        return data,err
-    }
-    err = json.Unmarshal(body, &data)
-    if err != nil {
-        logs.Error("PingPluginsNode ERROR doing unmarshal JSON: "+err.Error())
-        return data,err
-    }
     defer resp.Body.Close()
+    if err != nil {logs.Error("nodeclient/PingPluginsNode ERROR reading request data: "+err.Error()); return data,err}
+
+    errorMap := make(map[string]string)
+    err = json.Unmarshal(body, &errorMap)
+    if errorMap["ack"] == "false"{ logs.Error("nodeclient/PingPluginsNode ERROR: "+err.Error()); return nil,errors.New(errorMap["error"])}
+    
+    err = json.Unmarshal(body, &data)
+    if err != nil {logs.Error("nodeclient/PingPluginsNode ERROR doing unmarshal JSON: "+err.Error())}
+
     return data,nil
 }
 
@@ -1414,6 +1453,16 @@ func ChangeSuricataTable(ipnid string, portnid string, data map[string]string)(e
     if err != nil {logs.Error("nodeclient/ChangeSuricataTable ERROR connection through http new Request: "+err.Error()); return err}
 
     defer resp.Body.Close()
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/ChangeSuricataTable ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
     return nil
 }
 
@@ -1424,6 +1473,16 @@ func ChangeSuricataPathsGroups(ipnid string, portnid string, data map[string]map
     if err != nil {logs.Error("nodeclient/ChangeSuricataPathsGroups ERROR connection through http new Request: "+err.Error()); return err}
 
     defer resp.Body.Close()
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/ChangeSuricataPathsGroups ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
     return nil
 }
 
@@ -1434,6 +1493,16 @@ func ChangeZeekPathsGroups(ipnid string, portnid string, data map[string]map[str
     if err != nil {logs.Error("nodeclient/ChangeZeekPathsGroups ERROR connection through http new Request: "+err.Error()); return err}
 
     defer resp.Body.Close()
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/ChangeZeekPathsGroups ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
     return nil
 }
 
@@ -1442,8 +1511,18 @@ func PutSuricataServicesFromGroup(ipnid string, portnid string, data map[string]
     valuesJSON,err := json.Marshal(data)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
     if err != nil {logs.Error("nodeclient/PutSuricataServicesFromGroup ERROR connection through http new Request: "+err.Error()); return err}
-
+    
+    body, err := ioutil.ReadAll(resp.Body)
     defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SuricataGroupService ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
+
     return nil
 }
 
@@ -1496,5 +1575,398 @@ func SyncClusterFileNode(ipData string, portData string, data []byte)(err error)
         return errors.New(returnValues["error"])
     }
 
+    return nil
+}
+
+func StartSuricataMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/suricata/StartSuricataMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/StartSuricataMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/StartSuricataMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/StartSuricataMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func StopSuricataMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/suricata/StopSuricataMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/StopSuricataMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/StopSuricataMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/StopSuricataMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func KillSuricataMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/suricata/KillSuricataMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/KillSuricataMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/KillSuricataMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/KillSuricataMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func ReloadSuricataMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/suricata/ReloadSuricataMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/ReloadSuricataMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/ReloadSuricataMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/ReloadSuricataMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+    
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func LaunchZeekMainConf(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/zeek/LaunchZeekMainConf"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/LaunchZeekMainConf ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/LaunchZeekMainConf ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/LaunchZeekMainConf ERROR doing unmarshal JSON: "+err.Error()); return err}
+    
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+// func SaveZeekValues(ipData string, portData string, anode map[string]string)(err error){
+//     url := "https://"+ipData+":"+portData+"/node/zeek/saveZeekValues"
+//     valuesJSON,err := json.Marshal(anode)
+//     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+//     if err != nil {
+//         logs.Error("nodeclient/SaveZeekValues ERROR connection through http new Request: "+err.Error())
+//         return err
+//     }
+
+//     body, err := ioutil.ReadAll(resp.Body)
+//     defer resp.Body.Close()
+//     if err != nil { logs.Error("nodeclient/SaveZeekValues ERROR reading request data: "+err.Error()); return err}
+
+//     returnValues := make(map[string]string)
+//     err = json.Unmarshal(body, &returnValues)
+//     if err != nil { logs.Error("nodeclient/SaveZeekValues ERROR doing unmarshal JSON: "+err.Error()); return err}
+    
+//     if returnValues["ack"] == "false"{
+//         return errors.New(returnValues["error"])
+//     }
+
+//     return nil
+// }
+
+func SyncZeekValues(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/zeek/syncZeekValues"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SyncZeekValues ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SyncZeekValues ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/SyncZeekValues ERROR doing unmarshal JSON: "+err.Error()); return err}
+    
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func SyncAllSuricataGroup(ipData string, portData string, data map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/group/sync"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SyncAllSuricataGroup ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SyncAllSuricataGroup ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    err = json.Unmarshal(body, &returnValues)
+    if err != nil { logs.Error("nodeclient/SyncAllSuricataGroup ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if returnValues["ack"] == "false"{
+        return errors.New(returnValues["error"])
+    }
+
+    return nil
+}
+
+func SuricataGroupService(ipData string, portData string, data map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/group/suricata"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SuricataGroupService ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil { logs.Error("nodeclient/SuricataGroupService ERROR reading request data: "+err.Error()); return err}
+
+    returnValues := make(map[string]string)
+    _ = json.Unmarshal(body, &returnValues)
+
+    if returnValues["ack"] == "false"{
+        return errors.New("Error getting node group http response: "+returnValues["error"])
+    }
+
+    return nil
+}
+
+func GetNodeToken(ipData string, portData string, login map[string]string)(token string, err error){
+    url := "https://"+ipData+":"+portData+"/node/autentication"
+    valuesJSON,err := json.Marshal(login)
+
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/GetNodeAutentication ERROR connection through http new Request: "+err.Error())
+        //add to db with wait status
+        return "", err
+    }
+    
+    defer resp.Body.Close()
+    
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR reading request data: "+err.Error()); return "",err}
+    data := make(map[string]string)
+    err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR doing unmarshal JSON: "+err.Error()); return "",err}
+    if data["ack"] == "false" {
+        return "", errors.New(data["error"])
+    }
+    return data["token"], nil
+}
+
+func SaveNodeInformation(ipnid string, portnid string, data map[string]map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/ping/saveNodeInformation"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/SaveNodeInformation ERROR connection through http new Request: "+err.Error())
+        return err
+    }
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {
+        logs.Error("nodeclient/SaveNodeInformation ERROR reading request data: "+err.Error())
+        return err
+    }
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SaveNodeInformation ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    defer resp.Body.Close()
+    return nil
+}
+
+func DeleteNode(ipData string, portData string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/ping"
+    resp,err := utils.NewRequestHTTP("DELETE", url, nil)
+    if err != nil {logs.Error("nodeclient/DeleteNode ERROR connection through http new Request: "+err.Error()); return err}
+    
+    defer resp.Body.Close()
+    
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/DeleteNode ERROR reading request data: "+err.Error()); return err}
+    data := make(map[string]string)
+    err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/DeleteNode ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if data["ack"] == "false" {
+        return errors.New(data["error"])
+    }
+    return nil
+}
+
+func ChangeRotationStatus(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/monitor/changeRotationStatus"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/ChangeRotationStatus ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/ChangeRotationStatus ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/ChangeRotationStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+
+    defer resp.Body.Close()
+    return nil
+}
+
+func EditRotation(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/monitor/editRotation"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/EditRotation ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/EditRotation ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/EditRotation ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+
+    defer resp.Body.Close()
+    return nil
+}
+
+func SyncUsersToNode(ipnid string, portnid string, data map[string]map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/autentication/addUser"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SyncUsersToNode ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/SyncUsersToNode ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SyncUsersToNode ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    defer resp.Body.Close()
+    return nil
+}
+
+func SyncRolesToNode(ipnid string, portnid string, data map[string]map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/autentication/addRole"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SyncRolesToNode ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/SyncRolesToNode ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SyncRolesToNode ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    defer resp.Body.Close()
+    return nil
+}
+
+func SyncGroupsToNode(ipnid string, portnid string, data map[string]map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/autentication/addGroup"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SyncGroupsToNode ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/SyncGroupsToNode ERROR reading request data: "+err.Error()); return err}
+    defer resp.Body.Close()
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SyncGroupsToNode ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    return nil
+}
+
+func SyncUserGroupRolesToNode(ipnid string, portnid string, data map[string]map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/autentication/addUgr"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SyncUserGroupRolesToNode ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/SyncUserGroupRolesToNode ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SyncUserGroupRolesToNode ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    defer resp.Body.Close()
     return nil
 }

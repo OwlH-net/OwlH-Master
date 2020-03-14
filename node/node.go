@@ -2,15 +2,16 @@ package node
 
 import (
     "github.com/astaxie/beego/logs"
-    "strings"
     "owlhmaster/database"
     "errors"
     "os"
     "bufio"
+    "time"
     "io/ioutil"
     "owlhmaster/nodeclient"
     "owlhmaster/utils"
     "regexp"
+    "strconv"
 )
 
 // //take Node ip from specific uuid
@@ -50,6 +51,61 @@ import (
 //     return portData,nil
 // }
 
+func AddNode(n map[string]string) (err error) {
+    //check if exists a node with the same ip and port
+    nodes,err:= ndb.GetAllNodes()
+    for id := range nodes {
+        if nodes[id]["ip"] == n["ip"]{
+            if nodes[id]["port"] == n["port"]{
+                return errors.New("AddNode - There is already a node with the same IP and Port")
+            }
+        }
+    }
+    
+    //get token
+    login := make(map[string]string)
+    masterid, err := ndb.LoadMasterID()
+    login["user"] = n["nodeuser"]
+    login["pass"] = n["nodepass"]
+    login["master"] = masterid
+    
+    //insert node
+    uuid := utils.Generate()
+    if n["nodeuser"] != "" {err = ndb.InsertNodeKey(uuid, "nodeuser", n["nodeuser"]); if err != nil {logs.Error("AddNode Insert node user error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
+    if n["nodepass"] != "" {err = ndb.InsertNodeKey(uuid, "nodepass", n["nodepass"]); if err != nil {logs.Error("AddNode Insert node pass error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
+    if n["name"] != "" {err = ndb.InsertNodeKey(uuid, "name", n["name"]); if err != nil {logs.Error("AddNode Insert node name error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
+    if n["port"] != "" {err = ndb.InsertNodeKey(uuid, "port", n["port"]); if err != nil {logs.Error("AddNode Insert node port error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
+    if n["ip"] != "" {err = ndb.InsertNodeKey(uuid, "ip", n["ip"]); if err != nil {logs.Error("AddNode Insert node ip error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
+
+    //Get token from node and insert data
+    token,err := nodeclient.GetNodeToken(n["ip"],n["port"], login)
+    if err != nil {
+        logs.Error("AddNode Error getting node token: "+err.Error())
+        err = ndb.InsertNodeKey(uuid, "token", "wait"); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
+    }else{
+        err = ndb.InsertNodeKey(uuid, "token", token); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
+        //Sync user, group, roles and their relations to the new node
+        SyncUsersToNode()
+        SyncUserGroupRolesToNode()
+        SyncRolesToNode()
+        SyncGroupsToNode()
+    }
+
+    //Load token
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("AddNode Error loading node token: %s",err); return err}
+
+    //Save node values into node db  
+    nodeValues, err := ndb.GetNodeById(uuid); if err!=nil{logs.Error("AddNode Error loading node values: %s",err); return err}
+    //delete data for node
+    delete(nodeValues[uuid], "nodeuser")
+    delete(nodeValues[uuid], "nodepass")
+    delete(nodeValues[uuid], "token")
+    err = nodeclient.SaveNodeInformation(n["ip"],n["port"], nodeValues)
+    if err != nil {logs.Error("AddNode Error updating node data"); return err}    
+    
+    return nil
+}
+
 func findNode(s string) (id string, err error) {
     if ndb.Db == nil {
         logs.Error("Find Node -> no access to database")
@@ -78,20 +134,17 @@ func findNode(s string) (id string, err error) {
 }
 
 func DeleteNode(nodeid string)(err error) {
-    logs.Info("NODE Delete -> IN")
-    if ndb.Db == nil {logs.Error("No access to database"); return errors.New("No access to database")}
+    //get node ip and port
+    ipData,portData,err := ndb.ObtainPortIp(nodeid)
+    if err != nil {logs.Error("node/DeleteNode ERROR getting node port/ip: "+err.Error()); return err}    
 
     //delete node from database
-    stmt, err := ndb.Db.Prepare("delete from nodes where node_uniqueid = ?")
-    if err != nil {logs.Error("DeleteNode delete node Prepare nodes -> %s", err.Error()); return err}
-    _, err = stmt.Exec(&nodeid)
-    if err != nil {logs.Error("DeleteNode delete node Execute nodes -> %s", err.Error()); return err}
+    err = ndb.DeleteNode(nodeid)
+    if err != nil {logs.Error("DeleteNode error for uuid: "+nodeid+": "+ err.Error()); return err}
     
     //delete ruleset for this node
-    deleteRulesetNode, err := ndb.Rdb.Prepare("delete from ruleset_node where node_uniqueid = ?")
-    if err != nil {logs.Error("DeleteNode delete ruleset Prepare ruleset_node -> %s", err.Error()); return err}
-    _, err = deleteRulesetNode.Exec(&nodeid)
-    if err != nil {logs.Error("DeleteNode delete ruleset Execute ruleset_node -> %s", err.Error()); return err}
+    err = ndb.DeleteRulesetNodeByNode(nodeid)
+    if err != nil {logs.Error("DeleteNode DeleteRulesetNodeByNode error for uuid: "+nodeid+": "+ err.Error()); return err}
 
     //delete node for group
     groupnodes,err := ndb.GetGroupNodesByValue(nodeid)
@@ -99,230 +152,166 @@ func DeleteNode(nodeid string)(err error) {
     for x := range groupnodes{
         err = ndb.DeleteNodeGroupById(x)
         if err != nil {logs.Error("DeleteNode error for uuid: "+x+": "+ err.Error()); return err}
-    }
+    } 
+
+    //delete node information at node db
+    err = nodeclient.DeleteNode(ipData,portData)
+    if err != nil {logs.Error("node/DeleteNode nodeclient ERROR: "+err.Error()); return err}   
 
     return nil
 }
 
-func getNodeConf(nodeKey string)(conf map[string]string, err error) {
-    var param string
-    var value string
+// func getNodeConf(nodeKey string)(conf map[string]string, err error) {
+//     var param string
+//     var value string
 
-    if ndb.Db == nil {
-        logs.Error("getNodeConf -> No access to database")
-        return nil, errors.New("getNodeConf -> No access to database")
-    }
+//     if ndb.Db == nil {
+//         logs.Error("getNodeConf -> No access to database")
+//         return nil, errors.New("getNodeConf -> No access to database")
+//     }
     
-    sql := "SELECT node_param, node_value FROM nodes where node_uniqueid='"+nodeKey+"';"
-    logs.Info("GetNodeConf -> SQL -> %s", sql)
+//     sql := "SELECT node_param, node_value FROM nodes where node_uniqueid='"+nodeKey+"';"
+//     logs.Info("GetNodeConf -> SQL -> %s", sql)
     
-    rows, err := ndb.Db.Query(sql)
+//     rows, err := ndb.Db.Query(sql)
     
-    if err != nil {
-        logs.Error(err.Error())
-        return nil, err
-    }
+//     if err != nil {
+//         logs.Error(err.Error())
+//         return nil, err
+//     }
     
-    defer rows.Close()
-    for rows.Next() {
-        if err = rows.Scan(&param, &value); err != nil {
-            logs.Info (" Error rows.Scan -> %s",err.Error())
-            continue
-        }
-        conf[param]=value
-    }
-    return conf, nil
-}
+//     defer rows.Close()
+//     for rows.Next() {
+//         if err = rows.Scan(&param, &value); err != nil {
+//             logs.Info ("Error rows.Scan -> %s",err.Error())
+//             continue
+//         }
+//         conf[param]=value
+//     }
+//     return conf, nil
+// }
 
 func GetAllNodes()(data map[string]map[string]string, err error){
     allNodes,err := ndb.GetAllNodes()
-    if err != nil {logs.Error("Get all nodes error: "+err.Error()); return nil, err}
-    //sort nodes by name
-    // data = utils.SortHashMap(allNodes)
+    if err != nil {logs.Error("GetAllNodes error: "+err.Error()); return nil, err}
+
+    for id := range allNodes {
+        if allNodes[id]["token"] == "wait"{
+            //get token
+            login := make(map[string]string)
+            masterid, err := ndb.LoadMasterID()
+            if err != nil {logs.Error("node/GetAllNodes ERROR getting master id: "+err.Error()); return nil,err}    
+            node, err := ndb.GetNodeById(id)
+            if err != nil {logs.Error("node/GetAllNodes ERROR getting node id: "+err.Error()); return nil,err}    
+            login["user"] = node[id]["nodeuser"]
+            login["pass"] = node[id]["nodepass"]
+            login["master"] = masterid
+    
+            //Get token from node 
+            ipData,portData,err := ndb.ObtainPortIp(id)
+            if err != nil { logs.Error("node/GetAllNodes ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}     
+            token,err := nodeclient.GetNodeToken(ipData, portData, login)
+            if err != nil {
+                logs.Emergency("node/GetAllNodes ERROR getting node id. Pending registering...")
+            }else{
+                err = ndb.UpdateNode(id, "token", token)  
+                if err != nil {logs.Error("node/GetAllNodes ERROR updating node token: "+err.Error()); return nil,err} 
+                
+                //Sync user, group, roles and their relations to the new node
+                SyncUsersToNode()
+                SyncUserGroupRolesToNode()
+                SyncRolesToNode()
+                SyncGroupsToNode()
+
+                allNodes[id]["token"] = token
+                //delete data for node
+                delete(allNodes[id], "nodeuser")
+                delete(allNodes[id], "nodepass")
+                delete(allNodes[id], "token")
+                err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("GetAllNodes Error loading node token: %s",err); return nil,err}
+
+                err = nodeclient.SaveNodeInformation(ipData, portData, allNodes)
+                if err != nil {logs.Error("GetAllNodes Error updating node data"); return nil,err}    
+            }
+        }
+    }
+
     return allNodes,nil
 }
 
-func getAllNodesIp() (ips map[string]string, err error) {
-    var uid string
-    var ip string
-    if ndb.Db == nil {
-        logs.Error("getAllNodesIp -> no access to database")
-        return ips, errors.New("getAllNodesIp -> no access to database")
-    }
-    sql := "SELECT node_uniqueid, node_value FROM nodes where node_param = 'ip';"
-    rows, err := ndb.Db.Query(sql)
-    if err != nil {
-        logs.Error("Error ndb.Db.Query %s -> %s", sql, err.Error())
-        return ips, err
-    }
-    defer rows.Close()
-    for rows.Next() {
-        if err = rows.Scan(&uid, &ip); err != nil {
-            logs.Info (" Error -> rows.Scan -> %s",err.Error())
-        }
-        ips[uid]=ip
-    }
-    return ips, nil
-}
+// func getAllNodesIp() (ips map[string]string, err error) {
+//     var uid string
+//     var ip string
+//     if ndb.Db == nil {
+//         logs.Error("getAllNodesIp -> no access to database")
+//         return ips, errors.New("getAllNodesIp -> no access to database")
+//     }
+//     sql := "SELECT node_uniqueid, node_value FROM nodes where node_param = 'ip';"
+//     rows, err := ndb.Db.Query(sql)
+//     if err != nil {
+//         logs.Error("Error ndb.Db.Query %s -> %s", sql, err.Error())
+//         return ips, err
+//     }
+//     defer rows.Close()
+//     for rows.Next() {
+//         if err = rows.Scan(&uid, &ip); err != nil {
+//             logs.Info (" Error -> rows.Scan -> %s",err.Error())
+//         }
+//         ips[uid]=ip
+//     }
+//     return ips, nil
+// }
 
 func nodeKeyExists(nodekey string, key string) (id int, err error) {
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return 0, errors.New("no access to database")
-    }
-    sql := "SELECT node_id FROM nodes where node_uniqueid = '"+nodekey+"' and node_param = '"+key+"';"
-    rows, err := ndb.Db.Query(sql)
-    if err != nil {
-        logs.Error(err.Error())
-        return 0, err
-    }
-    defer rows.Close()
-    if rows.Next() {
-        if err = rows.Scan(&id); err == nil {
-            return id, err
-        }
-    }
-    return 0, nil
+    nodesExists,err := ndb.NodeKeyExists(nodekey, key)
+    if err != nil {logs.Error("Get all nodes error: "+err.Error()); return nodesExists, err}
+    return nodesExists,err
 }
 
 func nodeExists(nodeid string) (err error) {
-    if ndb.Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
-
-    sql := "SELECT * FROM nodes where node_uniqueid = '"+nodeid+"';"
-    rows, err := ndb.Db.Query(sql)
-    if err != nil {logs.Error(err.Error()); return err}
-
-    defer rows.Close()
-    if rows.Next() {
-        return errors.New("Node Exists " + nodeid)
-    } else {
-        return nil
-    }
+    node,err := ndb.GetNodeById(nodeid)
+    if err != nil {logs.Error("Get node error: "+err.Error()); return err}
+    if len(node) == 0 {logs.Error("Node not exists: "+err.Error()); return errors.New("Node does not exists.")}
+    return err
 }
 
-func nodeKeyUpdate(id int, nkey string, key string, value string) (err error) {
-    logs.Info("NODE Key Insert -> IN")
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return errors.New("no access to database")
-    }
-    logs.Info("nkey: %s, key: %s, value: %s", nkey, key, value)
-    stmt, err := ndb.Db.Prepare("update nodes set node_param = ?, node_value = ? where node_id = ? and node_uniqueid = ?")
-    if err != nil {
-        logs.Error("Prepare -> %s", err.Error())
-        return err
-    }
-    _, err = stmt.Exec(&key, &value, &id, &nkey)
-    if err != nil {
-        logs.Error("Execute -> %s", err.Error())
-        return err
-    }
-    return nil
-}
+// func nodeKeyUpdate(nkey string, key string, value string) (err error) {
+//     err = ndb.UpdateNode(nkey, key, value)
+//     if err != nil {logs.Error("Get node error: "+err.Error()); return err}
+//     return err
+// }
 
-func nodeKeyInsert(nkey string, key string, value string) (err error) {
-    if ndb.Db == nil { logs.Error("no access to database"); return errors.New("no access to database")}
-    
-    stmt, err := ndb.Db.Prepare("insert into nodes (node_uniqueid, node_param, node_value) values(?,?,?)")
-    if err != nil { logs.Error("Prepare -> %s", err.Error()); return err}
-
-    _, err = stmt.Exec(&nkey, &key, &value)
-    if err != nil {logs.Error("Execute -> %s", err.Error()); return err}
-
-    // logs.Info("nkey from node.go to stap.go-->"+nkey)
-    // _,err = stap.Stap(nkey)
-    // if err != nil { logs.Error("Error creating node stap status from nodeKeyInsert at node.go -> %s", err.Error()); return err}
-
-    return nil
-}
-
-func AddNode(n map[string]string) (err error) {
-    logs.Info("ADD NODE")
-    logs.Info(n)
-    nodeKey := utils.Generate()
-    if _, ok := n["name"]; !ok {
-        logs.Error("name empty: "+err.Error())
-        return errors.New("name empty")
-    }
-    if _, ok := n["ip"]; !ok {
-        logs.Error("ip empty: "+err.Error())
-        return errors.New("ip empty")
-    }
-
-    //check if exist some node whit the same uuid
-    if err := nodeExists(nodeKey); err != nil {
-        logs.Error("Node exists: "+err.Error())
-        return errors.New("Node exists: "+err.Error())
-    }
-    
-    //cehck if exists a node with the same ip and port
-    nodes,err:= ndb.GetAllNodes()
-    for id := range nodes {
-        if nodes[id]["ip"] == n["ip"]{
-            if nodes[id]["port"] == n["port"]{
-                return errors.New("There is already a node with the same IP and Port")
-            }
-        }
-    }
-
-    for key, value := range n {
-        err = nodeKeyInsert(nodeKey, key, value)
-        if err != nil {return err}
-    }
-
-    //update node
-    nodeValues, err := ndb.GetAllNodesById(nodeKey)
-    if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}    
-    ipnid,portnid,err := ndb.ObtainPortIp(nodeKey)
-    if err != nil { logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: "+err.Error()); return err}
-    go nodeclient.UpdateNodeData(ipnid,portnid, nodeValues)
-
-    return nil
-}
+// func nodeKeyInsert(nkey string, key string, value string) (err error) {
+//     err = ndb.InsertNodeKey(nkey, key, value)
+//     if err != nil {logs.Error("Insert node error: "+err.Error()); return err}
+//     return err
+// }
 
 func UpdateNode(n map[string]string) (err error) {
-    var nodeKey string
-
-    if _, ok := n["name"]; !ok {
-        return errors.New("name is empty")
-    }
-    if _, ok := n["ip"]; !ok {
-        return errors.New("ip is empty")
-    }
-    if _, ok := n["id"]; !ok {
-        nodeKey = strings.Replace(n["name"], " ", "-",0)+"-"+strings.Replace(n["ip"], ".", "-",0)
-    } else {
-        nodeKey = n["id"]
-    }
-    //check if exists a node with the same uuid
-    if err := nodeExists(nodeKey); err == nil {
-        return errors.New("Node doesn't exist, must be created")
-    }
-
     //cehck if exists a node with the same ip and port
     nodes,err:= ndb.GetAllNodes()
     for id := range nodes {
         if nodes[id]["ip"] == n["ip"]{
             if nodes[id]["port"] == n["port"]{
-                return errors.New("There is already a node with the same IP and Port")
+                if id != n["id"]{
+                    return errors.New("There is already a node with the same IP and Port")
+                }
             }
         }
     }
 
     //update node
-    for key, value := range n {
-        if id, _ := nodeKeyExists(nodeKey, key); id != 0 {
-            err = nodeKeyUpdate(id, nodeKey, key, value)
-        } else {
-            err = nodeKeyInsert(nodeKey, key, value)
-        }
-    }
-    if err != nil {return err}
+    err = ndb.UpdateNode(n["id"], "name", n["name"]);  if err != nil {logs.Error("UpdateNode name error: "+err.Error()); return err}
+    err = ndb.UpdateNode(n["id"], "ip", n["ip"]);  if err != nil {logs.Error("UpdateNode ip error: "+err.Error()); return err}
+    err = ndb.UpdateNode(n["id"], "port", n["port"]);  if err != nil {logs.Error("UpdateNode port error: "+err.Error()); return err}
 
     //update node
-    nodeValues, err := ndb.GetAllNodesById(n["uuid"])
+    nodeValues, err := ndb.GetNodeById(n["id"])
     if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}
-    ipnid,portnid,err := ndb.ObtainPortIp(n["uuid"])
+
+    err = ndb.GetTokenByUuid(n["id"]); if err!=nil{logs.Error("UpdateNode Error loading node token: %s",err); return err}
+
+    ipnid,portnid,err := ndb.ObtainPortIp(n["id"])
     if err != nil { logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: "+err.Error()); return err}    
     err = nodeclient.UpdateNodeData(ipnid,portnid, nodeValues)
     if err != nil {logs.Error("Error updating node data")}
@@ -331,42 +320,23 @@ func UpdateNode(n map[string]string) (err error) {
 }
 
 func getNodeIpbyName(n string)(ip string, err error) {
-    if ndb.Db == nil {
-        logs.Error("no access to database")
-        return "", errors.New("no access to database")
-    }
-    sql := "select node_value from nodes where node_uniqueid like '%"+n+"%' and node_param = 'ip';"
-    rows, err := ndb.Db.Query(sql)
-    if err != nil {
-        logs.Error(err.Error())
-        return "", err
-    }
-    defer rows.Close()
-    if rows.Next() {
-        if err = rows.Scan(&ip); err == nil {
-            return ip, err
-        }
-    }
-    return "", errors.New("There is no IP for given node name")
+    ip,err = ndb.GetNodeIpbyName(n)
+    if err != nil {logs.Error("node/GetNodeIpbyName ERROR getting node port/ip: "+err.Error()); return "",err}    
+    return ip,err
 }
 
-func NodePing(uuid string) (err error) {
+func NodePing(uuid string) (nodeResp map[string]string, err error) {
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("NodePing Error loading node token: %s",err); return nil, err}    
     ipData,portData,err := ndb.ObtainPortIp(uuid)
-    if err != nil {logs.Error("node/NodePing ERROR getting node port/ip: "+err.Error()); return err}    
+    if err != nil {logs.Error("node/NodePing ERROR getting node port/ip: "+err.Error()); return nil,err}    
     
-    nodeValues, err := ndb.GetAllNodesById(uuid)
-    if err != nil {logs.Error("node/NodePing ERROR getting node data for update : "+err.Error()); return err}    
-
-    err = nodeclient.UpdateNodeData(ipData,portData, nodeValues)
-    if err != nil {logs.Error("Error updating node data")}
-
-    err = nodeclient.PingNode(ipData,portData)
-    if err != nil {return errors.New("N/A")}
-
-    return nil
+    nodeResp, err = nodeclient.PingNode(ipData,portData)
+    if err != nil {return nil,err}
+    return nodeResp,err
 }
 
 func GetServiceStatus(uuid string) (err error) {
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("GetServiceStatus Error loading node token: %s",err); return err}
     ipData,portData,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/GetServiceStatus ERROR getting node port/ip : "+err.Error())
@@ -380,6 +350,7 @@ func GetServiceStatus(uuid string) (err error) {
 }
 
 func DeployService(uuid string)(err error){
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("DeployService Error loading node token: %s",err); return err}
     ipData,portData,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/DeployService ERROR getting node port/ip : "+err.Error())
@@ -393,15 +364,19 @@ func DeployService(uuid string)(err error){
 }
 
 //Get specific file from node files
-func GetNodeFile(loadFile map[string]string) (values map[string]string, err error) {    
+func GetNodeFile(loadFile map[string]string) (values map[string]string, err error) {  
+    conf, err := utils.GetKeyValueString("analyzer", "conf")
+    if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return nil,err}
+
     rData := make(map[string]string)
     if loadFile["file"] == "group-analyzer"{        
-        fileReaded, err := ioutil.ReadFile("conf/analyzer.json")
+        fileReaded, err := ioutil.ReadFile(conf)
         if err != nil {logs.Error("node/GetNodeFile ERROR getting analyzer from master: "+err.Error()); return nil, err}
 
         rData["fileContent"] = string(fileReaded)
         rData["fileName"] = loadFile["file"]        
     }else{
+        err = ndb.GetTokenByUuid(loadFile["uuid"]); if err!=nil{logs.Error("GetNodeFile Error loading node token: %s",err); return nil, err}
         ipData,portData,err := ndb.ObtainPortIp(loadFile["uuid"])
         if err != nil {logs.Error("node/GetNodeFile ERROR getting node port/ip: "+err.Error()); return nil, err}
     
@@ -415,10 +390,14 @@ func GetNodeFile(loadFile map[string]string) (values map[string]string, err erro
 
 //Get specific file from node files
 func SetNodeFile(saveFile map[string]string) (err error) {
+    conf, err := utils.GetKeyValueString("analyzer", "conf")
+    if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return err}
+
     if saveFile["uuid"] == "local"{
         bytearray := []byte(saveFile["content"])
-        err = utils.WriteNewDataOnFile("conf/analyzer.json", bytearray)
+        err = utils.WriteNewDataOnFile(conf, bytearray)
     }else{
+        err = ndb.GetTokenByUuid(saveFile["uuid"]); if err!=nil{logs.Error("SetNodeFile Error loading node token: %s",err); return err}
         ipData,portData,err := ndb.ObtainPortIp(saveFile["uuid"])
         if err != nil {logs.Error("node/SetNodeFile ERROR getting node port/ip : "+err.Error()); return err}    
     
@@ -430,7 +409,7 @@ func SetNodeFile(saveFile map[string]string) (err error) {
 
 
 func GetAllFiles(uuid string) (data map[string]string, err error) {
-    // rData := make(map[string]string)
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("GetAllFiles Error loading node token: %s",err); return nil, err}
     ipData,portData,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error())
@@ -452,6 +431,7 @@ func ShowPorts(uuid string)(data map[string]map[string]string, err error){
         return data,errors.New("ShowPorts -- Can't acces to database")
     }
     
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("ShowPorts Error loading node token: %s",err); return nil, err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/ShowPorts ERROR Obtaining Port and Ip: "+err.Error())
@@ -470,7 +450,7 @@ func PingPluginsNode(uuid string)(data map[string]map[string]string, err error){
         logs.Error("PingPluginsNode -- Can't acces to database")
         return data,errors.New("PingPluginsNode -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("PingPluginsNode Error loading node token: %s",err); return nil, err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/PingPluginsNode ERROR Obtaining Port and Ip: "+err.Error())
@@ -491,7 +471,7 @@ func ChangeMode(anode map[string]string)(err error){
         logs.Error("ChangeMode -- Can't acces to database")
         return errors.New("ChangeMode -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("ChangeMode Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/ChangeMode ERROR Obtaining Port and Ip: "+err.Error())
@@ -512,7 +492,7 @@ func ChangeStatus(anode map[string]string)(err error){
         logs.Error("ChangeStatus -- Can't acces to database")
         return errors.New("ChangeStatus -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("ChangeStatus Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/ChangeStatus ERROR Obtaining Port and Ip: "+err.Error())
@@ -531,7 +511,7 @@ func DeletePorts(anode map[string]string, uuid string)(err error){
         logs.Error("DeletePorts -- Can't acces to database")
         return errors.New("DeletePorts -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("DeletePorts Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/DeletePorts ERROR Obtaining Port and Ip: "+err.Error())
@@ -550,7 +530,7 @@ func DeleteAllPorts(uuid string)(err error){
         logs.Error("DeleteAllPorts -- Can't acces to database")
         return errors.New("DeleteAllPorts -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("DeleteAllPorts Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/DeleteAllPorts ERROR Obtaining Port and Ip: "+err.Error())
@@ -569,7 +549,7 @@ func PingPorts(uuid string)(data map[string]map[string]string, err error){
         logs.Error("PingPorts -- Can't acces to database")
         return data,errors.New("PingPorts -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("PingPorts Error loading node token: %s",err); return nil,err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/PingPorts ERROR Obtaining Port and Ip: "+err.Error())
@@ -584,33 +564,17 @@ func PingPorts(uuid string)(data map[string]map[string]string, err error){
 }
 
 func SyncRulesetToNode(anode map[string]string)(err error){
-    uuid := anode["uuid"]
-    var rulesetUUID string
-    
-    ipData,portData,err := ndb.ObtainPortIp(uuid)
-    if err != nil {
-        logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error())
-        return err
-    }    
-        
-    //get ruleset uuid by node uuid
-    sqlIP := "select ruleset_uniqueid from ruleset_node where node_uniqueid = '"+uuid+"';"
-    ip, err := ndb.Rdb.Query(sqlIP)
-    if err != nil {
-        logs.Error("SetRuleset ndb.Db.Query Error  UUID: %s", err.Error())
-        return err
-    }
-    defer ip.Close()
-    if ip.Next() {
-        if err = ip.Scan(&rulesetUUID); err != nil {
-            return err
-        }
-    }
+    rulesetUUID,err := ndb.GetRulesetUUID(anode["uuid"])
+    if err != nil {logs.Error("SyncRulesetToNode/GetRulesetUUID error: "+err.Error()); return err}
+
     //read lines by ruleset uuid
     data, err := CreateNewRuleFile(rulesetUUID)
     if err != nil {logs.Error("nodeclient.SetRuleset ERROR creating a nunique ruleset file: "+err.Error()); return err}
 
     //send lines to node
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("SyncRulesetToNode Error loading node token: %s",err); return err}
+    ipData,portData,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil {logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error()); return err}    
     err = nodeclient.SyncRulesetToNode(ipData,portData,data)
     if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
 
@@ -622,7 +586,7 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
     var uniqueid string
     var rulePath string
     var uuidArray []string
-    var validID = regexp.MustCompile(`sid:(\d+);`)
+    var validID = regexp.MustCompile(`sid:\s?(\d+);`)
 
     //read rule uuid
     uuidRules, err := ndb.Rdb.Query("select rule_uniqueid from rule_files where rule_value='"+uuid+"'")
@@ -648,10 +612,7 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
         }
         defer rules.Close()
         for rules.Next() {
-            if err = rules.Scan(&rulePath); err != nil {
-                logs.Error("CreateNewRuleFile rows.Scan: %s", err.Error())
-                return nil,err
-            }
+            if err = rules.Scan(&rulePath); err != nil {logs.Error("CreateNewRuleFile rows.Scan: %s", err.Error()); return nil,err}
             file, err := os.Open(rulePath)
             if err != nil {
                 logs.Error("File reading error: %s .Skipping file.", err.Error())
@@ -666,7 +627,7 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
                 }
             }
         }    
-    }
+    }    
     return data,nil
 }
 
@@ -688,7 +649,7 @@ func SyncRulesetToAllNodes(anode map[string]string)(err error){
     for rows.Next() {
         var nodeID string
         err = rows.Scan(&nodeID)
-        logs.Info(nodeID)
+        err = ndb.GetTokenByUuid(nodeID); if err!=nil{logs.Error("SyncRulesetToAllNodes Error loading node token: %s",err); return err}
         ipData,portData,err := ndb.ObtainPortIp(nodeID)
         if err != nil {
             logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error())
@@ -713,7 +674,7 @@ func PingAnalyzer(uuid string)(data map[string]string, err error){
         logs.Error("PingAnalyzer -- Can't acces to database")
         return data,errors.New("PingAnalyzer -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("PingAnalyzer Error loading node token: %s",err); return nil,err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/PingAnalyzer ERROR Obtaining Port and Ip: "+err.Error())
@@ -730,7 +691,7 @@ func PingAnalyzer(uuid string)(data map[string]string, err error){
 func ChangeAnalyzerStatus(anode map[string]string)(err error){
     var nodeExists bool = true
     if ndb.Db == nil {logs.Error("ChangeAnalyzerStatus -- Can't acces to database"); return errors.New("ChangeAnalyzerStatus -- Can't acces to database")}
-    
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("ChangeAnalyzerStatus Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { 
         if anode["type"] != "groups" {
@@ -755,7 +716,7 @@ func DeployNode(anode map[string]string)(err error){
         logs.Error("Deploy -- Can't acces to database")
         return errors.New("Deploy -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("DeployNode Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil {
         logs.Error("node/Deploy ERROR Obtaining Port and Ip: "+err.Error())
@@ -775,6 +736,7 @@ func CheckDeploy(uuid string)(anode map[string]string){
         logs.Error("CheckDeploy -- Can't acces to database")
         return nil
     }
+    err := ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("CheckDeploy Error loading node token: %s",err); return nil}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil {
         logs.Error("node/CheckDeploy ERROR Obtaining Port and Ip: "+err.Error())
@@ -793,7 +755,7 @@ func ChangeDataflowValues(anode map[string]string)(err error){
         logs.Error("ChangeDataflowValues -- Can't acces to database")
         return errors.New("ChangeDataflowValues -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("ChangeDataflowValues Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil {
         logs.Error("node/ChangeDataflowValues ERROR Obtaining Port and Ip: "+err.Error())
@@ -812,7 +774,7 @@ func UpdateNetworkInterface(anode map[string]string)(err error){
         logs.Error("UpdateNetworkInterface -- Can't acces to database")
         return errors.New("UpdateNetworkInterface -- Can't acces to database")
     }
-    
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("UpdateNetworkInterface Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil {
         logs.Error("node/UpdateNetworkInterface ERROR Obtaining Port and Ip: "+err.Error())
@@ -831,6 +793,7 @@ func LoadDataflowValues(uuid string)(anode map[string]map[string]string, err err
         logs.Error("LoadDataflowValues -- Can't acces to database")
         return nil,err
     }
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("LoadDataflowValues Error loading node token: %s",err); return nil,err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/LoadDataflowValues ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
 
@@ -845,6 +808,7 @@ func LoadNetworkValues(uuid string)(anode map[string]string, err error){
         logs.Error("LoadNetworkValues -- Can't acces to database")
         return nil,err
     }
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("LoadNetworkValues Error loading node token: %s",err); return nil,err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/LoadNetworkValues ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
 
@@ -856,7 +820,7 @@ func LoadNetworkValues(uuid string)(anode map[string]string, err error){
 
 func LoadNetworkValuesSelected(uuid string)(anode map[string]map[string]string, err error){
     if ndb.Db == nil {logs.Error("LoadNetworkValuesSelected -- Can't acces to database");return nil,err}
-
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("LoadNetworkValuesSelected Error loading node token: %s",err); return nil,err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/LoadNetworkValuesSelected ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
 
@@ -868,7 +832,7 @@ func LoadNetworkValuesSelected(uuid string)(anode map[string]map[string]string, 
 
 func SaveSocketToNetwork(anode map[string]string)(err error){    
     if ndb.Db == nil {logs.Error("SaveSocketToNetwork -- Can't acces to database");return err}
-
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("SaveSocketToNetwork Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/SaveSocketToNetwork ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
@@ -881,6 +845,7 @@ func SaveSocketToNetwork(anode map[string]string)(err error){
 func SaveNewLocal(anode map[string]string)(err error){
     if ndb.Db == nil {logs.Error("SaveNewLocal -- Can't acces to database");return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("SaveNewLocal Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/SaveNewLocal ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
@@ -893,6 +858,7 @@ func SaveNewLocal(anode map[string]string)(err error){
 func SaveVxLAN(anode map[string]string)(err error){
     if ndb.Db == nil {logs.Error("SaveVxLAN -- Can't acces to database");return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("SaveVxLAN Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/SaveVxLAN ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
@@ -907,6 +873,7 @@ func SocketToNetworkList(uuid string)(data map[string]map[string]string, err err
         logs.Error("SocketToNetworkList -- Can't acces to database")
         return nil,err
     }
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("SocketToNetworkList Error loading node token: %s",err); return nil,err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/SocketToNetworkList ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
 
@@ -919,6 +886,7 @@ func SocketToNetworkList(uuid string)(data map[string]map[string]string, err err
 func SaveSocketToNetworkSelected(anode map[string]string)(err error){
     if ndb.Db == nil {logs.Error("SaveSocketToNetworkSelected -- Can't acces to database");return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("SaveSocketToNetworkSelected Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/SaveSocketToNetworkSelected ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
@@ -931,6 +899,7 @@ func SaveSocketToNetworkSelected(anode map[string]string)(err error){
 func DeleteDataFlowValueSelected(anode map[string]string)(err error){
     if ndb.Db == nil {logs.Error("DeleteDataFlowValueSelected -- Can't acces to database");return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("DeleteDataFlowValueSelected Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/DeleteDataFlowValueSelected ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
@@ -944,6 +913,7 @@ func DeleteDataFlowValueSelected(anode map[string]string)(err error){
 func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
     if ndb.Db == nil { logs.Error("GetNodeMonitor -- Can't acces to database"); return data,err}
 
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("GetNodeMonitor Error loading node token: %s",err); return nil, err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/GetNodeMonitor ERROR Obtaining Port and Ip: "+err.Error()); return data,err}
 
@@ -956,6 +926,7 @@ func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
 func GetMainconfData(uuid string)(data map[string]map[string]string, err error){
     if ndb.Db == nil { logs.Error("GetMainconfData -- Can't acces to database"); return data,err}
 
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("GetMainconfData Error loading node token: %s",err); return nil, err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/GetMainconfData ERROR Obtaining Port and Ip: "+err.Error()); return data,err}
 
@@ -968,6 +939,7 @@ func GetMainconfData(uuid string)(data map[string]map[string]string, err error){
 func ChangeServiceStatus(anode map[string]string)(err error){
     if ndb.Db == nil {logs.Error("ChangeServiceStatus -- Can't acces to database");return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("ChangeServiceStatus Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/ChangeServiceStatus ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
@@ -980,6 +952,7 @@ func ChangeServiceStatus(anode map[string]string)(err error){
 func ChangeMainServiceStatus(anode map[string]string)(err error){
     if ndb.Db == nil { logs.Error("ChangeMainServiceStatus -- Can't acces to database"); return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("ChangeMainServiceStatus Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/ChangeMainServiceStatus ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
@@ -992,6 +965,7 @@ func ChangeMainServiceStatus(anode map[string]string)(err error){
 func DeleteService(anode map[string]string)(err error){
     if ndb.Db == nil { logs.Error("DeleteService -- Can't acces to database"); return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("DeleteService Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/DeleteService ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
@@ -1004,6 +978,7 @@ func DeleteService(anode map[string]string)(err error){
 func DeployStapService(anode map[string]string)(err error){
     if ndb.Db == nil { logs.Error("DeployStapService -- Can't acces to database"); return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("DeployStapService Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/DeployStapService ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
@@ -1016,6 +991,7 @@ func DeployStapService(anode map[string]string)(err error){
 func StopStapService(anode map[string]string)(err error){
     if ndb.Db == nil { logs.Error("StopStapService -- Can't acces to database"); return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("StopStapService Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/StopStapService ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
@@ -1028,6 +1004,7 @@ func StopStapService(anode map[string]string)(err error){
 func ModifyStapValues(anode map[string]string)(err error){
     if ndb.Db == nil { logs.Error("ModifyStapValues -- Can't acces to database"); return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("ModifyStapValues Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/ModifyStapValues ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
@@ -1040,6 +1017,7 @@ func ModifyStapValues(anode map[string]string)(err error){
 func ReloadFilesData(uuid string)(data map[string]map[string]string, err error){
     if ndb.Db == nil { logs.Error("ReloadFilesData -- Can't acces to database"); return nil,err}
 
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("ReloadFilesData Error loading node token: %s",err); return nil,err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/ReloadFilesData ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
     
@@ -1052,6 +1030,7 @@ func ReloadFilesData(uuid string)(data map[string]map[string]string, err error){
 func AddMonitorFile(anode map[string]string)(err error){
     if ndb.Db == nil { logs.Error("AddMonitorFile -- Can't acces to database"); return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("AddMonitorFile Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/AddMonitorFile ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
@@ -1064,6 +1043,7 @@ func AddMonitorFile(anode map[string]string)(err error){
 func PingMonitorFiles(uuid string)(data map[string]map[string]string, err error){
     if ndb.Db == nil { logs.Error("PingMonitorFiles -- Can't acces to database"); return nil,err}
 
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("PingMonitorFiles Error loading node token: %s",err); return nil, err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/PingMonitorFiles ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
     
@@ -1076,6 +1056,7 @@ func PingMonitorFiles(uuid string)(data map[string]map[string]string, err error)
 func DeleteMonitorFile(anode map[string]string)(err error){
     if ndb.Db == nil { logs.Error("DeleteMonitorFile -- Can't acces to database"); return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("DeleteMonitorFile Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/DeleteMonitorFile ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
@@ -1088,6 +1069,7 @@ func DeleteMonitorFile(anode map[string]string)(err error){
 func GetChangeControlNode(uuid string)(data map[string]map[string]string, err error){
     if ndb.Db == nil { logs.Error("GetChangeControlNode -- Can't acces to database"); return nil,err}
 
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("GetChangeControlNode Error loading node token: %s",err); return nil,err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
     
@@ -1100,6 +1082,7 @@ func GetChangeControlNode(uuid string)(data map[string]map[string]string, err er
 func GetIncidentsNode(uuid string)(data map[string]map[string]string, err error){
     if ndb.Db == nil { logs.Error("GetIncidentsNode -- Can't acces to database"); return nil,err}
 
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("GetIncidentsNode Error loading node token: %s",err); return nil,err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/GetIncidentsNode ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
     
@@ -1112,6 +1095,7 @@ func GetIncidentsNode(uuid string)(data map[string]map[string]string, err error)
 func PutIncidentNode(anode map[string]string)(err error){
     if ndb.Db == nil { logs.Error("PutIncidentNode -- Can't acces to database"); return err}
 
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("PutIncidentNode Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil { logs.Error("node/PutIncidentNode ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
@@ -1129,6 +1113,8 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
     for x := range nodesID {
         //get node data by uuid
         if ndb.Db == nil { logs.Error("PutIncidentNode -- Can't acces to database"); return err}
+        
+        err = ndb.GetTokenByUuid(nodesID[x]["nodesid"]); if err!=nil{logs.Error("SyncRulesetToAllGroupNodes Error loading node token: %s",err); return err}
         ipnid,portnid,err := ndb.ObtainPortIp(nodesID[x]["nodesid"])
         if err != nil { logs.Error("node/PutIncidentNode ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
@@ -1158,8 +1144,9 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
                 }
             }
         } 
-
+        
         AllEnabledLines,err := utils.MergeAllFiles(rulePaths)
+        if AllEnabledLines == nil { return errors.New("There are no rules for synchronize. Please, select a valid ruleset.")}
 
         //send lines to node
         err = nodeclient.SyncRulesetToNode(ipnid,portnid,AllEnabledLines)
@@ -1177,6 +1164,8 @@ func PutSuricataServicesFromGroup(anode map[string]string)(err error){
     for x := range nodesID {
         //get node data by uuid
         if ndb.Db == nil { logs.Error("node/PutSuricataServicesFromGroup -- Can't acces to database"); return err}
+        
+        err = ndb.GetTokenByUuid(nodesID[x]["nodesid"]); if err!=nil{logs.Error("PutSuricataServicesFromGroup Error loading node token: %s",err); return err}
         ipnid,portnid,err := ndb.ObtainPortIp(nodesID[x]["nodesid"])
         if err != nil { logs.Error("node/PutSuricataServicesFromGroup ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
@@ -1189,11 +1178,16 @@ func PutSuricataServicesFromGroup(anode map[string]string)(err error){
 }
 
 func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[string]map[string]string, err error){
+    conf, err := utils.GetKeyValueString("analyzer", "conf")
+    if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return nil,err}
+
     logSync := make(map[string]map[string]string)
     var activeNode bool = true
     for x := range anode {
         //get node data by uuid
         if ndb.Db == nil { logs.Error("node/SyncAnalyzerToAllGroupNodes -- Can't acces to database"); return nil, err}
+
+        err = ndb.GetTokenByUuid(anode[x]["nuuid"]); if err!=nil{logs.Error("SyncAnalyzerToAllGroupNodes Error loading node token: %s",err); return nil,err}
         ipnid,portnid,err := ndb.ObtainPortIp(anode[x]["nuuid"])
         if err != nil { 
             logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR Obtaining Port and Ip: "+err.Error()); 
@@ -1207,7 +1201,8 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
 
         if activeNode{
             //get analyzer file content
-            analyzerFile, err := ioutil.ReadFile("conf/analyzer.json")
+            // analyzerFile, err := ioutil.ReadFile("conf/analyzer.json")
+            analyzerFile, err := ioutil.ReadFile(conf)
             if err != nil { 
                 logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR getting analyzer file content: "+err.Error())
                 if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
@@ -1237,8 +1232,170 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
             }        
         }
     }
-        
-    logs.Info(logSync)
 
     return logSync,nil
+}
+
+func SyncUsersToNode()(){
+    masterID,err := ndb.LoadMasterID()
+    if err != nil{logs.Error("node/SyncUsersToNode Error getting master ID: "+err.Error())}    
+    //get all users
+    users,err:= ndb.GetLoginData()
+    if err != nil{logs.Error("node/SyncUsersToNode Error getting users: "+err.Error())}    
+    userValues := make(map[string]map[string]string)
+    for user := range users {
+        userValues[user] = map[string]string{}
+        userValues[user]["masterID"] = masterID
+        userValues[user]["user"] = users[user]["user"]
+        userValues[user]["type"] = "master"
+        userValues[user]["status"] = "exists"
+    }
+
+    nodes,err:= ndb.GetAllNodes()
+    if err != nil{logs.Error("node/SyncUsersToNode Error getting allNodes: "+err.Error())}    
+    for id := range nodes {
+        ipnid,portnid,err := ndb.ObtainPortIp(id)
+        if err != nil{logs.Error("node/SyncUsersToNode Error getting Node ip and port: "+err.Error())}  
+
+        err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncUsersToNode Error loading node token: %s",err)}  
+        err = nodeclient.SyncUsersToNode(ipnid,portnid,userValues)
+        if err != nil{logs.Error("node/SyncUsersToNode Error: "+err.Error())}    
+    }
+    logs.Info("Users synchronized to nodes")
+}
+
+func SyncRolesToNode()(){
+    masterID,err := ndb.LoadMasterID()
+    if err != nil{logs.Error("node/SyncRolesToNode Error getting master ID: "+err.Error())}    
+    //get all roles
+    roles,err:= ndb.GetUserRoles()
+    if err != nil{logs.Error("node/SyncRolesToNode Error getting roles: "+err.Error())}    
+    roleValues := make(map[string]map[string]string)
+    for role := range roles {
+        roleValues[role] = map[string]string{}
+        roleValues[role]["masterID"] = masterID
+        roleValues[role]["role"] = roles[role]["role"]
+        roleValues[role]["permissions"] = roles[role]["permissions"]
+        roleValues[role]["type"] = "master"
+        roleValues[role]["status"] = "exists"
+    }
+
+    nodes,err:= ndb.GetAllNodes()
+    if err != nil{logs.Error("node/SyncRolesToNode Error getting allNodes: "+err.Error())}    
+    for id := range nodes {
+        ipnid,portnid,err := ndb.ObtainPortIp(id)
+        if err != nil{logs.Error("node/SyncRolesToNode Error getting Node ip and port: "+err.Error())}  
+
+        err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncRolesToNode Error loading node token: %s",err)}  
+        //get user uuid
+        err = nodeclient.SyncRolesToNode(ipnid,portnid,roleValues)
+        if err != nil{logs.Error("node/SyncRolesToNode Error: "+err.Error())}    
+    }
+    logs.Info("Roles synchronized to nodes")
+}
+
+func SyncGroupsToNode()(){
+    masterID,err := ndb.LoadMasterID()
+    if err != nil{logs.Error("node/SyncGroupsToNode Error getting master ID: "+err.Error())}    
+    //get all groups
+    groups,err:= ndb.GetUserGroups()
+    if err != nil{logs.Error("node/SyncGroupsToNode Error getting groups: "+err.Error())}    
+    groupValues := make(map[string]map[string]string)
+    for group := range groups {
+        groupValues[group] = map[string]string{}
+        groupValues[group]["masterID"] = masterID
+        groupValues[group]["group"] = groups[group]["group"]
+        groupValues[group]["type"] = "master"
+        groupValues[group]["status"] = "exists"
+    }
+
+    nodes,err:= ndb.GetAllNodes()
+    if err != nil{logs.Error("node/SyncGroupsToNode Error getting allNodes: "+err.Error())}    
+    for id := range nodes {
+        ipnid,portnid,err := ndb.ObtainPortIp(id)
+        if err != nil{logs.Error("node/SyncGroupsToNode Error getting Node ip and port: "+err.Error())}  
+
+        err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncGroupsToNode Error loading node token: %s",err)}  
+        //get user uuid
+        err = nodeclient.SyncGroupsToNode(ipnid,portnid,groupValues)
+        if err != nil{logs.Error("node/SyncGroupsToNode Error: "+err.Error())}    
+    }
+    logs.Info("groups synchronized to nodes")
+}
+
+func SyncUserGroupRolesToNode()(){
+    masterID,err := ndb.LoadMasterID()
+    if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error getting master ID: "+err.Error())}    
+    //get all ugr
+    ugr,err:= ndb.GetUserGroupRoles()
+    if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error getting groups: "+err.Error())}    
+    ugrValues := make(map[string]map[string]string)
+    for id := range ugr {
+        ugrValues[id] = map[string]string{}
+        ugrValues[id]["masterID"] = masterID
+        ugrValues[id]["type"] = "master"
+        ugrValues[id]["status"] = "exists"
+        if ugr[id]["user"] != "" { ugrValues[id]["user"] = ugr[id]["user"] }
+        if ugr[id]["group"] != "" { ugrValues[id]["group"] = ugr[id]["group"] }
+        if ugr[id]["role"] != "" { ugrValues[id]["role"] = ugr[id]["role"] }
+    }
+
+    nodes,err:= ndb.GetAllNodes()
+    if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error getting allNodes: "+err.Error())}    
+    for id := range nodes {
+        ipnid,portnid,err := ndb.ObtainPortIp(id)
+        if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error getting Node ip and port: "+err.Error())}  
+
+        err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncUserGroupRolesToNode Error loading node token: %s",err)} 
+        //get user uuid 
+        err = nodeclient.SyncUserGroupRolesToNode(ipnid,portnid,ugrValues)
+        if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error: "+err.Error())}    
+    }
+    logs.Info("userGroupValues synchronized to nodes")
+}
+
+func ChangeRotationStatus(anode map[string]string)(err error){
+    //get node data by uuid
+    if ndb.Db == nil { logs.Error("node/ChangeRotationStatus -- Can't acces to database"); return err}
+    
+    //load token for this node
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("node/ChangeRotationStatus Error loading node token: %s",err); return err}
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil { logs.Error("node/ChangeRotationStatus ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+    //send Suricata services to node
+    err = nodeclient.ChangeRotationStatus(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/ChangeRotationStatus ERROR http data request: "+err.Error()); return err}
+    
+
+    return nil
+}
+
+func EditRotation(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("node/EditRotation -- Can't acces to database"); return err}
+    
+    //load token for this node
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("node/EditRotation Error loading node token: %s",err); return err}
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil { logs.Error("node/EditRotation ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+    err = nodeclient.EditRotation(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/EditRotation ERROR http data request: "+err.Error()); return err}
+    
+
+    return nil
+}
+
+func SyncAllUserData()(){
+    for{
+        t,err := utils.GetKeyValueString("loop", "usergrouproles")
+        if err != nil {logs.Error("Search Error: Cannot load node information.")}
+        tDuration, err := strconv.Atoi(t)
+
+        SyncUsersToNode()
+        SyncRolesToNode()
+        SyncGroupsToNode()
+        SyncUserGroupRolesToNode()
+        time.Sleep(time.Minute * time.Duration(tDuration))
+    }
 }

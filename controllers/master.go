@@ -4,6 +4,7 @@ import (
     "owlhmaster/models"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
+    "owlhmaster/validation"
     "encoding/json"
 )
 
@@ -17,13 +18,19 @@ type MasterController struct {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /getMasterTitle [get]
-func (m *MasterController) GetMasterTitle() {
+func (n *MasterController) GetMasterTitle() {
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATION
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATION
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATION
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATION
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATION
     data, err := models.GetMasterTitle()
-    m.Data["json"] = data
+    n.Data["json"] = data
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
     }
-    m.ServeJSON()
+
+    n.ServeJSON()
 }
 
 // @Title GetFileContent
@@ -31,14 +38,21 @@ func (m *MasterController) GetMasterTitle() {
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
 // @router /editFile/:file [get]
-func (m *MasterController) GetFileContent() {
-    file := m.GetString(":file")
-    data, err := models.GetFileContent(file)
-    m.Data["json"] = data
+func (n *MasterController) GetFileContent() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        file := n.GetString(":file")
+        data, err := models.GetFileContent(file)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title SaveFileContent
@@ -46,15 +60,22 @@ func (m *MasterController) GetFileContent() {
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
 // @router /savefile [put]
-func (m *MasterController) SaveFileContent() {
-    anode := make(map[string]string)
-    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-    err := models.SaveFileContent(anode)
-    m.Data["json"] = map[string]string{"ack": "true"}
+func (n *MasterController) SaveFileContent() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.SaveFileContent(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title PingPlugins
@@ -62,13 +83,20 @@ func (m *MasterController) SaveFileContent() {
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
 // @router /pingPlugins [get]
-func (m *MasterController) PingPlugins() {
-    data,err := models.PingPlugins()
-    m.Data["json"] = data
+func (n *MasterController) PingPlugins() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data,err := models.PingPlugins()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title PingFlow
@@ -76,13 +104,20 @@ func (m *MasterController) PingPlugins() {
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
 // @router /pingFlow [get]
-func (m *MasterController) PingFlow() {
-    data,err := models.PingFlow()
-    m.Data["json"] = data
+func (n *MasterController) PingFlow() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data,err := models.PingFlow()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title ChangePluginStatus
@@ -90,15 +125,22 @@ func (m *MasterController) PingFlow() {
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
 // @router /changePluginStatus [put]
-func (m *MasterController) ChangePluginStatus() {
-    anode := make(map[string]string)
-    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-    err := models.ChangePluginStatus(anode)
-    m.Data["json"] = map[string]string{"ack": "true"}
+func (n *MasterController) ChangePluginStatus() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.ChangePluginStatus(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title SaveStapInterface
@@ -106,15 +148,22 @@ func (m *MasterController) ChangePluginStatus() {
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
 // @router /saveStapInterface [put]
-func (m *MasterController) SaveStapInterface() {
-    anode := make(map[string]string)
-    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-    err := models.SaveStapInterface(anode)
-    m.Data["json"] = map[string]string{"ack": "true"}
+func (n *MasterController) SaveStapInterface() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.SaveStapInterface(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title ChangeDataflowStatus
@@ -122,15 +171,22 @@ func (m *MasterController) SaveStapInterface() {
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
 // @router /changeDataflowStatus [put]
-func (m *MasterController) ChangeDataflowStatus() {
-    anode := make(map[string]string)
-    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-    err := models.ChangeDataflowStatus(anode)
-    m.Data["json"] = map[string]string{"ack": "true"}
+func (n *MasterController) ChangeDataflowStatus() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.ChangeDataflowStatus(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        }
     }
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title GetNetworkInterface
@@ -138,13 +194,20 @@ func (m *MasterController) ChangeDataflowStatus() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /interface [get]
-func (m *MasterController) GetNetworkInterface() {    
-    data, err := models.GetNetworkInterface()
-    m.Data["json"] = data
+func (n *MasterController) GetNetworkInterface() { 
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
-    }
-    m.ServeJSON()
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data, err := models.GetNetworkInterface()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }   
+    n.ServeJSON()
 }
 
 // @Title DeployMaster
@@ -152,17 +215,24 @@ func (m *MasterController) GetNetworkInterface() {
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
 // @router /deployMaster [put]
-func (m *MasterController) DeployMaster() {
-    anode := make(map[string]string)
-    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-    err := models.DeployMaster(anode)
-    m.Data["json"] = map[string]string{"ack": "true"}
+func (n *MasterController) DeployMaster() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeployMaster(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        }
+        
+        n.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
     }
-    
-    m.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title UpdateMasterNetworkInterface
@@ -170,17 +240,24 @@ func (m *MasterController) DeployMaster() {
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
 // @router /updateMasterNetworkInterface [put]
-func (m *MasterController) UpdateMasterNetworkInterface() {
-    anode := make(map[string]string)
-    json.Unmarshal(m.Ctx.Input.RequestBody, &anode)
-    err := models.UpdateMasterNetworkInterface(anode)
-    m.Data["json"] = map[string]string{"ack": "true"}
+func (n *MasterController) UpdateMasterNetworkInterface() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.UpdateMasterNetworkInterface(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
+        }
+        
+        n.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
     }
-    
-    m.Data["json"] = map[string]string{"ack": "false", "error" : "Can't deploy master plugins"}
-    m.ServeJSON()
+    n.ServeJSON()
 }
 
 // @Title LoadMasterNetworkValuesSelected
@@ -188,13 +265,20 @@ func (m *MasterController) UpdateMasterNetworkInterface() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /loadMasterNetworkValuesSelected [get]
-func (m *MasterController) LoadMasterNetworkValuesSelected() {    
-    data, err := models.LoadMasterNetworkValuesSelected()
-    m.Data["json"] = data
+func (n *MasterController) LoadMasterNetworkValuesSelected() { 
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false: " + err.Error()}
-    }
-    m.ServeJSON()
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data, err := models.LoadMasterNetworkValuesSelected()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }   
+    n.ServeJSON()
 }
 
 // @Title PingServiceMaster
@@ -202,13 +286,20 @@ func (m *MasterController) LoadMasterNetworkValuesSelected() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /pingservice [get]
-func (m *MasterController) PingServiceMaster() {    
-    err := models.PingServiceMaster()
-    m.Data["json"] =  map[string]string{"ack": "true"}
+func (n *MasterController) PingServiceMaster() { 
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
-    }
-    m.ServeJSON()
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        err := models.PingServiceMaster()
+        n.Data["json"] =  map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
+        }
+    }   
+    n.ServeJSON()
 }
 
 // @Title DeployServiceMaster
@@ -216,13 +307,20 @@ func (m *MasterController) PingServiceMaster() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /deployservice [put]
-func (m *MasterController) DeployServiceMaster() {    
-    err := models.DeployServiceMaster()
-    m.Data["json"] =  map[string]string{"ack": "true"}
+func (n *MasterController) DeployServiceMaster() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
-    }
-    m.ServeJSON()
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        err := models.DeployServiceMaster()
+        n.Data["json"] =  map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
+        }
+    }    
+    n.ServeJSON()
 }
 
 // @Title AddPluginServiceMaster
@@ -231,13 +329,20 @@ func (m *MasterController) DeployServiceMaster() {
 // @Failure 403 Connection Failure
 // @router /add [put]
 func (n *MasterController) AddPluginServiceMaster() { 
-    anode := make(map[string]string)
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.AddPluginServiceMaster(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("AddPluginServiceMaster -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.AddPluginServiceMaster(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Error("AddPluginServiceMaster -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -246,12 +351,19 @@ func (n *MasterController) AddPluginServiceMaster() {
 // @Description delete a specific plugin service
 // @router /deleteService [delete]
 func (n *MasterController) DeleteServiceMaster() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.DeleteServiceMaster(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteServiceMaster(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -260,12 +372,19 @@ func (n *MasterController) DeleteServiceMaster() {
 // @Description delete a specific plugin service
 // @router /modifyStapValues [put]
 func (n *MasterController) ModifyStapValuesMaster() {
-    var anode map[string]string
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.ModifyStapValuesMaster(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.ModifyStapValuesMaster(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -276,13 +395,20 @@ func (n *MasterController) ModifyStapValuesMaster() {
 // @Failure 403 Connection Failure
 // @router /updateMasterStapInterface [put]
 func (n *MasterController) UpdateMasterStapInterface() { 
-    anode := make(map[string]string)
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.UpdateMasterStapInterface(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("UpdateMasterStapInterface -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.UpdateMasterStapInterface(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Error("UpdateMasterStapInterface -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -293,13 +419,20 @@ func (n *MasterController) UpdateMasterStapInterface() {
 // @Failure 403 Connection Failure
 // @router /setbpf [put]
 func (n *MasterController) SetBPF() { 
-    anode := make(map[string]string)
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    err := models.SetBPF(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        logs.Error("SetBPF -> error: %s", err.Error())
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.SetBPF(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Error("SetBPF -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -309,14 +442,21 @@ func (n *MasterController) SetBPF() {
 // @Success 200 {object} models.Master
 // @router /deployStapServiceMaster [put]
 func (n *MasterController) DeployStapServiceMaster() {
-    anode := make(map[string]string)
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
-    err := models.DeployStapServiceMaster(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
-
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        
+        err := models.DeployStapServiceMaster(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+    
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -326,14 +466,21 @@ func (n *MasterController) DeployStapServiceMaster() {
 // @Success 200 {object} models.Master
 // @router /stopStapServiceMaster [put]
 func (n *MasterController) StopStapServiceMaster() {
-    anode := make(map[string]string)
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
-    err := models.StopStapServiceMaster(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
-
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
     if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        
+        err := models.StopStapServiceMaster(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+    
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }
@@ -343,28 +490,652 @@ func (n *MasterController) StopStapServiceMaster() {
 // @Param       body            body    models.Master     true            "body for master content"
 // @Success 200 {object} models.Master
 // @router /incidents [get]
-func (m *MasterController) GetIncidents() {    
-    data,err := models.GetIncidents()
-    m.Data["json"] = data
+func (n *MasterController) GetIncidents() {  
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
     if err != nil {
-        m.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
-    }
-    m.ServeJSON()
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data,err := models.GetIncidents()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
+        }
+    }  
+    n.ServeJSON()
 }
 
-// @Title PutIncident
-// @Description Add new incident
+// // @Title PutIncident
+// // @Description Add new incident
+// // @Success 200 {object} models.Master
+// // @router /incidents [post]
+// func (n *MasterController) PutIncident() {
+//     anode := make(map[string]string)
+//     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+//     err := models.PutIncident(anode)
+//     n.Data["json"] = map[string]string{"ack": "true"}
+
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//     }
+//     n.ServeJSON()
+// }
+
+// @Title SaveZeekValues
+// @Description Edit Zeek expert values
 // @Success 200 {object} models.Master
-// @router /incidents [post]
-func (n *MasterController) PutIncident() {
+// @router /zeek/saveZeekValues [put]
+func (n *MasterController) SaveZeekValues() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        
+        err := models.SaveZeekValues(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+    
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title PingPluginsMaster
+// @Description Get Master plugins
+// @Success 200 {object} models.Master
+// @router /pingPlugins [get]
+func (n *MasterController) PingPluginsMaster() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data, err := models.PingPluginsMaster()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetPathFileContent
+// @Description Get file content from path
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /editPathFile/:param [get]
+func (n *MasterController) GetPathFileContent() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        param := n.GetString(":param")
+        data, err := models.GetPathFileContent(param)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title SaveFilePathContent
+// @Description Set file content to selected path file
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /savefilePath [put]
+func (n *MasterController) SaveFilePathContent() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.SaveFilePathContent(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title Login
+// @Description Get Master plugins
+// @Success 200 {object} models.Master
+// @router /login [put]
+func (n *MasterController) Login() {  
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
     anode := make(map[string]string)
     json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
-    err := models.PutIncident(anode)
-    n.Data["json"] = map[string]string{"ack": "true"}
-
+    token, err := models.Login(anode)
+    n.Data["json"] = token
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title AddUser
+// @Description Add new user
+// @Success 200 {object} models.Master
+// @router /addUser [post]
+func (n *MasterController) AddUser() {  
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "post")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.AddUser(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title GetAllUsers
+// @Description Get all users
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getAllUsers [get]
+func (n *MasterController) GetAllUsers() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data, err := models.GetAllUsers()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteUser
+// @Description delete a specific user
+// @router /deleteUser [delete]
+func (n *MasterController) DeleteUser() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteUser(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title AddGroupUsers
+// @Description Add group for users
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /addGroupUsers [put]
+func (n *MasterController) AddGroupUsers() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        
+        err := models.AddGroupUsers(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title AddRole
+// @Description Add role for users
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /addRole [put]
+func (n *MasterController) AddRole() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+        err := models.AddRole(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetRolesForUser
+// @Description Get all user roles
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getRolesForUser/:uuid [get]
+func (n *MasterController) GetRolesForUser() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        id := n.GetString(":uuid")
+        data, err := models.GetRolesForUser(id)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetGroupsForUser
+// @Description Get all user roles
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getGroupsForUser/:uuid [get]
+func (n *MasterController) GetGroupsForUser() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        id := n.GetString(":uuid")
+        data, err := models.GetGroupsForUser(id)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title AddUsersTo
+// @Description Add user to a group or role
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /addUsersTo [put]
+func (n *MasterController) AddUsersTo() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.AddUsersTo(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title ChangePassword
+// @Description Add user to a group or role
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /changePassword [put]
+func (n *MasterController) ChangePassword() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.ChangePassword(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteUserRole
+// @Description delete a specific userrole
+// @router /deleteUserRole [delete]
+func (n *MasterController) DeleteUserRole() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteUserRole(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteUserGroup
+// @Description delete a specific usergroup
+// @router /deleteUserGroup [delete]
+func (n *MasterController) DeleteUserGroup() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteUserGroup(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetAllRoles
+// @Description Get all roles
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getAllRoles [get]
+func (n *MasterController) GetAllRoles() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data, err := models.GetAllRoles()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteRole
+// @Description delete a specific role
+// @router /deleteRole [delete]
+func (n *MasterController) DeleteRole() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteRole(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title EditRole
+// @Description Edit role
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /editRole [put]
+func (n *MasterController) EditRole() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.EditRole(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetAllUserGroups
+// @Description Get all user roles
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getAllUserGroups [get]
+func (n *MasterController) GetAllUserGroups() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data, err := models.GetAllUserGroups()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title EditUserGroup
+// @Description Edit user group
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /editUserGroup [put]
+func (n *MasterController) EditUserGroup() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.EditUserGroup(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// // @Title DeleteUserGroup
+// // @Description delete a specific role
+// // @router /deleteUserGroup [delete]
+// func (n *MasterController) DeleteUserGroup() {
+//     permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+//     if err != nil {
+//         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+//     }else if !permissions{
+//         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+//     }else{
+//         var anode map[string]string
+//         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+//         err := models.DeleteUserGroup(anode)
+//         n.Data["json"] = map[string]string{"ack": "true"}
+//         if err != nil {
+//             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+//         }
+//     }
+//     n.ServeJSON()
+// }
+
+
+// @Title GetRolesForGroups
+// @Description Get all user roles
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getRolesForGroups/:uuid [get]
+func (n *MasterController) GetRolesForGroups() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "get")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        id := n.GetString(":uuid")
+        data, err := models.GetRolesForGroups(id)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title AddRoleToGroup
+// @Description Add role for users
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /addRoleToGroup [put]
+func (n *MasterController) AddRoleToGroup() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+        err := models.AddRoleToGroup(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteRoleUser
+// @Description delete a specific user at role
+// @router /deleteRoleUser [delete]
+func (n *MasterController) DeleteRoleUser() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteRoleUser(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteRoleGroup
+// @Description delete a specific group at role
+// @router /deleteRoleGroup [delete]
+func (n *MasterController) DeleteRoleGroup() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteRoleGroup(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteGroupUser
+// @Description delete a specific user at group
+// @router /deleteGroupUser [delete]
+func (n *MasterController) DeleteGroupUser() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteGroupUser(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteGroupRole
+// @Description delete a specific user at group
+// @router /deleteGroupRole [delete]
+func (n *MasterController) DeleteGroupRole() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "delete")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.DeleteGroupRole(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     n.ServeJSON()
 }

@@ -15,12 +15,8 @@ func GetChangeControl()(data map[string]map[string]string, err error) {
 }
 
 func InsertChangeControl(values map[string]string)(err error){
-    loadMasterName := map[string]map[string]string{}
-    loadMasterName["master"] = map[string]string{}
-    loadMasterName["master"]["name"] = ""
-    loadMasterName,err = utils.GetConf(loadMasterName)
+    deviceName, err := utils.GetKeyValueString("master", "name")
     if err != nil {logs.Error("changeChangeControl/InsertChangeControl error readding data from main.conf: "+err.Error()); return}
-    deviceName := loadMasterName["master"]["name"]
 
     uuid:= utils.Generate()
     currentTime := time.Now()

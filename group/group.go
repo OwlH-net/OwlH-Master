@@ -110,7 +110,7 @@ func GetAllGroups()(Groups []Group, err error){
 
         for nid := range groupNodes{
             if gid == groupNodes[nid]["groupid"]{
-                nodeValues, err := ndb.GetAllNodesById(groupNodes[nid]["nodesid"]); if err != nil {logs.Error("group/GetNodeValues ERROR getting node values: "+err.Error()); return nil,err}    
+                nodeValues, err := ndb.GetNodeById(groupNodes[nid]["nodesid"]); if err != nil {logs.Error("group/GetNodeValues ERROR getting node values: "+err.Error()); return nil,err}    
                 nd := Node{}
                 nd.Dbuuid = nid
                 for b := range nodeValues{
@@ -190,7 +190,7 @@ func PingGroupNodes()(data map[string]map[string]string, err error) {
 }
 
 func GetNodeValues(uuid string)(data map[string]map[string]string, err error) {
-    data, err = ndb.GetAllNodesById(uuid)
+    data, err = ndb.GetNodeById(uuid)
     if err != nil {logs.Error("group/GetNodeValues ERROR getting node data: "+err.Error()); return nil,err}    
 
     return data, nil
@@ -255,6 +255,7 @@ func SyncPathGroup(data map[string]string)(err error) {
     for uuid := range nodesID{
         //get ip and port for node
         if ndb.Db == nil { logs.Error("SyncPathGroup -- Can't acces to database"); return err}
+        err = ndb.GetTokenByUuid(nodesID[uuid]["nodesid"]); if err!=nil{logs.Error("Error loading node token: %s",err); return err}
         ipnid,portnid,err := ndb.ObtainPortIp(nodesID[uuid]["nodesid"])
         if err != nil { logs.Error("node/SyncPathGroup ERROR Obtaining Port and Ip: "+err.Error()); return err}
         
@@ -327,6 +328,9 @@ func SyncAll(uuid string, data map[string]map[string]string)(err error) {
 }
 
 func AddCluster(anode map[string]string)(err error) {
+    conf, err := utils.GetKeyValueString("group", "conf")
+    if err != nil {logs.Error("AddCluster error getting path from main.conf"); return err}
+
     //check if exists path
     if _, err := os.Stat(anode["path"]); os.IsNotExist(err) {
         logs.Warn("Cluster path doesn't exists. Creating..."); 
@@ -338,7 +342,7 @@ func AddCluster(anode map[string]string)(err error) {
         if err != nil{logs.Error("Error creating cluster file: "+err.Error()); return err }                
     }
     //read file data
-    data, err := ioutil.ReadFile("conf/node.cfg")
+    data, err := ioutil.ReadFile(conf)
     if err != nil {logs.Error("Error opening node.cfg file: "+err.Error()); return err }        
     
     //write file data
@@ -366,10 +370,6 @@ func DeleteCluster(data map[string]string)(err error) {
 }
 
 func ChangeClusterValue(anode map[string]string)(err error) {
-    logs.Notice(anode)
-    logs.Notice(anode)
-    logs.Notice(anode)
-    logs.Notice(anode)
     //check if exists path
     if _, err := os.Stat(anode["path"]); os.IsNotExist(err) {
         logs.Error("New cluster path doesn't exists: "+err.Error()); 
@@ -439,6 +439,7 @@ func SyncClusterFile(data map[string]string)(err error) {
                 content, err := ioutil.ReadFile(cluster[x]["path"])
                 if err != nil {logs.Error("SyncClusterFile Error opening file: "+err.Error()); return err }
                 //get ip and port for node
+                err = ndb.GetTokenByUuid(z); if err!=nil{logs.Error("Error loading node token: %s",err); return err}
                 if ndb.Db == nil { logs.Error("SyncClusterFile -- Can't acces to database"); return err}
                 ipnid,portnid,err := ndb.ObtainPortIp(z)
                 if err != nil { logs.Error("node/SyncClusterFile ERROR Obtaining Port and Ip: "+err.Error())}            
@@ -465,4 +466,88 @@ func SyncAllGroupCluster(data map[string]string)(err error) {
     }
     
     return nil
+}
+
+func SyncAllSuricataGroup(data map[string]string)(err error) {
+    groups,err := ndb.GetAllGroups()
+    if err != nil { logs.Error("group/SyncAllSuricataGroup ERROR getting all group nodes: "+err.Error()); return err}
+    gr,err := ndb.GetGroupNodesByUUID(data["uuid"])
+    if err != nil { logs.Error("group/SyncAllSuricataGroup ERROR getting a group by id: "+err.Error()); return err}
+
+    for x,y := range groups{
+        anode := make(map[string]string)
+        if x == data["uuid"]{
+            for y := range y{
+                anode[y] = groups[x][y]
+            }
+            for w := range gr{
+                //get ip and port for node
+                if ndb.Db == nil { logs.Error("group/SyncAllSuricataGroup -- Can't access to database"); return err}
+                err = ndb.GetTokenByUuid(gr[w]["nodesid"]); if err!=nil{logs.Error("Error loading node token: %s",err); return err}
+                ipnid,portnid,err := ndb.ObtainPortIp(gr[w]["nodesid"])
+                if err != nil { logs.Error("group/SyncAllSuricataGroup ERROR Obtaining Port and Ip: "+err.Error()); return err}
+                
+                //send to nodeclient all data
+                err = nodeclient.SyncAllSuricataGroup(ipnid,portnid,anode)
+                if err != nil { logs.Error("group/SyncAllSuricataGroup ERROR http data request: "+err.Error()); return err}    
+        
+            }
+        }
+    }
+
+    return nil
+}
+
+func SuricataGroupService(data map[string]string)(err error) {
+    gr,err := ndb.GetGroupNodesByUUID(data["uuid"])
+    if err != nil { logs.Error("group/SuricataGroupService ERROR getting a group by id: "+err.Error()); return err}
+
+    for w := range gr{
+        //get ip and port for node
+        if ndb.Db == nil { logs.Error("group/SuricataGroupService -- Can't access to database"); return err}
+        err = ndb.GetTokenByUuid(gr[w]["nodesid"]); if err!=nil{logs.Error("Error loading node token: %s",err); return err}
+        ipnid,portnid,err := ndb.ObtainPortIp(gr[w]["nodesid"])
+        if err != nil { logs.Error("group/SuricataGroupService ERROR Obtaining Port and Ip: "+err.Error()); return err}
+        
+        //send to nodeclient all data
+        err = nodeclient.SuricataGroupService(ipnid,portnid,data)
+        if err != nil { logs.Error("group/SuricataGroupService ERROR http data request: "+err.Error()); return err}    
+
+    }
+
+    return nil
+}
+
+
+func SuricataNodesStatus(uuid string)(data map[string]map[string]string, err error) {
+    nodePlugins := map[string]map[string]string{}
+
+    gr,err := ndb.GetGroupNodesByUUID(uuid)
+    if err != nil { logs.Error("group/SuricataNodesStatus ERROR getting a group by id: "+err.Error()); return nil,err}
+
+    for w := range gr{
+        //get ip and port for node
+        if ndb.Db == nil { logs.Error("group/SuricataNodesStatus -- Can't access to database"); return nil,err}
+        err = ndb.GetTokenByUuid(gr[w]["nodesid"]); if err!=nil{logs.Error("Error loading node token: %s",err); return nil,err}
+        ipnid,portnid,err := ndb.ObtainPortIp(gr[w]["nodesid"])
+        if err != nil { logs.Error("group/SuricataNodesStatus ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+        
+        //send to nodeclient all data
+        plugins,err := nodeclient.PingPluginsNode(ipnid,portnid)
+        if err != nil { logs.Error("group/SuricataNodesStatus ERROR http data request: "+err.Error()); return nil,err}    
+
+        for x,y := range plugins{
+            nodePlugins[x] = map[string]string{}
+            for y := range y{
+                nodePlugins[x][y] = plugins[x][y]
+                nodePlugins[x]["ip"] = ipnid
+                nodePlugins[x]["port"] = portnid
+                nodeName,err := ndb.ObtainNodeName(gr[w]["nodesid"])
+                if err != nil { logs.Error("group/SuricataNodesStatus ERROR getting node name: "+err.Error()); return nil,err}   
+                nodePlugins[x]["nodeName"] = nodeName
+            }
+        }
+    }
+    
+    return nodePlugins, err
 }

@@ -39,7 +39,11 @@ func Init() {
         pluginData,err := ndb.PingPlugins()
         if err != nil {logs.Error("Error PingPlugins for check dispatcher status: %s", err.Error())}
         if pluginData["dispatcher"]["status"] == "disabled"{
-            time.Sleep(time.Second * 30)
+            t,err := utils.GetKeyValueString("loop", "dispatcher")
+            if err != nil {logs.Error("Search Error: Cannot load dispatcher information.")}
+            tDuration, err := strconv.Atoi(t)
+
+            time.Sleep(time.Second * time.Duration(tDuration))
             continue
         }
         nodesAndPcaps, err := loadNodesAndPcaps()
@@ -51,11 +55,7 @@ func Init() {
 }
 
 func GetKeepPcap()(status bool, err error){
-    loadData := map[string]map[string]string{}
-    loadData["dispatcher"] = map[string]string{}
-    loadData["dispatcher"]["keepPcap"] = ""
-    loadData,err = utils.GetConf(loadData)
-    keepPcacpStatus := loadData["dispatcher"]["keepPcap"]
+    keepPcacpStatus, err := utils.GetKeyValueString("dispatcher", "keepPcap")
     if err != nil {logs.Error("Error GetKeepPcap importing from main.conf: "+err.Error()); return true, err}
     
     keepBool, err := strconv.ParseBool(keepPcacpStatus)
@@ -64,11 +64,7 @@ func GetKeepPcap()(status bool, err error){
 }
 
 func GetOutputQueue()(path string, err error){
-    loadData := map[string]map[string]string{}
-    loadData["dispatcher"] = map[string]string{}
-    loadData["dispatcher"]["outputQueue"] = ""
-    loadData,err = utils.GetConf(loadData)
-    outputQueuePath := loadData["dispatcher"]["outputQueue"]
+    outputQueuePath, err := utils.GetKeyValueString("dispatcher", "outputQueue")
     if err != nil {logs.Error("Error GetOutputQueue importing from main.conf: "+err.Error()); return "", err}
     
     return outputQueuePath, nil
@@ -76,15 +72,10 @@ func GetOutputQueue()(path string, err error){
 
 func loadNodesAndPcaps()(nodes listOfNodesAndFolders, err error) {
     t := listOfNodesAndFolders{}
-    loadData := map[string]map[string]string{}
-    loadData["dispatcher"] = map[string]string{}
-    loadData["dispatcher"]["nodesAndCaps"] = ""
-    loadData,err = utils.GetConf(loadData)
-    path := loadData["dispatcher"]["nodesAndCaps"]
-    if err != nil {
-        logs.Error("Error loadNodesAndPcaps importing from main.conf: "+err.Error())
-        return t, err
-    }
+
+    path, err := utils.GetKeyValueString("dispatcher", "nodesAndCaps")
+    if err != nil {logs.Error("Error loadNodesAndPcaps importing from main.conf: "+err.Error()); return t, err}
+
     nodesFile, err := os.Open(path)
     if err != nil {
         logs.Error("Error loadNodesAndPcaps opening file : "+err.Error())
@@ -97,15 +88,10 @@ func loadNodesAndPcaps()(nodes listOfNodesAndFolders, err error) {
 }
 
 func GetDispatcherParam(param string)(result string){
-    loadData := map[string]map[string]string{}
-    loadData["dispatcher"] = map[string]string{}
-    loadData["dispatcher"][param] = ""
-    loadData,err := utils.GetConf(loadData)
-    if err != nil {
-        logs.Error("GetDispatcherParam Error getting param from main.conf: "+err.Error())
-        return "60"
-    }
-    return loadData["dispatcher"][param]
+    param, err := utils.GetKeyValueString("dispatcher", param)
+    if err != nil {logs.Error("GetDispatcherParam Error getting param from main.conf: "+err.Error()); return "60"}
+
+    return param
 }
 
 func copyFileToNode(dstfolder string, srcfolder string, file string, BUFFERSIZE int64) (err error) {
@@ -202,7 +188,12 @@ func dispatch(theList listOfNodesAndFolders) {
         files, areFiles := getFileFromSrcFolders(theList.Folders[i].Fpath)        
         if !areFiles{
             logs.Info("...waiting Files...")
-            time.Sleep(time.Second*10)
+
+            t,err := utils.GetKeyValueString("loop", "dispatch")
+            if err != nil {logs.Error("Search Error: Cannot load dispatcher information.")}
+            tDuration, err := strconv.Atoi(t)
+
+            time.Sleep(time.Second * time.Duration(tDuration))
             continue
         }
         

@@ -3,11 +3,13 @@ package main
 import (
 
     "github.com/astaxie/beego/logs"
+    // "github.com/astaxie/beego/context"
     _ "owlhmaster/routers"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/plugins/cors"
     "owlhmaster/database"
     "owlhmaster/dispatcher"
+    "owlhmaster/node"
     "owlhmaster/master"
     "owlhmaster/search"
     "owlhmaster/scheduler"
@@ -23,40 +25,29 @@ import (
 
 func main() {
 
+    logs.Info("Version OwlH Master: 0.12.0.20200313")
+    utils.Load()
+
+    //get logger data
+    filename, err := utils.GetKeyValueString("logs", "filename")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    maxlines, err := utils.GetKeyValueString("logs", "maxlines")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    maxsize, err := utils.GetKeyValueString("logs", "maxsize")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    daily, err := utils.GetKeyValueString("logs", "daily")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    maxdays, err := utils.GetKeyValueString("logs", "maxdays")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    rotate, err := utils.GetKeyValueString("logs", "rotate")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
+    level, err := utils.GetKeyValueString("logs", "level")
+    if err != nil {logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())}
     
-    //Configuration for the logger
-    var err error
-    loadDataLogger := map[string]map[string]string{}
-    loadDataLogger["logs"] = map[string]string{}
-    loadDataLogger["logs"]["filename"] = ""
-    loadDataLogger["logs"]["maxlines"] = ""
-    loadDataLogger["logs"]["maxsize"] = ""
-    loadDataLogger["logs"]["daily"] = ""
-    loadDataLogger["logs"]["maxdays"] = ""
-    loadDataLogger["logs"]["rotate"] = ""
-    loadDataLogger["logs"]["level"] = ""
-    loadDataLogger, err = utils.GetConf(loadDataLogger)    
-    filename := loadDataLogger["logs"]["filename"]
-    maxlines := loadDataLogger["logs"]["maxlines"]
-    maxsize := loadDataLogger["logs"]["maxsize"]
-    daily := loadDataLogger["logs"]["daily"]
-    maxdays := loadDataLogger["logs"]["maxdays"]
-    rotate := loadDataLogger["logs"]["rotate"]
-    level := loadDataLogger["logs"]["level"]
-    if err != nil {
-        logs.Error("Main Error getting data from main.conf for load Logger data: "+err.Error())
-    }
     logs.NewLogger(10000)
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
     //Application version
-    logs.Info("Version OwlH Master: 0.11.0.20191122")
-
-    cancontinue := configuration.MainCheck()
-    if !cancontinue {
-        logs.Error("can't continue, see previous logs")
-        // return 
-    }
 
     //operative system values
     data:=OperativeSystemValues()
@@ -65,12 +56,21 @@ func main() {
             logs.Info(x +" -- "+data[x])
         }
     }
+
+    //check database values
+    cancontinue := configuration.MainCheck()
+    if !cancontinue {
+        logs.Error("can't continue, see previous logs")
+        // return 
+    }
+
     //Init database connection
     ndb.Conn()
     ndb.RConn()
     // ndb.GConn()    
     ndb.MConn()    
     
+
     //CheckServicesStatus
     master.CheckServicesStatus()
 
@@ -80,11 +80,14 @@ func main() {
     go scheduler.Init()
     //Load all rulesets
     go search.Init()
+    //Synchronize users to every node
+    go node.SyncAllUserData()
 
     //Beego API documentation
     if beego.BConfig.RunMode == "dev" {
         beego.BConfig.WebConfig.DirectoryIndex = true
         beego.BConfig.WebConfig.StaticDir["/swagger"] = "swagger"
+        beego.BConfig.WebConfig.Session.SessionOn = true
     }
 
 
@@ -95,14 +98,36 @@ func main() {
                                                     MinVersion:               tls.VersionTLS12,
                                                     PreferServerCipherSuites: true,
                                                 }
+
     beego.InsertFilter("*", beego.BeforeRouter, cors.Allow(&cors.Options{
         AllowOrigins:     []string{"*"},
         AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin"},
+        AllowHeaders:     []string{"Origin", "Authorization", "Access-Control-Allow-Origin", "token", "user", "uuid"},
         ExposeHeaders:    []string{"Content-Length", "Access-Control-Allow-Origin"},
         AllowCredentials: true,
     }))
 
+    // var TokenValidation = func(ctx *context.Context) {
+    //     err := validation.CheckToken(ctx.Input.Header("token"), ctx.Input.Header("user"), ctx.Input.Header("uuid"))
+    //     if err != nil {            
+    //         logs.Error(err)
+    //         beego.Router("/login", &controllers.MasterController{})
+    //     // }else{
+    //         // ctx.Redirect(302, "/nodes")            
+    //         // logs.Notice(ctx.Input.Header("token"))
+    //     }
+        
+    //     // if strings.HasPrefix(ctx.Input.URL(), "/login") {
+    //     //     return
+    //     // }
+        
+    //     // _, ok := ctx.Input.Session("uid").(int)
+    //     // if !ok {
+    //     //     ctx.Redirect(302, "/login")
+    //     // }
+    // }
+    // beego.InsertFilter("/*", beego.BeforeRouter, TokenValidation)
+    // beego.InsertFilter("^(/login)$", beego.BeforeRouter, TokenValidation)
     beego.Run()
 }
 
