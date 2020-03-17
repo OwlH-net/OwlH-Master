@@ -1165,6 +1165,7 @@ func DeployStapService(ipData string, portData string, anode map[string]string)(
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
     if err != nil {logs.Error("nodeclient/DeployStapService ERROR connection through http new Request: "+err.Error()); return err}
+    defer resp.Body.Close()
 
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR reading request data: "+err.Error()); return err}
@@ -1172,12 +1173,10 @@ func DeployStapService(ipData string, portData string, anode map[string]string)(
     data := make(map[string]string)
     err = json.Unmarshal(body, &data)
     if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
-/*    if data["ack"] == "false"{
-        defer resp.Body.Close()
+    if data["ack"] == "false"{
         return errors.New(data["error"])
-    } */
+    } 
 
-    defer resp.Body.Close()
     return nil
 }
 
@@ -1186,6 +1185,7 @@ func StopStapService(ipData string, portData string, anode map[string]string)(er
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
     if err != nil {logs.Error("nodeclient/StopStapService ERROR connection through http new Request: "+err.Error()); return err}
+    defer resp.Body.Close()
 
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR reading request data: "+err.Error()); return err}
@@ -1193,12 +1193,10 @@ func StopStapService(ipData string, portData string, anode map[string]string)(er
     data := make(map[string]string)
     err = json.Unmarshal(body, &data)
     if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
-/*    if data["ack"] == "false"{
-        defer resp.Body.Close()
+    if data["ack"] == "false"{
         return errors.New(data["error"])
-    } */
+    } 
 
-    defer resp.Body.Close()
     return nil
 }
 
