@@ -208,6 +208,7 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
 }
 
 func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
+    logs.Notice("asdfasdfasdfasd")
     values := make(map[string][]byte)
     values["data"] = data
     url := "https://"+ipData+":"+portData+"/node/suricata/sync"
@@ -1205,15 +1206,19 @@ func ModifyStapValues(ipData string, portData string, anode map[string]string)(e
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
     if err != nil {logs.Error("nodeclient/ModifyStapValues ERROR connection through http new Request: "+err.Error()); return err}
-
+    
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR reading request data: "+err.Error()); return err}
+    defer resp.Body.Close()
     
     data := make(map[string]string)
     err = json.Unmarshal(body, &data)
     if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
 
-    defer resp.Body.Close()
+    if data["ack"] == "false" {
+        return errors.New(data["error"])
+    }
+
     return nil
 }
 
