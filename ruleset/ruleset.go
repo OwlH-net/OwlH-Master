@@ -74,9 +74,10 @@ func ReadRuleset(path string)(rules map[string]map[string]string, err error) {
         replaceFirst := strings.Replace(scanner.Text(), "“", "\"", -1)
         replaceSecond := strings.Replace(replaceFirst, "”", "\"", -1)
         if validID.MatchString(replaceSecond){
-            sid := validID.FindStringSubmatch(replaceSecond)
-            msg := msgfield.FindStringSubmatch(replaceSecond)
-            ip := ipfield.FindStringSubmatch(replaceSecond)
+            sid := validID.FindStringSubmatch(replaceSecond); if len(sid) == 0 { logs.Error("ReadRuleset error: SID not found "+replaceSecond); continue }
+            msg := msgfield.FindStringSubmatch(replaceSecond); if len(msg) == 0 { logs.Error("ReadRuleset error: MSG not found "+replaceSecond); continue }
+            ip := ipfield.FindStringSubmatch(replaceSecond); if len(ip) == 0 { logs.Error("ReadRuleset error: RULE header not found "+replaceSecond); continue }
+
             rule := make(map[string]string)
             if enablefield.MatchString(replaceSecond){
                 rule["enabled"]="Disabled"
