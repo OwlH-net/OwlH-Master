@@ -322,6 +322,20 @@ func DeleteRuleFilesByUuid(uuid string)(err error){
     return nil
 }
 
+func DeleteRuleFileParamValue(param string, value string)(err error){
+    DeleteUUIDPrepare, err := Rdb.Prepare("delete from rule_files where rule_param = ? and rule_value = ?")
+    if err != nil {
+        logs.Error("DeleteRulese Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
+        return err
+    }
+    _, err = DeleteUUIDPrepare.Exec(&param, &value)
+    if err != nil {
+        logs.Error("DeleteRulese deleting a ruleset source -> %s", err.Error())
+        return err
+    }
+    return nil
+}
+
 func GetAllRuleFiles()(data map[string]map[string]string, err error){
     var allRuleDetails = map[string]map[string]string{}
     var uniqid string

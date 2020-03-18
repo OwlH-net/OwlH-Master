@@ -357,7 +357,7 @@ func (n *RulesetController) GetAllRuleData() {
 }
 
 // @Title AddNewRuleset
-// @Description Add new custom ruleset
+// @Description Add new ruleset
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /addNewRuleset [put]
@@ -371,6 +371,35 @@ func (n *RulesetController) AddNewRuleset() {
         var anode map[string]map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         duplicated,err := models.AddNewRuleset(anode)
+        
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else {
+            if duplicated == nil {
+                n.Data["json"] = map[string]string{"ack": "true"}    
+            }else{
+                n.Data["json"] = string(duplicated)
+            }
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title ModifyRuleset
+// @Description modify local ruleset
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /modify [put]
+func (n *RulesetController) ModifyRuleset() { 
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"), "put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        duplicated,err := models.ModifyRuleset(anode)
         
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
