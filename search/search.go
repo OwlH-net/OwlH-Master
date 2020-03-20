@@ -102,7 +102,7 @@ func BuildRuleIndexElastic()(){
 
             match := strings.Split(sid[1], " ")
             //Check if rules are empty
-            if len(match) != 7 { logs.Error("Rule body bad sintax: "+currentRules[r]["raw"]); continue }
+            if len(match) != 7 { continue }
 
             //create rule map
             currentRuleData["raw"] = currentRules[r]["raw"]
