@@ -67,6 +67,30 @@ func checkDatabases()(ok bool){
 func checkTables()(ok bool){
     var table Table
 
+    table.Tname = "objects"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE objects (obj_id integer PRIMARY KEY AUTOINCREMENT,obj_uniqueid text NOT NULL,obj_param text NOT NULL,obj_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "rolePermissions"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE rolePermissions (rp_id integer PRIMARY KEY AUTOINCREMENT,rp_uniqueid text NOT NULL,rp_param text NOT NULL,rp_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "permissions"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE permissions (per_id integer PRIMARY KEY AUTOINCREMENT,per_uniqueid text NOT NULL,per_param text NOT NULL,per_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "usergrouproles"
     table.Tconn = "masterConn"
     table.Tcreate = "CREATE TABLE usergrouproles (ugr_id integer PRIMARY KEY AUTOINCREMENT,ugr_uniqueid text NOT NULL,ugr_param text NOT NULL,ugr_value text NOT NULL)"
@@ -227,6 +251,114 @@ func checkFields()(ok bool){
 
     var field Field
     
+    //add any objec to table objects
+    field.Fconn      = "masterConn"
+    field.Ftable     = "objects"
+    field.Fquery     = "select obj_value from objects where obj_uniqueid='any' and obj_param='desc' and obj_value='everything'"
+    field.Finsert    = "insert into objects (obj_uniqueid,obj_param,obj_value) values ('any','desc','everything')"
+    field.Fname      = "objects - desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    //add admin permission by default
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='delete' and per_param='desc' and per_value='http get request'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('delete','desc','http get request')"
+    field.Fname      = "permissions - delete desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='delete' and per_param='permisionGroup' and per_value='admin'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('delete','permisionGroup','admin')"
+    field.Fname      = "permissions - delete group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='post' and per_param='desc' and per_value='http get request'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('post','desc','http get request')"
+    field.Fname      = "permissions - post desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='post' and per_param='permisionGroup' and per_value='admin'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('post','permisionGroup','admin')"
+    field.Fname      = "permissions - post group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='put' and per_param='desc' and per_value='http get request'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('put','desc','http get request')"
+    field.Fname      = "permissions - put desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='put' and per_param='permisionGroup' and per_value='admin'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('put','permisionGroup','admin')"
+    field.Fname      = "permissions - put group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='get' and per_param='desc' and per_value='http get request'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('get','desc','http get request')"
+    field.Fname      = "permissions - get desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='get' and per_param='permisionGroup' and per_value='admin'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('get','permisionGroup','admin')"
+    field.Fname      = "permissions - get group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='admin' and per_param='desc' and per_value='Get everything'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('admin','desc','Get everything')"
+    field.Fname      = "permissions - admin desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='admin' and per_param='permisionGroup' and per_value='admin'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('admin','permisionGroup','admin')"
+    field.Fname      = "permissions - admin group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='getRulesetSourceDetails' and per_param='desc' and per_value='Get ruleset source details'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('getRulesetSourceDetails','desc','Get ruleset source details')"
+    field.Fname      = "permissions - admin desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='getRulesetSourceDetails' and per_param='permisionGroup' and per_value='OpenRules'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('getRulesetSourceDetails','permisionGroup','OpenRules')"
+    field.Fname      = "permissions - admin group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllRulesetSource' and per_param='desc' and per_value='Get all ruleset source values'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllRulesetSource','desc','Get all ruleset source values')"
+    field.Fname      = "permissions - admin desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllRulesetSource' and per_param='permisionGroup' and per_value='OpenRules'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllRulesetSource','permisionGroup','OpenRules')"
+    field.Fname      = "permissions - admin group"
+    ok = CheckField(field)
+    if !ok {return false}
+
     //add admin user by default
     secret := utils.Generate()
     pass,err := validation.HashPassword("admin")
@@ -308,13 +440,6 @@ func checkFields()(ok bool){
     field.Fname      = "userGroups - group"
     ok = CheckField(field)
     if !ok {return false}
-    // field.Fconn      = "masterConn"
-    // field.Ftable     = "userGroups"
-    // field.Fquery     = "select ug_param from userGroups where ug_param='permissions'"
-    // field.Finsert    = "insert into userGroups (ug_uniqueid,ug_param,ug_value) values ('00000000-0000-0000-0000-000000000002','permissions','get,put,post,delete')"
-    // field.Fname      = "userGroups - group"
-    // ok = CheckField(field)
-    // if !ok {return false}
 
     //create usergrouproles admin values
     field.Fconn      = "masterConn"
@@ -359,6 +484,20 @@ func checkFields()(ok bool){
     field.Fname      = "group - usergrouproles"
     ok = CheckField(field)
     if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000006' and ugr_param='role' and ugr_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000006','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname      = "usergrouproles - role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000006' and ugr_param='permission' and ugr_value='admin'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000006','permission','admin')"
+    field.Fname      = "usergrouproles - role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
 
     //add dispatcher status
     field.Fconn      = "masterConn"
@@ -367,9 +506,7 @@ func checkFields()(ok bool){
     field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('dispatcher','status','disabled')"
     field.Fname      = "dispatcher - status"
     ok = CheckField(field)
-    if !ok {
-        return false
-    }
+    if !ok {return false}
 
     //Create default Zeek values
     field.Fconn      = "masterConn"
@@ -378,54 +515,94 @@ func checkFields()(ok bool){
     field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','nodeConfig','')"
     field.Fname      = "plugin - nodeConfig"
     ok = CheckField(field)
-    if !ok {
-        return false
-    }
+    if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "plugins"
     field.Fquery     = "select plugin_param from plugins where plugin_param='networksConfig'"
     field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','networksConfig','')"
     field.Fname      = "plugin - networksConfig"
     ok = CheckField(field)
-    if !ok {
-        return false
-    }
+    if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "plugins"
     field.Fquery     = "select plugin_param from plugins where plugin_param='policiesMaster'"
     field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','policiesMaster','')"
     field.Fname      = "plugin - policiesMaster"
     ok = CheckField(field)
-    if !ok {
-        return false
-    }
+    if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "plugins"
     field.Fquery     = "select plugin_param from plugins where plugin_param='policiesNode'"
     field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','policiesNode','')"
     field.Fname      = "plugin - policiesNode"
     ok = CheckField(field)
-    if !ok {
-        return false
-    }
+    if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "plugins"
     field.Fquery     = "select plugin_param from plugins where plugin_param='variables1'"
     field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','variables1','')"
     field.Fname      = "plugin - variables1"
     ok = CheckField(field)
-    if !ok {
-        return false
-    }
+    if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "plugins"
     field.Fquery     = "select plugin_param from plugins where plugin_param='variables2'"
     field.Finsert    = "insert into plugins (plugin_uniqueid,plugin_param,plugin_value) values ('zeek','variables2','')"
     field.Fname      = "plugin - variables2"
     ok = CheckField(field)
-    if !ok {
-        return false
-    }
+    if !ok {return false}
+
+
+    //add values to rolePermissions realition table
+    field.Fconn      = "masterConn"
+    field.Ftable     = "rolePermissions"
+    field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0000-000000000001' and rp_param='admin' and rp_value='any'"
+    field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0000-000000000001','admin','any')"
+    field.Fname      = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "rolePermissions"
+    field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0000-000000000001' and rp_param='getRulesetSourceDetails' and rp_value='any'"
+    field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0000-000000000001','getRulesetSourceDetails','any')"
+    field.Fname      = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "rolePermissions"
+    field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0000-000000000001' and rp_param='GetAllRulesetSource' and rp_value='any'"
+    field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0000-000000000001','GetAllRulesetSource','any')"
+    field.Fname      = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "rolePermissions"
+    field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0000-000000000001' and rp_param='get' and rp_value='any'"
+    field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0000-000000000001','get','any')"
+    field.Fname      = "rolePermissions - get role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "rolePermissions"
+    field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0000-000000000001' and rp_param='put' and rp_value='any'"
+    field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0000-000000000001','put','any')"
+    field.Fname      = "rolePermissions - put role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "rolePermissions"
+    field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0000-000000000001' and rp_param='post' and rp_value='any'"
+    field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0000-000000000001','post','any')"
+    field.Fname      = "rolePermissions - post role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "rolePermissions"
+    field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0000-000000000001' and rp_param='delete' and rp_value='any'"
+    field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0000-000000000001','delete','any')"
+    field.Fname      = "rolePermissions - delete role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
 
     return true
 }

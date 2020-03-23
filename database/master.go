@@ -863,3 +863,26 @@ func UpdateUserGroup(uuid string, param string, value string) (err error) {
 
     return nil
 }
+
+func GetRolePermissions()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select rp_uniqueid,rp_param,rp_value from rolePermissions";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("getRolePermissions Mdb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("getRolePermissions -- Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}

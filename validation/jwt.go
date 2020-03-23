@@ -45,7 +45,7 @@ func CheckPasswordHash(password string, hash string) (bool, error) {
     return true, nil
 }
 
-func CheckToken(token string, user string, uuid string, permission string)(hasPrivileges bool, err error){
+func CheckToken(token string, user string, uuid string, requestType string)(hasPrivileges bool, err error){
 	users,err := ndb.GetLoginData()
 	for x := range users{
 		if (x == uuid) && (users[x]["user"] == user){
@@ -54,7 +54,7 @@ func CheckToken(token string, user string, uuid string, permission string)(hasPr
 				logs.Error("Error checking token: %s", err); return false,err
 			}else{
 				if token == tkn {
-					status,err := UserPrivilegeValidation(uuid, permission); if err != nil {logs.Error("permissions error: %s",err); return false,err}
+					status,err := UserPrivilegeValidation(uuid, requestType); if err != nil {logs.Error("requestType error: %s",err); return false,err}
 					if status{
 						masterID,err := ndb.LoadMasterID(); if err != nil {logs.Error("Error getting Master information: %s",err); return false,err}
 						utils.TokenMasterUuid = masterID
@@ -70,4 +70,36 @@ func CheckToken(token string, user string, uuid string, permission string)(hasPr
 		}
 	}
 	return false,errors.New("There are not token. Error creating Token")
+}
+
+func VerifyToken(token string, user string, uuid string)(err error){
+	users,err := ndb.GetLoginData()
+	for x := range users{
+		if (x == uuid) && (users[x]["user"] == user){
+			tkn, err := Encode(uuid, users[x]["user"], users[x]["secret"])
+			if err != nil {
+				logs.Error("Error checking token: %s", err); return err
+			}else{
+				if token == tkn {					
+					return nil					
+				}else{
+					return errors.New("The token retrieved is false")
+				}
+			}
+		}
+	}
+	return errors.New("There are not token. Error creating Token")
+}
+
+func VerifyPermissions(uuidUser string, object string, permissions []string)(err error){
+	for x := range permissions{
+		status,err := UserPrivilegeValidation2(uuidUser, permissions[x]); if err != nil {logs.Error("requestType error: %s",err); return err}
+		if status{
+			masterID,err := ndb.LoadMasterID(); if err != nil {logs.Error("Error getting Master information: %s",err); return err}
+			utils.TokenMasterUuid = masterID
+			utils.TokenMasterUser = uuidUser
+			return nil
+		}		
+	}
+	return errors.New("Not enough permissions for this action")
 }

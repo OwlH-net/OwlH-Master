@@ -11,28 +11,68 @@ import (
 )
 
 // Check user permissions
-func UserPrivilegeValidation(uuid string, permission string) (val bool, err error) {
-		allPermissions, err := ndb.GetUserGroupRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting permissions: %s",err); return false, err}
-		for x := range allPermissions{
-			if allPermissions[x]["user"] == uuid{
-				//Compare with role permissions
-				roles, err := ndb.GetUserRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting user roles: %s",err); return false, err}
-				allPermissionsRole := strings.Split(roles[allPermissions[x]["role"]]["permissions"], ",")
-				for r := range allPermissionsRole{
-					if allPermissionsRole[r] == permission{
-						return true, nil
+func UserPrivilegeValidation(uuidUser string, requestType string) (val bool, err error) {
+	allRelations, err := ndb.GetUserGroupRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting permissions: %s",err); return false, err}
+	roles, err := ndb.GetUserRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting user roles: %s",err); return false, err}
+	for x := range allRelations{
+		if allRelations[x]["user"] == uuidUser{
+			//Compare with role permissions
+			allPermissionsRole := strings.Split(roles[allRelations[x]["role"]]["permissions"], ",")
+			for r := range allPermissionsRole{
+				if allPermissionsRole[r] == requestType{
+					return true, nil
+				}
+			}	
+
+			//Compare with role permissions for groups
+			for y := range allRelations{
+				if allRelations[x]["group"] == allRelations[y]["group"]{
+					allPermissionsRole = strings.Split(roles[allRelations[y]["role"]]["permissions"], ",")
+					for r := range allPermissionsRole{
+						if allPermissionsRole[r] == requestType{
+							return true, nil
+						}
+					}	
+				}
+			}
+		}
+	}
+
+	return false, nil
+}
+
+func UserPrivilegeValidation2(uuidUser string, requestType string) (val bool, err error) {
+	allRelations, err := ndb.GetUserGroupRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting permissions: %s",err); return false, err}
+	rolePerm, err := ndb.GetRolePermissions(); if err != nil {logs.Error("UserPrivilegeValidation error getting user rolePermissions: %s",err); return false, err}
+	for x := range allRelations{
+		if allRelations[x]["user"] == uuidUser{
+			//Compare with role permissions
+			for w,n := range rolePerm{
+				if allRelations[x]["role"] == w {
+					for n := range n{
+						if n == requestType {
+							return true, nil
+						}
 					}
 				}
-				//Compare with group permissions
-				groups, err := ndb.GetUserGroups(); if err != nil {logs.Error("UserPrivilegeValidation error getting user groups: %s",err); return false, err}
-				allPermissionsGroups := strings.Split(groups[allPermissions[x]["group"]]["permissions"], ",")
-				for g := range allPermissionsGroups{
-					if allPermissionsGroups[g] == permission{
-						return true, nil
+			}
+
+			//Compare with role permissions for groups
+			for y := range allRelations{
+				if allRelations[x]["group"] == allRelations[y]["group"]{
+					for w,n := range rolePerm{
+						if allRelations[y]["role"] == w {
+							for n := range n{
+								if n == requestType {
+									return true, nil
+								}
+							}
+						}
 					}
 				}
 			}
 		}
+	}
 
 	return false, nil
 }
