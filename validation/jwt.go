@@ -91,15 +91,15 @@ func VerifyToken(token string, user string, uuid string)(err error){
 	return errors.New("There are not token. Error creating Token")
 }
 
-func VerifyPermissions(uuidUser string, object string, permissions []string)(err error){
+func VerifyPermissions(uuidUser string, object string, permissions []string)(hasPermissions bool, err error){
 	for x := range permissions{
-		status,err := UserPrivilegeValidation2(uuidUser, permissions[x]); if err != nil {logs.Error("requestType error: %s",err); return err}
+		status,err := UserPrivilegeValidation2(uuidUser, permissions[x]); if err != nil {logs.Error("requestType error: %s",err); return false,err}
 		if status{
-			masterID,err := ndb.LoadMasterID(); if err != nil {logs.Error("Error getting Master information: %s",err); return err}
+			masterID,err := ndb.LoadMasterID(); if err != nil {logs.Error("Error getting Master information: %s",err); return false,err}
 			utils.TokenMasterUuid = masterID
 			utils.TokenMasterUser = uuidUser
-			return nil
+			return true,nil
 		}		
 	}
-	return errors.New("Not enough permissions for this action")
+	return false, nil
 }

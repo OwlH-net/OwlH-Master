@@ -252,7 +252,6 @@ func MergeAllFiles(files []string)(content []byte, err error){
         }
     }
     for r := range allFiles{
-        logs.Info(allFiles[r]["Line"])
         content = append(content, []byte(allFiles[r]["Line"])...)
         content = append(content, []byte("\n")...)
     }

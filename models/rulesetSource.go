@@ -44,8 +44,8 @@ func CreateCustomRulesetSource(data map[string]string) (err error) {
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/rulesetSource/ \
-func GetAllRulesetSource() (data map[string]map[string]string, err error) {
-    data, err = rulesetSource.GetAllRulesetSource()
+func GetAllRulesetSource(hasPermissions bool) (data map[string]map[string]string, err error) {
+    data, err = rulesetSource.GetAllRulesetSource(hasPermissions)
     changecontrol.ChangeControlInsertData(err, "GetAllRulesetSource")
     return data, err
 }

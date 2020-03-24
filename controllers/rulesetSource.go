@@ -73,11 +73,11 @@ func (n *RulesetSourceController) GetAllRulesetSource() {
         return
     }    
     permissions := []string{"get","getRulesetSourceDetails"}
-    hasPermission := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)
-    if hasPermission != nil{
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)
+    if permissionsErr != nil{
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        rulesetSource, err := models.GetAllRulesetSource()
+        rulesetSource, err := models.GetAllRulesetSource(hasPermission)
         n.Data["json"] = rulesetSource
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

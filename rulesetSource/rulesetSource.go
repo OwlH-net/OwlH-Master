@@ -23,7 +23,7 @@ func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
     defer uuidRules.Close()
     for uuidRules.Next() {
         if err = uuidRules.Scan(&uniqueid); err != nil {
-            logs.Error("GetAllRulesetSource rows.Scan: %s", err.Error())
+            logs.Error("GetFileUUIDfromRulesetUUID rows.Scan: %s", err.Error())
             return "",err
         }
     }
@@ -175,7 +175,7 @@ func rulesetSourceExists(sourceID string) (err error) {
     }
 }
 
-func GetAllRulesetSource()(sources map[string]map[string]string, err error){
+func GetAllRulesetSource(hasPermissions bool)(sources map[string]map[string]string, err error){
     var allsources = map[string]map[string]string{}
     var uniqid string
     var param string
@@ -210,6 +210,11 @@ func GetAllRulesetSource()(sources map[string]map[string]string, err error){
             }
             if allsources[uniqid] == nil { allsources[uniqid] = map[string]string{}}
             allsources[uniqid][param]=value
+
+            if hasPermissions == false {
+                allsources[uniqid]["path"] = ""
+                allsources[uniqid]["url"] = ""
+            }
         } 
     }
 

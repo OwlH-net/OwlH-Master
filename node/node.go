@@ -1402,6 +1402,65 @@ func GetServiceCommands(anode map[string]string)(values map[string]map[string]st
     return values, nil
 }
 
+func SyncRolePermissions()(){
+    masterID,err := ndb.LoadMasterID()
+    if err != nil{logs.Error("node/SyncRolePermissions Error getting master ID: "+err.Error())}    
+    //get all roles
+    rolePerm,err:= ndb.GetRolePermissions()
+    if err != nil{logs.Error("node/SyncRolePermissions Error getting roles: "+err.Error())}    
+    values := make(map[string]map[string]string)
+    for id := range rolePerm {
+        values[id] = map[string]string{}
+        values[id]["masterID"] = masterID
+        values[id]["type"] = "master"
+        values[id]["status"] = "exists"
+        values[id]["role"] = rolePerm[id]["role"]
+        values[id]["permission"] = rolePerm[id]["permission"]
+        values[id]["object"] = rolePerm[id]["object"]
+    }
+
+    nodes,err:= ndb.GetAllNodes()
+    if err != nil{logs.Error("node/SyncRolePermissions Error getting allNodes: "+err.Error())}    
+    for id := range nodes {
+        ipnid,portnid,err := ndb.ObtainPortIp(id)
+        if err != nil{logs.Error("node/SyncRolePermissions Error getting Node ip and port: "+err.Error())}  
+
+        err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncRolePermissions Error loading node token: %s",err)}  
+        //get user uuid
+        err = nodeclient.SyncRolePermissions(ipnid,portnid,values)
+        if err != nil{logs.Error("node/SyncRolePermissions Error: "+err.Error())}    
+    }
+    logs.Info("RolePermissions synchronized to nodes")
+}
+
+func SyncPermissions()(){
+    masterID,err := ndb.LoadMasterID()
+    if err != nil{logs.Error("node/SyncPermissions Error getting master ID: "+err.Error())}    
+
+    perms,err:= ndb.GetPermissions()
+    if err != nil{logs.Error("node/SyncPermissions Error getting groups: "+err.Error())}    
+    values := make(map[string]map[string]string)
+    for id := range perms {
+        values[id] = map[string]string{}
+        values[id]["masterID"] = masterID
+        values[id]["desc"] = perms[id]["desc"]
+        values[id]["permisionGroup"] = perms[id]["permisionGroup"]
+    }
+
+    nodes,err:= ndb.GetAllNodes()
+    if err != nil{logs.Error("node/SyncPermissions Error getting allNodes: "+err.Error())}    
+    for id := range nodes {
+        ipnid,portnid,err := ndb.ObtainPortIp(id)
+        if err != nil{logs.Error("node/SyncPermissions Error getting Node ip and port: "+err.Error())}  
+
+        err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncPermissions Error loading node token: %s",err)} 
+        //get user uuid 
+        err = nodeclient.SyncPermissions(ipnid,portnid,values)
+        if err != nil{logs.Error("node/SyncPermissions Error: "+err.Error())}    
+    }
+    logs.Info("userGroupValues synchronized to nodes")
+}
+
 func SyncAllUserData()(){
     for{
         t,err := utils.GetKeyValueString("loop", "usergrouproles")
@@ -1412,6 +1471,8 @@ func SyncAllUserData()(){
         SyncRolesToNode()
         SyncGroupsToNode()
         SyncUserGroupRolesToNode()
+        SyncRolePermissions()
+        SyncPermissions()
         time.Sleep(time.Minute * time.Duration(tDuration))
     }
 }

@@ -42,17 +42,15 @@ func UserPrivilegeValidation(uuidUser string, requestType string) (val bool, err
 }
 
 func UserPrivilegeValidation2(uuidUser string, requestType string) (val bool, err error) {
-	allRelations, err := ndb.GetUserGroupRoles(); if err != nil {logs.Error("UserPrivilegeValidation error getting permissions: %s",err); return false, err}
-	rolePerm, err := ndb.GetRolePermissions(); if err != nil {logs.Error("UserPrivilegeValidation error getting user rolePermissions: %s",err); return false, err}
+	allRelations, err := ndb.GetUserGroupRoles(); if err != nil {logs.Error("UserPrivilegeValidation2 error getting permissions: %s",err); return false, err}
+	rolePerm, err := ndb.GetRolePermissions(); if err != nil {logs.Error("UserPrivilegeValidation2 error getting user rolePermissions: %s",err); return false, err}
 	for x := range allRelations{
 		if allRelations[x]["user"] == uuidUser{
 			//Compare with role permissions
-			for w,n := range rolePerm{
-				if allRelations[x]["role"] == w {
-					for n := range n{
-						if n == requestType {
-							return true, nil
-						}
+			for w := range rolePerm{
+				if allRelations[x]["role"] == rolePerm[w]["role"] {
+					if rolePerm[w]["permission"] == requestType {
+						return true, nil
 					}
 				}
 			}
@@ -60,12 +58,10 @@ func UserPrivilegeValidation2(uuidUser string, requestType string) (val bool, er
 			//Compare with role permissions for groups
 			for y := range allRelations{
 				if allRelations[x]["group"] == allRelations[y]["group"]{
-					for w,n := range rolePerm{
-						if allRelations[y]["role"] == w {
-							for n := range n{
-								if n == requestType {
-									return true, nil
-								}
+					for w := range rolePerm{
+						if allRelations[y]["role"] == rolePerm[w]["role"] {
+							if rolePerm[w]["permission"] == requestType {
+								return true, nil
 							}
 						}
 					}

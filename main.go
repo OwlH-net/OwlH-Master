@@ -24,8 +24,9 @@ import (
 
 
 func main() {
-
-    logs.Info("Version OwlH Master: 0.12.0.20200323")
+    
+    //Application version
+    logs.Info("Version OwlH Master: 0.12.0.20200324")
     utils.Load()
 
     //get logger data
@@ -47,7 +48,6 @@ func main() {
     logs.NewLogger(10000)
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
-    //Application version
 
     //operative system values
     data:=OperativeSystemValues()

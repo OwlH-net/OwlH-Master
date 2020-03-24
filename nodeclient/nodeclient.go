@@ -193,14 +193,8 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
         return nil,err
     }
     
-    logs.Info("GetAllFiles response Status:", resp.Status)
-    logs.Info("GetAllFiles response Headers:", resp.Header)
     responseData, err := ioutil.ReadAll(resp.Body)
-    logs.Info("GetAllFiles response Body:", responseData)
-    
     json.Unmarshal(responseData, &rData)
-    logs.Info("rData Response: ")
-    logs.Info(rData)
     rData["nodeUUID"] = uuid
     
     defer resp.Body.Close()
@@ -1989,4 +1983,42 @@ func GetServiceCommands(ipnid string, portnid string, data map[string]string)(va
 
     defer resp.Body.Close()
     return values, nil
+}
+
+func SyncRolePermissions(ipnid string, portnid string, data map[string]map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/autentication/addRolePerm"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SyncRolePermissions ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/SyncRolePermissions ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SyncRolePermissions ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    defer resp.Body.Close()
+    return nil
+}
+
+func SyncPermissions(ipnid string, portnid string, data map[string]map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/autentication/addPerm"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SyncPermissions ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/SyncPermissions ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SyncPermissions ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    defer resp.Body.Close()
+    return nil
 }

@@ -878,7 +878,30 @@ func GetRolePermissions()(path map[string]map[string]string, err error){
     }
     for rows.Next() {
         if err = rows.Scan(&uniqid, &param, &value); err != nil {
-            logs.Error("getRolePermissions -- Query return error: %s", err.Error())
+            logs.Error("getRolePermissions -- Mdb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
+
+func GetPermissions()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select per_uniqueid,per_param,per_value from permissions";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("GetPermissions Mdb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetPermissions -- Mdb.Query return error: %s", err.Error())
             return nil, err
         }
         if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
