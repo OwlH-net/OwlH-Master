@@ -230,12 +230,10 @@ func ModifyStapValuesMaster(anode map[string]string)(err error) {
 }
 
 func CheckServicesStatus()(){
-    socat, err := utils.GetKeyValueString("plugins", "socat")
-    if err != nil {logs.Error("GetNodeFile error getting path from main.conf")}
-
     allPlugins,err := ndb.PingPlugins()
     if err != nil {logs.Error("CheckServicesStatus error getting all master plugins: "+err.Error())}
-
+    socat, err := utils.GetKeyValueString("plugins", "socat")
+    if err != nil {logs.Error("GetNodeFile error getting path from main.conf")}
     command, err := utils.GetKeyValueString("execute", "command")
     if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
     param, err := utils.GetKeyValueString("execute", "param")
@@ -980,4 +978,30 @@ func AddRoleToGroup(anode map[string]string) (err error) {
     }
     
     return nil
+}
+
+func StopPluginsGracefully()(){
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil { logs.Error(" Error getting data from main.conf")}
+    socatPID, err := utils.GetKeyValueString("execute", "socatPID")
+    if err != nil { logs.Error(" Error getting data from main.conf")}
+    plugins,err := ndb.PingPlugins()
+    if err != nil {logs.Error("StopPluginsGracefully Error: "+err.Error())}
+
+    for id := range plugins{
+        if plugins[id]["type"] == "socket-network" || plugins[id]["type"] == "socket-pcap" {
+            if plugins[id]["pid"] != "none"{
+                pid, _ := exec.Command(command, param, strings.Replace(socatPID, "<PORT>", plugins[id]["port"], -1)).Output()
+                pidValue := strings.Split(string(pid), "\n")
+                //Killing PID
+                for z := range pidValue{
+                    pidToInt,_ := strconv.Atoi(pidValue[z])
+                    process, _ := os.FindProcess(pidToInt)
+                    _ = process.Kill()
+                }
+            }
+        }
+    }
 }

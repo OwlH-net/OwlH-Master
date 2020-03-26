@@ -20,13 +20,14 @@ import (
     "bufio"
     "strings"
     "runtime"
+    "os/signal"
+    "syscall"
 )
-
 
 func main() {
     
     //Application version
-    logs.Info("Version OwlH Master: 0.12.0.20200325")
+    logs.Info("Version OwlH Master: 0.12.0.20200326")
     utils.Load()
 
     //get logger data
@@ -72,8 +73,8 @@ func main() {
     
 
     //CheckServicesStatus
+    go ManageSignals()  
     master.CheckServicesStatus()
-
     //Init dispatcher at master
     go dispatcher.Init()
     //Init scheduler at master
@@ -151,4 +152,21 @@ func OperativeSystemValues()(values map[string]string){
     }else{
         return nil
     }
+}
+
+func ManageSignals() {
+    sigs := make(chan os.Signal, 1)
+    signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2)
+
+    go func() {
+        sig := <-sigs
+        logs.Info("Signal received: "+ sig.String())
+
+        //kill plugins
+        master.StopPluginsGracefully()
+
+        //stop node
+        logs.Critical("Stopping Node...")
+        os.Exit(0)
+    }()
 }
