@@ -1139,3 +1139,48 @@ func (n *MasterController) DeleteGroupRole() {
     }
     n.ServeJSON()
 }
+
+// @Title GetRolePermissions
+// @Description Get all role permissions
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getRolePermissions [get]
+func (n *MasterController) GetRolePermissions() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"),"get")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        data, err := models.GetRolePermissions()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title AddNewRole
+// @Description Add role for users
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /addNewRole [put]
+func (n *MasterController) AddNewRole() {
+    permissions,err := validation.CheckToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"),"put")
+    if err != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error(), "token":"none"}
+    }else if !permissions{
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+        err := models.AddNewRole(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

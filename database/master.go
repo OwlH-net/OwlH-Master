@@ -909,3 +909,15 @@ func GetPermissions()(path map[string]map[string]string, err error){
     } 
     return pingData,nil
 }
+
+func InsertRolePermissions(uuid string, param string, value string)(err error){
+    insertData, err := Mdb.Prepare("insert into rolePermissions(rp_uniqueid, rp_param, rp_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertRolePermissions INSERT prepare error: "+err.Error()); return err}
+
+    _, err = insertData.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertRolePermissions INSERT exec error: "+err.Error()); return err}
+
+    defer insertData.Close()
+    
+    return nil
+}

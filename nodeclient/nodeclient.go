@@ -202,7 +202,8 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
 }
 
 func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
-    logs.Notice("asdfasdfasdfasd")
+    if data == nil || len(data) <= 0 { return errors.New("SyncRulesetToNode error - Can't synchronize an empty ruleset")}
+
     values := make(map[string][]byte)
     values["data"] = data
     url := "https://"+ipData+":"+portData+"/node/suricata/sync"

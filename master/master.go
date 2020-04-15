@@ -357,9 +357,6 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
         cmd := exec.Command(command, param, socat+" "+allValues)
         // cmd := exec.Command(command , param, socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
 
-        logs.Notice(socat+" "+allValues)
-        logs.Notice(socat+" "+allValues)
-
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
@@ -392,9 +389,6 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
         allValues := strings.Replace(changePcapPrefix, "<BPF>", allPlugins[anode["uuid"]]["bpf"], -1)
         cmd := exec.Command(command, param, socat+" "+allValues)
         // cmd := exec.Command(command, param, socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
-
-        logs.Notice(socat+" "+allValues)
-        logs.Notice(socat+" "+allValues)
 
         var errores bytes.Buffer
         cmd.Stdout = &errores
@@ -1004,4 +998,33 @@ func StopPluginsGracefully()(){
             }
         }
     }
+}
+
+func GetRolePermissions()(data map[string]map[string]string, err error){
+    data,err = ndb.GetPermissions()
+    if err != nil { logs.Error("GetRolePermissions Error getting data: "+err.Error())}
+    return data,err
+}
+
+func AddNewRole(anode map[string]string) (err error) {
+    //add role to userRoles
+    uuidRoles := utils.Generate()
+    err = ndb.InsertRoleUsers(uuidRoles, "role", anode["role"])
+    if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
+    err = ndb.InsertRoleUsers(uuidRoles, "permissions", anode["permissions"])
+    if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
+    
+    //add role to rolePermissions
+    uuidPermRoles := utils.Generate()
+    err = ndb.InsertRolePermissions(uuidPermRoles, "role", anode["role"])
+    err = ndb.InsertRolePermissions(uuidPermRoles, "permissions", anode["permissions"])
+    err = ndb.InsertRolePermissions(uuidPermRoles, "object", "any")
+
+    //Sync user, group, roles and their relations to the new node
+    node.SyncUsersToNode()
+    node.SyncRolesToNode()
+    node.SyncGroupsToNode()
+    node.SyncUserGroupRolesToNode()
+
+    return nil
 }

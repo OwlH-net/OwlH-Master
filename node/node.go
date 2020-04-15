@@ -632,7 +632,6 @@ func CreateNewRuleFile(uuid string)(data []byte, err error){
 }
 
 func SyncRulesetToAllNodes(anode map[string]string)(err error){
-    logs.Notice(anode)
     uuid := anode["uuid"]
 
     if ndb.Rdb == nil {
