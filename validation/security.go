@@ -41,32 +41,34 @@ func UserPrivilegeValidation(uuidUser string, requestType string) (val bool, err
 	return false, nil
 }
 
-func UserPrivilegeValidation2(uuidUser string, requestType string) (val bool, err error) {
+func UserPrivilegeValidation2(uuidUser string, permissionRequest string) (val bool, err error) {
 	allRelations, err := ndb.GetUserGroupRoles(); if err != nil {logs.Error("UserPrivilegeValidation2 error getting permissions: %s",err); return false, err}
 	rolePerm, err := ndb.GetRolePermissions(); if err != nil {logs.Error("UserPrivilegeValidation2 error getting user rolePermissions: %s",err); return false, err}
+	// roleGroups, err := ndb.GetRoleGroups(); if err != nil {logs.Error("UserPrivilegeValidation2 error getting user GetRoleGroups: %s",err); return false, err}
 	for x := range allRelations{
 		if allRelations[x]["user"] == uuidUser{
 			//Compare with role permissions
 			for w := range rolePerm{
 				if allRelations[x]["role"] == rolePerm[w]["role"] {
-					if rolePerm[w]["permission"] == requestType {
+					if rolePerm[w]["permission"] == permissionRequest {
 						return true, nil
 					}
 				}
 			}
 
-			//Compare with role permissions for groups
-			for y := range allRelations{
-				if allRelations[x]["group"] == allRelations[y]["group"]{
-					for w := range rolePerm{
-						if allRelations[y]["role"] == rolePerm[w]["role"] {
-							if rolePerm[w]["permission"] == requestType {
-								return true, nil
-							}
-						}
-					}
-				}
-			}
+			// //Compare with role permissions for groups
+			// for y := range allRelations{
+			// 	if allRelations[x]["group"] == allRelations[y]["group"]{
+			// 		for w := range rolePerm{
+			// 			if allRelations[y]["role"] == rolePerm[w]["role"] {
+			// 				if rolePerm[w]["permission"] == permissionRequest {
+			// 					return true, nil
+			// 				}
+			// 			}
+			// 		}
+			// 	}
+			// }
+
 		}
 	}
 

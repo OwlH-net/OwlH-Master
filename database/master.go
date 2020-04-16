@@ -910,6 +910,29 @@ func GetPermissions()(path map[string]map[string]string, err error){
     return pingData,nil
 }
 
+func GetRoleGroups()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select rg_uniqueid,rg_param,rg_value from roleGroups";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("GetRoleGroups Mdb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetRoleGroups -- Mdb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
+
 func InsertRolePermissions(uuid string, param string, value string)(err error){
     insertData, err := Mdb.Prepare("insert into rolePermissions(rp_uniqueid, rp_param, rp_value) values (?,?,?);")
     if (err != nil){ logs.Error("InsertRolePermissions INSERT prepare error: "+err.Error()); return err}

@@ -1274,8 +1274,19 @@ func SaveFileContentWazuh(ipData string, portData string, anode map[string]strin
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
     if err != nil {logs.Error("nodeclient/SaveFileContentWazuh ERROR connection through http new Request: "+err.Error()); return err}
-    
     defer resp.Body.Close()
+    
+    data := make(map[string]string)
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/LoadFileLastLines ERROR reading request data: "+err.Error()); return err}
+    
+    err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/LoadFileLastLines ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if data["ack"] == "false" {
+        return errors.New(data["error"])
+    }
+
     return nil
 }
 

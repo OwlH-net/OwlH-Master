@@ -75,6 +75,14 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "roleGroups"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE roleGroups (rg_id integer PRIMARY KEY AUTOINCREMENT,rg_uniqueid text NOT NULL,rg_param text NOT NULL,rg_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "rolePermissions"
     table.Tconn = "masterConn"
     table.Tcreate = "CREATE TABLE rolePermissions (rp_id integer PRIMARY KEY AUTOINCREMENT,rp_uniqueid text NOT NULL,rp_param text NOT NULL,rp_value text NOT NULL)"
@@ -424,6 +432,19 @@ func checkFields()(ok bool){
     field.Fname      = "userRoles - role"
     ok = CheckField(field)
     if !ok {return false}
+
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
+    /////////////////////////
     field.Fconn      = "masterConn"
     field.Ftable     = "userRoles"
     field.Fquery     = "select ur_param from userRoles where ur_param='permissions'"
@@ -484,20 +505,20 @@ func checkFields()(ok bool){
     field.Fname      = "group - usergrouproles"
     ok = CheckField(field)
     if !ok {return false}
-    field.Fconn      = "masterConn"
-    field.Ftable     = "usergrouproles"
-    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000006' and ugr_param='role' and ugr_value='00000000-0000-0000-0000-000000000001'"
-    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000006','role','00000000-0000-0000-0000-000000000001')"
-    field.Fname      = "usergrouproles - role for permissions"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "masterConn"
-    field.Ftable     = "usergrouproles"
-    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000006' and ugr_param='permission' and ugr_value='admin'"
-    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000006','permission','admin')"
-    field.Fname      = "usergrouproles - role for permissions"
-    ok = CheckField(field)
-    if !ok {return false}
+    // field.Fconn      = "masterConn"
+    // field.Ftable     = "usergrouproles"
+    // field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000006' and ugr_param='role' and ugr_value='00000000-0000-0000-0000-000000000001'"
+    // field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000006','role','00000000-0000-0000-0000-000000000001')"
+    // field.Fname      = "usergrouproles - role for permissions"
+    // ok = CheckField(field)
+    // if !ok {return false}
+    // field.Fconn      = "masterConn"
+    // field.Ftable     = "usergrouproles"
+    // field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000006' and ugr_param='permission' and ugr_value='admin'"
+    // field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000006','permission','admin')"
+    // field.Fname      = "usergrouproles - role for permissions"
+    // ok = CheckField(field)
+    // if !ok {return false}
 
     //add dispatcher status
     field.Fconn      = "masterConn"
@@ -705,6 +726,36 @@ func checkFields()(ok bool){
     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0007-000000000000' and rp_param='object' and rp_value='any'"
     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0007-000000000000','object','any')"
     field.Fname      = "rolePermissions - role for permissions"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //role groups
+    field.Fconn      = "masterConn"
+    field.Ftable     = "roleGroups"
+    field.Fquery     = "select rg_value from roleGroups where rg_uniqueid='admin' and rg_param='group' and rg_value='admin'"
+    field.Finsert    = "insert into roleGroups (rg_uniqueid,rg_param,rg_value) values ('admin','group','admin')"
+    field.Fname      = "roleGroups - admin group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "roleGroups"
+    field.Fquery     = "select rg_value from roleGroups where rg_uniqueid='admin' and rg_param='desc' and rg_value='Admin privileges'"
+    field.Finsert    = "insert into roleGroups (rg_uniqueid,rg_param,rg_value) values ('admin','desc','Admin privileges')"
+    field.Fname      = "roleGroups - admin group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "roleGroups"
+    field.Fquery     = "select rg_value from roleGroups where rg_uniqueid='OpenRules' and rg_param='group' and rg_value='Open rules'"
+    field.Finsert    = "insert into roleGroups (rg_uniqueid,rg_param,rg_value) values ('OpenRules','group','Open rules')"
+    field.Fname      = "roleGroups - OpenRules group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "roleGroups"
+    field.Fquery     = "select rg_value from roleGroups where rg_uniqueid='OpenRules' and rg_param='desc' and rg_value='Open rules permissions'"
+    field.Finsert    = "insert into roleGroups (rg_uniqueid,rg_param,rg_value) values ('OpenRules','desc','Open rules permissions')"
+    field.Fname      = "roleGroups - OpenRules group"
     ok = CheckField(field)
     if !ok {return false}
     

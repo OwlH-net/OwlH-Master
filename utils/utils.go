@@ -51,7 +51,7 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
         logs.Error("Error Executing HTTP new request")
     }
     tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, DisableKeepAlives: true,}
-    client := &http.Client{Transport: tr, Timeout: 10 * time.Second}
+    client := &http.Client{Transport: tr, Timeout: 30 * time.Second}
     resp, err = client.Do(req)
     if err != nil {
         logs.Error("Error Retrieving response from client HTTP new request")
