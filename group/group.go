@@ -290,24 +290,21 @@ func SyncAll(uuid string, data map[string]map[string]string)(err error) {
             filesMap["configFile"] = data[key]["configFile"]
             filesMap["commandLine"] = data[key]["commandLine"]
             logs.Info("Synchronizing Suricata services")
-            logs.Emergency(filesMap)
             err = node.PutSuricataServicesFromGroup(filesMap)
             if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Suricata services to node: "+err.Error()); return err}
             logs.Notice("Suricata services synchronized")
-        }else if key == "zeek-policies"{
-            filesMap["uuid"] = uuid
-            filesMap["type"] = data[key]["type"]
-            filesMap["masterzeek"] = data[key]["masterzeek"]
-            filesMap["nodezeek"] = data[key]["nodezeek"]
-            logs.Info("Synchronizing Zeek policies")
-            logs.Emergency(filesMap)
-            err = SyncPathGroup(filesMap)
-            if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Zeek configuration: "+err.Error()); return err}
-            logs.Notice("Zeek policies synchronized")
+        // }else if key == "zeek-policies"{
+        //     filesMap["uuid"] = uuid
+        //     filesMap["type"] = data[key]["type"]
+        //     filesMap["masterzeek"] = data[key]["masterzeek"]
+        //     filesMap["nodezeek"] = data[key]["nodezeek"]
+        //     logs.Info("Synchronizing Zeek policies")
+        //     err = SyncPathGroup(filesMap)
+        //     if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Zeek configuration: "+err.Error()); return err}
+        //     logs.Notice("Zeek policies synchronized")
         }else if key == "suricata-rulesets"{
             filesMap["uuid"] = uuid
             logs.Info("Synchronizing Suricata ruleset")
-            logs.Emergency(filesMap)
             err = node.SyncRulesetToAllGroupNodes(filesMap)
             if err!=nil {logs.Error("group/SyncAll -- Error synchronizing ruleset: "+err.Error()); return err}
             logs.Notice("Suricata ruleset synchronized")
@@ -317,7 +314,6 @@ func SyncAll(uuid string, data map[string]map[string]string)(err error) {
             filesMap["mastersuricata"] = data[key]["mastersuricata"]
             filesMap["nodesuricata"] = data[key]["nodesuricata"]
             logs.Info("Synchronizing Suricata configuration")
-            logs.Emergency(filesMap)
             err = SyncPathGroup(filesMap)
             if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Suricata configuration: "+err.Error()); return err}
             logs.Notice("Suricata configuration synchronized")

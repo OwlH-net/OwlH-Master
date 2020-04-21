@@ -201,6 +201,30 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
     return rData,nil;
 }
 
+func SyncRulesetToNode2(ipData string, portData string, token string, data []byte)(err error){
+    utils.TokenMasterValidated = token
+    if data == nil || len(data) <= 0 { return errors.New("SyncRulesetToNode error - Can't synchronize an empty ruleset")}
+
+    values := make(map[string][]byte)
+    values["data"] = data
+    url := "https://"+ipData+":"+portData+"/node/suricata/sync"
+    valuesJSON,err := json.Marshal(values)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
+    defer resp.Body.Close()
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/SyncRulesetToNode ERROR reading request data: "+err.Error()); return err}
+    nodeResponse := make(map[string]string)
+    err = json.Unmarshal(body, &nodeResponse)
+    if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if nodeResponse["ack"] == "false" {
+        return errors.New(nodeResponse["error"])
+    }
+
+    return nil
+}
+
 func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
     if data == nil || len(data) <= 0 { return errors.New("SyncRulesetToNode error - Can't synchronize an empty ruleset")}
 
@@ -631,12 +655,14 @@ func PingPluginsNode(ipnid string, portnid string)(data map[string]map[string]st
     defer resp.Body.Close()
     if err != nil {logs.Error("nodeclient/PingPluginsNode ERROR reading request data: "+err.Error()); return data,err}
 
-    errorMap := make(map[string]string)
-    err = json.Unmarshal(body, &errorMap)
-    if errorMap["ack"] == "false"{ logs.Error("nodeclient/PingPluginsNode ERROR: "+err.Error()); return nil,errors.New(errorMap["error"])}
+    // errorMap := make(map[string]string)
+    // err = json.Unmarshal(body, &errorMap)
+    // if errorMap["ack"] == "false"{ logs.Error("nodeclient/PingPluginsNode ERROR: "+err.Error()); return nil,errors.New(errorMap["error"])}
     
     err = json.Unmarshal(body, &data)
     if err != nil {logs.Error("nodeclient/PingPluginsNode ERROR doing unmarshal JSON: "+err.Error())}
+
+    if data["hasError"]["ack"] == "false" {logs.Error("nodeclient/PingPluginsNode ERROR: "+data["hasError"]["error"]); return nil, errors.New(data["hasError"]["error"])}
 
     return data,nil
 }
@@ -1218,7 +1244,7 @@ func ModifyStapValues(ipData string, portData string, anode map[string]string)(e
     return nil
 }
 
-func PingWazuhFiles(ipData string, portData string)(data map[int]map[string]string, err error){
+func PingWazuhFiles(ipData string, portData string)(data map[string]map[string]string, err error){
     url := "https://"+ipData+":"+portData+"/node/wazuh/pingWazuhFiles"
     resp,err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil { logs.Error("nodeclient/PingWazuhFiles ERROR connection through http new Request: "+err.Error()); return data,err}
@@ -1368,14 +1394,14 @@ func PingCluster(ipData string, portData string)(data map[string]map[string]stri
     if err != nil {logs.Error("nodeclient/PingCluster ERROR connection through http new Request: "+err.Error()); return nil, err}
     
     body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
     if err != nil { logs.Error("nodeclient/PingCluster ERROR reading request data: "+err.Error()); return nil,err}
     
     err = json.Unmarshal(body, &data)
     if err != nil { logs.Error("nodeclient/PingCluster ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
-    defer resp.Body.Close()
 
-    if data["error"] != nil {
-        return nil, errors.New(data["error"]["error"])
+    if data["hasError"]["ack"] == "false" {
+        return nil, errors.New(data["hasError"]["error"])
     }
     return data, nil
 }
@@ -2028,6 +2054,25 @@ func SyncPermissions(ipnid string, portnid string, data map[string]map[string]st
     mapData := make(map[string]string)
     err = json.Unmarshal(body, &mapData)
     if err != nil { logs.Error("nodeclient/SyncPermissions ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if mapData["ack"] == "false" {
+        return errors.New(mapData["error"])
+    }
+    defer resp.Body.Close()
+    return nil
+}
+
+func SyncRoleGroups(ipnid string, portnid string, data map[string]map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/autentication/addRoleGroups"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SyncRoleGroups ERROR connection through http new Request: "+err.Error()); return err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/SyncRoleGroups ERROR reading request data: "+err.Error()); return err}
+
+    mapData := make(map[string]string)
+    err = json.Unmarshal(body, &mapData)
+    if err != nil { logs.Error("nodeclient/SyncRoleGroups ERROR doing unmarshal JSON: "+err.Error()); return err}
     if mapData["ack"] == "false" {
         return errors.New(mapData["error"])
     }

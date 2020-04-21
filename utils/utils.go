@@ -28,8 +28,8 @@ import (
 //**********token global variables**********
 var TokenMasterValidated string
 var TokenMasterUser string
-var TokenMasterUuid string
-var NodeToken string
+// var TokenMasterUuid string
+// var NodeToken string
 //**********token global variables**********
 
 func Generate()(uuid string)  {
