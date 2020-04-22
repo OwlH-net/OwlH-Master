@@ -47,6 +47,7 @@ func NewRequestHTTP(order string, url string, values io.Reader)(resp *http.Respo
     req, err := http.NewRequest(order, url, values)
     req.Header.Set("token", TokenMasterValidated)
     req.Header.Set("user", TokenMasterUser)
+    // req.Header.Set("uuid", TokenMasterUuid)
     if err != nil {
         logs.Error("Error Executing HTTP new request")
     }

@@ -3720,6 +3720,328 @@ func checkPermissionsFields()(ok bool){
         field.Fname      = "permissions"
         ok = CheckField(field)
     
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllGroups' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllGroups','desc','-')"
+        field.Fname      = "permissions - GetAllGroups"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllGroups' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllGroups','permisionGroup','Group')"
+        field.Fname      = "permissions - GetAllGroups"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='AddCluster' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddCluster','desc','-')"
+        field.Fname      = "permissions - AddCluster"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='AddCluster' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddCluster','permisionGroup','Group')"
+        field.Fname      = "permissions - AddCluster"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='EditGroup' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('EditGroup','desc','-')"
+        field.Fname      = "permissions - EditGroup"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='EditGroup' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('EditGroup','permisionGroup','Group')"
+        field.Fname      = "permissions - EditGroup"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='AddGroupElement' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddGroupElement','desc','-')"
+        field.Fname      = "permissions - AddGroupElement"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='AddGroupElement' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddGroupElement','permisionGroup','Group')"
+        field.Fname      = "permissions - AddGroupElement"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllNodesGroup' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllNodesGroup','desc','-')"
+        field.Fname      = "permissions - GetAllNodesGroup"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllNodesGroup' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllNodesGroup','permisionGroup','Group')"
+        field.Fname      = "permissions - GetAllNodesGroup"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='AddGroupNodes' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddGroupNodes','desc','-')"
+        field.Fname      = "permissions - AddGroupNodes"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='AddGroupNodes' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddGroupNodes','permisionGroup','Group')"
+        field.Fname      = "permissions - AddGroupNodes"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='PingGroupNodes' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('PingGroupNodes','desc','-')"
+        field.Fname      = "permissions - PingGroupNodes"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='PingGroupNodes' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('PingGroupNodes','permisionGroup','Group')"
+        field.Fname      = "permissions - PingGroupNodes"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetNodeValues' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetNodeValues','desc','-')"
+        field.Fname      = "permissions - GetNodeValues"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetNodeValues' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetNodeValues','permisionGroup','Group')"
+        field.Fname      = "permissions - GetNodeValues"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteNodeGroup' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteNodeGroup','desc','-')"
+        field.Fname      = "permissions - DeleteNodeGroup"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteNodeGroup' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteNodeGroup','permisionGroup','Group')"
+        field.Fname      = "permissions - DeleteNodeGroup"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='ChangeGroupRuleset' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ChangeGroupRuleset','desc','-')"
+        field.Fname      = "permissions - ChangeGroupRuleset"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='ChangeGroupRuleset' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ChangeGroupRuleset','permisionGroup','Group')"
+        field.Fname      = "permissions - ChangeGroupRuleset"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='ChangePathsGroups' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ChangePathsGroups','desc','-')"
+        field.Fname      = "permissions - ChangePathsGroups"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='ChangePathsGroups' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ChangePathsGroups','permisionGroup','Group')"
+        field.Fname      = "permissions - ChangePathsGroups"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncPathGroup' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncPathGroup','desc','-')"
+        field.Fname      = "permissions - SyncPathGroup"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncPathGroup' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncPathGroup','permisionGroup','Group')"
+        field.Fname      = "permissions - SyncPathGroup"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='UpdateGroupService' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('UpdateGroupService','desc','-')"
+        field.Fname      = "permissions - UpdateGroupService"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='UpdateGroupService' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('UpdateGroupService','permisionGroup','Group')"
+        field.Fname      = "permissions - UpdateGroupService"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncAll' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncAll','desc','-')"
+        field.Fname      = "permissions - SyncAll"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncAll' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncAll','permisionGroup','Group')"
+        field.Fname      = "permissions - SyncAll"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetClusterFiles' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetClusterFiles','desc','-')"
+        field.Fname      = "permissions - GetClusterFiles"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetClusterFiles' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetClusterFiles','permisionGroup','Group')"
+        field.Fname      = "permissions - GetClusterFiles"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteCluster' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteCluster','desc','-')"
+        field.Fname      = "permissions - DeleteCluster"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteCluster' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteCluster','permisionGroup','Group')"
+        field.Fname      = "permissions - DeleteCluster"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='ChangeClusterValue' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ChangeClusterValue','desc','-')"
+        field.Fname      = "permissions - ChangeClusterValue"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='ChangeClusterValue' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ChangeClusterValue','permisionGroup','Group')"
+        field.Fname      = "permissions - ChangeClusterValue"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetClusterFileContent' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetClusterFileContent','desc','-')"
+        field.Fname      = "permissions - GetClusterFileContent"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetClusterFileContent' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetClusterFileContent','permisionGroup','Group')"
+        field.Fname      = "permissions - GetClusterFileContent"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SaveClusterFileContent' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SaveClusterFileContent','desc','-')"
+        field.Fname      = "permissions - SaveClusterFileContent"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SaveClusterFileContent' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SaveClusterFileContent','permisionGroup','Group')"
+        field.Fname      = "permissions - SaveClusterFileContent"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncClusterFileGroup' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncClusterFileGroup','desc','-')"
+        field.Fname      = "permissions - SyncClusterFileGroup"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncClusterFileGroup' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncClusterFileGroup','permisionGroup','Group')"
+        field.Fname      = "permissions - SyncClusterFileGroup"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncAllGroupCluster' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncAllGroupCluster','desc','-')"
+        field.Fname      = "permissions - SyncAllGroupCluster"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncAllGroupCluster' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncAllGroupCluster','permisionGroup','Group')"
+        field.Fname      = "permissions - SyncAllGroupCluster"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncAllSuricataGroup' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncAllSuricataGroup','desc','-')"
+        field.Fname      = "permissions - SyncAllSuricataGroup"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncAllSuricataGroup' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncAllSuricataGroup','permisionGroup','Group')"
+        field.Fname      = "permissions - SyncAllSuricataGroup"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SuricataNodesStatus' and per_param='desc' and per_value='-'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SuricataNodesStatus','desc','-')"
+        field.Fname      = "permissions - SuricataNodesStatus"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SuricataNodesStatus' and per_param='permisionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SuricataNodesStatus','permisionGroup','Group')"
+        field.Fname      = "permissions - SuricataNodesStatus"
+        ok = CheckField(field)
+    
         //Incidents
         field.Fconn      = "masterConn"
         field.Ftable     = "permissions"

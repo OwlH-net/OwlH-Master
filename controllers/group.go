@@ -560,7 +560,7 @@ func (n *GroupController) SyncClusterFile() {
         n.ServeJSON()
         return
     }    
-    permissions := []string{"SyncClusterFile"}
+    permissions := []string{"SyncClusterFileGroup"}
     hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}

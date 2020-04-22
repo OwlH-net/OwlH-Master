@@ -1307,7 +1307,7 @@ func SyncRolesToNode()(){
         roleValues[role] = map[string]string{}
         roleValues[role]["masterID"] = masterID
         roleValues[role]["role"] = roles[role]["role"]
-        roleValues[role]["permissions"] = roles[role]["permissions"]
+        // roleValues[role]["permissions"] = roles[role]["permissions"]
         roleValues[role]["type"] = "master"
         roleValues[role]["status"] = "exists"
     }
@@ -1446,7 +1446,7 @@ func SyncRolePermissions()(){
         values[id]["type"] = "master"
         values[id]["status"] = "exists"
         values[id]["role"] = rolePerm[id]["role"]
-        values[id]["permission"] = rolePerm[id]["permission"]
+        values[id]["permissions"] = rolePerm[id]["permissions"]
         values[id]["object"] = rolePerm[id]["object"]
     }
 

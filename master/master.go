@@ -649,7 +649,7 @@ func AddGroupUsers(anode map[string]string) (err error) {
 func AddRole(anode map[string]string) (err error) {
     uuid := utils.Generate()
     err = ndb.InsertRoleUsers(uuid, "role", anode["role"])
-    err = ndb.InsertRoleUsers(uuid, "permissions", anode["permissions"])
+    // err = ndb.InsertRoleUsers(uuid, "permissions", anode["permissions"])
     if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
    
     //Sync user, group, roles and their relations to the new node
@@ -828,28 +828,35 @@ func DeleteGroupRole(anode map[string]string) (err error) {
 func GetAllRoles() (data map[string]map[string]string, err error) {
     allRoles, err := ndb.GetUserRoles()
     if err != nil{logs.Error("master/GetAllRoles Error getting roles data: "+err.Error()); return nil,err}
-    allUsers, err := ndb.GetLoginData()
-    if err != nil{logs.Error("master/GetAllRoles Error getting users data: "+err.Error()); return nil,err}
-    allGroups, err := ndb.GetUserGroups()
-    if err != nil{logs.Error("master/GetAllRoles Error getting groups data: "+err.Error()); return nil,err}
+    allPerm, err := ndb.GetRolePermissions()
+    if err != nil{logs.Error("master/GetAllRoles Error getting roles data: "+err.Error()); return nil,err}
+    // allUsers, err := ndb.GetLoginData()
+    // if err != nil{logs.Error("master/GetAllRoles Error getting users data: "+err.Error()); return nil,err}
+    // allGroups, err := ndb.GetUserGroups()
+    // if err != nil{logs.Error("master/GetAllRoles Error getting groups data: "+err.Error()); return nil,err}
     
-    allElements, err :=ndb.GetUserGroupRoles()
+    // allElements, err :=ndb.GetUserGroupRoles()
     if err != nil{logs.Error("master/GetAllRoles Error getting usergrouprole data: "+err.Error()); return nil,err}
     for x := range allRoles{
-        var userNames []string 
-        var groupNames []string 
-        for y := range allElements{
-            if x == allElements[y]["role"]{
-                if allElements[y]["user"] != "" {
-                    userNames = append(userNames, allUsers[allElements[y]["user"]]["user"])                                        
-                }
-                if allElements[y]["group"] != "" {
-                    groupNames = append(groupNames, allGroups[allElements[y]["group"]]["group"])                                        
-                }
+        for y := range allPerm{
+            if x == allPerm[y]["role"]{
+                allRoles[x]["permissions"] = allPerm[y]["permissions"]
             }
         }
-        allRoles[x]["users"] = strings.Join(userNames, ",")
-        allRoles[x]["groups"] = strings.Join(groupNames, ",")
+        // var userNames []string 
+        // var groupNames []string 
+        // for y := range allElements{
+        //     if x == allElements[y]["role"]{
+        //         if allElements[y]["user"] != "" {
+        //             userNames = append(userNames, allUsers[allElements[y]["user"]]["user"])                                        
+        //         }
+        //         if allElements[y]["group"] != "" {
+        //             groupNames = append(groupNames, allGroups[allElements[y]["group"]]["group"])                                        
+        //         }
+        //     }
+        // }
+        // allRoles[x]["users"] = strings.Join(userNames, ",")
+        // allRoles[x]["groups"] = strings.Join(groupNames, ",")
     }
 
     return allRoles, err
@@ -1011,12 +1018,12 @@ func AddNewRole(anode map[string]string) (err error) {
     uuidRoles := utils.Generate()
     err = ndb.InsertRoleUsers(uuidRoles, "role", anode["role"])
     if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
-    err = ndb.InsertRoleUsers(uuidRoles, "permissions", anode["permissions"])
-    if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
+    // err = ndb.InsertRoleUsers(uuidRoles, "permissions", anode["permissions"])
+    // if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
     
     //add role to rolePermissions
     uuidPermRoles := utils.Generate()
-    err = ndb.InsertRolePermissions(uuidPermRoles, "role", anode["role"])
+    err = ndb.InsertRolePermissions(uuidPermRoles, "role", uuidRoles)
     err = ndb.InsertRolePermissions(uuidPermRoles, "permissions", anode["permissions"])
     err = ndb.InsertRolePermissions(uuidPermRoles, "object", "any")
 
