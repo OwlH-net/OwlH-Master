@@ -1374,24 +1374,51 @@ func (n *MasterController) DeleteGroupRole() {
     n.ServeJSON()
 }
 
-// @Title GetRolePermissions
+// @Title GetPermissions
 // @Description Get all role permissions
 // @Param body body models.Master true "body for master content"
 // @Success 200 {object} models.Master
-// @router /getRolePermissions [get]
-func (n *MasterController) GetRolePermissions() {
+// @router /getPermissions [get]
+func (n *MasterController) GetPermissions() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
         n.ServeJSON()
         return
     }    
-    permissions := []string{"GetRolePermissions"}
+    permissions := []string{"GetPermissions"}
     hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.GetRolePermissions()
+        data, err := models.GetPermissions()
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetPermissionsByRole
+// @Description Get all role permissions
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getPermissionsByRole/:uuid [get]
+func (n *MasterController) GetPermissionsByRole() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetPermissionsByRole"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        uuid := n.GetString(":uuid")
+        data, err := models.GetPermissionsByRole(uuid)
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

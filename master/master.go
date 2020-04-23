@@ -830,12 +830,7 @@ func GetAllRoles() (data map[string]map[string]string, err error) {
     if err != nil{logs.Error("master/GetAllRoles Error getting roles data: "+err.Error()); return nil,err}
     allPerm, err := ndb.GetRolePermissions()
     if err != nil{logs.Error("master/GetAllRoles Error getting roles data: "+err.Error()); return nil,err}
-    // allUsers, err := ndb.GetLoginData()
-    // if err != nil{logs.Error("master/GetAllRoles Error getting users data: "+err.Error()); return nil,err}
-    // allGroups, err := ndb.GetUserGroups()
-    // if err != nil{logs.Error("master/GetAllRoles Error getting groups data: "+err.Error()); return nil,err}
-    
-    // allElements, err :=ndb.GetUserGroupRoles()
+
     if err != nil{logs.Error("master/GetAllRoles Error getting usergrouprole data: "+err.Error()); return nil,err}
     for x := range allRoles{
         for y := range allPerm{
@@ -843,20 +838,6 @@ func GetAllRoles() (data map[string]map[string]string, err error) {
                 allRoles[x]["permissions"] = allPerm[y]["permissions"]
             }
         }
-        // var userNames []string 
-        // var groupNames []string 
-        // for y := range allElements{
-        //     if x == allElements[y]["role"]{
-        //         if allElements[y]["user"] != "" {
-        //             userNames = append(userNames, allUsers[allElements[y]["user"]]["user"])                                        
-        //         }
-        //         if allElements[y]["group"] != "" {
-        //             groupNames = append(groupNames, allGroups[allElements[y]["group"]]["group"])                                        
-        //         }
-        //     }
-        // }
-        // allRoles[x]["users"] = strings.Join(userNames, ",")
-        // allRoles[x]["groups"] = strings.Join(groupNames, ",")
     }
 
     return allRoles, err
@@ -1007,10 +988,21 @@ func StopPluginsGracefully()(){
     }
 }
 
-func GetRolePermissions()(data map[string]map[string]string, err error){
-    data,err = ndb.GetPermissions()
+func GetPermissions()(data map[string]map[string]string, err error){
+    allPerm,err := ndb.GetPermissions()
     if err != nil { logs.Error("GetRolePermissions Error getting data: "+err.Error())}
-    return data,err
+    allGroups,err := ndb.GetRoleGroups()
+    if err != nil { logs.Error("GetRoleGroups Error getting data: "+err.Error())}
+
+    for x := range allPerm{
+        for y := range allGroups{
+            if allPerm[x]["permissionGroup"] == y {
+                allPerm[x]["groupDesc"] = allGroups[y]["desc"]
+            }
+        }
+    }
+
+    return allPerm,err
 }
 
 func AddNewRole(anode map[string]string) (err error) {
@@ -1034,4 +1026,32 @@ func AddNewRole(anode map[string]string) (err error) {
     node.SyncUserGroupRolesToNode()
 
     return nil
+}
+
+func GetPermissionsByRole(roleuuid string)(data map[string]map[string]string, err error){
+    values,err := ndb.GetRolePermissionsByValue(roleuuid)
+    if err != nil{logs.Error("master/GetPermissionsByRole Error getting permissions for specific role: "+err.Error()); return nil,err}    
+    allPerm,err := GetPermissions()
+    if err != nil{logs.Error("master/GetPermissionsByRole Error getting all permissions for specific role: "+err.Error()); return nil,err}    
+
+    var allRolePermissions = map[string]map[string]string{}
+    
+    //split role permissions
+    for x := range values {
+        //split permissions
+        splitedPerm := strings.Split(values[x]["permissions"], ",")
+        //get only permissions for this role
+        for x := range allPerm {
+            for y := range splitedPerm{
+                if x == splitedPerm[y] {
+                    allRolePermissions[x] = map[string]string{}
+                    allRolePermissions[x]["desc"] = allPerm[x]["desc"]
+                    allRolePermissions[x]["groupDesc"] = allPerm[x]["groupDesc"]
+                    allRolePermissions[x]["permissionGroup"] = allPerm[x]["permissionGroup"]
+                }
+            }
+        }
+    }
+
+    return allRolePermissions,nil
 }
