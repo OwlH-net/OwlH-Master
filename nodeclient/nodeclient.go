@@ -148,8 +148,6 @@ func Wazuh(ip string, port string) (data map[string]bool, err error ) {
         logs.Error("nodeClient/Wazuh ERROR connection through http new Request: "+err.Error())
         return nil,err
     }
-    logs.Info("response Status:", resp.Status)
-    logs.Info("response Headers:", resp.Header)
     body, _ := ioutil.ReadAll(resp.Body)
     
     //Convert []byte to map[string]bool
