@@ -287,11 +287,11 @@ func GetRuleSelected(nid string)(ruleset string, err error){
         row := ndb.Rdb.QueryRow("SELECT ruleset_uniqueid FROM ruleset_node WHERE node_uniqueid = \""+nid+"\";")
         err = row.Scan(&ruleSelected)
         if err == sql.ErrNoRows{
-            logs.Error("GetRuleName -> There is no ruleset with thie UUID %s", nid)
+            logs.Warn("GetRuleSelected -> There is no ruleset with thie UUID %s", nid)
             return "", err
         }
         if err != nil {
-            logs.Error("GetRuleName -> row.Scan error %s", err.Error())
+            logs.Warn("GetRuleSelected -> row.Scan error %s", err.Error())
             return "", err
         }
         return ruleSelected, nil
@@ -308,16 +308,16 @@ func GetRuleName(nid string)(ruleset string, err error){
         row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid = \""+nid+"\" and ruleset_param = \"name\";")
         err = row.Scan(&nameRule)
         if err == sql.ErrNoRows{
-            logs.Error("GetRuleName -> param or param doesn't exists")
+            logs.Warn("GetRuleName -> param or param doesn't exists")
             return "", err
         }
         if err != nil {
-            logs.Error("GetRuleName -> row.Scan error %s", err.Error())
+            logs.Warn("GetRuleName -> row.Scan error %s", err.Error())
             return "", err
         }
         return nameRule, nil
     }else {
-        logs.Error("GetRuleName -> no access to database")
+        logs.Warn("GetRuleName -> no access to database")
         return "", err
     }
 }

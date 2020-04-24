@@ -79,6 +79,7 @@ func AddNode(n map[string]string) (err error) {
 
     //Get token from node and insert data
     token,err := nodeclient.GetNodeToken(n["ip"],n["port"], login)
+
     if err != nil {
         logs.Error("AddNode Error getting node token: "+err.Error())
         err = ndb.InsertNodeKey(uuid, "token", "wait"); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
@@ -89,6 +90,9 @@ func AddNode(n map[string]string) (err error) {
         SyncUserGroupRolesToNode()
         SyncRolesToNode()
         SyncGroupsToNode()
+        SyncRolePermissions()
+        SyncPermissions()
+        SyncRoleGroups()
     }
 
     //Load token
@@ -907,7 +911,7 @@ func DeleteDataFlowValueSelected(anode map[string]string)(err error){
 func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
     if ndb.Db == nil { logs.Error("GetNodeMonitor -- Can't acces to database"); return data,err}
 
-    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("GetNodeMonitor Error loading node token: %s",err); return nil, err}
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Warn("GetNodeMonitor Error loading node token: %s",err); return nil, err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/GetNodeMonitor ERROR Obtaining Port and Ip: "+err.Error()); return data,err}
 

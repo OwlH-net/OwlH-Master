@@ -1631,7 +1631,7 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='GetPermissionsByRole' and per_param='desc' and per_value='-'"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetPermissionsByRole' and per_param='desc' and per_value='Get all permissions for specific role'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetPermissionsByRole','desc','Get all permissions for specific role')"
     field.Fname      = "permissions - desc"
     ok = CheckField(field)
