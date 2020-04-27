@@ -76,6 +76,7 @@ func AddNode(n map[string]string) (err error) {
     if n["name"] != "" {err = ndb.InsertNodeKey(uuid, "name", n["name"]); if err != nil {logs.Error("AddNode Insert node name error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
     if n["port"] != "" {err = ndb.InsertNodeKey(uuid, "port", n["port"]); if err != nil {logs.Error("AddNode Insert node port error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
     if n["ip"] != "" {err = ndb.InsertNodeKey(uuid, "ip", n["ip"]); if err != nil {logs.Error("AddNode Insert node ip error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
+    // err = ndb.InsertNodeKey(uuid, "sync", n["syncip"]); if err != nil {logs.Error("AddNode Insert node sync error: "+err.Error()); return err}
 
     //Get token from node and insert data
     token,err := nodeclient.GetNodeToken(n["ip"],n["port"], login)

@@ -10,6 +10,8 @@ import (
     "encoding/json"    
     "path"
     "os"
+    "io"
+    "bytes"
     "strings"
     "bufio"
     "io/ioutil"
@@ -125,6 +127,7 @@ func GetAllGroups()(Groups []Group, err error){
 
                     nd.Uuid = b
                     nd.Name = nodeValues[b]["name"]
+                    // nd.Sync = nodeValues[b]["sync"]                    
                     nd.Ip = nodeValues[b]["ip"]
                     gr.Nodes = append(gr.Nodes, nd)
                 }                  
@@ -237,10 +240,24 @@ func SyncPathGroup(data map[string]string)(err error) {
     fileList := make(map[string]map[string][]byte)    
     filesMap := make(map[string][]byte)
     if data["type"] == "suricata"{
-        filesMap,err = utils.ListFilepath(data["mastersuricata"])
-        if err != nil {logs.Error("group/SyncPathGroup ERROR getting Suricata path and files for send to node: "+err.Error()); return err}    
-        if fileList[data["nodesuricata"]] == nil { fileList[data["nodesuricata"]] = map[string][]byte{}}
-        fileList[data["nodesuricata"]] = filesMap
+        var buf bytes.Buffer
+        err = utils.Compress(data["mastersuricata"], &buf)
+        if err != nil {logs.Error("group/SyncPathGroup ERROR compressing data: "+err.Error()); return err}
+    
+        // write the .tar.gzip
+        fileToWrite, err := os.OpenFile("/tmp/file.tar.gzip", os.O_CREATE|os.O_RDWR, os.FileMode(600))
+        if err != nil {logs.Error("group/SyncPathGroup ERROR creating tar file: "+err.Error()); return err}
+    
+        if _, err := io.Copy(fileToWrite, &buf); err != nil {
+            logs.Error("group/SyncPathGroup ERROR copying data to tar file: "+err.Error()); return err
+        }
+
+        r,_ := os.Open("/tmp/file.tar.gzip")
+        bytesFromTar, err := ioutil.ReadAll(r)
+        
+        // err = ioutil.WriteFile("/tmp/dat1.tar.gzip", bytesFromTar, 0644)
+
+        filesMap[data["nodesuricata"]] = bytesFromTar
     }else{
         filesMap,err = utils.ListFilepath(data["masterzeek"])
         if err != nil {logs.Error("group/SyncPathGroup ERROR getting Zeek path and files for send to node: "+err.Error()); return err}    
@@ -261,14 +278,16 @@ func SyncPathGroup(data map[string]string)(err error) {
         
         //send to nodeclient all data
         if data["type"] == "suricata"{
-            err = nodeclient.ChangeSuricataPathsGroups(ipnid,portnid,fileList)
+            err = nodeclient.ChangeSuricataPathsGroups(ipnid,portnid,filesMap)
             if err != nil { logs.Error("node/SyncPathGroup ChangeSuricataPathsGroups ERROR http data request: "+err.Error()); return err}    
+            //remove tar.gz file
+            os.Remove("/tmp/file.tar.gzip")
         }else{
             err = nodeclient.ChangeZeekPathsGroups(ipnid,portnid,fileList)
             if err != nil { logs.Error("node/SyncPathGroup ChangeZeekPathsGroups ERROR http data request: "+err.Error()); return err}    
         }
-    }
-    
+    }   
+
     return nil
 }
 

@@ -1500,7 +1500,7 @@ func ChangeSuricataTable(ipnid string, portnid string, data map[string]string)(e
     return nil
 }
 
-func ChangeSuricataPathsGroups(ipnid string, portnid string, data map[string]map[string][]byte)(err error){
+func ChangeSuricataPathsGroups(ipnid string, portnid string, data map[string][]byte)(err error){
     url := "https://"+ipnid+":"+portnid+"/node/suricata"
     valuesJSON,err := json.Marshal(data)
     resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
