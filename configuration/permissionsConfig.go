@@ -3736,6 +3736,20 @@ func checkPermissionsFields()(ok bool){
     
         field.Fconn      = "masterConn"
         field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetMD5files' and per_param='desc' and per_value='Verify Master files Synchronized to all nodes'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetMD5files','desc','Verify Master files Synchronized to all nodes')"
+        field.Fname      = "permissions - GetMD5files description"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetMD5files' and per_param='permissionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetMD5files','permissionGroup','Group')"
+        field.Fname      = "permissions - GetMD5files permission group"
+        ok = CheckField(field)
+    
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
         field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllGroups' and per_param='desc' and per_value='-'"
         field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllGroups','desc','-')"
         field.Fname      = "permissions - GetAllGroups"

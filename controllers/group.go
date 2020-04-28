@@ -685,3 +685,31 @@ func (n *GroupController) SuricataNodesStatus() {
     }
     n.ServeJSON()
 }
+
+// @Title GetMD5files
+// @Description Suricata stazrt/stop for all group nodes.
+// @Success 200 {object} models.Groups
+// @router /getMD5files [put]
+func (n *GroupController) GetMD5files() { 
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetMD5files"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        data,err := models.GetMD5files(anode)
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

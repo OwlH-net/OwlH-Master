@@ -236,6 +236,46 @@ func ChangePathsGroups(data map[string]string)(err error) {
     return err
 }
 
+func GetMD5files(data map[string]string)(allData map[string]map[string]map[string]string, err error) {
+    fileList := map[string]map[string]map[string]string{}
+    
+    //get all node uuid
+    nodesID,err := ndb.GetGroupNodesByUUID(data["uuid"])
+    if err != nil {logs.Error("GetMD5files error getting all nodes for a groups: "+err.Error()); return nil,err}
+
+    //get all files synchronized
+    hashedFiles,err := utils.FolderMapMD5(data["mastersuricata"], data["nodesuricata"])    
+    if err != nil { return nil, err }
+
+    for uuid := range nodesID{
+        //get ip and port for node
+        if ndb.Db == nil { logs.Error("SyncPathGroup -- Can't acces to database"); return nil,err}
+        err = ndb.GetTokenByUuid(nodesID[uuid]["nodesid"]); if err!=nil{logs.Error("Error loading node token: %s",err); return nil,err}
+        ipnid,portnid,err := ndb.ObtainPortIp(nodesID[uuid]["nodesid"])
+        if err != nil { logs.Error("node/SyncPathGroup ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+        
+        //send to nodeclient all data
+        valuesMD5, err := nodeclient.GetMD5files(ipnid,portnid,hashedFiles)
+        if err != nil { logs.Error("node/SyncPathGroup ChangeSuricataPathsGroups ERROR http data request: "+err.Error()); return nil,err}    
+        
+        //check if files in Master and Node has the same MD5 for every file
+        filesHashed := utils.CompareFolderMapMD5(hashedFiles,valuesMD5)
+
+        if fileList[nodesID[uuid]["nodesid"]] == nil { fileList[nodesID[uuid]["nodesid"]] = map[string]map[string]string{} }
+        for x := range filesHashed {
+            returnUUID := utils.Generate()
+            if fileList[nodesID[uuid]["nodesid"]][returnUUID] == nil { fileList[nodesID[uuid]["nodesid"]][returnUUID] = map[string]string{} }
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["path"] = filesHashed[x]["path"]
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["nodeMD5"] = filesHashed[x]["md5"]
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["masterMD5"] = hashedFiles[x]["md5"]
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["equals"] = filesHashed[x]["equals"]
+        }
+        
+    }   
+
+    return fileList,nil
+}
+
 func SyncPathGroup(data map[string]string)(err error) {
     fileList := make(map[string]map[string][]byte)    
     filesMap := make(map[string][]byte)
@@ -277,7 +317,7 @@ func SyncPathGroup(data map[string]string)(err error) {
         if err != nil { logs.Error("node/SyncPathGroup ERROR Obtaining Port and Ip: "+err.Error()); return err}
         
         //send to nodeclient all data
-        if data["type"] == "suricata"{
+        if data["type"] == "suricata"{            
             err = nodeclient.ChangeSuricataPathsGroups(ipnid,portnid,filesMap)
             if err != nil { logs.Error("node/SyncPathGroup ChangeSuricataPathsGroups ERROR http data request: "+err.Error()); return err}    
             //remove tar.gz file

@@ -2077,3 +2077,23 @@ func SyncRoleGroups(ipnid string, portnid string, data map[string]map[string]str
     defer resp.Body.Close()
     return nil
 }
+
+func GetMD5files(ipnid string, portnid string, data map[string]map[string]string)(allData map[string]map[string]string, err error){
+    url := "https://"+ipnid+":"+portnid+"/node/suricata/getMD5files"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/GetMD5files ERROR connection through http new Request: "+err.Error()); return nil,err}
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil {logs.Error("nodeclient/GetMD5files ERROR reading request data: "+err.Error()); return nil,err}
+    defer resp.Body.Close()
+
+    err = json.Unmarshal(body, &allData)
+    if err != nil { logs.Error("nodeclient/GetMD5files ERROR doing unmarshal JSON: "+err.Error()); return nil,err}
+
+    if allData["hasError"]["ack"] == "false" {
+        return nil, errors.New(allData["hasError"]["error"])
+    }
+    
+    return allData,nil
+}

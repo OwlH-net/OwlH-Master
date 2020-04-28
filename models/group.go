@@ -349,6 +349,21 @@ func SuricataGroupService(data map[string]string)(err error) {
     return err
 }
 
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/group/GetMD5files \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "sadfasdfasdfasdfasdfasdf",
+//     "type": "suricata",
+//     "mastersuricata": "/path/master",
+//     "nodesuricata": "/path/node"
+// }
+func GetMD5files(data map[string]string)(allData map[string]map[string]map[string]string, err error) {
+    allData,err = group.GetMD5files(data)
+    changecontrol.ChangeControlInsertData(err, "GetMD5files")
+    return allData,err
+}
+
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/group/suricata/status/:uuid \
 // }

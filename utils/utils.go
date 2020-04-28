@@ -23,6 +23,8 @@ import (
     "encoding/hex"
     "sort"
     "path/filepath"
+    // "encoding/base64"
+    // "crypto/sha256"
 )
 
 //**********token global variables**********
@@ -524,4 +526,52 @@ func Compress(src string, buf io.Writer) error {
 	}
 	
 	return nil
+}
+
+func FolderMapMD5(masterpath string, nodePath string)(paths map[string]map[string]string, err error){
+    var data = map[string]map[string]string{}
+    err = filepath.Walk(masterpath,
+        func(file string, info os.FileInfo, err error) error {
+            if err != nil {
+                if err != nil {logs.Error("FolderMapSHA256 Error filepath: "+err.Error()); return err}
+                return err
+            }
+            if !info.IsDir() {
+                uuid := Generate()                
+                if data[uuid] == nil { data[uuid] = map[string]string{} }
+               
+                // sha256 := sha256.Sum256([]byte(file))
+                md5,err := CalculateMD5(file)
+                if err != nil {return err}
+                // data[uuid]["md5"] = base64.StdEncoding.EncodeToString(sha256[:])
+                data[uuid]["md5"] = md5
+                data[uuid]["path"] = file
+                data[uuid]["nodepath"] = nodePath
+            }
+    
+            return nil
+        })
+
+    if err != nil {
+        if err != nil {logs.Error("FolderMapSHA256 Error filepath walk: "+err.Error()); return nil,err}
+    }
+
+    return data,nil
+}
+
+func CompareFolderMapMD5(masterFiles map[string]map[string]string, nodeFiles map[string]map[string]string)(paths map[string]map[string]string){
+    fileList := map[string]map[string]string{}
+    for x := range masterFiles{
+        if fileList[x] == nil { fileList[x] = map[string]string{} }
+
+        fileList[x]["path"] = masterFiles[x]["path"]
+        fileList[x]["md5"] = nodeFiles[x]["md5"]
+        if masterFiles[x]["md5"] == nodeFiles[x]["md5"] {
+            fileList[x]["equals"] = "true"
+        }else{
+            fileList[x]["equals"] = "false"    
+        }
+    }
+
+    return fileList
 }
