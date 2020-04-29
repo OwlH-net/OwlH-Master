@@ -1,0 +1,772 @@
+{
+    "meta": {
+        "msg":{
+            "validation" : "",
+            "must" : true,
+            "multiple" : false
+        },
+        "sid":{
+            "validation" : "",
+            "must" : true,
+            "multiple" : false
+        },
+        "rev":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "gid":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "classtype":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "reference":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "priority":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "metadata":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "target":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "ip":{
+        "ttl":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "ipopts":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "sameip":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "id":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "geoip":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "fragbits":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "fragoffset":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tos":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "tcp":{
+        "seq":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "ack":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "window":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },    
+    "udp":{
+        "udp.hdr":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "icmp":{
+        "itype":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "icode":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "icmp_id":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "icmp_seq":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "payload":{
+        "content":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "nocase":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "depth":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "startswith":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "offset":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "distance":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "within":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "isdataat":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "dsize":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "rpc":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "replace":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "pcre":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "transformations":{
+        "strip_whitespace":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "compress_whitespace":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "to_sha256":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "prefiltering":{
+        "fast_pattern":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "prefilter":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "flow":{
+        "flowbits":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "flow":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "stream_size":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "flowint":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "bypass":{
+        "bypass":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "http":{
+        "http_method":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_uri":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_raw_uri":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "uricontent":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "urilen":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_protocol":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_request_line":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_header":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_raw_header":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_cookie":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_user_agent":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_accept":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_accept_enc":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_accept_lang":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_connection":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_content_type":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_content_len":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_referer":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_start":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_header_names":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_client_body":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_stat_code":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_stat_msg":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_response_line":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_server_body":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_host":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "http_raw_host":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "file_data":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "file":{
+        "filename":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "fileext":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "filemagic":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "filemd5":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "filesha1":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "filesha256":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "filesize":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "filestore":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "dns":{
+        "dns_query":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "ssl-tls":{
+        "tls_cert_subject":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls_cert_issuer":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls_cert_serial":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls_cert_fingerprint":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls_sni":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls_cert_notbefore":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls_cert_notafter":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls_cert_expired":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls_cert_valid":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls.version":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "ssl_version":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls.subject":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls.issuerdn":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls.fingerprint":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "tls.store":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "ssl_state":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "ssh":{
+        "ssh_proto":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "ssh_version":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "ssh.protoversion":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "ssh.softwareversion":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "ja3":{
+        "ja3_hash":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "ja3_string":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "modbus":{
+        "modbus":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "dnp3":{
+        "dnp3_func":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "dnp3_ind":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "dnp3_obj":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "dnp3_data":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "enip-cip":{
+        "enip_command":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "cip_service":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "ftp":{
+        "ftpdata_command":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "ftpbounce":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "kerberos":{
+        "krb5_msg_type":{
+            "validation" : "kerberos",
+            "must" : false,
+            "multiple" : false
+        },
+        "krb5_sname":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "krb5_err_code":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "krb5.weak_encryption":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "krb5.malformed_data":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "krb5_cname":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },    
+    "snmp":{
+        "snmp.version":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "snmp.community":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "snmp.pdu_type":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "base64":{
+        "base64_decode":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "base64_data":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "sip":{
+        "sip.method":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "sip.request_line":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "sip.stat_code":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "sip.stat_msg":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "sip.response_line":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "sip.protocol":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "sip.uri":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "app-layer":{
+        "app-layer-protocol":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "app-layer-event":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "xbits":{
+        "xbits":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "threshold":{
+        "threshold":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "detection_filter":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "dataset":{
+        "dataset":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        },
+        "datarep":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "iprep":{
+        "iprep":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    },
+    "lua":{
+        "lua":{
+            "validation" : "",
+            "must" : false,
+            "multiple" : false
+        }
+    }
+}

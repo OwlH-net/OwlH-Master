@@ -840,13 +840,41 @@ func ReadRulesetData(uuid string)(content map[string]string, err error) {
 }
 
 func SaveRulesetData(anode map[string]string)(err error) {
-    logs.Notice(anode["uuid"])
     uuid := anode["uuid"]
     content := anode["content"]
+
     //replace quotes
     replaceFirst := strings.Replace(content, "“", "\"", -1)
     replaceSecond := strings.Replace(replaceFirst, "”", "\"", -1)
     
+    //Verify Rule content
+    rulesArray := strings.Split(replaceSecond,"\n")
+    rulesCount := 0 
+    failsCount := 0
+    rulesFailed := make(map[string]map[string][]string)
+    for x := range rulesArray {
+        if rulesArray[x] != "" {
+            rulesCount++
+            isSuccess,stats := parserule(rulesArray[x])
+            if !isSuccess {
+                failsCount++
+                if rulesFailed[rulesArray[x]] == nil { rulesFailed[rulesArray[x]] = map[string][]string{} }
+                rulesFailed[rulesArray[x]]["error"] = stats
+            }
+        }
+    }
+
+    logs.Notice("TOTAL RULES CHECKED --> "+strconv.Itoa(rulesCount))
+    logs.Notice("TOTAL RULES FAILED --> "+strconv.Itoa(failsCount))
+    for x := range rulesFailed{
+        logs.Info("----------------------------")
+        logs.Info("RULE: "+x)
+        for w := range rulesFailed[x]["error"]{
+            logs.Info(rulesFailed[x]["error"][w])
+        }
+
+    }
+
     path,err := ndb.GetRulesetPath(uuid)
 
     file, err := os.OpenFile(path, os.O_RDWR, 0644)

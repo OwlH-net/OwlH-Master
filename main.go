@@ -14,6 +14,7 @@ import (
     "owlhmaster/search"
     "owlhmaster/scheduler"
     "owlhmaster/utils"
+    "owlhmaster/ruleset"
     "owlhmaster/configuration"
     "os"
     "crypto/tls"
@@ -75,6 +76,7 @@ func main() {
     //CheckServicesStatus
     go ManageSignals()  
     master.CheckServicesStatus()
+    ruleset.Init()
     //Init dispatcher at master
     go dispatcher.Init()
     //Init scheduler at master
