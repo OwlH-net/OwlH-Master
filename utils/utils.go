@@ -540,10 +540,8 @@ func FolderMapMD5(masterpath string, nodePath string)(paths map[string]map[strin
                 uuid := Generate()                
                 if data[uuid] == nil { data[uuid] = map[string]string{} }
                
-                // sha256 := sha256.Sum256([]byte(file))
                 md5,err := CalculateMD5(file)
                 if err != nil {return err}
-                // data[uuid]["md5"] = base64.StdEncoding.EncodeToString(sha256[:])
                 data[uuid]["md5"] = md5
                 data[uuid]["path"] = file
                 data[uuid]["nodepath"] = nodePath

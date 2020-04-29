@@ -265,7 +265,8 @@ func GetMD5files(data map[string]string)(allData map[string]map[string]map[strin
         for x := range filesHashed {
             returnUUID := utils.Generate()
             if fileList[nodesID[uuid]["nodesid"]][returnUUID] == nil { fileList[nodesID[uuid]["nodesid"]][returnUUID] = map[string]string{} }
-            fileList[nodesID[uuid]["nodesid"]][returnUUID]["path"] = filesHashed[x]["path"]
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["masterPath"] = hashedFiles[x]["path"]
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["nodePath"] = data["nodesuricata"]+"/"+filesHashed[x]["path"]
             fileList[nodesID[uuid]["nodesid"]][returnUUID]["nodeMD5"] = filesHashed[x]["md5"]
             fileList[nodesID[uuid]["nodesid"]][returnUUID]["masterMD5"] = hashedFiles[x]["md5"]
             fileList[nodesID[uuid]["nodesid"]][returnUUID]["equals"] = filesHashed[x]["equals"]
