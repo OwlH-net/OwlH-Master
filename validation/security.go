@@ -25,7 +25,7 @@ func UserPermissionsValidation(uuidUser string, permissionRequest string) (val b
 	for x := range allRelations{
 		if allRelations[x]["user"] == uuidUser{
 			
-			//Check if user role has admin permissions
+			//Check role permissions
 			for w := range rolePerm{
 				if allRelations[x]["role"] == rolePerm[w]["role"] && allRelations[x]["role"] != ""{
 					//split permissions

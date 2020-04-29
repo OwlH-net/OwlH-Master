@@ -68,8 +68,6 @@ func VerifyPermissions(uuidUser string, object string, permissions []string)(has
 	for x := range permissions{
 		status,err := UserPermissionsValidation(uuidUser, permissions[x]); if err != nil {logs.Error("requestType error: %s",err); return false,err}
 		if status{
-			// masterID,err := ndb.LoadMasterID(); if err != nil {logs.Error("Error getting Master information: %s",err); return false,err}
-			// utils.TokenMasterUuid = masterID
 			utils.TokenMasterUser = uuidUser
 			return true,nil
 		}		

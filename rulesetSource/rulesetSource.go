@@ -211,9 +211,10 @@ func GetAllRulesetSource(hasPermissions bool)(sources map[string]map[string]stri
             if allsources[uniqid] == nil { allsources[uniqid] = map[string]string{}}
             allsources[uniqid][param]=value
 
+            //verify
             if hasPermissions == false {
-                allsources[uniqid]["path"] = ""
-                allsources[uniqid]["url"] = ""
+                allsources[uniqid]["path"] = "***"
+                allsources[uniqid]["url"] = "***"
             }
         } 
     }

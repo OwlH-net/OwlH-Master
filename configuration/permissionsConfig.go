@@ -1716,6 +1716,20 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='ViewAllRulesetSource' and per_param='desc' and per_value='View full rulesetSource details'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ViewAllRulesetSource','desc','View full rulesetSource details')"
+    field.Fname      = "permissions - ViewAllRulesetSource desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='ViewAllRulesetSource' and per_param='permissionGroup' and per_value='RulesetSource'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ViewAllRulesetSource','permissionGroup','RulesetSource')"
+    field.Fname      = "permissions - ViewAllRulesetSource group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteRulesetSource' and per_param='desc' and per_value='-'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteRulesetSource','desc','-')"
     field.Fname      = "permissions - desc"

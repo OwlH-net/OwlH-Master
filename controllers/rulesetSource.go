@@ -83,14 +83,21 @@ func (n *RulesetSourceController) GetAllRulesetSource() {
         return
     }    
     permissions := []string{"GetAllRulesetSource"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
-    if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    _,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil {
+        // n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}    
+        n.Data["json"] = map[string]string{"ack": "false","error": permissionsErr.Error()}    
     }else{
-        rulesetSource, err := models.GetAllRulesetSource(hasPermission)
-        n.Data["json"] = rulesetSource
-        if err != nil {
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        permissions = []string{"ViewAllRulesetSource"}
+        hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)
+        if permissionsErr != nil {
+            n.Data["json"] = map[string]string{"ack": "false","error": permissionsErr.Error()}   
+        }else{
+            rulesetSource, err := models.GetAllRulesetSource(hasPermission)
+            n.Data["json"] = rulesetSource
+            if err != nil {
+                n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+            }
         }
     } 
     n.ServeJSON()
