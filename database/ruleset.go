@@ -172,6 +172,29 @@ func GetAllDataRulesetDB(uuid string)(data map[string]map[string]string, err err
     return customData,nil
 }
 
+func GetAllRulesets()(data map[string]map[string]string, err error){
+    var customData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select ruleset_uniqueid, ruleset_param, ruleset_value from ruleset";
+    rows, err := Rdb.Query(sql)
+    if err != nil {
+        logs.Error("GetAllRulesets Rdb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetAllRulesets -- Query return error: %s", err.Error())
+            return nil, err
+        }
+        if customData[uniqid] == nil { customData[uniqid] = map[string]string{}}
+        customData[uniqid][param]=value
+    } 
+    return customData,nil
+}
+
 //Get a specific ruleset path
 func GetRulesetPath(uuid string)(n string, err error) {
     var path string

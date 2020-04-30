@@ -492,7 +492,8 @@ func Compress(src string, buf io.Writer) error {
 	// walk through every file in the folder
 	filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
 		// generate tar header
-		header, err := tar.FileInfoHeader(fi, file)
+        header, err := tar.FileInfoHeader(fi, file)
+        logs.Notice(header)
 		if err != nil {
 			return err
 		}

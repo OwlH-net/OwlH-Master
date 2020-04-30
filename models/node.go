@@ -590,7 +590,7 @@ func DeleteService(anode map[string]string)(err error){
 }
 
 // curl -X PUT \
-//   https://52.47.197.22:50002/v1/node/saveSuricataInterface  \
+//   https://52.47.197.22:50002/v1/node/updateSuricataValue  \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -599,9 +599,9 @@ func DeleteService(anode map[string]string)(err error){
 //     "param": "v"
 // }
 // }
-func SaveSuricataInterface(anode map[string]string)(err error){
-    err = node.SaveSuricataInterface(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveSuricataInterface")
+func UpdateSuricataValue(anode map[string]string)(err error){
+    err = node.UpdateSuricataValue(anode)
+    changecontrol.ChangeControlInsertData(err, "UpdateSuricataValue")
     return err
 }
 
@@ -639,7 +639,7 @@ func StopStapService(anode map[string]string)(err error){
 }
 
 // curl -X PUT \
-//   https://52.47.197.22:50002/v1/node/modifyStapValues  \
+//   https://52.47.197.22:50002/v1/node/modifyNodeOptionValues  \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "uuid": "v",
@@ -651,9 +651,9 @@ func StopStapService(anode map[string]string)(err error){
 //     "": ...
 // }
 // }
-func ModifyStapValues(anode map[string]string)(err error){
-    err = node.ModifyStapValues(anode)
-    changecontrol.ChangeControlInsertData(err, "ModifyStapValues")
+func ModifyNodeOptionValues(anode map[string]string)(err error){
+    err = node.ModifyNodeOptionValues(anode)
+    changecontrol.ChangeControlInsertData(err, "ModifyNodeOptionValues")
     return err
 }
 
@@ -1036,4 +1036,20 @@ func GetServiceCommands(anode map[string]string)(data map[string]map[string]stri
     data, err = node.GetServiceCommands(anode)
     changecontrol.ChangeControlInsertData(err, "GetServiceCommands")
     return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/setRuleset  \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "rule_uuid": "v",
+//     "service": "v"
+//     "source": "v"
+//     "name": "v"
+// }
+func SaveSurictaRulesetSelected(anode map[string]string)(err error){
+    err = node.SaveSurictaRulesetSelected(anode)
+    changecontrol.ChangeControlInsertData(err, "SaveSurictaRulesetSelected")
+    return err
 }

@@ -296,8 +296,6 @@ func SyncPathGroup(data map[string]string)(err error) {
         r,_ := os.Open("/tmp/file.tar.gzip")
         bytesFromTar, err := ioutil.ReadAll(r)
         
-        // err = ioutil.WriteFile("/tmp/dat1.tar.gzip", bytesFromTar, 0644)
-
         filesMap[data["nodesuricata"]] = bytesFromTar
     }else{
         filesMap,err = utils.ListFilepath(data["masterzeek"])

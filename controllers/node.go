@@ -1507,18 +1507,18 @@ func (n *NodeController) DeleteService() {
     n.ServeJSON()
 }
 
-// @Title SaveSuricataInterface
+// @Title UpdateSuricataValue
 // @Description Change mainconf db values
 // @Success 200 {object} models.Node
-// @router /saveSuricataInterface [put]
-func (n *NodeController) SaveSuricataInterface() {
+// @router /updateSuricataValue [put]
+func (n *NodeController) UpdateSuricataValue() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
         n.ServeJSON()
         return
     }    
-    permissions := []string{"SaveSuricataInterface"}
+    permissions := []string{"UpdateSuricataValue"}
     hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
@@ -1526,7 +1526,7 @@ func (n *NodeController) SaveSuricataInterface() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         
-        err := models.SaveSuricataInterface(anode)
+        err := models.UpdateSuricataValue(anode)
         n.Data["json"] = map[string]string{"ack": "true"}
     
         if err != nil {
@@ -1594,18 +1594,18 @@ func (n *NodeController) StopStapService() {
     n.ServeJSON()
 }
 
-// @Title ModifyStapValues
+// @Title ModifyNodeOptionValues
 // @Description Change mainconf db values
 // @Success 200 {object} models.Node
-// @router /modifyStapValues [put]
-func (n *NodeController) ModifyStapValues() {
+// @router /modifyNodeOptionValues [put]
+func (n *NodeController) ModifyNodeOptionValues() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
         n.ServeJSON()
         return
     }    
-    permissions := []string{"ModifyStapValues"}
+    permissions := []string{"ModifyNodeOptionValues"}
     hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
@@ -1613,7 +1613,7 @@ func (n *NodeController) ModifyStapValues() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         
-        err := models.ModifyStapValues(anode)
+        err := models.ModifyNodeOptionValues(anode)
         n.Data["json"] = map[string]string{"ack": "true"}
     
         if err != nil {
@@ -2454,5 +2454,34 @@ func (n *NodeController) GetServiceCommands() {
         }
     }
 
+    n.ServeJSON()
+}
+
+// @Title SaveSurictaRulesetSelected
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /setRuleset [put]
+func (n *NodeController) SaveSurictaRulesetSelected() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"SaveSurictaRulesetSelected"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        
+        err := models.SaveSurictaRulesetSelected(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+    
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
     n.ServeJSON()
 }

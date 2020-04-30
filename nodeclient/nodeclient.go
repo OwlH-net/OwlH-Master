@@ -199,12 +199,12 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
     return rData,nil;
 }
 
-func SyncRulesetToNode2(ipData string, portData string, token string, data []byte)(err error){
+func SyncRulesetToNode2(ipData string, portData string, token string, data []byte, service string)(err error){
     utils.TokenMasterValidated = token
     if data == nil || len(data) <= 0 { return errors.New("SyncRulesetToNode error - Can't synchronize an empty ruleset")}
 
     values := make(map[string][]byte)
-    values["data"] = data
+    values[service] = data
     url := "https://"+ipData+":"+portData+"/node/suricata/sync"
     valuesJSON,err := json.Marshal(values)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
@@ -223,11 +223,12 @@ func SyncRulesetToNode2(ipData string, portData string, token string, data []byt
     return nil
 }
 
-func SyncRulesetToNode(ipData string, portData string, data []byte)(err error){
+func SyncRulesetToNode(ipData string, portData string, data []byte, service string)(err error){
     if data == nil || len(data) <= 0 { return errors.New("SyncRulesetToNode error - Can't synchronize an empty ruleset")}
 
     values := make(map[string][]byte)
     values["data"] = data
+    values["service"] = []byte(service)
     url := "https://"+ipData+":"+portData+"/node/suricata/sync"
     valuesJSON,err := json.Marshal(values)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
@@ -1160,18 +1161,18 @@ func DeleteService(ipData string, portData string, anode map[string]string)(err 
     return nil
 }
 
-func SaveSuricataInterface(ipData string, portData string, anode map[string]string)(err error){
-    url := "https://"+ipData+":"+portData+"/node/plugin/SaveSuricataInterface"
+func UpdateSuricataValue(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/plugin/updateSuricataValue"
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/SaveSuricataInterface ERROR connection through http new Request: "+err.Error()); return err}
+    if err != nil {logs.Error("nodeclient/UpdateSuricataValue ERROR connection through http new Request: "+err.Error()); return err}
 
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil { logs.Error("nodeclient/SaveSuricataInterface ERROR reading request data: "+err.Error()); return err}
+    if err != nil { logs.Error("nodeclient/UpdateSuricataValue ERROR reading request data: "+err.Error()); return err}
     
     data := make(map[string]string)
     err = json.Unmarshal(body, &data)
-    if err != nil { logs.Error("nodeclient/SaveSuricataInterface ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if err != nil { logs.Error("nodeclient/UpdateSuricataValue ERROR doing unmarshal JSON: "+err.Error()); return err}
 /*    if data["ack"] == "false"{
         defer resp.Body.Close()
         return errors.New(data["error"])
@@ -1221,19 +1222,19 @@ func StopStapService(ipData string, portData string, anode map[string]string)(er
     return nil
 }
 
-func ModifyStapValues(ipData string, portData string, anode map[string]string)(err error){
-    url := "https://"+ipData+":"+portData+"/node/plugin/modifyStapValues"
+func ModifyNodeOptionValues(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/plugin/modifyNodeOptionValues"
     valuesJSON,err := json.Marshal(anode)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/ModifyStapValues ERROR connection through http new Request: "+err.Error()); return err}
+    if err != nil {logs.Error("nodeclient/ModifyNodeOptionValues ERROR connection through http new Request: "+err.Error()); return err}
     
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR reading request data: "+err.Error()); return err}
+    if err != nil { logs.Error("nodeclient/ModifyNodeOptionValues ERROR reading request data: "+err.Error()); return err}
     defer resp.Body.Close()
     
     data := make(map[string]string)
     err = json.Unmarshal(body, &data)
-    if err != nil { logs.Error("nodeclient/ChangeServiceStatus ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if err != nil { logs.Error("nodeclient/ModifyNodeOptionValues ERROR doing unmarshal JSON: "+err.Error()); return err}
 
     if data["ack"] == "false" {
         return errors.New(data["error"])
@@ -2096,4 +2097,25 @@ func GetMD5files(ipnid string, portnid string, data map[string]map[string]string
     }
     
     return allData,nil
+}
+
+func SaveSurictaRulesetSelected(ipData string, portData string, anode map[string]string)(err error){
+    url := "https://"+ipData+":"+portData+"/node/plugin/setRuleset"
+    valuesJSON,err := json.Marshal(anode)
+    resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/SaveSurictaRulesetSelected ERROR connection through http new Request: "+err.Error()); return err}
+    
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/SaveSurictaRulesetSelected ERROR reading request data: "+err.Error()); return err}
+    defer resp.Body.Close()
+    
+    data := make(map[string]string)
+    err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/SaveSurictaRulesetSelected ERROR doing unmarshal JSON: "+err.Error()); return err}
+
+    if data["ack"] == "false" {
+        return errors.New(data["error"])
+    }
+
+    return nil
 }

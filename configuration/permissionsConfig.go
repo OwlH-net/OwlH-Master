@@ -2863,21 +2863,7 @@ func checkPermissionsFields()(ok bool){
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteService','permissionGroup','Node')"
     field.Fname      = "permissions - group"
     ok = CheckField(field)
-	
-	field.Fconn      = "masterConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='SaveSuricataInterface' and per_param='desc' and per_value='-'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SaveSuricataInterface','desc','-')"
-    field.Fname      = "permissions - desc"
-    ok = CheckField(field)
-    if !ok {return false}
-    field.Fconn      = "masterConn"
-    field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='SaveSuricataInterface' and per_param='permissionGroup' and per_value='Node'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SaveSuricataInterface','permissionGroup','Node')"
-    field.Fname      = "permissions - group"
-    ok = CheckField(field)
-	
+		
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='DeployStapService' and per_param='desc' and per_value='-'"
@@ -2908,16 +2894,30 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='ModifyStapValues' and per_param='desc' and per_value='-'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ModifyStapValues','desc','-')"
-    field.Fname      = "permissions - desc"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='ModifyNodeOptionValues' and per_param='desc' and per_value='Modify node option values'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ModifyNodeOptionValues','desc','Modify node option values')"
+    field.Fname      = "permissions - ModifyNodeOptionValues desc"
     ok = CheckField(field)
     if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='ModifyStapValues' and per_param='permissionGroup' and per_value='Node'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ModifyStapValues','permissionGroup','Node')"
-    field.Fname      = "permissions - group"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='ModifyNodeOptionValues' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ModifyNodeOptionValues','permissionGroup','Node')"
+    field.Fname      = "permissions - ModifyNodeOptionValues group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='SaveSurictaRulesetSelected' and per_param='desc' and per_value='Modify ruleset for specific Suricata'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SaveSurictaRulesetSelected','desc','Modify ruleset for specific Suricata')"
+    field.Fname      = "permissions - SaveSurictaRulesetSelected desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='SaveSurictaRulesetSelected' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SaveSurictaRulesetSelected','permissionGroup','Node')"
+    field.Fname      = "permissions - SaveSurictaRulesetSelected group"
     ok = CheckField(field)
 	
 	field.Fconn      = "masterConn"
@@ -4385,16 +4385,16 @@ func checkPermissionsFields()(ok bool){
     
         field.Fconn      = "masterConn"
         field.Ftable     = "permissions"
-        field.Fquery     = "select per_value from permissions where per_uniqueid='SaveSuricataInterface' and per_param='desc' and per_value='-'"
-        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SaveSuricataInterface','desc','-')"
-        field.Fname      = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='UpdateSuricataValue' and per_param='desc' and per_value='Update suricata value'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('UpdateSuricataValue','desc','Update suricata value')"
+        field.Fname      = "permissions - UpdateSuricataValue description"
         ok = CheckField(field)
         if !ok {return false}
         field.Fconn      = "masterConn"
         field.Ftable     = "permissions"
-        field.Fquery     = "select per_value from permissions where per_uniqueid='SaveSuricataInterface' and per_param='permissionGroup'"
-        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SaveSuricataInterface','permissionGroup','Plugin')"
-        field.Fname      = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='UpdateSuricataValue' and per_param='permissionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('UpdateSuricataValue','permissionGroup','Plugin')"
+        field.Fname      = "permissions - UpdateSuricataValue group"
         ok = CheckField(field)
     
         field.Fconn      = "masterConn"
