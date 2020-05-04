@@ -5,6 +5,7 @@ import (
     "owlhmaster/database"
     "errors"
     "owlhmaster/utils"
+    // "owlhmaster/validation"
     "strings"
     "os"
     "io/ioutil"
@@ -48,7 +49,7 @@ func CreateRulesetSource(n map[string]string) (err error) {
     }
     
     path, err := utils.GetKeyValueString("ruleset", "sourceDownload")
-    if err != nil {logs.Error("DeleteRuleset Error getting data from main.conf for load data: "+err.Error()); return err}
+    if err != nil {logs.Error("CreateRulesetSource Error getting data from main.conf for load data: "+err.Error()); return err}
 
 
     if _, err := os.Stat(path+n["name"]); !os.IsNotExist(err) {
@@ -59,7 +60,14 @@ func CreateRulesetSource(n map[string]string) (err error) {
     n["path"] = path + nameWithoutSpaces +"/"+ n["fileName"]
         
     for key, value := range n {
-        err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, value)
+        // if key == "passwd"{
+        //     //encript
+        //     hashed,err := validation.HashPassword(n["passwd"])
+        //     if err != nil {logs.Error("CreateRulesetSource Error generating hashed password: "+err.Error()); return err}
+        //     err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, hashed)
+        // }else{
+            err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, value)
+        // }
     }
     if err != nil {
         return err
@@ -363,14 +371,16 @@ func OverwriteDownload(data map[string]string) (err error) {
     splitPath := strings.Split(data["url"], "/")
     fileDownloaded := splitPath[len(splitPath)-1]
 
-    // _ = os.RemoveAll(pathDownloaded+data["name"])
-
-    //download file
+    //check if path exists
     if _, err := os.Stat(pathDownloaded+data["name"]); os.IsNotExist(err) {
         os.MkdirAll(pathDownloaded+data["name"], os.ModePerm)
     }
 
-    err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"])
+    //get user and password
+    rulesets,err := ndb.GetAllRulesets()
+    if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
+
+    err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], rulesets[data["uuid"]]["user"], rulesets[data["uuid"]]["passwd"])
     if err != nil {
         logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
         // _ = os.RemoveAll(pathDownloaded+data["name"])
@@ -484,7 +494,11 @@ func DownloadFile(data map[string]string) (err error) {
     if _, err := os.Stat(pathDownloaded+pathSelected); os.IsNotExist(err) {
         os.MkdirAll(pathDownloaded+pathSelected, os.ModePerm)
 
-        err = utils.DownloadFile(data["path"], data["url"])
+        //get ruleset data
+        rulesets,err := ndb.GetAllRulesets()
+        if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
+
+        err = utils.DownloadFile(data["path"], data["url"], rulesets[data["uuid"]]["user"], rulesets[data["uuid"]]["passwd"])
         if err != nil {
             logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
             _ = os.RemoveAll(pathDownloaded+pathSelected)

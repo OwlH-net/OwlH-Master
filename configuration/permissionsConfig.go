@@ -1631,6 +1631,20 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteGroup' and per_param='desc' and per_value='Delete master group'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteGroup','desc','Delete master group')"
+    field.Fname      = "permissions - DeleteGroup description"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteGroup' and per_param='permissionGroup' and per_value='Master'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteGroup','permissionGroup','Master')"
+    field.Fname      = "permissions - DeleteGroup group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='GetPermissionsByRole' and per_param='desc' and per_value='Get all permissions for specific role'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetPermissionsByRole','desc','Get all permissions for specific role')"
     field.Fname      = "permissions - desc"
@@ -3732,6 +3746,20 @@ func checkPermissionsFields()(ok bool){
         field.Fquery     = "select per_value from permissions where per_uniqueid='SyncSuricataGroupValues' and per_param='permissionGroup'"
         field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncSuricataGroupValues','permissionGroup','Group')"
         field.Fname      = "permissions"
+        ok = CheckField(field)
+
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncGroupRuleset' and per_param='desc' and per_value='Synchronize group ruleset to all nodes in this group'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncGroupRuleset','desc','Synchronize group ruleset to all nodes in this group')"
+        field.Fname      = "SyncGroupRuleset permissions - description "
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='SyncGroupRuleset' and per_param='permissionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncGroupRuleset','permissionGroup','Group')"
+        field.Fname      = "SyncGroupRuleset permissions - group permission"
         ok = CheckField(field)
     
         field.Fconn      = "masterConn"

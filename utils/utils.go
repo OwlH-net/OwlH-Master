@@ -133,13 +133,22 @@ func BackupFile(path string, fileName string) (err error) {
 
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
-func DownloadFile(filepath string, url string) (err error) {
-    //Get the data
-    resp, err := http.Get(url)
-    if err != nil {
-        logs.Error("Error downloading file: " + err.Error())
-        return err
+func DownloadFile(filepath string, url string, username string, passwd string) (err error) {
+    //NEED USER AND PASS WITHOUT DB CONNECTION
+    var resp *http.Response
+
+    if username != "" && passwd != "" {        
+        client := &http.Client{}
+        req, err := http.NewRequest("GET", url, nil)
+        if err != nil {logs.Error("DownloadFile request ERROR: " + err.Error()); return err}
+        req.SetBasicAuth(username, passwd)
+        resp, err = client.Do(req)
+        if err != nil {logs.Error("Error downloading file! " + err.Error()); return err}
+    }else{
+        resp, err = http.Get(url)
+        if err != nil {logs.Error("Error downloading file! " + err.Error()); return err}
     }
+
     defer resp.Body.Close()
     // Create the file
     out, err := os.Create(filepath)

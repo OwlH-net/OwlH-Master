@@ -1138,7 +1138,6 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
         
     }
     if pingNodes == nil {
-        //PRINT REPORT HERE
         for x := range reportItemArray{
             logs.Info("Node: "+reportItemArray[x].Node)
             logs.Info("Success: "+strconv.FormatBool(reportItemArray[x].Success))
@@ -1155,18 +1154,19 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
     data,err := CreateNewRuleFile(allGroups[anode["uuid"]]["rulesetID"])
     if err != nil {logs.Error("SyncRulesetToAllGroupNodes error creating ruleset file: "+err.Error()); return err}
 
+    values := make(map[string][]byte)
+    values["data"] = data
+    values["name"] = []byte(anode["name"])
+
     for x := range pingNodes{
         // get node token data by uuid        
-        // err = ndb.GetTokenByUuid(x)
-        // if err!=nil{
-        //     logs.Error("SyncRulesetToAllGroupNodes Error loading node token: %s",err)
-        //     continue
-        // }
+        err = ndb.GetTokenByUuid(x)
+        if err!=nil{
+            logs.Error("SyncRulesetToAllGroupNodes Error loading node token: %s",err)
+            continue
+        }
 
-        //send lines to node
-        // err = nodeclient.SyncRulesetToNode2(pingNodes[x]["ip"],pingNodes[x]["port"],pingNodes[x]["token"],data)
-
-        err = nodeclient.SyncRulesetToNode2(pingNodes[x]["ip"],pingNodes[x]["port"], pingNodes[x]["token"], data, x)
+        err = nodeclient.SyncGroupRulesetToNode(pingNodes[x]["ip"],pingNodes[x]["port"], values)
         if err != nil {
             syncReport.Node = pingNodes[x]["name"]
             syncReport.Success = false

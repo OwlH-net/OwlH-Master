@@ -199,23 +199,46 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
     return rData,nil;
 }
 
-func SyncRulesetToNode2(ipData string, portData string, token string, data []byte, service string)(err error){
-    utils.TokenMasterValidated = token
-    if data == nil || len(data) <= 0 { return errors.New("SyncRulesetToNode error - Can't synchronize an empty ruleset")}
+// func SyncRulesetToNode2(ipData string, portData string, token string, data []byte, service string)(err error){
+//     utils.TokenMasterValidated = token
+//     if data == nil || len(data) <= 0 { return errors.New("SyncRulesetToNode error - Can't synchronize an empty ruleset")}
 
-    values := make(map[string][]byte)
-    values[service] = data
-    url := "https://"+ipData+":"+portData+"/node/suricata/sync"
-    valuesJSON,err := json.Marshal(values)
+//     values := make(map[string][]byte)
+//     values[service] = data
+//     url := "https://"+ipData+":"+portData+"/node/suricata/sync"
+//     valuesJSON,err := json.Marshal(values)
+//     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+//     if err != nil {logs.Error("nodeclient/SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
+//     defer resp.Body.Close()
+
+//     body, err := ioutil.ReadAll(resp.Body)
+//     if err != nil { logs.Error("nodeclient/SyncRulesetToNode ERROR reading request data: "+err.Error()); return err}
+//     nodeResponse := make(map[string]string)
+//     err = json.Unmarshal(body, &nodeResponse)
+//     if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR doing unmarshal JSON: "+err.Error()); return err}
+//     if nodeResponse["ack"] == "false" {
+//         return errors.New(nodeResponse["error"])
+//     }
+
+//     return nil
+// }
+
+func SyncGroupRulesetToNode(ipData string, portData string, data map[string][]byte)(err error){
+    if data == nil || len(data) <= 0 { return errors.New("SyncGroupRulesetToNode error - Can't synchronize an empty ruleset")}
+
+    // url := "https://"+ipData+":"+portData+"/node/group/groupSync"
+    url := "https://"+ipData+":"+portData+"/node/group/groupSync"
+
+    valuesJSON,err := json.Marshal(data)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
+    if err != nil {logs.Error("nodeclient/SyncGroupRulesetToNode ERROR connection through http new Request: "+err.Error()); return err}
     defer resp.Body.Close()
 
     body, err := ioutil.ReadAll(resp.Body)
-    if err != nil { logs.Error("nodeclient/SyncRulesetToNode ERROR reading request data: "+err.Error()); return err}
+    if err != nil { logs.Error("nodeclient/SyncGroupRulesetToNode ERROR reading request data: "+err.Error()); return err}
     nodeResponse := make(map[string]string)
     err = json.Unmarshal(body, &nodeResponse)
-    if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if err != nil { logs.Error("nodeclient/SyncGroupRulesetToNode ERROR doing unmarshal JSON: "+err.Error()); return err}
     if nodeResponse["ack"] == "false" {
         return errors.New(nodeResponse["error"])
     }
@@ -232,14 +255,14 @@ func SyncRulesetToNode(ipData string, portData string, data []byte, service stri
     url := "https://"+ipData+":"+portData+"/node/suricata/sync"
     valuesJSON,err := json.Marshal(values)
     resp,err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
-    if err != nil {logs.Error("nodeclient/SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
+    if err != nil {logs.Error("nodeclient/SyncRulesetToNode ERROR connection through http new Request: "+err.Error()); return err}
     defer resp.Body.Close()
 
     body, err := ioutil.ReadAll(resp.Body)
     if err != nil { logs.Error("nodeclient/SyncRulesetToNode ERROR reading request data: "+err.Error()); return err}
     nodeResponse := make(map[string]string)
     err = json.Unmarshal(body, &nodeResponse)
-    if err != nil { logs.Error("nodeclient/GetNodeAutentication ERROR doing unmarshal JSON: "+err.Error()); return err}
+    if err != nil { logs.Error("nodeclient/SyncRulesetToNode ERROR doing unmarshal JSON: "+err.Error()); return err}
     if nodeResponse["ack"] == "false" {
         return errors.New(nodeResponse["error"])
     }
