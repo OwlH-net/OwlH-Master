@@ -395,3 +395,23 @@ func GetRulesetUUID(node string)(uuid string, err error){
     } 
     return uuid, nil
 }
+
+func GetNodeWithRulesetUUID(ruleset string)(data []string, err error){
+    var customData []string
+    var uniqid string
+
+    sql := "select node_uniqueid from ruleset_node where ruleset_uniqueid='"+ruleset+"'";
+    rows, err := Rdb.Query(sql)
+    if err != nil {
+        logs.Error("GetNodeWithRulesetUUID Rdb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid); err != nil {
+            logs.Error("GetNodeWithRulesetUUID -- Query return error: %s", err.Error())
+            return nil, err
+        }
+        customData = append(customData, uniqid)
+    } 
+    return customData,nil
+}

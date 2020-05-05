@@ -226,7 +226,6 @@ func GetAllFiles(ipData string, portData string, uuid string)(rData map[string]s
 func SyncGroupRulesetToNode(ipData string, portData string, data map[string][]byte)(err error){
     if data == nil || len(data) <= 0 { return errors.New("SyncGroupRulesetToNode error - Can't synchronize an empty ruleset")}
 
-    // url := "https://"+ipData+":"+portData+"/node/group/groupSync"
     url := "https://"+ipData+":"+portData+"/node/group/groupSync"
 
     valuesJSON,err := json.Marshal(data)

@@ -188,7 +188,7 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
     } else {
         // if fileType[len(fileType)-2] == "tar"{
         file, err := os.Open(tarGzFile)
-        logs.Error("utils.ExtractFile opening file ERROR: "+err.Error())
+        if err != nil {logs.Error("utils.ExtractFile opening file ERROR: "+err.Error())}
         defer file.Close()
         if err != nil {
             logs.Error("utils.ExtractFile ERROR: "+err.Error())
@@ -205,7 +205,7 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
         for true {
             header, err := tarReader.Next()
             if err == io.EOF {
-                logs.Error("utils.ExtractFile EOF ERROR: "+err.Error())
+                logs.Error("utils.ExtractFile EOF ERROR")
                 break
             }
             if err != nil {
@@ -222,12 +222,10 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
                 }
             case tar.TypeReg:
                 outFile, err := os.Create(pathDownloads + "/" + header.Name)
-                logs.Error("utils.ExtractFile ERROR creating path for download: "+err.Error())
+                if err != nil {logs.Error("utils.ExtractFile ERROR creating path for download: "+err.Error())}
+                
                 _, err = io.Copy(outFile, tarReader)
-                if err != nil {
-                    logs.Error("TypeReg: " + err.Error())
-                    return err
-                }
+                if err != nil {logs.Error("TypeReg: " + err.Error()); return err}
             default:
                 logs.Error(
                     "ExtractTarGz: uknown type: %s in %s",

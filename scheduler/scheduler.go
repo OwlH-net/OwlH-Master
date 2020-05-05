@@ -4,9 +4,10 @@ import (
     "time"
     "owlhmaster/utils"
     "owlhmaster/rulesetSource"
-    "owlhmaster/node"
     "strconv"
     "owlhmaster/database"
+    "owlhmaster/nodeclient"
+    "owlhmaster/node"
     "github.com/astaxie/beego/logs"
 )
 
@@ -149,7 +150,6 @@ func StopTask(content map[string]string)(err error){
 }
 
 func TaskUpdater(content map[string]string)(err error){
-    
     t := time.Now().Unix()
     currentTime := strconv.FormatInt(t, 10)
 
@@ -224,6 +224,7 @@ func TaskUpdater(content map[string]string)(err error){
                         return err
                     }
                 }else if rulesetMap["isDownloaded"] == "true"{
+                    // rulesetMap["uuid"] = content["uuid"]
                     err = rulesetSource.OverwriteDownload(rulesetMap)
                     if err != nil {
                         logs.Error("TimeSchedule Error Overwriting: %s", err)
@@ -268,17 +269,73 @@ func TaskUpdater(content map[string]string)(err error){
         }
     }
 
-    //synchronize
-    err = node.SyncRulesetToAllNodes(content)
-    if err != nil {
-        logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
-        err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR synchronizing: "+ err.Error())
-        if err != nil {
-            logs.Error("Error inserting Log: %s", err.Error())
-            return err
+    //synchronize to all nodes
+        //get all nodes with this ruleset
+        nodeList,err := ndb.GetNodeWithRulesetUUID(content["uuid"])
+        if err != nil {logs.Error("SCHEDULER Error getting nodes by ruleset: %s", err.Error()); return err}
+        //get all nodes into a group with this ruleset
+        //get all groups
+        allGroups,err := ndb.GetAllGroups()
+        if err != nil {logs.Error("SCHEDULER Error getting all groups: %s", err.Error()); return err}
+        allGroupNodes,err := ndb.GetAllGroupNodes()
+        if err != nil {logs.Error("SCHEDULER Error getting all groupNodes: %s", err.Error()); return err}
+        rulesetName,err := ndb.GetRulesetSourceValue(content["uuid"], "name")
+
+        for x := range allGroups{
+            //get group id if their ruleset is our ruleset
+            if allGroups[x]["rulesetID"] == content["uuid"] {
+                // get all nodes into this group
+                for y := range allGroupNodes{
+                    if allGroupNodes[y]["groupid"] == x {
+                        //check if node is into array and push
+                        exists := false
+                        for node := range nodeList {
+                            if nodeList[node] == allGroupNodes[y]["nodesid"] {
+                                exists = true
+                            }
+                        }
+                        if !exists {
+                            nodeList = append(nodeList, allGroupNodes[y]["nodesid"])
+                        }
+                    }
+                }
+            }
         }
-        return err
-    }
+
+        for nodeID := range nodeList {
+            values := make(map[string][]byte)
+            //ruleset id --> content["uuid"]
+
+            //get node token
+            err = ndb.GetTokenByUuid(nodeList[nodeID]); if err!=nil{logs.Error("scheduler/TaskUpdater Error loading node token: %s",err); return err}
+            //get node ip and port
+            ipnid,portnid,err := ndb.ObtainPortIp(nodeList[nodeID])
+            if err != nil { logs.Error("scheduler/TaskUpdater ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+            //get ruleset content
+            rulesetData,err := node.CreateNewRuleFile(content["uuid"])
+            if err != nil {logs.Error("scheduler/TaskUpdater error creating ruleset file: "+err.Error()); return err}
+            
+            values["data"] = rulesetData
+            values["name"] = []byte(rulesetName)
+
+            //send to 
+            err = nodeclient.SyncGroupRulesetToNode(ipnid, portnid, values)
+            if err != nil {logs.Error("scheduler/TaskUpdater error SyncGroupRulesetToNode: "+err.Error()); return err}
+
+        }
+    
+
+    // err = node.SyncRulesetToAllNodes(content)
+    // if err != nil {
+    //     logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
+    //     err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR synchronizing: "+ err.Error())
+    //     if err != nil {
+    //         logs.Error("Error inserting Log: %s", err.Error())
+    //         return err
+    //     }
+    //     return err
+    // }
 
     err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task synchronized for ruleset "+content["uuid"])
     if err != nil {
