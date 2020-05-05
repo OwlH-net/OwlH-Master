@@ -383,32 +383,30 @@ func OverwriteDownload(data map[string]string) (err error) {
     rulesets,err := ndb.GetAllRulesets()
     if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
 
-    //check decrypt password
-    keyHashed,err := ndb.LoadMasterKEY()
-    if err != nil {logs.Error(err); return nil}
+    if rulesets[data["uuid"]]["passwd"] != "" {
+        //check decrypt password
+        keyHashed,err := ndb.LoadMasterKEY()
+        if err != nil {logs.Error(err); return nil}
 
-    uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
+        uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
 
-    err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
-    if err != nil {
-        logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
-        // _ = os.RemoveAll(pathDownloaded+data["name"])
-
-        // update ruleset "exists" field
-        // _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-        return err
+        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
+        if err != nil {
+            logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
+            return err
+        }
+    }else{
+        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], "", "")
+        if err != nil {
+            logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
+            return err
+        }
     }
 
-    // err = utils.ExtractFile(data["path"], pathDownloaded, data["name"])
+    //extract file downloaded
     err = utils.ExtractFile(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
     if err != nil {
         logs.Error("Error unzipping file downloaded: "+err.Error())
-        // err = os.RemoveAll(pathDownloaded+data["name"])
-        // if err!=nil { logs.Error("Error removing file OverwriteDownload due to download: "+err.Error()); return err}
-        // update ruleset "exists" field
-        // err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-        // if err != nil {logs.Error("UpdateRuleset Error from RulesetSource  due to download-> %s", err.Error());return err}
-
         return err
     }
 
@@ -422,6 +420,7 @@ func OverwriteDownload(data map[string]string) (err error) {
     err = filepath.Walk(pathDownloaded + data["name"],
         func(file string, info os.FileInfo, err error) error {
         if err != nil {
+            logs.Error("Error Getting downloaded data Map: "+err.Error())
             return err
         }
         if fileExtension.MatchString(info.Name()){
@@ -507,19 +506,30 @@ func DownloadFile(data map[string]string) (err error) {
         rulesets,err := ndb.GetAllRulesets()
         if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
 
-        //check decrypt password
-        keyHashed,err := ndb.LoadMasterKEY()
-        if err != nil {logs.Error(err); return nil}
+        if rulesets[data["uuid"]]["passwd"] != "" {
+            //check decrypt password
+            keyHashed,err := ndb.LoadMasterKEY()
+            if err != nil {logs.Error(err); return nil}
+    
+            uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
 
-        uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
-
-        err = utils.DownloadFile(data["path"], data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
-        if err != nil {
-            logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
-            _ = os.RemoveAll(pathDownloaded+pathSelected)
-            _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-            return err
+            err = utils.DownloadFile(data["path"], data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
+            if err != nil {
+                logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
+                _ = os.RemoveAll(pathDownloaded+pathSelected)
+                _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+                return err
+            }
+        }else{
+            err = utils.DownloadFile(data["path"], data["url"], "", "")
+            if err != nil {
+                logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
+                _ = os.RemoveAll(pathDownloaded+pathSelected)
+                _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+                return err
+            }
         }
+
     
         err = utils.ExtractFile(data["path"], pathDownloaded+pathSelected)
         if err != nil {

@@ -188,13 +188,16 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
     } else {
         // if fileType[len(fileType)-2] == "tar"{
         file, err := os.Open(tarGzFile)
+        logs.Error("utils.ExtractFile opening file ERROR: "+err.Error())
         defer file.Close()
         if err != nil {
+            logs.Error("utils.ExtractFile ERROR: "+err.Error())
             return err
         }
 
         uncompressedStream, err := gzip.NewReader(file)
         if err != nil {
+            logs.Error("utils.ExtractFile newReader ERROR: "+err.Error())
             return err
         }
 
@@ -202,9 +205,11 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
         for true {
             header, err := tarReader.Next()
             if err == io.EOF {
+                logs.Error("utils.ExtractFile EOF ERROR: "+err.Error())
                 break
             }
             if err != nil {
+                logs.Error("utils.ExtractFile newReader ERROR: "+err.Error())
                 return err
             }
 
@@ -217,6 +222,7 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
                 }
             case tar.TypeReg:
                 outFile, err := os.Create(pathDownloads + "/" + header.Name)
+                logs.Error("utils.ExtractFile ERROR creating path for download: "+err.Error())
                 _, err = io.Copy(outFile, tarReader)
                 if err != nil {
                     logs.Error("TypeReg: " + err.Error())
