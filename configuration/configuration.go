@@ -6,6 +6,8 @@ import (
     "owlhmaster/utils"
     "owlhmaster/validation"
     "os"
+    "encoding/hex"
+    "crypto/md5"
     _ "github.com/mattn/go-sqlite3"
 )
 
@@ -326,6 +328,19 @@ func checkFields()(ok bool){
     field.Fquery     = "select config_param from masterconfig where config_param='id'"
     field.Finsert    = "insert into masterconfig (config_uniqueid,config_param,config_value) values ('master','id','"+masterUUID+"')"
     field.Fname      = "masterconfig - id"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //add key for crypt and decript
+    masterKey := utils.Generate()
+    hasher := md5.New()
+	hasher.Write([]byte(masterKey))
+	val := hex.EncodeToString(hasher.Sum(nil))
+    field.Fconn      = "masterConn"
+    field.Ftable     = "masterconfig"
+    field.Fquery     = "select config_param from masterconfig where config_param='key'"
+    field.Finsert    = "insert into masterconfig (config_uniqueid,config_param,config_value) values ('master','key','"+val+"')"
+    field.Fname      = "masterconfig - key"
     ok = CheckField(field)
     if !ok {return false}
 

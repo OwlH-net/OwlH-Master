@@ -3,6 +3,7 @@ package rulesetSource
 import (
     "github.com/astaxie/beego/logs"
     "owlhmaster/database"
+    "owlhmaster/validation"
     "errors"
     "owlhmaster/utils"
     // "owlhmaster/validation"
@@ -60,18 +61,20 @@ func CreateRulesetSource(n map[string]string) (err error) {
     n["path"] = path + nameWithoutSpaces +"/"+ n["fileName"]
         
     for key, value := range n {
-        // if key == "passwd"{
-        //     //encript
-        //     hashed,err := validation.HashPassword(n["passwd"])
-        //     if err != nil {logs.Error("CreateRulesetSource Error generating hashed password: "+err.Error()); return err}
-        //     err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, hashed)
-        // }else{
+        if key == "passwd"{
+            keyHashed,err := ndb.LoadMasterKEY()
+            if err != nil {logs.Error(err); return nil}
+            
+            crypted := validation.Encrypt([]byte(n["passwd"]), keyHashed)
+
+            err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, string(crypted))
+            if err != nil {return err}
+        }else{
             err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, value)
-        // }
+            if err != nil {return err}
+        }
     }
-    if err != nil {
-        return err
-    }
+
     return nil
 }
 
@@ -380,7 +383,13 @@ func OverwriteDownload(data map[string]string) (err error) {
     rulesets,err := ndb.GetAllRulesets()
     if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
 
-    err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], rulesets[data["uuid"]]["user"], rulesets[data["uuid"]]["passwd"])
+    //check decrypt password
+    keyHashed,err := ndb.LoadMasterKEY()
+    if err != nil {logs.Error(err); return nil}
+
+    uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
+
+    err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
     if err != nil {
         logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
         // _ = os.RemoveAll(pathDownloaded+data["name"])
@@ -498,7 +507,13 @@ func DownloadFile(data map[string]string) (err error) {
         rulesets,err := ndb.GetAllRulesets()
         if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
 
-        err = utils.DownloadFile(data["path"], data["url"], rulesets[data["uuid"]]["user"], rulesets[data["uuid"]]["passwd"])
+        //check decrypt password
+        keyHashed,err := ndb.LoadMasterKEY()
+        if err != nil {logs.Error(err); return nil}
+
+        uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
+
+        err = utils.DownloadFile(data["path"], data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
         if err != nil {
             logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
             _ = os.RemoveAll(pathDownloaded+pathSelected)

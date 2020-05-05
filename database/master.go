@@ -140,6 +140,24 @@ func LoadMasterID()(id string, err error){
     return masterConfigID,nil
 }
 
+func LoadMasterKEY()(id string, err error){
+    var masterConfigID string
+
+    sql := "select config_value from masterconfig where config_uniqueid='master' and config_param='key'";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("LoadMasterKEY Mdb.Query Error : %s", err.Error())
+        return "", err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&masterConfigID); err != nil {
+            logs.Error("LoadMasterKEY -- Query return error: %s", err.Error())
+            return "", err
+        }
+    } 
+    return masterConfigID,nil
+}
+
 func LoadMasterNetworkValuesSelected()(path map[string]map[string]string, err error){
     var pingData = map[string]map[string]string{}
     var uniqid string

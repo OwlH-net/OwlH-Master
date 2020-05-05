@@ -137,7 +137,7 @@ func DownloadFile(filepath string, url string, username string, passwd string) (
     //NEED USER AND PASS WITHOUT DB CONNECTION
     var resp *http.Response
 
-    if username != "" && passwd != "" {        
+    if username != "" && passwd != "" {   
         client := &http.Client{}
         req, err := http.NewRequest("GET", url, nil)
         if err != nil {logs.Error("DownloadFile request ERROR: " + err.Error()); return err}
