@@ -362,7 +362,7 @@ func InsertGroup(uuid string, param string, value string)(err error){
 func InsertGroupNodes(uuid string, param string, value string)(err error){
     if Mdb == nil {logs.Error("no access to database"); return err}
     insertGroupnodesValues, err := Mdb.Prepare("insert into groupnodes(gn_uniqueid, gn_param, gn_value) values(?,?,?);")
-    if err != nil {logs.Error("Prepare InsertGroupNodes-> %s", err.Error()); return err}
+    if err != nil {logs.Error("Prepare InssertGroupNodes-> %s", err.Error()); return err}
 
     _, err = insertGroupnodesValues.Exec(&uuid, &param, &value)
     if err != nil {logs.Error("Execute InsertGroupNodes-> %s", err.Error()); return err}
@@ -423,8 +423,6 @@ func GetGroupNodesByValue(uuid string)(groups map[string]map[string]string, err 
 }
 
 func UpdateGroupValue(uuid string, param string, value string) (err error) {
-    logs.Info(uuid+"   ->   "+param+"   ->   "+value)
-    // updateGroup, err := Mdb.Prepare("insert or replace into groups (group_uniqueid, group_param, group_value) values (?,?,?);")
     updateGroup, err := Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
     if (err != nil){logs.Error("updateGroup UPDATE prepare error: "+err.Error()); return err}
 

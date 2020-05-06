@@ -1584,6 +1584,7 @@ func PutSuricataServicesFromGroup(ipnid string, portnid string, data map[string]
 }
 
 func SyncAnalyzerToAllGroupNodes(ipData string, portData string, data []byte)(err error){
+    logs.Notice(ipData+":"+portData)
     values := make(map[string][]byte)
     values["data"] = data
     url := "https://"+ipData+":"+portData+"/node/analyzer/sync"

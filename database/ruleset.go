@@ -415,3 +415,46 @@ func GetNodeWithRulesetUUID(ruleset string)(data []string, err error){
     } 
     return customData,nil
 }
+
+func InsertGroupRulesets(uuid string, param string, value string)(err error){
+    if Rdb == nil {logs.Error("no access to database"); return err}
+    insertValues, err := Rdb.Prepare("insert into grouprulesets(gr_uniqueid, gr_param, gr_value) values(?,?,?);")
+    if err != nil {logs.Error("Prepare InsertGroupRulesets-> %s", err.Error()); return err}
+
+    _, err = insertValues.Exec(&uuid, &param, &value)
+    if err != nil {logs.Error("Execute InsertGroupRulesets-> %s", err.Error()); return err}
+
+    return nil
+}
+
+func GetAllGroupRulesets()(groups map[string]map[string]string, err error){
+    var allgrouprulesets = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Rdb == nil { logs.Error("GetAllGroupRulesets no access to database"); return nil, err}
+    
+    sql := "select gr_uniqueid, gr_param, gr_value from grouprulesets;"
+    rows, err := Rdb.Query(sql)
+    if err != nil { logs.Error("GetAllGroupRulesets Rdb.Query Error : %s", err.Error()); return nil, err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetAllGroupRulesets rows.Scan: %s", err.Error()); return nil, err}
+        
+        if allgrouprulesets[uniqid] == nil { allgrouprulesets[uniqid] = map[string]string{}}
+        allgrouprulesets[uniqid][param]=value
+    } 
+    return allgrouprulesets, nil
+}
+
+func DeleteGroupRuleset(uuid string) (err error) {
+    if Rdb == nil { logs.Error("DeleteGroupRuleset -- Can't acces to database"); return err}
+
+    stmt, err := Rdb.Prepare("delete from grouprulesets where gr_uniqueid = ?")
+    if err != nil {logs.Error("Prepare DeleteGroupRuleset -> %s", err.Error()); return err}
+    
+    _, err = stmt.Exec(&uuid)
+    if err != nil {logs.Error("Execute DeleteGroupRuleset -> %s", err.Error()); return err}
+
+    return nil
+}

@@ -2199,7 +2199,7 @@ func (n *NodeController) SyncAnalyzerToAllGroupNodes() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        anode := make(map[string]map[string]string)
+        anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         log,err := models.SyncAnalyzerToAllGroupNodes(anode)
         n.Data["json"] = log

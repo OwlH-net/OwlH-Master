@@ -199,26 +199,8 @@ func SyncPathGroup(data map[string]string)(err error) {
 // curl -X POST \
 //   https://52.47.197.22:50002/v1/group/syncAll/:uuid  \
 //   -H 'Content-Type: application/json' \
-//   -d '{
-//       "suricata-rulesets": {
-//          "ruleset-group":"value",
-//       },"suricata-config": {
-//          "mastersuricata":"value",
-//          "nodesuricata":"value",
-//       },"suricata-services": {
-//          "interface":"value",
-//          "BPFfile":"value",
-//          "BPFrule":"value",
-//          "configFile":"value",
-//          "commandLine":"value",
-//       },"zeek-policies": {
-//          "masterzeek":"value",
-//          "nodezeek":"value",
-//       },
-// }
-// }
-func SyncAll(uuid string, data map[string]map[string]string)(err error) {
-    err = group.SyncAll(uuid, data)
+func SyncAll(uuid string)(err error) {
+    err = group.SyncAll(uuid)
     changecontrol.ChangeControlInsertData(err, "SyncAll")
     return err
 }
@@ -371,4 +353,39 @@ func SuricataNodesStatus(uuid string)(data map[string]map[string]string, err err
     data, err = group.SuricataNodesStatus(uuid)
     changecontrol.ChangeControlInsertData(err, "SuricataNodesStatus")
     return data, err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/group/getGroupSelectedRulesets/:uuid \
+// }
+func GetGroupSelectedRulesets(uuid string)(data map[string]map[string]string, err error) {
+    data, err = group.GetGroupSelectedRulesets(uuid)
+    changecontrol.ChangeControlInsertData(err, "GetGroupSelectedRulesets")
+    return data, err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/group/addRulesetsToGroup \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "sadfasdfasdfasdfasdfasdf",
+//     "rulesets": "ruleset array",
+// }
+func AddRulesetsToGroup(data map[string]string)(err error) {
+    err = group.AddRulesetsToGroup(data)
+    changecontrol.ChangeControlInsertData(err, "AddRulesetsToGroup")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/group/deleteExpertGroupRuleset \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "sadfasdfasdfasdfasdfasdf",
+//     "ruleset": "sadfasdfasdfasdfasdfasdf",
+// }
+func DeleteExpertGroupRuleset(data map[string]string)(err error) {
+    err = group.DeleteExpertGroupRuleset(data)
+    changecontrol.ChangeControlInsertData(err, "DeleteExpertGroupRuleset")
+    return err
 }

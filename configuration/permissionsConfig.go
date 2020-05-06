@@ -3750,6 +3750,48 @@ func checkPermissionsFields()(ok bool){
 
         field.Fconn      = "masterConn"
         field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetGroupSelectedRulesets' and per_param='desc' and per_value='Select rulesets for expert suricata in group'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetGroupSelectedRulesets','desc','Select rulesets for expert suricata in group')"
+        field.Fname      = "permissions - GetGroupSelectedRulesets description"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='GetGroupSelectedRulesets' and per_param='permissionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetGroupSelectedRulesets','permissionGroup','Group')"
+        field.Fname      = "permissions - GetGroupSelectedRulesets group"
+        ok = CheckField(field)
+
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='AddRulesetsToGroup' and per_param='desc' and per_value='Add rulesets to Groups for Suricata expert mode'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddRulesetsToGroup','desc','Add rulesets to Groups for Suricata expert mode')"
+        field.Fname      = "permissions - AddRulesetsToGroup description"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='AddRulesetsToGroup' and per_param='permissionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddRulesetsToGroup','permissionGroup','Group')"
+        field.Fname      = "permissions - AddRulesetsToGroup group"
+        ok = CheckField(field)
+
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteExpertGroupRuleset' and per_param='desc' and per_value='Delete ruleset from Suricata expert mode at groups'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteExpertGroupRuleset','desc','Delete ruleset from Suricata expert mode at groups')"
+        field.Fname      = "permissions - DeleteExpertGroupRuleset description"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteExpertGroupRuleset' and per_param='permissionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteExpertGroupRuleset','permissionGroup','Group')"
+        field.Fname      = "permissions - DeleteExpertGroupRuleset group"
+        ok = CheckField(field)
+
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
         field.Fquery     = "select per_value from permissions where per_uniqueid='SyncGroupRuleset' and per_param='desc' and per_value='Synchronize group ruleset to all nodes in this group'"
         field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncGroupRuleset','desc','Synchronize group ruleset to all nodes in this group')"
         field.Fname      = "SyncGroupRuleset permissions - description "

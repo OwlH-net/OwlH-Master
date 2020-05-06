@@ -918,7 +918,7 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
 //          "key":"value"
 //     }
 // }
-func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[string]map[string]string, err error){
+func SyncAnalyzerToAllGroupNodes(anode map[string]string)(log map[string]map[string]string, err error){
     log,err = node.SyncAnalyzerToAllGroupNodes(anode)
     changecontrol.ChangeControlInsertData(err, "SyncAnalyzerToAllGroupNodes")
     return log,err

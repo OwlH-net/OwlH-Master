@@ -375,10 +375,11 @@ func (n *GroupController) SyncAll() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid") 
-        var anode map[string]map[string]string
-        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        // var anode map[string]map[string]string
+        // json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
-        err := models.SyncAll(uuid, anode)
+        // err := models.SyncAll(uuid, anode)
+        err := models.SyncAll(uuid)
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -709,6 +710,90 @@ func (n *GroupController) GetMD5files() {
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetGroupSelectedRulesets
+// @Description Get full list of rulesets
+// @Success 200 {object} models.Groups
+// @router /getGroupSelectedRulesets/:uuid [get]
+func (n *GroupController) GetGroupSelectedRulesets() { 
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetGroupSelectedRulesets"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        uuid := n.GetString(":uuid") 
+        rulesets, err := models.GetGroupSelectedRulesets(uuid)
+        n.Data["json"] = rulesets
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title AddRulesetsToGroup
+// @Description Add rulesets to Group for Suricata expert mode 
+// @Success 200 {object} models.Groups
+// @router /addRulesetsToGroup [put]
+func (n *GroupController) AddRulesetsToGroup() { 
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"AddRulesetsToGroup"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        err := models.AddRulesetsToGroup(anode)
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{                
+            n.Data["json"] = map[string]string{"ack": "true"}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title DeleteExpertGroupRuleset
+// @Description Delete ruleset from Suricata expert mode at groups 
+// @Success 200 {object} models.Groups
+// @router /deleteExpertGroupRuleset [delete]
+func (n *GroupController) DeleteExpertGroupRuleset() { 
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"DeleteExpertGroupRuleset"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        err := models.DeleteExpertGroupRuleset(anode)
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{                
+            n.Data["json"] = map[string]string{"ack": "true"}
         }
     }
     n.ServeJSON()

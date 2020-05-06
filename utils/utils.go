@@ -623,6 +623,7 @@ func FolderMapMD5(masterpath string, nodePath string) (paths map[string]map[stri
                     return err
                 }
                 data[uuid]["md5"] = md5
+                file = strings.Replace(file, masterpath, "", -1)
                 data[uuid]["path"] = file
                 data[uuid]["nodepath"] = nodePath
             }

@@ -219,6 +219,14 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "grouprulesets"
+    table.Tconn = "rulesetConn"
+    table.Tcreate = "CREATE TABLE grouprulesets (gr_id integer PRIMARY KEY AUTOINCREMENT,gr_uniqueid text NOT NULL,gr_param text NOT NULL,gr_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "ruleset_node"
     table.Tconn = "rulesetConn"
     table.Tcreate = "CREATE TABLE ruleset_node (ruleset_id integer PRIMARY KEY AUTOINCREMENT,ruleset_uniqueid text NOT NULL,node_uniqueid text NOT NULL)"

@@ -1113,6 +1113,8 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
     syncReport := reportitem{}
     var pingNodes = map[string]map[string]string{}
     
+    //get all rulesets for a group
+
     nodesID,err := ndb.GetGroupNodesByUUID(anode["uuid"])
     if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all nodes for a groups: "+err.Error()); return err}
     
@@ -1149,35 +1151,55 @@ func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
     }
     
     //Get ruleset data for this group
-    allGroups,err := ndb.GetAllGroups()
-    if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all groups: "+err.Error()); return err}
-    data,err := CreateNewRuleFile(allGroups[anode["uuid"]]["rulesetID"])
-    if err != nil {logs.Error("SyncRulesetToAllGroupNodes error creating ruleset file: "+err.Error()); return err}
 
-    values := make(map[string][]byte)
-    values["data"] = data
-    values["name"] = []byte(anode["name"])
+    // allGroups,err := ndb.GetAllGroups()
+    // if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all groups: "+err.Error()); return err}
+    // data,err := CreateNewRuleFile(allGroups[anode["uuid"]]["rulesetID"])
+    // if err != nil {logs.Error("SyncRulesetToAllGroupNodes error creating ruleset file: "+err.Error()); return err}
 
     for x := range pingNodes{
-        // get node token data by uuid        
-        err = ndb.GetTokenByUuid(x)
-        if err!=nil{
-            logs.Error("SyncRulesetToAllGroupNodes Error loading node token: %s",err)
-            continue
+        logs.Warn("NODE --> "+pingNodes[x]["name"])
+        //get all groupRulesets
+        groupRulesets, err := ndb.GetAllGroupRulesets()
+        if err != nil {logs.Error("SyncRulesetToAllGroupNodes GetAllGroupRulesets error: "+ err.Error()); return err}
+
+        for f := range groupRulesets {
+            if groupRulesets[f]["groupid"] == anode["uuid"]{
+                //get ruleset content by ruleset id
+                data,err := CreateNewRuleFile(groupRulesets[f]["rulesetid"])
+                if err != nil {logs.Error("SyncRulesetToAllGroupNodes error creating ruleset file: "+err.Error()); return err}
+                
+                //get ruleset name
+                name,err := ndb.GetRulesetSourceValue(groupRulesets[f]["rulesetid"], "name")
+                if err != nil {logs.Error("SyncRulesetToAllGroupNodes error creating ruleset file: "+err.Error()); return err}
+
+                values := make(map[string][]byte)
+                values["data"] = data
+                values["name"] = []byte(name)
+
+                logs.Notice(string(len(data))+" Ruleset for this group --> "+name)
+
+                //get node token
+                err = ndb.GetTokenByUuid(x)
+                if err!=nil{logs.Error("SyncRulesetToAllGroupNodes Error loading node token: %s",err); continue}
+        
+                //sync ruleset to node
+                err = nodeclient.SyncGroupRulesetToNode(pingNodes[x]["ip"],pingNodes[x]["port"], values)
+                if err != nil {
+                    syncReport.Node = pingNodes[x]["name"]
+                    syncReport.Success = false
+                    syncReport.Result = err.Error()
+                }else{
+                    syncReport.Success = true
+                    syncReport.Result = "Success"
+                    syncReport.Node = pingNodes[x]["name"]
+                    syncReport.Desc = "Ruleset sync to node "+pingNodes[x]["name"]+" success!"
+                }
+                reportItemArray = append(reportItemArray, syncReport)
+
+            }
         }
 
-        err = nodeclient.SyncGroupRulesetToNode(pingNodes[x]["ip"],pingNodes[x]["port"], values)
-        if err != nil {
-            syncReport.Node = pingNodes[x]["name"]
-            syncReport.Success = false
-            syncReport.Result = err.Error()
-        }else{
-            syncReport.Success = true
-            syncReport.Result = "Success"
-            syncReport.Node = pingNodes[x]["name"]
-            syncReport.Desc = "Ruleset sync to node "+pingNodes[x]["name"]+" success!"
-        }
-        reportItemArray = append(reportItemArray, syncReport)
     }
     
     //PRINT REPORT HERE
@@ -1213,38 +1235,45 @@ func PutSuricataServicesFromGroup(anode map[string]string)(err error){
     return nil
 }
 
-func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[string]map[string]string, err error){
+func SyncAnalyzerToAllGroupNodes(anode map[string]string)(log map[string]map[string]string, err error){
     conf, err := utils.GetKeyValueString("analyzer", "conf")
     if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return nil,err}
 
     logSync := make(map[string]map[string]string)
     var activeNode bool = true
-    for x := range anode {
+
+    //get all group nodes
+    nodesID,err := ndb.GetGroupNodesByUUID(anode["uuid"])
+    if err != nil {logs.Error("SyncAnalyzerToAllGroupNodes error getting all nodes for a groups: "+err.Error()); return nil, err}
+    //get all nodes
+    allNodes,err := ndb.GetAllNodes()
+    if err != nil {logs.Error("SyncAnalyzerToAllGroupNodes error getting all nodes: "+err.Error()); return nil, err}
+
+    //loop over all group nodes
+    for x := range nodesID { 
         //get node data by uuid
         if ndb.Db == nil { logs.Error("node/SyncAnalyzerToAllGroupNodes -- Can't acces to database"); return nil, err}
 
-        err = ndb.GetTokenByUuid(anode[x]["nuuid"]); if err!=nil{logs.Error("SyncAnalyzerToAllGroupNodes Error loading node token: %s",err); return nil,err}
-        ipnid,portnid,err := ndb.ObtainPortIp(anode[x]["nuuid"])
+        err = ndb.GetTokenByUuid(nodesID[x]["nodesid"]); if err!=nil{logs.Error("SyncAnalyzerToAllGroupNodes Error loading node token: %s",err); return nil,err}
+        ipnid,portnid,err := ndb.ObtainPortIp(nodesID[x]["nodesid"])
         if err != nil { 
             logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR Obtaining Port and Ip: "+err.Error()); 
             activeNode = false
             //add to log
-            if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
-            logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
-            logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
-            logSync[anode[x]["nuuid"]]["status"] = "error"
+            if logSync[nodesID[x]["nodesid"]] == nil{ logSync[nodesID[x]["nodesid"]] = map[string]string{} }
+            logSync[nodesID[x]["nodesid"]]["name"] = allNodes[nodesID[x]["nodesid"]]["name"]
+            logSync[nodesID[x]["nodesid"]]["ip"] = allNodes[nodesID[x]["nodesid"]]["ip"]
+            logSync[nodesID[x]["nodesid"]]["status"] = "error"
         }
-
         if activeNode{
             //get analyzer file content
-            // analyzerFile, err := ioutil.ReadFile("conf/analyzer.json")
             analyzerFile, err := ioutil.ReadFile(conf)
             if err != nil { 
                 logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR getting analyzer file content: "+err.Error())
-                if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
-                logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
-                logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
-                logSync[anode[x]["nuuid"]]["status"] = "error"  
+                if logSync[nodesID[x]["nodesid"]] == nil{ logSync[nodesID[x]["nodesid"]] = map[string]string{} }
+                logSync[nodesID[x]["nodesid"]]["name"] = allNodes[nodesID[x]["nodesid"]]["name"]
+                logSync[nodesID[x]["nodesid"]]["ip"] = allNodes[nodesID[x]["nodesid"]]["ip"]
+                logSync[nodesID[x]["nodesid"]]["status"] = "error"  
                 logs.Warn("ERROR -> reading file")
             }else{
                 //send Suricata services to node
@@ -1252,17 +1281,17 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
                 if err != nil { 
                     logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR http data request: "+err.Error())
                     //add to log
-                    if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
-                    logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
-                    logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
-                    logSync[anode[x]["nuuid"]]["status"] = "error"
+                    if logSync[nodesID[x]["nodesid"]] == nil{ logSync[nodesID[x]["nodesid"]] = map[string]string{} }
+                    logSync[nodesID[x]["nodesid"]]["name"] = allNodes[nodesID[x]["nodesid"]]["name"]
+                    logSync[nodesID[x]["nodesid"]]["ip"] = allNodes[nodesID[x]["nodesid"]]["ip"]
+                    logSync[nodesID[x]["nodesid"]]["status"] = "error"
                     logs.Warn("ERROR -> nodeclient")
                 }else{
                     //add to log
-                    if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
-                    logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
-                    logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
-                    logSync[anode[x]["nuuid"]]["status"] = "success"
+                    if logSync[nodesID[x]["nodesid"]] == nil{ logSync[nodesID[x]["nodesid"]] = map[string]string{} }
+                    logSync[nodesID[x]["nodesid"]]["name"] = allNodes[nodesID[x]["nodesid"]]["name"]
+                    logSync[nodesID[x]["nodesid"]]["ip"] = allNodes[nodesID[x]["nodesid"]]["ip"]
+                    logSync[nodesID[x]["nodesid"]]["status"] = "success"
                     logs.Notice("SUCCESS")
                 }     
             }        
