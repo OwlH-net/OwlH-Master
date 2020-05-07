@@ -20,14 +20,14 @@ type SearchController struct {
 // @router /getRulesetsBySearch [put]
 func (n *SearchController) GetRulesetsBySearch() { 
     //this is a get. Used put because is needed to send json from UI
-    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
         n.ServeJSON()
         return
     }    
     permissions := []string{"GetRulesetsBySearch"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{

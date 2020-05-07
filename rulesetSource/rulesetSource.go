@@ -498,6 +498,7 @@ func DownloadFile(data map[string]string) (err error) {
     splitPath := strings.Split(value, "/")
     pathSelected := splitPath[len(splitPath)-2]
 
+    //check if file exists
     if _, err := os.Stat(pathDownloaded+pathSelected); os.IsNotExist(err) {
         os.MkdirAll(pathDownloaded+pathSelected, os.ModePerm)
 

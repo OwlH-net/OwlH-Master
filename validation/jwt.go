@@ -18,17 +18,15 @@ import (
 )
 
 // Encode generates a jwt.
-func Encode(uuid string, user string, secret string) (val string, err error) {
+func Encode(user string, secret string) (val string, err error) {
 
 	type MyCustomClaims struct {
-		Uuid string `json:"uuid"`
 		User string `json:"user"`
 		jwt.StandardClaims
 	}
 
 	// Create the Claims
 	claims := MyCustomClaims{
-		uuid,
 		user,
 		jwt.StandardClaims{
 			ExpiresAt: 15000,
@@ -53,11 +51,11 @@ func CheckPasswordHash(password string, hash string) (bool, error) {
     return true, nil
 }
 
-func VerifyToken(token string, user string, uuid string)(err error){
+func VerifyToken(token string, user string)(err error){
 	users,err := ndb.GetLoginData()
 	for x := range users{
-		if (x == uuid) && (users[x]["user"] == user){
-			tkn, err := Encode(uuid, users[x]["user"], users[x]["secret"])
+		if (users[x]["user"] == user){
+			tkn, err := Encode(users[x]["user"], users[x]["secret"])
 			if err != nil {
 				logs.Error("Error checking token: %s", err); return err
 			}else{
@@ -72,11 +70,11 @@ func VerifyToken(token string, user string, uuid string)(err error){
 	return errors.New("There are not token. Error creating Token")
 }
 
-func VerifyPermissions(uuidUser string, object string, permissions []string)(hasPermissions bool, err error){
+func VerifyPermissions(user string, object string, permissions []string)(hasPermissions bool, err error){
 	for x := range permissions{
-		status,err := UserPermissionsValidation(uuidUser, permissions[x]); if err != nil {logs.Error("requestType error: %s",err); return false,err}
+		status,err := UserPermissionsValidation(user, permissions[x]); if err != nil {logs.Error("requestType error: %s",err); return false,err}
 		if status{
-			utils.TokenMasterUser = uuidUser
+			utils.TokenMasterUser = user
 			return true,nil
 		}		
 	}

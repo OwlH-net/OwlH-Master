@@ -531,7 +531,7 @@ func Login(data map[string]string)(newToken string, err error){
                 check, err := validation.CheckLdap(data["password"], users[x]["pass"])
                 if err != nil {return "",err}
                 if check{
-                    token, err := validation.Encode(x, data["user"], users[x]["secret"])
+                    token, err := validation.Encode(data["user"], users[x]["secret"])
                     if err != nil {return "",err}
                     return token,nil
                 }
@@ -539,7 +539,7 @@ func Login(data map[string]string)(newToken string, err error){
                 check, err := validation.CheckPasswordHash(data["password"], users[x]["pass"])
                 if err != nil {return "",err}
                 if check{
-                    token, err := validation.Encode(x, data["user"], users[x]["secret"])
+                    token, err := validation.Encode(data["user"], users[x]["secret"])
                     if err != nil {return "",err}
                     return token,nil
                 }

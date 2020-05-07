@@ -995,7 +995,20 @@ func ModifyRuleset(data map[string]map[string]string)(duplicated []byte, err err
     return nil,nil
 }
 
+
 func SyncToAll(content map[string]string)(err error) {
+    //Download
+    err = SyncToAllDownload(content)
+    if err != nil {logs.Error("SyncToAll Error getting nodes by ruleset: %s", err.Error()); return err}
+    //Download
+    err = SyncToAllNodes(content)
+    if err != nil {logs.Error("SyncToAll Error getting nodes by ruleset: %s", err.Error()); return err}
+
+    return nil
+}
+
+//download
+func SyncToAllDownload(content map[string]string)(err error) {
     //download/overwrite rulesets source content
     data,err := ndb.GetRulesFromRuleset(content["uuid"])
     if err != nil {logs.Error("SyncToAll Error getting GetRulesFromRuleset: %s", err.Error()); return err}
@@ -1027,35 +1040,54 @@ func SyncToAll(content map[string]string)(err error) {
         DloadOwriteValues["path"] = rset[sourceRulesets[sources[f]]["sourceUUID"]]["path"]
         DloadOwriteValues["name"] = rset[sourceRulesets[sources[f]]["sourceUUID"]]["name"]
         DloadOwriteValues["url"] = rset[sourceRulesets[sources[f]]["sourceUUID"]]["url"]
+        DloadOwriteValues["isDownloaded"] = rset[sourceRulesets[sources[f]]["sourceUUID"]]["isDownloaded"]
+        DloadOwriteValues["sourceType"] = rset[sourceRulesets[sources[f]]["sourceUUID"]]["sourceType"]
         DloadOwrite[sourceRulesets[sources[f]]["sourceUUID"]] = DloadOwriteValues
     }
 
     for h := range DloadOwrite {
-        if content["type"] == "download" && content["type"] != "" {
-            logs.Info("Downloading")
+        if DloadOwrite[h]["sourceType"] == "custom"{continue}
+        if DloadOwrite[h]["isDownloaded"] == "false"{
+            logs.Info("Downloading...")
             err = rulesetSource.DownloadFile(DloadOwrite[h])    
             if err != nil {logs.Error("SyncToAll Error download ruleset: %s", err.Error()); return err}
         }else{
-            logs.Info("Overwriting")
+            logs.Info("Overwriting...")
             err = rulesetSource.OverwriteDownload(DloadOwrite[h])
             if err != nil {logs.Error("SyncToAll Error Overwrite ruleset: %s", err.Error()); return err}
-            
-        }        
+        }
     }
 
+    allRules,err := ndb.GetRulesFromRuleset(content["uuid"])
+    for d := range allRules{
+        if content["update"] == "add-lines" && content["update"] != "" {
+            logs.Info("Adding new rules...")
+            err = rulesetSource.AddNewLinesToRuleset(d)
+            if err != nil {logs.Error("SyncToAllDownload Error AddNewLinesToRuleset ruleset: %s", err); return err}
+        }else{
+            logs.Info("Overwriting rules...")
+            err = rulesetSource.OverwriteRuleFile(d)
+            if err != nil {logs.Error("SyncToAllDownload Error OverwriteRuleFile ruleset: %s", err); return err}
+        }
+    }
+
+    return nil
+}
+
+func SyncToAllNodes(content map[string]string)(err error) {
     //synchronize to all nodes
     //get all nodes ID with this ruleset
     nodeList,err := ndb.GetNodeWithRulesetUUID(content["uuid"])
-    if err != nil {logs.Error("SyncToAll Error getting nodes by ruleset: %s", err.Error()); return err}
+    if err != nil {logs.Error("SyncToAllSync Error getting nodes by ruleset: %s", err.Error()); return err}
     //get all groups
     allGroups,err := ndb.GetAllGroups()
-    if err != nil {logs.Error("SyncToAll Error getting all groups: %s", err.Error()); return err}
+    if err != nil {logs.Error("SyncToAllSync Error getting all groups: %s", err.Error()); return err}
     //get all rulesets into groups
     allGroupRset,err := ndb.GetAllGroupRulesets()
-    if err != nil {logs.Error("SyncToAll Error getting all groups: %s", err.Error()); return err}
+    if err != nil {logs.Error("SyncToAllSync Error getting all groups: %s", err.Error()); return err}
     //Get all group nodes
     allGroupNodes,err := ndb.GetAllGroupNodes()
-    if err != nil {logs.Error("SyncToAll Error getting all groupNodes: %s", err.Error()); return err}
+    if err != nil {logs.Error("SyncToAllSync Error getting all groupNodes: %s", err.Error()); return err}
     rulesetName,err := ndb.GetRulesetSourceValue(content["uuid"], "name")
 
     for x := range allGroups {
@@ -1084,7 +1116,6 @@ func SyncToAll(content map[string]string)(err error) {
                     }
                 }
             }
-
         }
     }
 
@@ -1092,21 +1123,21 @@ func SyncToAll(content map[string]string)(err error) {
     for nodeID := range nodeList {
         values := make(map[string][]byte)
         //get node token
-        err = ndb.GetTokenByUuid(nodeList[nodeID]); if err!=nil{logs.Error("scheduler/TaskUpdater Error loading node token: %s",err); return err}
+        err = ndb.GetTokenByUuid(nodeList[nodeID]); if err!=nil{logs.Error("SyncToAllSync Error loading node token: %s",err); return err}
         //get node ip and port
         ipnid,portnid,err := ndb.ObtainPortIp(nodeList[nodeID])
-        if err != nil { logs.Error("scheduler/TaskUpdater ERROR Obtaining Port and Ip: "+err.Error()); return err}
+        if err != nil { logs.Error("SyncToAllSync ERROR Obtaining Port and Ip: "+err.Error()); return err}
 
         //get ruleset content
         rulesetData,err := node.CreateNewRuleFile(content["uuid"])
-        if err != nil {logs.Error("scheduler/TaskUpdater error creating ruleset file: "+err.Error()); return err}
+        if err != nil {logs.Error("SyncToAllSync error creating ruleset file: "+err.Error()); return err}
         
         values["data"] = rulesetData
         values["name"] = []byte(rulesetName)
 
         //send to 
         err = nodeclient.SyncGroupRulesetToNode(ipnid, portnid, values)
-        if err != nil {logs.Error("scheduler/TaskUpdater error SyncGroupRulesetToNode: "+err.Error()); return err}
+        if err != nil {logs.Error("SyncToAllSync error SyncGroupRulesetToNode: "+err.Error()); return err}
     }
         
     return err

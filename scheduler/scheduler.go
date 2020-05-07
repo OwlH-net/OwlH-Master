@@ -272,7 +272,7 @@ func TaskUpdater(content map[string]string)(err error){
 
 
     //sync ruleset to all nodes and groups
-    err = ruleset.SyncToAll(content)
+    err = ruleset.SyncToAllNodes(content)
     if err != nil {logs.Error("Scheduler Error synchronizing all: %s", err.Error()); return err}
 
     err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task synchronized for ruleset "+content["uuid"])

@@ -607,6 +607,20 @@ func GetLoginData()(groups map[string]map[string]string, err error){
     return allusers, nil
 }
 
+func GetUserID(user string)(id string, err error){
+    var uniqid string
+    if Mdb == nil { logs.Error("no access to database"); return "", err}
+    
+    sql := "select user_uniqueid from users where user_param='user' and user_value='"+user+"';"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetUserID Mdb.Query Error : %s", err.Error()); return "", err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid); err != nil { logs.Error("GetUserID rows.Scan: %s", err.Error()); return "", err}
+    } 
+    return uniqid, nil
+}
+
 func DeleteUser(uuid string)(err error){
     DeleteUserDB, err := Mdb.Prepare("delete from users where user_uniqueid = ?;")
     if (err != nil){ logs.Error("DeleteUser UPDATE prepare error: "+err.Error()); return err}
