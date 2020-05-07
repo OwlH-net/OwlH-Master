@@ -155,8 +155,6 @@ func GetAllNodesGroup(uuid string)(data map[string]map[string]string, err error)
     return data, err
 }
 
-
-
 func GetGroupSelectedRulesets(uuid string)(data map[string]map[string]string, err error) {
     var localRulesets = map[string]map[string]string{}
     rulesets,err := ndb.GetAllRulesets()

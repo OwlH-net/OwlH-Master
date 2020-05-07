@@ -366,7 +366,7 @@ func (n *RulesetController) DeleteNode() {
 }
 
 // @Title SyncRulesetToAllNodes
-// @Description synchronize Ruleset to all nodes using it
+// @Description synchronize Ruleset to all nodes who use it
 // @Success 200 {object} models.ruleset
 // @Failure 403 Connection Failure
 // @router /synchronize [put]
@@ -682,5 +682,35 @@ func (n *RulesetController) UpdateRule() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     } 
+    n.ServeJSON()
+}
+
+// @Title SyncToAll
+// @Description synchronize Ruleset to all nodes and groups who use it
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /syncToAll [put]
+func (n *RulesetController) SyncToAll() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"), n.Ctx.Input.Header("uuid"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"SyncToAll"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("uuid"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        
+        err := models.SyncToAll(anode)
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    } 
+    
     n.ServeJSON()
 }

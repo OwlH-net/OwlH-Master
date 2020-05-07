@@ -2176,6 +2176,20 @@ func checkPermissionsFields()(ok bool){
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('UpdateRule','permissionGroup','Ruleset')"
     field.Fname      = "permissions - group"
     ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='SyncToAll' and per_param='desc' and per_value='Sync ruleset to all nodes and all groups'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncToAll','desc','Sync ruleset to all nodes and all groups')"
+    field.Fname      = "permissions - SyncToAll desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='SyncToAll' and per_param='permissionGroup' and per_value='Ruleset'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SyncToAll','permissionGroup','Ruleset')"
+    field.Fname      = "permissions - SyncToAll group"
+    ok = CheckField(field)
     
     //Node
 	field.Fconn      = "masterConn"

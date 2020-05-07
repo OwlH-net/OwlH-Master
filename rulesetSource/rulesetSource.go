@@ -79,7 +79,6 @@ func CreateRulesetSource(n map[string]string) (err error) {
 }
 
 func CreateCustomRulesetSource(n map[string]string)(err error){    
-    logs.Notice(n)
     if n["name"] == "" {
         return errors.New("Name is empty")
     }
@@ -392,7 +391,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 
         err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
         if err != nil {
-            logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
+            logs.Error("OverwriteDownload Error downloading file from RulesetSource with pass-> %s", err.Error())
             return err
         }
     }else{
@@ -748,7 +747,6 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
                         }
                     }
                     if !linesAreAdded{
-                        logs.Warn("Not Lines ADDED")
                         err = ndb.UpdateRuleFiles(x, "linesAdded", "false")
                         if err != nil {logs.Error("GetDetails Error updating after compare lines added: %s", err.Error()); return nil, err}
                         break

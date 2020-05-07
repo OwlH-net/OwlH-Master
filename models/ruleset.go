@@ -312,3 +312,15 @@ func UpdateRule(anode map[string]string)(err error) {
     changecontrol.ChangeControlInsertData(err, "UpdateRule")
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/ruleset/syncToAll \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//      "uuid":"aaa"
+// }
+func SyncToAll(anode map[string]string)(err error) {
+    err = ruleset.SyncToAll(anode)
+    changecontrol.ChangeControlInsertData(err, "SyncToAll")
+    return err
+}
