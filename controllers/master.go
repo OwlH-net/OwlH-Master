@@ -6,6 +6,8 @@ import (
     "github.com/astaxie/beego/logs"
     "owlhmaster/validation"
     "encoding/json"
+    "strings"
+    "encoding/base64"
 )
 
 type MasterController struct {
@@ -39,6 +41,7 @@ func (n *MasterController) GetMasterTitle() {
 // @Success 200 {object} models.Master
 // @router /editFile/:file [get]
 func (n *MasterController) GetFileContent() {
+    logs.Info("CHECKED FLAG!!")
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
@@ -46,9 +49,10 @@ func (n *MasterController) GetFileContent() {
         return
     }    
     permissions := []string{"GetFileContent"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)   
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
         file := n.GetString(":file")
         data, err := models.GetFileContent(file)
         n.Data["json"] = data
@@ -748,11 +752,33 @@ func (n *MasterController) Login() {
     //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
     //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
     anode := make(map[string]string)
-    json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    token, err := models.Login(anode)
-    n.Data["json"] = token
-    if err != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    
+    if n.Ctx.Input.Header("Authorization") != "" {     
+
+        code := strings.Replace(n.Ctx.Input.Header("Authorization"), "Basic ", "", -1)
+        data, err := base64.StdEncoding.DecodeString(code)
+        userPass := strings.Split(string(data), ":")
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{
+            logs.Notice(userPass[0])
+            logs.Notice(userPass[1])
+    
+            anode["user"] = userPass[0]
+            anode["password"] = userPass[1]
+            token, err := models.Login(anode)
+            n.Data["json"] = token
+            if err != nil {
+                n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+            }
+        }
+    }else{
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        token, err := models.Login(anode)
+        n.Data["json"] = token
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
     }
     
     n.ServeJSON()
