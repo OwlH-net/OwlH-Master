@@ -63,10 +63,13 @@ func NewRequestHTTP(order string, url string, values io.Reader) (resp *http.Resp
 }
 
 //create a backup of selected file
-func BackupFile(path string, fileName string) (err error) {
-    backupFolder, err := GetKeyValueString("files", "backupPath")
+func BackupFile(path string, fileName string, jsonKey string) (err error) {
+    logs.Notice(path)
+    logs.Notice(fileName)
+
+    backupFolder, err := GetKeyValueString(jsonKey, "backupPath")
     if err != nil {
-        logs.Error("Error BackupFile Creating backup: " + err.Error())
+        logs.Error("utils.BackupFile Error creating backup: " + err.Error())
         return err
     }
 
@@ -119,7 +122,7 @@ func BackupFile(path string, fileName string) (err error) {
 
     //check if file exist
     if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
-        return errors.New("utils.BackupFile error: Source file doesn't exists")
+        return errors.New("utils.BackupFile error: Source file doesn't exists --> "+srcFolder)
     } else {
         cpCmd := exec.Command(copy, srcFolder, destFolder)
         err = cpCmd.Run()
@@ -134,7 +137,6 @@ func BackupFile(path string, fileName string) (err error) {
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
 func DownloadFile(filepath string, url string, username string, passwd string) (err error) {
-    logs.Info(url)
     var resp *http.Response
 
     if username != "" && passwd != "" {   
@@ -233,8 +235,6 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
                     header.Name)
             }
         }
-        // }
-        // }else if fileType[len(fileType)-1] == "tgz"{
     }
 
     return nil
@@ -606,10 +606,7 @@ func FolderMapMD5(masterpath string, nodePath string) (paths map[string]map[stri
     err = filepath.Walk(masterpath,
         func(file string, info os.FileInfo, err error) error {
             if err != nil {
-                if err != nil {
-                    logs.Error("FolderMapSHA256 Error filepath: " + err.Error())
-                    return err
-                }
+                // logs.Error("FolderMapSHA256 Error filepath: " + err.Error())
                 return err
             }
             if !info.IsDir() {

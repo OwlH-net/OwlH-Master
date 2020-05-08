@@ -772,7 +772,7 @@ func AddRulesToCustomRuleset(anode map[string]string)(duplicatedRules map[string
             rulePath,err := ndb.GetRuleFilesValue(anode["orig"], "path")
 
             //change destiny status to Enable
-            writeFile,err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+            writeFile,err := os.OpenFile(path, os.O_APPEND|os.O_WRONLY, 0644)
             defer writeFile.Close()
 
             str := EnabledRule.ReplaceAllString(sidLine["raw"],"")
@@ -997,13 +997,21 @@ func ModifyRuleset(data map[string]map[string]string)(duplicated []byte, err err
 
 
 func SyncToAll(content map[string]string)(err error) {
-    //Download
-    err = SyncToAllDownload(content)
-    if err != nil {logs.Error("SyncToAll Error getting nodes by ruleset: %s", err.Error()); return err}
-    //Download
+    full := true
+    if scope,ok := content["scope"]; ok {
+        if scope == "local" { full = false }
+    }
+
+    if full {
+        //Download
+        err = SyncToAllDownload(content)
+        if err != nil {logs.Error("SyncToAll Error getting nodes by ruleset: %s", err.Error()); return err}
+    }
+
+    //sync
     err = SyncToAllNodes(content)
     if err != nil {logs.Error("SyncToAll Error getting nodes by ruleset: %s", err.Error()); return err}
-
+        
     return nil
 }
 
@@ -1079,6 +1087,12 @@ func SyncToAllNodes(content map[string]string)(err error) {
     //get all nodes ID with this ruleset
     nodeList,err := ndb.GetNodeWithRulesetUUID(content["uuid"])
     if err != nil {logs.Error("SyncToAllSync Error getting nodes by ruleset: %s", err.Error()); return err}
+
+    if len(nodeList) <= 0 { 
+        logs.Warn("SyncToAllNodes: ruleset %s  -> No nodes asigned", content["uuid"])
+        // return errors.New("SyncToAllNodes ERROR getting ruleset to synchronize, UUID "+content["uuid"]+" doesn't exist")
+    }
+
     //get all groups
     allGroups,err := ndb.GetAllGroups()
     if err != nil {logs.Error("SyncToAllSync Error getting all groups: %s", err.Error()); return err}
@@ -1119,6 +1133,7 @@ func SyncToAllNodes(content map[string]string)(err error) {
         }
     }
 
+    logs.Info("Synchronizing ruleset...")
     //sync to all nodes
     for nodeID := range nodeList {
         values := make(map[string][]byte)
@@ -1140,5 +1155,6 @@ func SyncToAllNodes(content map[string]string)(err error) {
         if err != nil {logs.Error("SyncToAllSync error SyncGroupRulesetToNode: "+err.Error()); return err}
     }
         
+    logs.Notice("Sync complete!")
     return err
 }

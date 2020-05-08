@@ -27,11 +27,6 @@ func GetMasterTitle() (data string, err error) {
 }
 
 func GetFileContent(file string) (data map[string]string, err error) {
-    logs.Warn(file)
-    logs.Warn(file)
-    logs.Warn(file)
-    logs.Warn(file)
-    logs.Warn(file)
     sendBackArray := make(map[string]string)
 
     fileConfPath, err := utils.GetKeyValueString("files", file)

@@ -458,8 +458,6 @@ func OverwriteDownload(data map[string]string) (err error) {
 
     // check status
     for w := range newFilesDB {
-        
-
         if newFilesDB[w]["count"] == "0" {
             err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "exists", "false")
             if err != nil{logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error());return err}
@@ -650,13 +648,13 @@ func CompareFiles(uuid string) (mapData map[string]map[string]string, err error)
 
 func CreateNewFile(data map[string]string) (err error) {
     backupPath, err := utils.GetKeyValueString("ruleset", "backupPath")
-    if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error()); return err}
+    if err != nil {logs.Error("CreateNewFile Error getting data from main.conf: "+err.Error()); return err}
 
     splitPath := strings.Split(data["path"], "/")
     pathSelected := splitPath[len(splitPath)-2]
 
 
-    err = utils.BackupFile(backupPath + pathSelected, "drop.rules")
+    err = utils.BackupFile(backupPath + pathSelected, "drop.rules", "ruleset")
     if err != nil {
         logs.Error("CreateNewFile: Error BackupFile from map --> "+err.Error())
         return err
@@ -674,7 +672,7 @@ func CreateNewFile(data map[string]string) (err error) {
 //get data from local files for insert into DB
 func Details(data map[string]string) (files map[string]map[string]string, err error) {
     pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
-    if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error()); return nil, err}
+    if err != nil {logs.Error("Details Error getting data from main.conf: "+err.Error()); return nil, err}
 
     splitPath := strings.Split(data["path"], "/")
     pathSelected := splitPath[:len(splitPath)-1]
@@ -774,8 +772,15 @@ func OverwriteRuleFile(uuid string)(err error){
         if err != nil {logs.Error("OverwriteRuleFile failed writing to file: %s", err); return err}
 
         for t := range sourceFile {
+            //backup-file
+            logs.Debug(filepath.Dir(sourceFile[t]["path"]))
+            logs.Debug(filepath.Dir(sourceFile[t]["path"]))
+            logs.Debug(filepath.Dir(sourceFile[t]["path"]))
+            err = utils.BackupFile(filepath.Dir(sourceFile[t]["path"])+"/", sourceFile[t]["file"], "ruleset")
+            if err != nil {logs.Error("OverwriteRuleFile failed backing up file: %s", err); return err}
+
             fileOrig, err := os.Open(sourceFile[t]["path"])
-            fileDst,err := os.OpenFile(dbFiles[r]["path"], os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+            fileDst,err := os.OpenFile(dbFiles[r]["path"], os.O_CREATE|os.O_WRONLY, 0644)
             if err != nil {logs.Error("OverwriteRuleFile failed opening file: %s", err); return err}
             defer fileOrig.Close()
             defer fileDst.Close()
@@ -807,9 +812,13 @@ func AddNewLinesToRuleset(uuid string)(err error){
     if err != nil {logs.Error("AddNewLinesToRuleset GetRuleFilesByUniqueid error: %s", err); return err}
     sourceFile,err := ndb.GetRuleFilesByUniqueid(rulesetFile[uuid]["sourceFileUUID"]) //father file
     if err != nil {logs.Error("AddNewLinesToRuleset failed getting sourceFileUUID data: %s", err); return err}
- 
+        
+    err = utils.BackupFile(filepath.Dir(sourceFile[rulesetFile[uuid]["sourceFileUUID"]]["path"])+"/", sourceFile[rulesetFile[uuid]["sourceFileUUID"]]["file"], "ruleset")
+    if err != nil {logs.Error("OverwriteRuleFile failed backing up file: %s", err); return err}
+
     sourcePath := sourceFile[rulesetFile[uuid]["sourceFileUUID"]]["path"] //father
     rulesetPath := rulesetFile[uuid]["path"] // son
+
 
     fileOrig,err := utils.MapFromFile(sourcePath)
     fileDst,err := utils.MapFromFile(rulesetPath)
@@ -824,7 +833,7 @@ func AddNewLinesToRuleset(uuid string)(err error){
             }
         }
         if !isEquals{
-            writeFile,err := os.OpenFile(rulesetPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+            writeFile,err := os.OpenFile(rulesetPath, os.O_APPEND|os.O_WRONLY, 0644)
             defer writeFile.Close()
         
             _, err = writeFile.WriteString(fileOrig[x]["Line"])
