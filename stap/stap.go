@@ -180,7 +180,7 @@ func PingServerStap(uuid string, server string) (data map[string]string, err err
     err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("Error loading node token: %s",err); return nil,err}
     ip,port,err := ndb.ObtainPortIp(uuid)
     if err != nil {
-        logs.Info("PingServerStap - get IP and PORT Error -> %s", err.Error())
+        logs.Error("PingServerStap - get IP and PORT Error -> %s", err.Error())
         return nil,err
     }    
     data, err = nodeclient.PingServerStap(ip,port,server)
@@ -196,7 +196,7 @@ func EditStapServer(data map[string]string) (err error) {
     err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("Error loading node token: %s",err); return err}
     ip,port,err := ndb.ObtainPortIp(uuid)
     if err != nil {
-        logs.Info("EditStapServer - get IP and PORT Error -> %s", err.Error())
+        logs.Error("EditStapServer - get IP and PORT Error -> %s", err.Error())
         return err
     }    
     err = nodeclient.EditStapServer(ip,port,data)

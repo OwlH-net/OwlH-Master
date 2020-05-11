@@ -4,9 +4,9 @@ import (
     "time"
     "owlhmaster/utils"
     "owlhmaster/rulesetSource"
-    "owlhmaster/node"
     "strconv"
     "owlhmaster/database"
+    "owlhmaster/ruleset"
     "github.com/astaxie/beego/logs"
 )
 
@@ -149,7 +149,6 @@ func StopTask(content map[string]string)(err error){
 }
 
 func TaskUpdater(content map[string]string)(err error){
-    
     t := time.Now().Unix()
     currentTime := strconv.FormatInt(t, 10)
 
@@ -209,6 +208,7 @@ func TaskUpdater(content map[string]string)(err error){
                         rulesetMap[b] = finalData[a][b]
                     }
                 }
+
                 if rulesetMap["sourceType"] == "custom"{continue}
 
                 if rulesetMap["isDownloaded"] == "false"{
@@ -224,6 +224,7 @@ func TaskUpdater(content map[string]string)(err error){
                         return err
                     }
                 }else if rulesetMap["isDownloaded"] == "true"{
+                    // rulesetMap["uuid"] = content["uuid"]
                     err = rulesetSource.OverwriteDownload(rulesetMap)
                     if err != nil {
                         logs.Error("TimeSchedule Error Overwriting: %s", err)
@@ -268,23 +269,15 @@ func TaskUpdater(content map[string]string)(err error){
         }
     }
 
-    //synchronize
-    err = node.SyncRulesetToAllNodes(content)
-    if err != nil {
-        logs.Error("TimeSchedule Error synchronizing ruleset: %s", err)
-        err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task ERROR synchronizing: "+ err.Error())
-        if err != nil {
-            logs.Error("Error inserting Log: %s", err.Error())
-            return err
-        }
-        return err
-    }
+
+
+    //sync ruleset to all nodes and groups
+    err = ruleset.SyncToAllNodes(content)
+    if err != nil {logs.Error("Scheduler Error synchronizing all: %s", err.Error()); return err}
 
     err = ndb.InsertSchedulerLog(content["uuid"], currentTime, "Task synchronized for ruleset "+content["uuid"])
-    if err != nil {
-        logs.Error("Error inserting Log: %s", err.Error())
-        return err
-    }
+    if err != nil {logs.Error("Error inserting Log: %s", err.Error()); return err}
+
     logs.Notice("Ruleset synchronized "+content["uuid"])    
     return nil
 }

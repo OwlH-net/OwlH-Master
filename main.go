@@ -14,18 +14,21 @@ import (
     "owlhmaster/search"
     "owlhmaster/scheduler"
     "owlhmaster/utils"
+    "owlhmaster/ruleset"
     "owlhmaster/configuration"
     "os"
     "crypto/tls"
     "bufio"
     "strings"
     "runtime"
+    "os/signal"
+    "syscall"
 )
 
-
 func main() {
-
-    logs.Info("Version OwlH Master: 0.12.0.20200313")
+    
+    //Application version
+    logs.Info("Version OwlH Master: 0.12.0.20200508")
     utils.Load()
 
     //get logger data
@@ -47,7 +50,6 @@ func main() {
     logs.NewLogger(10000)
     logs.SetLogger(logs.AdapterFile,`{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
-    //Application version
 
     //operative system values
     data:=OperativeSystemValues()
@@ -72,8 +74,9 @@ func main() {
     
 
     //CheckServicesStatus
+    go ManageSignals()  
     master.CheckServicesStatus()
-
+    ruleset.Init()
     //Init dispatcher at master
     go dispatcher.Init()
     //Init scheduler at master
@@ -151,4 +154,21 @@ func OperativeSystemValues()(values map[string]string){
     }else{
         return nil
     }
+}
+
+func ManageSignals() {
+    sigs := make(chan os.Signal, 1)
+    signal.Notify(sigs, syscall.SIGINT, syscall.SIGTERM, syscall.SIGUSR1, syscall.SIGUSR2)
+
+    go func() {
+        sig := <-sigs
+        logs.Info("Signal received: "+ sig.String())
+
+        //kill plugins
+        master.StopPluginsGracefully()
+
+        //stop node
+        logs.Critical("Stopping Node...")
+        os.Exit(0)
+    }()
 }

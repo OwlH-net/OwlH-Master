@@ -10,6 +10,8 @@ import (
     "encoding/json"    
     "path"
     "os"
+    "io"
+    "bytes"
     "strings"
     "bufio"
     "io/ioutil"
@@ -125,6 +127,7 @@ func GetAllGroups()(Groups []Group, err error){
 
                     nd.Uuid = b
                     nd.Name = nodeValues[b]["name"]
+                    // nd.Sync = nodeValues[b]["sync"]                    
                     nd.Ip = nodeValues[b]["ip"]
                     gr.Nodes = append(gr.Nodes, nd)
                 }                  
@@ -152,8 +155,75 @@ func GetAllNodesGroup(uuid string)(data map[string]map[string]string, err error)
     return data, err
 }
 
+func GetGroupSelectedRulesets(uuid string)(data map[string]map[string]string, err error) {
+    var localRulesets = map[string]map[string]string{}
+    rulesets,err := ndb.GetAllRulesets()
+    if err != nil {logs.Error("GetGroupSelectedRulesets GetAllRulesets error: "+ err.Error()); return nil,err}
+
+    for x := range rulesets{
+        if rulesets[x]["type"] == "local"{
+            if localRulesets[x] == nil { localRulesets[x] = map[string]string{}}
+            localRulesets[x]["name"] = rulesets[x]["name"]
+            localRulesets[x]["desc"] = rulesets[x]["desc"]
+            localRulesets[x]["type"] = rulesets[x]["type"]
+        }
+    }
+
+    groupRulesets, err := ndb.GetAllGroupRulesets()
+    if err != nil {logs.Error("GetAllNodesGroup GetAllGroupRulesets error: "+ err.Error()); return nil,err}
+
+    for y := range groupRulesets {
+        if groupRulesets[y]["groupid"] == uuid {
+            localRulesets[groupRulesets[y]["rulesetid"]]["checked"] = "true"
+        }
+    }
+
+    return localRulesets, nil
+}
+
+func DeleteExpertGroupRuleset(data map[string]string)(err error) {
+    groupRulesets, err := ndb.GetAllGroupRulesets()
+    if err != nil {logs.Error("DeleteExpertGroupRuleset GetAllGroupRulesets error: "+ err.Error()); return err}
+    
+    for x := range groupRulesets {
+        if groupRulesets[x]["groupid"] == data["uuid"] && groupRulesets[x]["rulesetid"] == data["ruleset"] {
+            err = ndb.DeleteGroupRuleset(x)
+            if err != nil {logs.Error("DeleteExpertGroupRuleset error deleting database value: "+ err.Error()); return  err}
+        }
+    }
+
+    return nil
+}
+
+func AddRulesetsToGroup(data map[string]string)(err error) {
+    //split array
+    groupRulesets, err := ndb.GetAllGroupRulesets()
+    if err != nil {logs.Error("DeleteExpertGroupRuleset GetAllGroupRulesets error: "+ err.Error()); return err}
+
+    
+    rulesets := strings.Split(data["rulesets"], ",")
+    
+    for x := range rulesets {
+        exists := false
+        for y := range groupRulesets{
+            if groupRulesets[y]["groupid"] == data["uuid"] && groupRulesets[y]["rulesetid"] == rulesets[x] {
+                exists = true                
+            } 
+        }
+        if !exists{
+            uuid := utils.Generate()
+            err = ndb.InsertGroupRulesets(uuid, "groupid", data["uuid"])
+            if err != nil {logs.Error("AddRulesetsToGroup error inserting data into grouprulesets: "+ err.Error()); return err}
+            err = ndb.InsertGroupRulesets(uuid, "rulesetid", rulesets[x])
+            if err != nil {logs.Error("AddRulesetsToGroup error inserting data into grouprulesets: "+ err.Error()); return err}
+        }
+    }
+
+    return nil
+}
+
 type GroupNode struct {
-    Uuid           string        `json:"uuid"`
+    Uuid           string     `json:"uuid"`
     Nodes        []string    `json:"nodes"`
 }
 
@@ -233,14 +303,67 @@ func ChangePathsGroups(data map[string]string)(err error) {
     return err
 }
 
+func GetMD5files(data map[string]string)(allData map[string]map[string]map[string]string, err error) {
+    fileList := map[string]map[string]map[string]string{}
+    
+    //get all node uuid
+    nodesID,err := ndb.GetGroupNodesByUUID(data["uuid"])
+    if err != nil {logs.Error("GetMD5files error getting all nodes for a groups: "+err.Error()); return nil,err}
+
+    //get all files synchronized
+    hashedFiles,err := utils.FolderMapMD5(data["mastersuricata"], data["nodesuricata"])    
+    if err != nil { return nil, err }
+
+    for uuid := range nodesID{
+        //get ip and port for node
+        if ndb.Db == nil { logs.Error("SyncPathGroup -- Can't acces to database"); return nil,err}
+        err = ndb.GetTokenByUuid(nodesID[uuid]["nodesid"]); if err!=nil{logs.Error("Error loading node token: %s",err); return nil,err}
+        ipnid,portnid,err := ndb.ObtainPortIp(nodesID[uuid]["nodesid"])
+        if err != nil { logs.Error("node/SyncPathGroup ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}
+        
+        //send to nodeclient all data
+        valuesMD5, err := nodeclient.GetMD5files(ipnid,portnid,hashedFiles)
+        if err != nil { logs.Error("node/SyncPathGroup ChangeSuricataPathsGroups ERROR http data request: "+err.Error()); return nil,err}    
+        
+        //check if files in Master and Node has the same MD5 for every file
+        filesHashed := utils.CompareFolderMapMD5(hashedFiles,valuesMD5)
+
+        if fileList[nodesID[uuid]["nodesid"]] == nil { fileList[nodesID[uuid]["nodesid"]] = map[string]map[string]string{} }
+        for x := range filesHashed {
+            returnUUID := utils.Generate()
+            if fileList[nodesID[uuid]["nodesid"]][returnUUID] == nil { fileList[nodesID[uuid]["nodesid"]][returnUUID] = map[string]string{} }
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["masterPath"] = hashedFiles[x]["path"]
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["nodePath"] = data["nodesuricata"]+"/"+filesHashed[x]["path"]
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["nodeMD5"] = filesHashed[x]["md5"]
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["masterMD5"] = hashedFiles[x]["md5"]
+            fileList[nodesID[uuid]["nodesid"]][returnUUID]["equals"] = filesHashed[x]["equals"]
+        }
+        
+    }   
+
+    return fileList,nil
+}
+
 func SyncPathGroup(data map[string]string)(err error) {
     fileList := make(map[string]map[string][]byte)    
     filesMap := make(map[string][]byte)
     if data["type"] == "suricata"{
-        filesMap,err = utils.ListFilepath(data["mastersuricata"])
-        if err != nil {logs.Error("group/SyncPathGroup ERROR getting Suricata path and files for send to node: "+err.Error()); return err}    
-        if fileList[data["nodesuricata"]] == nil { fileList[data["nodesuricata"]] = map[string][]byte{}}
-        fileList[data["nodesuricata"]] = filesMap
+        var buf bytes.Buffer
+        err = utils.Compress(data["mastersuricata"], &buf)
+        if err != nil {logs.Error("group/SyncPathGroup ERROR compressing data: "+err.Error()); return err}
+    
+        // write the .tar.gzip
+        fileToWrite, err := os.OpenFile("/tmp/file.tar.gzip", os.O_CREATE|os.O_RDWR, os.FileMode(600))
+        if err != nil {logs.Error("group/SyncPathGroup ERROR creating tar file: "+err.Error()); return err}
+    
+        if _, err := io.Copy(fileToWrite, &buf); err != nil {
+            logs.Error("group/SyncPathGroup ERROR copying data to tar file: "+err.Error()); return err
+        }
+
+        r,_ := os.Open("/tmp/file.tar.gzip")
+        bytesFromTar, err := ioutil.ReadAll(r)
+        
+        filesMap[data["nodesuricata"]] = bytesFromTar
     }else{
         filesMap,err = utils.ListFilepath(data["masterzeek"])
         if err != nil {logs.Error("group/SyncPathGroup ERROR getting Zeek path and files for send to node: "+err.Error()); return err}    
@@ -260,15 +383,17 @@ func SyncPathGroup(data map[string]string)(err error) {
         if err != nil { logs.Error("node/SyncPathGroup ERROR Obtaining Port and Ip: "+err.Error()); return err}
         
         //send to nodeclient all data
-        if data["type"] == "suricata"{
-            err = nodeclient.ChangeSuricataPathsGroups(ipnid,portnid,fileList)
+        if data["type"] == "suricata"{            
+            err = nodeclient.ChangeSuricataPathsGroups(ipnid,portnid,filesMap)
             if err != nil { logs.Error("node/SyncPathGroup ChangeSuricataPathsGroups ERROR http data request: "+err.Error()); return err}    
+            //remove tar.gz file
+            os.Remove("/tmp/file.tar.gzip")
         }else{
             err = nodeclient.ChangeZeekPathsGroups(ipnid,portnid,fileList)
             if err != nil { logs.Error("node/SyncPathGroup ChangeZeekPathsGroups ERROR http data request: "+err.Error()); return err}    
         }
-    }
-    
+    }   
+
     return nil
 }
 
@@ -279,50 +404,60 @@ func UpdateGroupService(data map[string]string)(err error) {
     return nil
 }
 
-func SyncAll(uuid string, data map[string]map[string]string)(err error) {
-    for key, _ := range data{
-        filesMap := make(map[string]string)
-        if key == "suricata-services"{
-            filesMap["uuid"] = uuid
-            filesMap["interface"] = data[key]["interface"]
-            filesMap["BPFfile"] = data[key]["BPFfile"]
-            filesMap["BPFrule"] = data[key]["BPFrule"]
-            filesMap["configFile"] = data[key]["configFile"]
-            filesMap["commandLine"] = data[key]["commandLine"]
-            logs.Info("Synchronizing Suricata services")
-            logs.Emergency(filesMap)
-            err = node.PutSuricataServicesFromGroup(filesMap)
-            if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Suricata services to node: "+err.Error()); return err}
-            logs.Notice("Suricata services synchronized")
-        }else if key == "zeek-policies"{
-            filesMap["uuid"] = uuid
-            filesMap["type"] = data[key]["type"]
-            filesMap["masterzeek"] = data[key]["masterzeek"]
-            filesMap["nodezeek"] = data[key]["nodezeek"]
-            logs.Info("Synchronizing Zeek policies")
-            logs.Emergency(filesMap)
-            err = SyncPathGroup(filesMap)
-            if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Zeek configuration: "+err.Error()); return err}
-            logs.Notice("Zeek policies synchronized")
-        }else if key == "suricata-rulesets"{
-            filesMap["uuid"] = uuid
-            logs.Info("Synchronizing Suricata ruleset")
-            logs.Emergency(filesMap)
-            err = node.SyncRulesetToAllGroupNodes(filesMap)
-            if err!=nil {logs.Error("group/SyncAll -- Error synchronizing ruleset: "+err.Error()); return err}
-            logs.Notice("Suricata ruleset synchronized")
-        }else if key == "suricata-config"{
-            filesMap["uuid"] = uuid
-            filesMap["type"] = data[key]["type"]
-            filesMap["mastersuricata"] = data[key]["mastersuricata"]
-            filesMap["nodesuricata"] = data[key]["nodesuricata"]
-            logs.Info("Synchronizing Suricata configuration")
-            logs.Emergency(filesMap)
-            err = SyncPathGroup(filesMap)
-            if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Suricata configuration: "+err.Error()); return err}
-            logs.Notice("Suricata configuration synchronized")
-        }
-    }
+func SyncAll(uuid string)(err error) {
+    anode := make(map[string]string)
+    anode["uuid"] = uuid
+    //sync analyzer
+    _,err = node.SyncAnalyzerToAllGroupNodes(anode)
+    if err != nil {logs.Error("group/SyncAll ERROR synchronizing analyzer to all group nodes: "+err.Error()); return err}    
+    //sync expert Rulesets
+    err = node.SyncRulesetToAllGroupNodes(anode)
+    if err != nil {logs.Error("group/SyncAll ERROR synchronizing all group rulesets to all group nodes: "+err.Error()); return err}    
+
+
+    //sync expert configs
+
+
+
+    // for key, _ := range data{
+    //     filesMap := make(map[string]string)
+    //     if key == "suricata-services"{
+    //         filesMap["uuid"] = uuid
+    //         filesMap["interface"] = data[key]["interface"]
+    //         filesMap["BPFfile"] = data[key]["BPFfile"]
+    //         filesMap["BPFrule"] = data[key]["BPFrule"]
+    //         filesMap["configFile"] = data[key]["configFile"]
+    //         filesMap["commandLine"] = data[key]["commandLine"]
+    //         logs.Info("Synchronizing Suricata services")
+    //         err = node.PutSuricataServicesFromGroup(filesMap)
+    //         if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Suricata services to node: "+err.Error()); return err}
+    //         logs.Notice("Suricata services synchronized")
+    //     // }else if key == "zeek-policies"{
+    //     //     filesMap["uuid"] = uuid
+    //     //     filesMap["type"] = data[key]["type"]
+    //     //     filesMap["masterzeek"] = data[key]["masterzeek"]
+    //     //     filesMap["nodezeek"] = data[key]["nodezeek"]
+    //     //     logs.Info("Synchronizing Zeek policies")
+    //     //     err = SyncPathGroup(filesMap)
+    //     //     if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Zeek configuration: "+err.Error()); return err}
+    //     //     logs.Notice("Zeek policies synchronized")
+    //     }else if key == "suricata-rulesets"{
+    //         filesMap["uuid"] = uuid
+    //         logs.Info("Synchronizing Suricata ruleset")
+    //         err = node.SyncRulesetToAllGroupNodes(filesMap)
+    //         if err!=nil {logs.Error("group/SyncAll -- Error synchronizing ruleset: "+err.Error()); return err}
+    //         logs.Notice("Suricata ruleset synchronized")
+    //     }else if key == "suricata-config"{
+    //         filesMap["uuid"] = uuid
+    //         filesMap["type"] = data[key]["type"]
+    //         filesMap["mastersuricata"] = data[key]["mastersuricata"]
+    //         filesMap["nodesuricata"] = data[key]["nodesuricata"]
+    //         logs.Info("Synchronizing Suricata configuration")
+    //         err = SyncPathGroup(filesMap)
+    //         if err!=nil {logs.Error("group/SyncAll -- Error synchronizing Suricata configuration: "+err.Error()); return err}
+    //         logs.Notice("Suricata configuration synchronized")
+    //     }
+    // }
 
     return nil
 }

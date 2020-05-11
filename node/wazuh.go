@@ -55,7 +55,7 @@ func StopWazuh(uuid string)(data string, err error){
     return data,nil
 }
 
-func PingWazuhFiles(uuid string)(anode map[int]map[string]string, err error){
+func PingWazuhFiles(uuid string)(anode map[string]map[string]string, err error){
     if ndb.Db == nil {logs.Error("PingWazuhFiles -- Can't acces to database"); return nil, errors.New("PingWazuhFiles -- Can't acces to database")}
     
     err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("Error loading node token: %s",err); return nil,err}

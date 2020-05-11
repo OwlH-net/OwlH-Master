@@ -6,21 +6,27 @@ import (
 	"golang.org/x/crypto/bcrypt"
 	"errors"
     "owlhmaster/database"
-    "owlhmaster/utils"
+	"owlhmaster/utils"
+	"crypto/aes"
+	"io"	
+	"crypto/cipher"
+	"crypto/rand"
+	"crypto/md5"
+	"encoding/hex"
+	// "encoding/base64"
+	// "encoding/hex"
 )
 
 // Encode generates a jwt.
-func Encode(uuid string, user string, secret string) (val string, err error) {
+func Encode(user string, secret string) (val string, err error) {
 
 	type MyCustomClaims struct {
-		Uuid string `json:"uuid"`
 		User string `json:"user"`
 		jwt.StandardClaims
 	}
 
 	// Create the Claims
 	claims := MyCustomClaims{
-		uuid,
 		user,
 		jwt.StandardClaims{
 			ExpiresAt: 15000,
@@ -45,29 +51,72 @@ func CheckPasswordHash(password string, hash string) (bool, error) {
     return true, nil
 }
 
-func CheckToken(token string, user string, uuid string, permission string)(hasPrivileges bool, err error){
+func VerifyToken(token string, user string)(err error){
 	users,err := ndb.GetLoginData()
 	for x := range users{
-		if (x == uuid) && (users[x]["user"] == user){
-			tkn, err := Encode(uuid, users[x]["user"], users[x]["secret"])
+		if (users[x]["user"] == user){
+			tkn, err := Encode(users[x]["user"], users[x]["secret"])
 			if err != nil {
-				logs.Error("Error checking token: %s", err); return false,err
+				logs.Error("Error checking token: %s", err); return err
 			}else{
-				if token == tkn {
-					status,err := UserPrivilegeValidation(uuid, permission); if err != nil {logs.Error("permissions error: %s",err); return false,err}
-					if status{
-						masterID,err := ndb.LoadMasterID(); if err != nil {logs.Error("Error getting Master information: %s",err); return false,err}
-						utils.TokenMasterUuid = masterID
-						utils.TokenMasterUser = x
-						return true,nil
-					}else{
-						return false,nil
-					}
+				if token == tkn {					
+					return nil					
 				}else{
-					return false,errors.New("The token retrieved is false")
+					return errors.New("The token retrieved is false")
 				}
 			}
 		}
 	}
-	return false,errors.New("There are not token. Error creating Token")
+	return errors.New("There are not token. Error creating Token")
+}
+
+func VerifyPermissions(user string, object string, permissions []string)(hasPermissions bool, err error){
+	for x := range permissions{
+		status,err := UserPermissionsValidation(user, permissions[x]); if err != nil {logs.Error("requestType error: %s",err); return false,err}
+		if status{
+			utils.TokenMasterUser = user
+			return true,nil
+		}		
+	}
+	return false, nil
+}
+
+
+
+// ENCRYPT AND DECRYPT PASSWORD FOR RULESET
+func createHash(key string) string {
+	hasher := md5.New()
+	hasher.Write([]byte(key))
+	return hex.EncodeToString(hasher.Sum(nil))
+}
+func Encrypt(data []byte, passphrase string) []byte {
+	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+	nonce := make([]byte, gcm.NonceSize())
+	if _, err = io.ReadFull(rand.Reader, nonce); err != nil {
+		panic(err.Error())
+	}
+	ciphertext := gcm.Seal(nonce, nonce, data, nil)
+	return ciphertext
+}
+func Decrypt(data []byte, passphrase string) []byte {
+	key := []byte(createHash(passphrase))
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		panic(err.Error())
+	}
+	gcm, err := cipher.NewGCM(block)
+	if err != nil {
+		panic(err.Error())
+	}
+	nonceSize := gcm.NonceSize()
+	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
+	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
+	if err != nil {
+		panic(err.Error())
+	}
+	return plaintext
 }

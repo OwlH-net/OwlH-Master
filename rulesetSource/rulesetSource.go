@@ -3,8 +3,10 @@ package rulesetSource
 import (
     "github.com/astaxie/beego/logs"
     "owlhmaster/database"
+    "owlhmaster/validation"
     "errors"
     "owlhmaster/utils"
+    // "owlhmaster/validation"
     "strings"
     "os"
     "io/ioutil"
@@ -23,7 +25,7 @@ func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
     defer uuidRules.Close()
     for uuidRules.Next() {
         if err = uuidRules.Scan(&uniqueid); err != nil {
-            logs.Error("GetAllRulesetSource rows.Scan: %s", err.Error())
+            logs.Error("GetFileUUIDfromRulesetUUID rows.Scan: %s", err.Error())
             return "",err
         }
     }
@@ -48,7 +50,7 @@ func CreateRulesetSource(n map[string]string) (err error) {
     }
     
     path, err := utils.GetKeyValueString("ruleset", "sourceDownload")
-    if err != nil {logs.Error("DeleteRuleset Error getting data from main.conf for load data: "+err.Error()); return err}
+    if err != nil {logs.Error("CreateRulesetSource Error getting data from main.conf for load data: "+err.Error()); return err}
 
 
     if _, err := os.Stat(path+n["name"]); !os.IsNotExist(err) {
@@ -59,16 +61,24 @@ func CreateRulesetSource(n map[string]string) (err error) {
     n["path"] = path + nameWithoutSpaces +"/"+ n["fileName"]
         
     for key, value := range n {
-        err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, value)
+        if key == "passwd"{
+            keyHashed,err := ndb.LoadMasterKEY()
+            if err != nil {logs.Error(err); return nil}
+            
+            crypted := validation.Encrypt([]byte(n["passwd"]), keyHashed)
+
+            err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, string(crypted))
+            if err != nil {return err}
+        }else{
+            err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, value)
+            if err != nil {return err}
+        }
     }
-    if err != nil {
-        return err
-    }
+
     return nil
 }
 
 func CreateCustomRulesetSource(n map[string]string)(err error){    
-    logs.Notice(n)
     if n["name"] == "" {
         return errors.New("Name is empty")
     }
@@ -175,7 +185,7 @@ func rulesetSourceExists(sourceID string) (err error) {
     }
 }
 
-func GetAllRulesetSource()(sources map[string]map[string]string, err error){
+func GetAllRulesetSource(hasPermissions bool)(sources map[string]map[string]string, err error){
     var allsources = map[string]map[string]string{}
     var uniqid string
     var param string
@@ -210,6 +220,12 @@ func GetAllRulesetSource()(sources map[string]map[string]string, err error){
             }
             if allsources[uniqid] == nil { allsources[uniqid] = map[string]string{}}
             allsources[uniqid][param]=value
+
+            //verify
+            if hasPermissions == false {
+                allsources[uniqid]["path"] = "***"
+                allsources[uniqid]["url"] = "***"
+            }
         } 
     }
 
@@ -357,33 +373,39 @@ func OverwriteDownload(data map[string]string) (err error) {
     splitPath := strings.Split(data["url"], "/")
     fileDownloaded := splitPath[len(splitPath)-1]
 
-    // _ = os.RemoveAll(pathDownloaded+data["name"])
-
-    //download file
+    //check if path exists
     if _, err := os.Stat(pathDownloaded+data["name"]); os.IsNotExist(err) {
         os.MkdirAll(pathDownloaded+data["name"], os.ModePerm)
     }
 
-    err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"])
-    if err != nil {
-        logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
-        // _ = os.RemoveAll(pathDownloaded+data["name"])
+    //get user and password
+    rulesets,err := ndb.GetAllRulesets()
+    if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
 
-        // update ruleset "exists" field
-        // _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-        return err
+    if rulesets[data["uuid"]]["passwd"] != "" {
+        //check decrypt password
+        keyHashed,err := ndb.LoadMasterKEY()
+        if err != nil {logs.Error(err); return nil}
+
+        uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
+
+        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
+        if err != nil {
+            logs.Error("OverwriteDownload Error downloading file from RulesetSource with pass-> %s", err.Error())
+            return err
+        }
+    }else{
+        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], "", "")
+        if err != nil {
+            logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
+            return err
+        }
     }
 
-    // err = utils.ExtractFile(data["path"], pathDownloaded, data["name"])
+    //extract file downloaded
     err = utils.ExtractFile(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
     if err != nil {
         logs.Error("Error unzipping file downloaded: "+err.Error())
-        // err = os.RemoveAll(pathDownloaded+data["name"])
-        // if err!=nil { logs.Error("Error removing file OverwriteDownload due to download: "+err.Error()); return err}
-        // update ruleset "exists" field
-        // err = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-        // if err != nil {logs.Error("UpdateRuleset Error from RulesetSource  due to download-> %s", err.Error());return err}
-
         return err
     }
 
@@ -397,6 +419,7 @@ func OverwriteDownload(data map[string]string) (err error) {
     err = filepath.Walk(pathDownloaded + data["name"],
         func(file string, info os.FileInfo, err error) error {
         if err != nil {
+            logs.Error("Error Getting downloaded data Map: "+err.Error())
             return err
         }
         if fileExtension.MatchString(info.Name()){
@@ -435,8 +458,6 @@ func OverwriteDownload(data map[string]string) (err error) {
 
     // check status
     for w := range newFilesDB {
-        
-
         if newFilesDB[w]["count"] == "0" {
             err = ndb.UpdateRuleFiles(newFilesDB[w]["uuid"], "exists", "false")
             if err != nil{logs.Error("OverwriteDownload UPDATE error for update isDownloaded -- "+err.Error());return err}
@@ -475,16 +496,38 @@ func DownloadFile(data map[string]string) (err error) {
     splitPath := strings.Split(value, "/")
     pathSelected := splitPath[len(splitPath)-2]
 
+    //check if file exists
     if _, err := os.Stat(pathDownloaded+pathSelected); os.IsNotExist(err) {
         os.MkdirAll(pathDownloaded+pathSelected, os.ModePerm)
 
-        err = utils.DownloadFile(data["path"], data["url"])
-        if err != nil {
-            logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
-            _ = os.RemoveAll(pathDownloaded+pathSelected)
-            _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
-            return err
+        //get ruleset data
+        rulesets,err := ndb.GetAllRulesets()
+        if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
+
+        if rulesets[data["uuid"]]["passwd"] != "" {
+            //check decrypt password
+            keyHashed,err := ndb.LoadMasterKEY()
+            if err != nil {logs.Error(err); return nil}
+    
+            uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
+
+            err = utils.DownloadFile(data["path"], data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
+            if err != nil {
+                logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
+                _ = os.RemoveAll(pathDownloaded+pathSelected)
+                _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+                return err
+            }
+        }else{
+            err = utils.DownloadFile(data["path"], data["url"], "", "")
+            if err != nil {
+                logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
+                _ = os.RemoveAll(pathDownloaded+pathSelected)
+                _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
+                return err
+            }
         }
+
     
         err = utils.ExtractFile(data["path"], pathDownloaded+pathSelected)
         if err != nil {
@@ -605,13 +648,13 @@ func CompareFiles(uuid string) (mapData map[string]map[string]string, err error)
 
 func CreateNewFile(data map[string]string) (err error) {
     backupPath, err := utils.GetKeyValueString("ruleset", "backupPath")
-    if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error()); return err}
+    if err != nil {logs.Error("CreateNewFile Error getting data from main.conf: "+err.Error()); return err}
 
     splitPath := strings.Split(data["path"], "/")
     pathSelected := splitPath[len(splitPath)-2]
 
 
-    err = utils.BackupFile(backupPath + pathSelected, "drop.rules")
+    err = utils.BackupFile(backupPath + pathSelected, "drop.rules", "ruleset")
     if err != nil {
         logs.Error("CreateNewFile: Error BackupFile from map --> "+err.Error())
         return err
@@ -629,7 +672,7 @@ func CreateNewFile(data map[string]string) (err error) {
 //get data from local files for insert into DB
 func Details(data map[string]string) (files map[string]map[string]string, err error) {
     pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
-    if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error()); return nil, err}
+    if err != nil {logs.Error("Details Error getting data from main.conf: "+err.Error()); return nil, err}
 
     splitPath := strings.Split(data["path"], "/")
     pathSelected := splitPath[:len(splitPath)-1]
@@ -703,7 +746,6 @@ func GetDetails(uuid string) (data map[string]map[string]string, err error){
                         }
                     }
                     if !linesAreAdded{
-                        logs.Warn("Not Lines ADDED")
                         err = ndb.UpdateRuleFiles(x, "linesAdded", "false")
                         if err != nil {logs.Error("GetDetails Error updating after compare lines added: %s", err.Error()); return nil, err}
                         break
@@ -730,8 +772,15 @@ func OverwriteRuleFile(uuid string)(err error){
         if err != nil {logs.Error("OverwriteRuleFile failed writing to file: %s", err); return err}
 
         for t := range sourceFile {
+            //backup-file
+            logs.Debug(filepath.Dir(sourceFile[t]["path"]))
+            logs.Debug(filepath.Dir(sourceFile[t]["path"]))
+            logs.Debug(filepath.Dir(sourceFile[t]["path"]))
+            err = utils.BackupFile(filepath.Dir(sourceFile[t]["path"])+"/", sourceFile[t]["file"], "ruleset")
+            if err != nil {logs.Error("OverwriteRuleFile failed backing up file: %s", err); return err}
+
             fileOrig, err := os.Open(sourceFile[t]["path"])
-            fileDst,err := os.OpenFile(dbFiles[r]["path"], os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+            fileDst,err := os.OpenFile(dbFiles[r]["path"], os.O_CREATE|os.O_WRONLY, 0644)
             if err != nil {logs.Error("OverwriteRuleFile failed opening file: %s", err); return err}
             defer fileOrig.Close()
             defer fileDst.Close()
@@ -763,9 +812,13 @@ func AddNewLinesToRuleset(uuid string)(err error){
     if err != nil {logs.Error("AddNewLinesToRuleset GetRuleFilesByUniqueid error: %s", err); return err}
     sourceFile,err := ndb.GetRuleFilesByUniqueid(rulesetFile[uuid]["sourceFileUUID"]) //father file
     if err != nil {logs.Error("AddNewLinesToRuleset failed getting sourceFileUUID data: %s", err); return err}
- 
+        
+    err = utils.BackupFile(filepath.Dir(sourceFile[rulesetFile[uuid]["sourceFileUUID"]]["path"])+"/", sourceFile[rulesetFile[uuid]["sourceFileUUID"]]["file"], "ruleset")
+    if err != nil {logs.Error("OverwriteRuleFile failed backing up file: %s", err); return err}
+
     sourcePath := sourceFile[rulesetFile[uuid]["sourceFileUUID"]]["path"] //father
     rulesetPath := rulesetFile[uuid]["path"] // son
+
 
     fileOrig,err := utils.MapFromFile(sourcePath)
     fileDst,err := utils.MapFromFile(rulesetPath)
@@ -780,7 +833,7 @@ func AddNewLinesToRuleset(uuid string)(err error){
             }
         }
         if !isEquals{
-            writeFile,err := os.OpenFile(rulesetPath, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+            writeFile,err := os.OpenFile(rulesetPath, os.O_APPEND|os.O_WRONLY, 0644)
             defer writeFile.Close()
         
             _, err = writeFile.WriteString(fileOrig[x]["Line"])

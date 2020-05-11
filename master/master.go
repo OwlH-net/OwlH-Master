@@ -42,6 +42,8 @@ func GetFileContent(file string) (data map[string]string, err error) {
     sendBackArray["fileContent"] = string(fileReaded)
     sendBackArray["fileName"] = file
 
+    logs.Notice(sendBackArray)
+
     return sendBackArray, nil
 }
 
@@ -230,12 +232,10 @@ func ModifyStapValuesMaster(anode map[string]string)(err error) {
 }
 
 func CheckServicesStatus()(){
-    socat, err := utils.GetKeyValueString("plugins", "socat")
-    if err != nil {logs.Error("GetNodeFile error getting path from main.conf")}
-
     allPlugins,err := ndb.PingPlugins()
     if err != nil {logs.Error("CheckServicesStatus error getting all master plugins: "+err.Error())}
-
+    socat, err := utils.GetKeyValueString("plugins", "socat")
+    if err != nil {logs.Error("GetNodeFile error getting path from main.conf")}
     command, err := utils.GetKeyValueString("execute", "command")
     if err != nil{logs.Error("CheckServicesStatus Error getting data from main.conf: "+err.Error())}
     param, err := utils.GetKeyValueString("execute", "param")
@@ -359,9 +359,6 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
         cmd := exec.Command(command, param, socat+" "+allValues)
         // cmd := exec.Command(command , param, socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpreplay -t -i "+allPlugins[anode["uuid"]]["interface"]+" -\" &")
 
-        logs.Notice(socat+" "+allValues)
-        logs.Notice(socat+" "+allValues)
-
         var errores bytes.Buffer
         cmd.Stdout = &errores
         err = cmd.Start()
@@ -394,9 +391,6 @@ func DeployStapServiceMaster(anode map[string]string)(err error) {
         allValues := strings.Replace(changePcapPrefix, "<BPF>", allPlugins[anode["uuid"]]["bpf"], -1)
         cmd := exec.Command(command, param, socat+" "+allValues)
         // cmd := exec.Command(command, param, socat+" -d OPENSSL-LISTEN:"+allPlugins[anode["uuid"]]["port"]+",reuseaddr,pf=ip4,fork,cert="+allPlugins[anode["uuid"]]["cert"]+",verify=0 SYSTEM:\"tcpdump -n -r - -s 0 -G 50 -W 100 -w "+allPlugins[anode["uuid"]]["pcap-path"]+allPlugins[anode["uuid"]]["pcap-prefix"]+"%d%m%Y%H%M%S.pcap "+allPlugins[anode["uuid"]]["bpf"]+"\" &")
-
-        logs.Notice(socat+" "+allValues)
-        logs.Notice(socat+" "+allValues)
 
         var errores bytes.Buffer
         cmd.Stdout = &errores
@@ -539,7 +533,7 @@ func Login(data map[string]string)(newToken string, err error){
                 check, err := validation.CheckLdap(data["password"], users[x]["pass"])
                 if err != nil {return "",err}
                 if check{
-                    token, err := validation.Encode(x, data["user"], users[x]["secret"])
+                    token, err := validation.Encode(data["user"], users[x]["secret"])
                     if err != nil {return "",err}
                     return token,nil
                 }
@@ -547,7 +541,7 @@ func Login(data map[string]string)(newToken string, err error){
                 check, err := validation.CheckPasswordHash(data["password"], users[x]["pass"])
                 if err != nil {return "",err}
                 if check{
-                    token, err := validation.Encode(x, data["user"], users[x]["secret"])
+                    token, err := validation.Encode(data["user"], users[x]["secret"])
                     if err != nil {return "",err}
                     return token,nil
                 }
@@ -657,7 +651,7 @@ func AddGroupUsers(anode map[string]string) (err error) {
 func AddRole(anode map[string]string) (err error) {
     uuid := utils.Generate()
     err = ndb.InsertRoleUsers(uuid, "role", anode["role"])
-    err = ndb.InsertRoleUsers(uuid, "permissions", anode["permissions"])
+    // err = ndb.InsertRoleUsers(uuid, "permissions", anode["permissions"])
     if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
    
     //Sync user, group, roles and their relations to the new node
@@ -836,28 +830,16 @@ func DeleteGroupRole(anode map[string]string) (err error) {
 func GetAllRoles() (data map[string]map[string]string, err error) {
     allRoles, err := ndb.GetUserRoles()
     if err != nil{logs.Error("master/GetAllRoles Error getting roles data: "+err.Error()); return nil,err}
-    allUsers, err := ndb.GetLoginData()
-    if err != nil{logs.Error("master/GetAllRoles Error getting users data: "+err.Error()); return nil,err}
-    allGroups, err := ndb.GetUserGroups()
-    if err != nil{logs.Error("master/GetAllRoles Error getting groups data: "+err.Error()); return nil,err}
-    
-    allElements, err :=ndb.GetUserGroupRoles()
+    allPerm, err := ndb.GetRolePermissions()
+    if err != nil{logs.Error("master/GetAllRoles Error getting roles data: "+err.Error()); return nil,err}
+
     if err != nil{logs.Error("master/GetAllRoles Error getting usergrouprole data: "+err.Error()); return nil,err}
     for x := range allRoles{
-        var userNames []string 
-        var groupNames []string 
-        for y := range allElements{
-            if x == allElements[y]["role"]{
-                if allElements[y]["user"] != "" {
-                    userNames = append(userNames, allUsers[allElements[y]["user"]]["user"])                                        
-                }
-                if allElements[y]["group"] != "" {
-                    groupNames = append(groupNames, allGroups[allElements[y]["group"]]["group"])                                        
-                }
+        for y := range allPerm{
+            if x == allPerm[y]["role"]{
+                allRoles[x]["permissions"] = allPerm[y]["permissions"]
             }
         }
-        allRoles[x]["users"] = strings.Join(userNames, ",")
-        allRoles[x]["groups"] = strings.Join(groupNames, ",")
     }
 
     return allRoles, err
@@ -980,4 +962,98 @@ func AddRoleToGroup(anode map[string]string) (err error) {
     }
     
     return nil
+}
+
+func StopPluginsGracefully()(){
+    command, err := utils.GetKeyValueString("execute", "command")
+    if err != nil { logs.Error("Error getting data from main.conf")}
+    param, err := utils.GetKeyValueString("execute", "param")
+    if err != nil { logs.Error(" Error getting data from main.conf")}
+    socatPID, err := utils.GetKeyValueString("execute", "socatPID")
+    if err != nil { logs.Error(" Error getting data from main.conf")}
+    plugins,err := ndb.PingPlugins()
+    if err != nil {logs.Error("StopPluginsGracefully Error: "+err.Error())}
+
+    for id := range plugins{
+        if plugins[id]["type"] == "socket-network" || plugins[id]["type"] == "socket-pcap" {
+            if plugins[id]["pid"] != "none"{
+                pid, _ := exec.Command(command, param, strings.Replace(socatPID, "<PORT>", plugins[id]["port"], -1)).Output()
+                pidValue := strings.Split(string(pid), "\n")
+                //Killing PID
+                for z := range pidValue{
+                    pidToInt,_ := strconv.Atoi(pidValue[z])
+                    process, _ := os.FindProcess(pidToInt)
+                    _ = process.Kill()
+                }
+            }
+        }
+    }
+}
+
+func GetPermissions()(data map[string]map[string]string, err error){
+    allPerm,err := ndb.GetPermissions()
+    if err != nil { logs.Error("GetRolePermissions Error getting data: "+err.Error())}
+    allGroups,err := ndb.GetRoleGroups()
+    if err != nil { logs.Error("GetRoleGroups Error getting data: "+err.Error())}
+
+    for x := range allPerm{
+        for y := range allGroups{
+            if allPerm[x]["permissionGroup"] == y {
+                allPerm[x]["groupDesc"] = allGroups[y]["desc"]
+            }
+        }
+    }
+
+    return allPerm,err
+}
+
+func AddNewRole(anode map[string]string) (err error) {
+    //add role to userRoles
+    uuidRoles := utils.Generate()
+    err = ndb.InsertRoleUsers(uuidRoles, "role", anode["role"])
+    if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
+    // err = ndb.InsertRoleUsers(uuidRoles, "permissions", anode["permissions"])
+    // if err != nil{logs.Error("master/AddRole Error inserting user into db: "+err.Error()); return err}    
+    
+    //add role to rolePermissions
+    uuidPermRoles := utils.Generate()
+    err = ndb.InsertRolePermissions(uuidPermRoles, "role", uuidRoles)
+    err = ndb.InsertRolePermissions(uuidPermRoles, "permissions", anode["permissions"])
+    err = ndb.InsertRolePermissions(uuidPermRoles, "object", "any")
+
+    //Sync user, group, roles and their relations to the new node
+    node.SyncUsersToNode()
+    node.SyncRolesToNode()
+    node.SyncGroupsToNode()
+    node.SyncUserGroupRolesToNode()
+
+    return nil
+}
+
+func GetPermissionsByRole(roleuuid string)(data map[string]map[string]string, err error){
+    values,err := ndb.GetRolePermissionsByValue(roleuuid)
+    if err != nil{logs.Error("master/GetPermissionsByRole Error getting permissions for specific role: "+err.Error()); return nil,err}    
+    allPerm,err := GetPermissions()
+    if err != nil{logs.Error("master/GetPermissionsByRole Error getting all permissions for specific role: "+err.Error()); return nil,err}    
+
+    var allRolePermissions = map[string]map[string]string{}
+    
+    //split role permissions
+    for x := range values {
+        //split permissions
+        splitedPerm := strings.Split(values[x]["permissions"], ",")
+        //get only permissions for this role
+        for x := range allPerm {
+            for y := range splitedPerm{
+                if x == splitedPerm[y] {
+                    allRolePermissions[x] = map[string]string{}
+                    allRolePermissions[x]["desc"] = allPerm[x]["desc"]
+                    allRolePermissions[x]["groupDesc"] = allPerm[x]["groupDesc"]
+                    allRolePermissions[x]["permissionGroup"] = allPerm[x]["permissionGroup"]
+                }
+            }
+        }
+    }
+
+    return allRolePermissions,nil
 }

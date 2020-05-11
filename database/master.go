@@ -140,6 +140,24 @@ func LoadMasterID()(id string, err error){
     return masterConfigID,nil
 }
 
+func LoadMasterKEY()(id string, err error){
+    var masterConfigID string
+
+    sql := "select config_value from masterconfig where config_uniqueid='master' and config_param='key'";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("LoadMasterKEY Mdb.Query Error : %s", err.Error())
+        return "", err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&masterConfigID); err != nil {
+            logs.Error("LoadMasterKEY -- Query return error: %s", err.Error())
+            return "", err
+        }
+    } 
+    return masterConfigID,nil
+}
+
 func LoadMasterNetworkValuesSelected()(path map[string]map[string]string, err error){
     var pingData = map[string]map[string]string{}
     var uniqid string
@@ -344,7 +362,7 @@ func InsertGroup(uuid string, param string, value string)(err error){
 func InsertGroupNodes(uuid string, param string, value string)(err error){
     if Mdb == nil {logs.Error("no access to database"); return err}
     insertGroupnodesValues, err := Mdb.Prepare("insert into groupnodes(gn_uniqueid, gn_param, gn_value) values(?,?,?);")
-    if err != nil {logs.Error("Prepare InsertGroupNodes-> %s", err.Error()); return err}
+    if err != nil {logs.Error("Prepare InssertGroupNodes-> %s", err.Error()); return err}
 
     _, err = insertGroupnodesValues.Exec(&uuid, &param, &value)
     if err != nil {logs.Error("Execute InsertGroupNodes-> %s", err.Error()); return err}
@@ -405,8 +423,6 @@ func GetGroupNodesByValue(uuid string)(groups map[string]map[string]string, err 
 }
 
 func UpdateGroupValue(uuid string, param string, value string) (err error) {
-    logs.Info(uuid+"   ->   "+param+"   ->   "+value)
-    // updateGroup, err := Mdb.Prepare("insert or replace into groups (group_uniqueid, group_param, group_value) values (?,?,?);")
     updateGroup, err := Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
     if (err != nil){logs.Error("updateGroup UPDATE prepare error: "+err.Error()); return err}
 
@@ -589,6 +605,20 @@ func GetLoginData()(groups map[string]map[string]string, err error){
         allusers[uniqid][param]=value
     } 
     return allusers, nil
+}
+
+func GetUserID(user string)(id string, err error){
+    var uniqid string
+    if Mdb == nil { logs.Error("no access to database"); return "", err}
+    
+    sql := "select user_uniqueid from users where user_param='user' and user_value='"+user+"';"
+    rows, err := Mdb.Query(sql)
+    if err != nil { logs.Error("GetUserID Mdb.Query Error : %s", err.Error()); return "", err}
+    
+    for rows.Next() {
+        if err = rows.Scan(&uniqid); err != nil { logs.Error("GetUserID rows.Scan: %s", err.Error()); return "", err}
+    } 
+    return uniqid, nil
 }
 
 func DeleteUser(uuid string)(err error){
@@ -862,4 +892,117 @@ func UpdateUserGroup(uuid string, param string, value string) (err error) {
     if (err != nil){logs.Error("UpdateUserGroup UPDATE error: "+err.Error()); return err}
 
     return nil
+}
+
+func GetRolePermissions()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select rp_uniqueid,rp_param,rp_value from rolePermissions";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("getRolePermissions Mdb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("getRolePermissions -- Mdb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
+
+func GetPermissions()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select per_uniqueid,per_param,per_value from permissions";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("GetPermissions Mdb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetPermissions -- Mdb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
+
+func GetRoleGroups()(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select rg_uniqueid,rg_param,rg_value from roleGroups";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("GetRoleGroups Mdb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {
+            logs.Error("GetRoleGroups -- Mdb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+        pingData[uniqid][param]=value
+    } 
+    return pingData,nil
+}
+
+func InsertRolePermissions(uuid string, param string, value string)(err error){
+    insertData, err := Mdb.Prepare("insert into rolePermissions(rp_uniqueid, rp_param, rp_value) values (?,?,?);")
+    if (err != nil){ logs.Error("InsertRolePermissions INSERT prepare error: "+err.Error()); return err}
+
+    _, err = insertData.Exec(&uuid, &param, &value)
+    if (err != nil){ logs.Error("InsertRolePermissions INSERT exec error: "+err.Error()); return err}
+
+    defer insertData.Close()
+    
+    return nil
+}
+
+func GetRolePermissionsByValue(val string)(path map[string]map[string]string, err error){
+    var pingData = map[string]map[string]string{}
+    var id string
+    var uniqid string
+    var param string
+    var value string
+
+    sql := "select rp_uniqueid from rolePermissions where rp_value='"+val+"'";
+    rows, err := Mdb.Query(sql)
+    if err != nil {
+        logs.Error("GetRolePermissionsByValue Mdb.Query Error : %s", err.Error())
+        return nil, err
+    }
+    for rows.Next() {
+        if err = rows.Scan(&id); err != nil {
+            logs.Error("GetRolePermissionsByValue -- Mdb.Query return error: %s", err.Error())
+            return nil, err
+        }
+        sql := "select rp_uniqueid,rp_param,rp_value from rolePermissions where rp_uniqueid='"+id+"';"
+        rows, err := Mdb.Query(sql)
+        if err != nil { logs.Error("GetRolePermissionsByValue subQuery Error : %s", err.Error()); return nil, err}
+        
+        for rows.Next() {
+            if err = rows.Scan(&uniqid, &param, &value); err != nil { logs.Error("GetRolePermissionsByValue rows.Scan: %s", err.Error()); return nil, err}
+            
+            if pingData[uniqid] == nil { pingData[uniqid] = map[string]string{}}
+            pingData[uniqid][param]=value
+        }
+    } 
+    return pingData,nil
 }

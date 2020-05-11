@@ -76,9 +76,11 @@ func AddNode(n map[string]string) (err error) {
     if n["name"] != "" {err = ndb.InsertNodeKey(uuid, "name", n["name"]); if err != nil {logs.Error("AddNode Insert node name error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
     if n["port"] != "" {err = ndb.InsertNodeKey(uuid, "port", n["port"]); if err != nil {logs.Error("AddNode Insert node port error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
     if n["ip"] != "" {err = ndb.InsertNodeKey(uuid, "ip", n["ip"]); if err != nil {logs.Error("AddNode Insert node ip error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
+    // err = ndb.InsertNodeKey(uuid, "sync", n["syncip"]); if err != nil {logs.Error("AddNode Insert node sync error: "+err.Error()); return err}
 
     //Get token from node and insert data
     token,err := nodeclient.GetNodeToken(n["ip"],n["port"], login)
+
     if err != nil {
         logs.Error("AddNode Error getting node token: "+err.Error())
         err = ndb.InsertNodeKey(uuid, "token", "wait"); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
@@ -89,6 +91,9 @@ func AddNode(n map[string]string) (err error) {
         SyncUserGroupRolesToNode()
         SyncRolesToNode()
         SyncGroupsToNode()
+        SyncRolePermissions()
+        SyncPermissions()
+        SyncRoleGroups()
     }
 
     //Load token
@@ -212,7 +217,7 @@ func GetAllNodes()(data map[string]map[string]string, err error){
             if err != nil { logs.Error("node/GetAllNodes ERROR Obtaining Port and Ip: "+err.Error()); return nil,err}     
             token,err := nodeclient.GetNodeToken(ipData, portData, login)
             if err != nil {
-                logs.Emergency("node/GetAllNodes ERROR getting node id. Pending registering...")
+                logs.Warn("node/GetAllNodes ERROR getting node id. Pending registering...")
             }else{
                 err = ndb.UpdateNode(id, "token", token)  
                 if err != nil {logs.Error("node/GetAllNodes ERROR updating node token: "+err.Error()); return nil,err} 
@@ -446,21 +451,15 @@ func ShowPorts(uuid string)(data map[string]map[string]string, err error){
 }
 
 func PingPluginsNode(uuid string)(data map[string]map[string]string, err error){
-    if ndb.Db == nil {
-        logs.Error("PingPluginsNode -- Can't acces to database")
-        return data,errors.New("PingPluginsNode -- Can't acces to database")
-    }
+    if ndb.Db == nil { logs.Error("PingPluginsNode -- Can't acces to database"); return data,errors.New("PingPluginsNode -- Can't acces to database")}
     err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("PingPluginsNode Error loading node token: %s",err); return nil, err}
+
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
-    if err != nil {
-        logs.Error("node/PingPluginsNode ERROR Obtaining Port and Ip: "+err.Error())
-        return data,err
-    }
+    if err != nil {logs.Error("node/PingPluginsNode ERROR Obtaining Port and Ip: "+err.Error()); return data,err}
+
     data, err = nodeclient.PingPluginsNode(ipnid,portnid)
-    if err != nil {
-        logs.Error("node/PingPluginsNode ERROR http data request: "+err.Error())
-        return data,err
-    }
+    if err != nil {logs.Error("node/PingPluginsNode ERROR http data request: "+err.Error()); return data,err}
+
     return data,nil
 }
 
@@ -564,19 +563,16 @@ func PingPorts(uuid string)(data map[string]map[string]string, err error){
 }
 
 func SyncRulesetToNode(anode map[string]string)(err error){
-    rulesetUUID,err := ndb.GetRulesetUUID(anode["uuid"])
-    if err != nil {logs.Error("SyncRulesetToNode/GetRulesetUUID error: "+err.Error()); return err}
-
     //read lines by ruleset uuid
-    data, err := CreateNewRuleFile(rulesetUUID)
-    if err != nil {logs.Error("nodeclient.SetRuleset ERROR creating a nunique ruleset file: "+err.Error()); return err}
+    data, err := CreateNewRuleFile(anode["ruleset"])
+    if err != nil {logs.Error("SyncRulesetToNode ERROR creating a nunique ruleset file: "+err.Error()); return err}
 
     //send lines to node
     err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("SyncRulesetToNode Error loading node token: %s",err); return err}
     ipData,portData,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil {logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error()); return err}    
-    err = nodeclient.SyncRulesetToNode(ipData,portData,data)
-    if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
+    err = nodeclient.SyncRulesetToNode(ipData, portData, data, anode["service"])
+    if err != nil {logs.Error("SyncRulesetToNode ERROR connection through http new Request: "+err.Error()); return err}
 
     return nil
 }
@@ -663,8 +659,8 @@ func SyncRulesetToAllNodes(anode map[string]string)(err error){
         }
 
         //send lines to node
-        err = nodeclient.SyncRulesetToNode(ipData,portData,data)
-        if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
+        err = nodeclient.SyncRulesetToNode(ipData, portData, data, uuid)
+        if err != nil {logs.Error("SyncRulesetToAllNodes ERROR connection through http new Request: "+err.Error()); return err}
     }
     return nil
 }
@@ -913,7 +909,7 @@ func DeleteDataFlowValueSelected(anode map[string]string)(err error){
 func GetNodeMonitor(uuid string)(data map[string]interface{}, err error){
     if ndb.Db == nil { logs.Error("GetNodeMonitor -- Can't acces to database"); return data,err}
 
-    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Error("GetNodeMonitor Error loading node token: %s",err); return nil, err}
+    err = ndb.GetTokenByUuid(uuid); if err!=nil{logs.Warn("GetNodeMonitor Error loading node token: %s",err); return nil, err}
     ipnid,portnid,err := ndb.ObtainPortIp(uuid)
     if err != nil { logs.Error("node/GetNodeMonitor ERROR Obtaining Port and Ip: "+err.Error()); return data,err}
 
@@ -1001,15 +997,15 @@ func StopStapService(anode map[string]string)(err error){
     return nil
 }
 
-func ModifyStapValues(anode map[string]string)(err error){
-    if ndb.Db == nil { logs.Error("ModifyStapValues -- Can't acces to database"); return err}
+func ModifyNodeOptionValues(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("ModifyNodeOptionValues -- Can't acces to database"); return err}
 
-    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("ModifyStapValues Error loading node token: %s",err); return err}
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("ModifyNodeOptionValues Error loading node token: %s",err); return err}
     ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
-    if err != nil { logs.Error("node/ModifyStapValues ERROR Obtaining Port and Ip: "+err.Error()); return err}
+    if err != nil { logs.Error("node/ModifyNodeOptionValues ERROR Obtaining Port and Ip: "+err.Error()); return err}
     
-    err = nodeclient.ModifyStapValues(ipnid,portnid,anode)
-    if err != nil { logs.Error("node/ModifyStapValues ERROR http data request: "+err.Error()); return err}
+    err = nodeclient.ModifyNodeOptionValues(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/ModifyNodeOptionValues ERROR http data request: "+err.Error()); return err}
 
     return nil
 }
@@ -1105,53 +1101,115 @@ func PutIncidentNode(anode map[string]string)(err error){
     return nil
 }
 
+type reportitem struct{
+    Node      string   `json:"node"`
+    Success   bool     `json:"success"`
+    Desc      string   `json:"desc"`
+    Result    string   `json:"result"`
+}
+
 func SyncRulesetToAllGroupNodes(anode map[string]string)(err error){
-    logs.Info(anode);
+    reportItemArray := []reportitem{}
+    syncReport := reportitem{}
+    var pingNodes = map[string]map[string]string{}
+    
+    //get all rulesets for a group
+
     nodesID,err := ndb.GetGroupNodesByUUID(anode["uuid"])
     if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all nodes for a groups: "+err.Error()); return err}
     
     for x := range nodesID {
-        //get node data by uuid
-        if ndb.Db == nil { logs.Error("PutIncidentNode -- Can't acces to database"); return err}
-        
-        err = ndb.GetTokenByUuid(nodesID[x]["nodesid"]); if err!=nil{logs.Error("SyncRulesetToAllGroupNodes Error loading node token: %s",err); return err}
-        ipnid,portnid,err := ndb.ObtainPortIp(nodesID[x]["nodesid"])
-        if err != nil { logs.Error("node/PutIncidentNode ERROR Obtaining Port and Ip: "+err.Error()); return err}
-
-        //get all rulesets for this node
-        allGroupsNodes,err := ndb.GetAllGroupNodes()
-        if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all groupsnodes: "+err.Error()); return err}
-
-        var rulesetsList []string
-        for y := range allGroupsNodes {
-            //get all ruleset id if this node is in this group
-            if allGroupsNodes[y]["nodesid"] == nodesID[x]["nodesid"] {
-                //get ruleset assigned to this group
-                allGroups,err := ndb.GetAllGroups()
-                if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all groups for get their rulesetID: "+err.Error()); return err}
-
-                groupsRuleset := allGroups[allGroupsNodes[y]["groupid"]]["rulesetID"]
-                rulesetsList = append(rulesetsList, groupsRuleset)
+        node,err := ndb.GetNodeById(nodesID[x]["nodesid"])
+        if err != nil {
+            syncReport.Node = nodesID[x]["nodesid"]
+            syncReport.Success = false
+            syncReport.Result = err.Error()
+        }else{
+            syncReport.Node = nodesID[x]["nodesid"]
+            syncReport.Success = true
+            syncReport.Result = "Success"
+            syncReport.Desc = "Get node for sync group ruleset: "+node[nodesID[x]["nodesid"]]["name"]+" - "+node[nodesID[x]["nodesid"]]["ip"]+" - "+node[nodesID[x]["nodesid"]]["port"]
+            //create ready nodes hashmap
+            if pingNodes[nodesID[x]["nodesid"]] == nil { pingNodes[nodesID[x]["nodesid"]] = map[string]string{}}
+            for param := range node[nodesID[x]["nodesid"]]{
+                pingNodes[nodesID[x]["nodesid"]][param]=node[nodesID[x]["nodesid"]][param]
             }
         }
-        var rulePaths []string
-        for ruleID := range rulesetsList{
-            rules,err := ndb.GetAllRuleFiles()
-            if err != nil {logs.Error("SyncRulesetToAllGroupNodes/GetAllRuleFiles error getting all rule files: "+err.Error()); return err}
-            for r := range rules{
-                if rules[r]["sourceUUID"] == rulesetsList[ruleID]{
-                    rulePaths = append(rulePaths, rules[r]["path"])
-                }
-            }
-        } 
+
+        reportItemArray = append(reportItemArray, syncReport)
         
-        AllEnabledLines,err := utils.MergeAllFiles(rulePaths)
-        if AllEnabledLines == nil { return errors.New("There are no rules for synchronize. Please, select a valid ruleset.")}
+    }
+    if pingNodes == nil {
+        for x := range reportItemArray{
+            logs.Info("Node: "+reportItemArray[x].Node)
+            logs.Info("Success: "+strconv.FormatBool(reportItemArray[x].Success))
+            logs.Info("Result: "+reportItemArray[x].Result)
+            if reportItemArray[x].Success{
+                logs.Info("Description: "+reportItemArray[x].Desc)
+            }
+        }
+    }
+    
+    //Get ruleset data for this group
 
-        //send lines to node
-        err = nodeclient.SyncRulesetToNode(ipnid,portnid,AllEnabledLines)
-        if err != nil {logs.Error("nodeclient.SetRuleset ERROR connection through http new Request: "+err.Error()); return err}
+    // allGroups,err := ndb.GetAllGroups()
+    // if err != nil {logs.Error("SyncRulesetToAllGroupNodes error getting all groups: "+err.Error()); return err}
+    // data,err := CreateNewRuleFile(allGroups[anode["uuid"]]["rulesetID"])
+    // if err != nil {logs.Error("SyncRulesetToAllGroupNodes error creating ruleset file: "+err.Error()); return err}
 
+    for x := range pingNodes{
+        logs.Warn("NODE --> "+pingNodes[x]["name"])
+        //get all groupRulesets
+        groupRulesets, err := ndb.GetAllGroupRulesets()
+        if err != nil {logs.Error("SyncRulesetToAllGroupNodes GetAllGroupRulesets error: "+ err.Error()); return err}
+
+        for f := range groupRulesets {
+            if groupRulesets[f]["groupid"] == anode["uuid"]{
+                //get ruleset content by ruleset id
+                data,err := CreateNewRuleFile(groupRulesets[f]["rulesetid"])
+                if err != nil {logs.Error("SyncRulesetToAllGroupNodes error creating ruleset file: "+err.Error()); return err}
+                
+                //get ruleset name
+                name,err := ndb.GetRulesetSourceValue(groupRulesets[f]["rulesetid"], "name")
+                if err != nil {logs.Error("SyncRulesetToAllGroupNodes error creating ruleset file: "+err.Error()); return err}
+
+                values := make(map[string][]byte)
+                values["data"] = data
+                values["name"] = []byte(name)
+
+                logs.Notice(string(len(data))+" Ruleset for this group --> "+name)
+
+                //get node token
+                err = ndb.GetTokenByUuid(x)
+                if err!=nil{logs.Error("SyncRulesetToAllGroupNodes Error loading node token: %s",err); continue}
+        
+                //sync ruleset to node
+                err = nodeclient.SyncGroupRulesetToNode(pingNodes[x]["ip"],pingNodes[x]["port"], values)
+                if err != nil {
+                    syncReport.Node = pingNodes[x]["name"]
+                    syncReport.Success = false
+                    syncReport.Result = err.Error()
+                }else{
+                    syncReport.Success = true
+                    syncReport.Result = "Success"
+                    syncReport.Node = pingNodes[x]["name"]
+                    syncReport.Desc = "Ruleset sync to node "+pingNodes[x]["name"]+" success!"
+                }
+                reportItemArray = append(reportItemArray, syncReport)
+
+            }
+        }
+
+    }
+    
+    //PRINT REPORT HERE
+    for x := range reportItemArray{
+        logs.Info("Node: "+reportItemArray[x].Node)
+        logs.Info("Success: "+strconv.FormatBool(reportItemArray[x].Success))
+        logs.Info("Result: "+reportItemArray[x].Result)
+        if reportItemArray[x].Success{
+            logs.Info("Description: "+reportItemArray[x].Desc)
+        }
     }
 
     return nil
@@ -1177,38 +1235,45 @@ func PutSuricataServicesFromGroup(anode map[string]string)(err error){
     return nil
 }
 
-func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[string]map[string]string, err error){
+func SyncAnalyzerToAllGroupNodes(anode map[string]string)(log map[string]map[string]string, err error){
     conf, err := utils.GetKeyValueString("analyzer", "conf")
     if err != nil {logs.Error("GetNodeFile error getting path from main.conf"); return nil,err}
 
     logSync := make(map[string]map[string]string)
     var activeNode bool = true
-    for x := range anode {
+
+    //get all group nodes
+    nodesID,err := ndb.GetGroupNodesByUUID(anode["uuid"])
+    if err != nil {logs.Error("SyncAnalyzerToAllGroupNodes error getting all nodes for a groups: "+err.Error()); return nil, err}
+    //get all nodes
+    allNodes,err := ndb.GetAllNodes()
+    if err != nil {logs.Error("SyncAnalyzerToAllGroupNodes error getting all nodes: "+err.Error()); return nil, err}
+
+    //loop over all group nodes
+    for x := range nodesID { 
         //get node data by uuid
         if ndb.Db == nil { logs.Error("node/SyncAnalyzerToAllGroupNodes -- Can't acces to database"); return nil, err}
 
-        err = ndb.GetTokenByUuid(anode[x]["nuuid"]); if err!=nil{logs.Error("SyncAnalyzerToAllGroupNodes Error loading node token: %s",err); return nil,err}
-        ipnid,portnid,err := ndb.ObtainPortIp(anode[x]["nuuid"])
+        err = ndb.GetTokenByUuid(nodesID[x]["nodesid"]); if err!=nil{logs.Error("SyncAnalyzerToAllGroupNodes Error loading node token: %s",err); return nil,err}
+        ipnid,portnid,err := ndb.ObtainPortIp(nodesID[x]["nodesid"])
         if err != nil { 
             logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR Obtaining Port and Ip: "+err.Error()); 
             activeNode = false
             //add to log
-            if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
-            logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
-            logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
-            logSync[anode[x]["nuuid"]]["status"] = "error"
+            if logSync[nodesID[x]["nodesid"]] == nil{ logSync[nodesID[x]["nodesid"]] = map[string]string{} }
+            logSync[nodesID[x]["nodesid"]]["name"] = allNodes[nodesID[x]["nodesid"]]["name"]
+            logSync[nodesID[x]["nodesid"]]["ip"] = allNodes[nodesID[x]["nodesid"]]["ip"]
+            logSync[nodesID[x]["nodesid"]]["status"] = "error"
         }
-
         if activeNode{
             //get analyzer file content
-            // analyzerFile, err := ioutil.ReadFile("conf/analyzer.json")
             analyzerFile, err := ioutil.ReadFile(conf)
             if err != nil { 
                 logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR getting analyzer file content: "+err.Error())
-                if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
-                logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
-                logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
-                logSync[anode[x]["nuuid"]]["status"] = "error"  
+                if logSync[nodesID[x]["nodesid"]] == nil{ logSync[nodesID[x]["nodesid"]] = map[string]string{} }
+                logSync[nodesID[x]["nodesid"]]["name"] = allNodes[nodesID[x]["nodesid"]]["name"]
+                logSync[nodesID[x]["nodesid"]]["ip"] = allNodes[nodesID[x]["nodesid"]]["ip"]
+                logSync[nodesID[x]["nodesid"]]["status"] = "error"  
                 logs.Warn("ERROR -> reading file")
             }else{
                 //send Suricata services to node
@@ -1216,17 +1281,17 @@ func SyncAnalyzerToAllGroupNodes(anode map[string]map[string]string)(log map[str
                 if err != nil { 
                     logs.Error("node/SyncAnalyzerToAllGroupNodes ERROR http data request: "+err.Error())
                     //add to log
-                    if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
-                    logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
-                    logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
-                    logSync[anode[x]["nuuid"]]["status"] = "error"
+                    if logSync[nodesID[x]["nodesid"]] == nil{ logSync[nodesID[x]["nodesid"]] = map[string]string{} }
+                    logSync[nodesID[x]["nodesid"]]["name"] = allNodes[nodesID[x]["nodesid"]]["name"]
+                    logSync[nodesID[x]["nodesid"]]["ip"] = allNodes[nodesID[x]["nodesid"]]["ip"]
+                    logSync[nodesID[x]["nodesid"]]["status"] = "error"
                     logs.Warn("ERROR -> nodeclient")
                 }else{
                     //add to log
-                    if logSync[anode[x]["nuuid"]] == nil{ logSync[anode[x]["nuuid"]] = map[string]string{} }
-                    logSync[anode[x]["nuuid"]]["name"] = anode[x]["nname"]
-                    logSync[anode[x]["nuuid"]]["ip"] = anode[x]["nip"]
-                    logSync[anode[x]["nuuid"]]["status"] = "success"
+                    if logSync[nodesID[x]["nodesid"]] == nil{ logSync[nodesID[x]["nodesid"]] = map[string]string{} }
+                    logSync[nodesID[x]["nodesid"]]["name"] = allNodes[nodesID[x]["nodesid"]]["name"]
+                    logSync[nodesID[x]["nodesid"]]["ip"] = allNodes[nodesID[x]["nodesid"]]["ip"]
+                    logSync[nodesID[x]["nodesid"]]["status"] = "success"
                     logs.Notice("SUCCESS")
                 }     
             }        
@@ -1275,7 +1340,7 @@ func SyncRolesToNode()(){
         roleValues[role] = map[string]string{}
         roleValues[role]["masterID"] = masterID
         roleValues[role]["role"] = roles[role]["role"]
-        roleValues[role]["permissions"] = roles[role]["permissions"]
+        // roleValues[role]["permissions"] = roles[role]["permissions"]
         roleValues[role]["type"] = "master"
         roleValues[role]["status"] = "exists"
     }
@@ -1386,6 +1451,125 @@ func EditRotation(anode map[string]string)(err error){
     return nil
 }
 
+func GetServiceCommands(anode map[string]string)(values map[string]map[string]string,err error){
+    if ndb.Db == nil { logs.Error("node/GetServiceCommands -- Can't acces to database"); return nil, err}
+    
+    //load token for this node
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("node/GetServiceCommands Error loading node token: %s",err); return nil, err}
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil { logs.Error("node/GetServiceCommands ERROR Obtaining Port and Ip: "+err.Error()); return nil, err}
+
+    values, err = nodeclient.GetServiceCommands(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/GetServiceCommands ERROR http data request: "+err.Error()); return nil, err}
+    
+
+    return values, nil
+}
+
+func SaveSurictaRulesetSelected(anode map[string]string)(err error){
+    if ndb.Db == nil { logs.Error("node/SaveSurictaRulesetSelected -- Can't acces to database"); return err}
+    
+    //load token for this node
+    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("node/SaveSurictaRulesetSelected Error loading node token: %s",err); return err}
+    ipnid,portnid,err := ndb.ObtainPortIp(anode["uuid"])
+    if err != nil { logs.Error("node/SaveSurictaRulesetSelected ERROR Obtaining Port and Ip: "+err.Error()); return err}
+
+    err = nodeclient.SaveSurictaRulesetSelected(ipnid,portnid,anode)
+    if err != nil { logs.Error("node/SaveSurictaRulesetSelected ERROR http data request: "+err.Error()); return err}
+    
+    return nil
+}
+
+func SyncRolePermissions()(){
+    masterID,err := ndb.LoadMasterID()
+    if err != nil{logs.Error("node/SyncRolePermissions Error getting master ID: "+err.Error())}    
+    //get all roles
+    rolePerm,err:= ndb.GetRolePermissions()
+    if err != nil{logs.Error("node/SyncRolePermissions Error getting roles: "+err.Error())}    
+    values := make(map[string]map[string]string)
+    for id := range rolePerm {
+        values[id] = map[string]string{}
+        values[id]["masterID"] = masterID
+        values[id]["type"] = "master"
+        values[id]["status"] = "exists"
+        values[id]["role"] = rolePerm[id]["role"]
+        values[id]["permissions"] = rolePerm[id]["permissions"]
+        values[id]["object"] = rolePerm[id]["object"]
+    }
+
+    nodes,err:= ndb.GetAllNodes()
+    if err != nil{logs.Error("node/SyncRolePermissions Error getting allNodes: "+err.Error())}    
+    for id := range nodes {
+        ipnid,portnid,err := ndb.ObtainPortIp(id)
+        if err != nil{logs.Error("node/SyncRolePermissions Error getting Node ip and port: "+err.Error())}  
+
+        err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncRolePermissions Error loading node token: %s",err)}  
+        //get user uuid
+        err = nodeclient.SyncRolePermissions(ipnid,portnid,values)
+        if err != nil{logs.Error("node/SyncRolePermissions Error: "+err.Error())}    
+    }
+    logs.Info("RolePermissions synchronized to nodes")
+}
+
+func SyncRoleGroups()(){
+    masterID,err := ndb.LoadMasterID()
+    if err != nil{logs.Error("node/SyncRoleGroups Error getting master ID: "+err.Error())}    
+    //get all roles
+    roleGroups,err:= ndb.GetRoleGroups()
+    if err != nil{logs.Error("node/SyncRoleGroups Error getting roles: "+err.Error())}    
+    values := make(map[string]map[string]string)
+    for id := range roleGroups {
+        values[id] = map[string]string{}
+        values[id]["masterID"] = masterID
+        values[id]["type"] = "master"
+        values[id]["status"] = "exists"
+        values[id]["group"] = roleGroups[id]["group"]
+        values[id]["desc"] = roleGroups[id]["desc"]
+        values[id]["object"] = roleGroups[id]["object"]
+    }
+
+    nodes,err:= ndb.GetAllNodes()
+    if err != nil{logs.Error("node/SyncRoleGroups Error getting allNodes: "+err.Error())}    
+    for id := range nodes {
+        ipnid,portnid,err := ndb.ObtainPortIp(id)
+        if err != nil{logs.Error("node/SyncRoleGroups Error getting Node ip and port: "+err.Error())}  
+
+        err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncRoleGroups Error loading node token: %s",err)}  
+        //get user uuid
+        err = nodeclient.SyncRoleGroups(ipnid,portnid,values)
+        if err != nil{logs.Error("node/SyncRoleGroups Error: "+err.Error())}    
+    }
+    logs.Info("RoleGroups synchronized to nodes")
+}
+
+func SyncPermissions()(){
+    masterID,err := ndb.LoadMasterID()
+    if err != nil{logs.Error("node/SyncPermissions Error getting master ID: "+err.Error())}    
+
+    perms,err:= ndb.GetPermissions()
+    if err != nil{logs.Error("node/SyncPermissions Error getting groups: "+err.Error())}    
+    values := make(map[string]map[string]string)
+    for id := range perms {
+        values[id] = map[string]string{}
+        values[id]["masterID"] = masterID
+        values[id]["desc"] = perms[id]["desc"]
+        values[id]["permisionGroup"] = perms[id]["permisionGroup"]
+    }
+
+    nodes,err:= ndb.GetAllNodes()
+    if err != nil{logs.Error("node/SyncPermissions Error getting allNodes: "+err.Error())}    
+    for id := range nodes {
+        ipnid,portnid,err := ndb.ObtainPortIp(id)
+        if err != nil{logs.Error("node/SyncPermissions Error getting Node ip and port: "+err.Error())}  
+
+        err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncPermissions Error loading node token: %s",err)} 
+        //get user uuid 
+        err = nodeclient.SyncPermissions(ipnid,portnid,values)
+        if err != nil{logs.Error("node/SyncPermissions Error: "+err.Error())}    
+    }
+    logs.Info("permissions synchronized to nodes")
+}
+
 func SyncAllUserData()(){
     for{
         t,err := utils.GetKeyValueString("loop", "usergrouproles")
@@ -1396,6 +1580,9 @@ func SyncAllUserData()(){
         SyncRolesToNode()
         SyncGroupsToNode()
         SyncUserGroupRolesToNode()
+        SyncRolePermissions()
+        SyncPermissions()
+        SyncRoleGroups()
         time.Sleep(time.Minute * time.Duration(tDuration))
     }
 }

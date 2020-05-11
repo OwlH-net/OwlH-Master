@@ -199,6 +199,25 @@ func AddNewRuleset(data map[string]map[string]string)(duplicated []byte, err err
     return duplicated, err
 }
 
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/ruleset/modify \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": {
+//          "sourceName":"aaa",
+//          "fileName":"aaa",
+//          "filePath":"aaa",
+//          "rulesetName":"aaa",
+//          "rulesetDesc":"aaa",
+//          "sourceType":"aaa",
+//      }
+// }
+func ModifyRuleset(data map[string]map[string]string)(duplicated []byte, err error) {
+    duplicated, err = ruleset.ModifyRuleset(data)
+    changecontrol.ChangeControlInsertData(err, "ModifyRuleset")
+    return duplicated, err
+}
+
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/custom \
 func GetAllCustomRulesets()(data map[string]map[string]string,err error) {
@@ -291,5 +310,17 @@ func SaveRulesetData(content map[string]string)(err error) {
 func UpdateRule(anode map[string]string)(err error) {
     err = ruleset.UpdateRule(anode)
     changecontrol.ChangeControlInsertData(err, "UpdateRule")
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/ruleset/syncToAll \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//      "uuid":"aaa"
+// }
+func SyncToAll(anode map[string]string)(err error) {
+    err = ruleset.SyncToAll(anode)
+    changecontrol.ChangeControlInsertData(err, "SyncToAll")
     return err
 }

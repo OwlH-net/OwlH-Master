@@ -86,21 +86,25 @@ func BuildRuleIndex()(){
 func BuildRuleIndexElastic()(){
     var jsonRules []string
     allRulesets,err := ndb.GetAllRuleFiles()
-    if err!=nil {logs.Error("BuildRuleIndexElastic Error getting all rule files: "+err.Error())}
+    if err!=nil {logs.Error("BuildRuleIndexElastic Error getting all rule files: "+err.Error()); return }
 
     for x,_ := range allRulesets {
         if allRulesets[x]["type"] == "source" {continue}
         currentRules, err := ruleset.ReadRuleset(allRulesets[x]["path"])
-        if err!=nil {logs.Error("BuildRuleIndexElastic Error getting rule file content: "+err.Error())}
+        if err!=nil {logs.Error("BuildRuleIndexElastic Error getting rule file content: "+err.Error()); continue}
 
         for r := range currentRules{
             currentRuleData := make(map[string]string)
             //regexp
             var validID = regexp.MustCompile(`([^\(]+)\((.*)\)`)
             sid := validID.FindStringSubmatch(currentRules[r]["raw"])
+            if len(sid) != 3 { logs.Error("Rule header bad sintax: "+currentRules[r]["raw"]); continue }
 
             match := strings.Split(sid[1], " ")
+            //Check if rules are empty
+            if len(match) != 7 { continue }
 
+            //create rule map
             currentRuleData["raw"] = currentRules[r]["raw"]
             currentRuleData["status"] = currentRules[r]["enabled"]
             currentRuleData["type"] = strings.Trim(match[0], "#")
@@ -118,6 +122,8 @@ func BuildRuleIndexElastic()(){
                 if matchContent[h] == "" {continue}
                 if strings.Contains(matchContent[h], ":"){
                     keyValue := strings.Split(matchContent[h], ":")
+                    
+                    if len(keyValue) != 2 { logs.Error("Error key value not found: "+currentRules[r]["raw"]); continue }
                     keyValue[0] = strings.Replace(keyValue[0]," ","",-1)
                     if keyValue[0] == "" {continue}
 
@@ -131,6 +137,7 @@ func BuildRuleIndexElastic()(){
                     currentRuleData[matchContent[h]] = ""
                 }                    
             }
+
             ruleElasticOutput, err := json.Marshal(currentRuleData)
             if err!=nil {logs.Error("BuildRuleIndexElastic Error creating json file: "+err.Error())}
     
@@ -142,17 +149,16 @@ func BuildRuleIndexElastic()(){
     logs.Info("Elastic data loaded")
 }
 
-
 func BuildRuleIndexLocal()(){
     RulesIndex = nil
     exists := false
     cont := 0
     allRulesets,err := ndb.GetAllRuleFiles()
-    if err != nil {logs.Error("Search/Init error: %s", err.Error())}
+    if err != nil {logs.Error("Search/Init error: %s", err.Error()); return}
     for x,_ := range allRulesets {  
         rset := Ruleset{}
         currentRules, err := ruleset.ReadRuleset(allRulesets[x]["path"])
-        if err!=nil {logs.Error("BuildRuleIndexLocal Error readding rulesets: "+err.Error())}
+        if err!=nil {logs.Error("BuildRuleIndexLocal Error readding rulesets: "+err.Error()); continue}
         rset.File = allRulesets[x]["path"]
         rset.Name = allRulesets[x]["name"]
         rset.SourceType = allRulesets[x]["sourceType"]
