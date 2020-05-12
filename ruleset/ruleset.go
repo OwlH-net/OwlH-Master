@@ -505,6 +505,24 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
     err = ndb.DeleteRulesetNodeByUniqueid(uuid)
     if err != nil {logs.Error("DeleteRulesetNodeByUniqueid -> ERROR deleting ruleset: "+err.Error());return err}
 
+    //select all groups
+    groups,err := ndb.GetAllGroups()    
+    if err != nil {logs.Error("DeleteRulesetNodeByUniqueid -> ERROR getting all groups: "+err.Error());return err}
+    groupsRulesets,err := ndb.GetAllGroupRulesets()    
+    if err != nil {logs.Error("DeleteRulesetNodeByUniqueid -> ERROR getting all grouprulesets: "+err.Error());return err}
+    for id := range groups {
+        for grid := range groupsRulesets {
+            if groupsRulesets[grid]["groupid"] == id && groupsRulesets[grid]["rulesetid"] == uuid {
+                //delete a node ruleset
+                err = ndb.DeleteGroupRulesetByValue("groupid", id)
+                if err != nil {logs.Error("DeleteRulesetNodeByUniqueid -> ERROR deleting grouprulesets: "+err.Error());return err}
+                err = ndb.DeleteGroupRulesetByValue("rulesetid", uuid)
+                if err != nil {logs.Error("DeleteRulesetNodeByUniqueid -> ERROR deleting grouprulesets: "+err.Error());return err}
+            }
+        }
+        
+    }
+
     //delete ruleset from path
     err = os.RemoveAll(localRulesetFiles+rulesetFolderName)
     if err != nil {
@@ -529,28 +547,6 @@ func DeleteRuleset(rulesetMap map[string]string)(err error){
         err = ndb.UpdateGroupValue(y, "rulesetID", "")
         if err != nil {logs.Error("Error updating to null rulesetsID into group table: "+err.Error()); return err}
     }
-
-
-    // uuidRules, err := ndb.Rdb.Query("select rule_uniqueid from rule_files where rule_value='"+uuid+"'")
-    // if err != nil {
-    //     logs.Error("DeleteRulese ndb.Rdb.Query Error checking rule_uniqueid for rule_files: %s", err.Error())
-    //     return err
-    // }
-    // defer uuidRules.Close()
-    // for uuidRules.Next() {
-    //     if err = uuidRules.Scan(&uniqueid); err != nil {
-    //         logs.Error("DeleteRulese rows.Scan: %s", err.Error())
-    //         return err
-    //     }
-    //     uuidArray = append(uuidArray, uniqueid)
-    // }
-    // for x := range uuidArray{
-    //     err = ndb.DeleteRuleFilesByUuid(uuidArray[x])
-    //     if err != nil {
-    //         logs.Error("DeleteRuleset ndb.Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
-    //         return err
-    //     }
-    // }
 
     return nil
 }

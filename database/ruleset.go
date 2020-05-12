@@ -458,3 +458,15 @@ func DeleteGroupRuleset(uuid string) (err error) {
 
     return nil
 }
+
+func DeleteGroupRulesetByValue(param string, value string)(err error){
+    if Rdb == nil { logs.Error("DeleteGroupRulesetByValue -- Can't acces to database"); return err}
+
+    stmt, err := Rdb.Prepare("delete from grouprulesets where gr_param = ? and gr_value= ? ")
+    if err != nil {logs.Error("Prepare DeleteGroupRulesetByValue -> %s", err.Error()); return err}
+    
+    _, err = stmt.Exec(&param, &value)
+    if err != nil {logs.Error("Execute DeleteGroupRulesetByValue -> %s", err.Error()); return err}
+
+    return nil
+}
