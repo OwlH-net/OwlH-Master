@@ -724,11 +724,22 @@ func AddUsersTo(anode map[string]string) (err error) {
 }
 
 func ChangePassword(anode map[string]string) (err error) {
+    if anode == nil || anode["pass"] == "" || anode["user"] == "" {
+        return errors.New("Invalid password.")
+    }
+
     hashed,err := validation.HashPassword(anode["pass"])
     if err != nil{logs.Error("master/ChangePassword Error hashing new password: "+err.Error()); return err}
 
-    err = ndb.UpdateUser(anode["user"], "pass", hashed)
+    //get user uuid
+    userId,err := ndb.GetUserID(anode["user"])
     if err != nil{logs.Error("master/ChangePassword Error updating password: "+err.Error()); return err}
+
+    //change user password
+    err = ndb.UpdateUser(userId, "pass", hashed)
+    if err != nil{logs.Error("master/ChangePassword Error updating password: "+err.Error()); return err}
+
+    node.SyncUsersToNode()
 
     return nil
 }
