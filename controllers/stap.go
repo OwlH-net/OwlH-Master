@@ -31,7 +31,7 @@ func (n *StapController) AddServer(){
     }else{
         var newServer map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &newServer)
-        err := models.AddServer(newServer)
+        err := models.AddServer(newServer, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -58,7 +58,7 @@ func (n *StapController) GetAllServers() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid") 
-        servers, err := models.GetAllServers(uuid)
+        servers, err := models.GetAllServers(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = servers
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -86,7 +86,7 @@ func (n *StapController) GetServer() {
     }else{
         uuid := n.GetString(":uuid") 
         serveruuid := n.GetString(":serveruuid")
-        server, err := models.GetServer(uuid,serveruuid)
+        server, err := models.GetServer(uuid,serveruuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = server
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -115,7 +115,7 @@ func (n *StapController) GetStap() {
     }else{
         nid := n.GetString(":nid")
         n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
-        data,err := models.Stap(nid)
+        data,err := models.Stap(nid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
@@ -141,7 +141,7 @@ func (n *StapController) RunStap() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
-        data, err := models.RunStap(uuid)
+        data, err := models.RunStap(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -167,7 +167,7 @@ func (n *StapController) StopStap() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
-        data, err := models.StopStap(uuid)
+        data, err := models.StopStap(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -194,7 +194,7 @@ func (n *StapController) RunStapServer() {
     }else{
         uuid := n.GetString(":uuid")
         server := n.GetString(":server")
-        data, err := models.RunStapServer(uuid,server)
+        data, err := models.RunStapServer(uuid,server, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -221,7 +221,7 @@ func (n *StapController) StopStapServer() {
     }else{
         uuid := n.GetString(":uuid")
         server := n.GetString(":server")
-        data, err := models.StopStapServer(uuid,server)
+        data, err := models.StopStapServer(uuid,server, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -249,7 +249,7 @@ func (n *StapController) PingServerStap() {
     }else{
         nid := n.GetString(":nid")
         server := n.GetString(":server")
-        data,err := models.PingServerStap(nid,server)
+        data,err := models.PingServerStap(nid,server, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "nid": nid, "error": err.Error()}
@@ -276,7 +276,7 @@ func (n *StapController) DeleteStapServer() {
     }else{
         uuid := n.GetString(":uuid")
         server := n.GetString(":server")
-        data, err := models.DeleteStapServer(uuid,server)
+        data, err := models.DeleteStapServer(uuid,server, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -303,7 +303,7 @@ func (n *StapController) EditStapServer() {
     }else{
         var editedMap map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &editedMap)
-        err := models.EditStapServer(editedMap)
+        err := models.EditStapServer(editedMap, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

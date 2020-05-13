@@ -12,8 +12,8 @@ import (
 //     "search": "v",
 //     "rulesetName": "v"
 //  }
-func GetRulesetsBySearch(anode map[string]string)(data interface{}, err error) {
+func GetRulesetsBySearch(anode map[string]string, username string)(data interface{}, err error) {
     data, err = search.GetRulesetsBySearch(anode)
-    changecontrol.ChangeControlInsertData(err, "GetRulesetsBySearch")
+    changecontrol.ChangeControlInsertData(err, "GetRulesetsBySearch", username)
     return data, err
 }

@@ -27,7 +27,7 @@ func (n *ChangecontrolController) GetChangeControl() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.GetChangeControl()
+        data, err := models.GetChangeControl(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

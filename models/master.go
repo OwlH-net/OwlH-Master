@@ -9,18 +9,18 @@ import (
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/getMasterTitle \
 // }
-func GetMasterTitle() (data string, err error) {
+func GetMasterTitle(username string) (data string, err error) {
     data, err = master.GetMasterTitle()
-    changecontrol.ChangeControlInsertData(err, "GetMasterTitle")
+    changecontrol.ChangeControlInsertData(err, "GetMasterTitle", username)
     return data, err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/editFile/:uuid \
 // }
-func GetFileContent(file string) (data map[string]string, err error) {
+func GetFileContent(file string, username string) (data map[string]string, err error) {
     data, err = master.GetFileContent(file)
-    changecontrol.ChangeControlInsertData(err, "GetFileContent")
+    changecontrol.ChangeControlInsertData(err, "GetFileContent", username)
     return data, err
 }
 
@@ -32,27 +32,27 @@ func GetFileContent(file string) (data map[string]string, err error) {
 //     "content": "v"
 //  }
 // }
-func SaveFileContent(anode map[string]string) (err error) {
+func SaveFileContent(anode map[string]string, username string) (err error) {
     err = master.SaveFileContent(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveFileContent")
+    changecontrol.ChangeControlInsertData(err, "SaveFileContent", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/pingPlugins \
 // }
-func PingPlugins() (data map[string]map[string]string, err error) {
+func PingPlugins(username string) (data map[string]map[string]string, err error) {
     data,err = master.PingPlugins()
-    changecontrol.ChangeControlInsertData(err, "PingPlugins")
+    changecontrol.ChangeControlInsertData(err, "PingPlugins", username)
     return data,err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/pingFlow \
 // }
-func PingFlow() (data map[string]map[string]string, err error) {
+func PingFlow(username string) (data map[string]map[string]string, err error) {
     data,err = ndb.PingFlow()
-    changecontrol.ChangeControlInsertData(err, "PingFlow")
+    changecontrol.ChangeControlInsertData(err, "PingFlow", username)
     return data,err
 }
 
@@ -64,9 +64,9 @@ func PingFlow() (data map[string]map[string]string, err error) {
 //     "param": "v"
 //  }
 // }
-func ChangePluginStatus(anode map[string]string) (err error) {
+func ChangePluginStatus(anode map[string]string, username string) (err error) {
     err = ndb.UpdatePluginValueMaster(anode["uuid"], anode["param"], anode["value"])
-    changecontrol.ChangeControlInsertData(err, "ChangePluginStatus")
+    changecontrol.ChangeControlInsertData(err, "ChangePluginStatus", username)
     return err
 }
 
@@ -79,18 +79,18 @@ func ChangePluginStatus(anode map[string]string) (err error) {
 //     "value": "v"
 //  }
 // }
-func SaveStapInterface(anode map[string]string) (err error) {
+func SaveStapInterface(anode map[string]string, username string) (err error) {
     err = master.SaveStapInterface(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveStapInterface")
+    changecontrol.ChangeControlInsertData(err, "SaveStapInterface", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/interface \
 // }
-func GetNetworkInterface()(data map[string]string, err error) {
+func GetNetworkInterface(username string)(data map[string]string, err error) {
     data,err = master.GetNetworkInterface()
-    changecontrol.ChangeControlInsertData(err, "GetNetworkInterface")
+    changecontrol.ChangeControlInsertData(err, "GetNetworkInterface", username)
     return data,err
 }
 
@@ -103,9 +103,9 @@ func GetNetworkInterface()(data map[string]string, err error) {
 //     "value": "v"
 //  }
 // }
-func ChangeDataflowStatus(anode map[string]string) (err error) {
+func ChangeDataflowStatus(anode map[string]string, username string) (err error) {
     err = ndb.ChangeDataflowStatus(anode)
-    changecontrol.ChangeControlInsertData(err, "ChangeDataflowStatus")
+    changecontrol.ChangeControlInsertData(err, "ChangeDataflowStatus", username)
     return err
 }
 
@@ -116,9 +116,9 @@ func ChangeDataflowStatus(anode map[string]string) (err error) {
 //     "value": "v"
 //  }
 // }
-func DeployMaster(anode map[string]string)(err error) {
+func DeployMaster(anode map[string]string, username string)(err error) {
     err = master.DeployMaster(anode)
-    changecontrol.ChangeControlInsertData(err, "DeployMaster")
+    changecontrol.ChangeControlInsertData(err, "DeployMaster", username)
     return err
 }
 
@@ -131,36 +131,36 @@ func DeployMaster(anode map[string]string)(err error) {
 //     "value": "v"
 //  }
 // }
-func UpdateMasterNetworkInterface(anode map[string]string)(err error) {
+func UpdateMasterNetworkInterface(anode map[string]string, username string)(err error) {
     err = master.UpdateMasterNetworkInterface(anode)
-    changecontrol.ChangeControlInsertData(err, "UpdateMasterNetworkInterface")
+    changecontrol.ChangeControlInsertData(err, "UpdateMasterNetworkInterface", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/loadMasterNetworkValuesSelected \
 // }
-func LoadMasterNetworkValuesSelected()(data map[string]map[string]string ,err error) {
+func LoadMasterNetworkValuesSelected(username string)(data map[string]map[string]string ,err error) {
     data,err = master.LoadMasterNetworkValuesSelected()
-    changecontrol.ChangeControlInsertData(err, "LoadMasterNetworkValuesSelected")
+    changecontrol.ChangeControlInsertData(err, "LoadMasterNetworkValuesSelected", username)
     return data,err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/pingservice \
 // }
-func PingServiceMaster()(err error) {
+func PingServiceMaster(username string)(err error) {
     err = master.PingServiceMaster()
-    changecontrol.ChangeControlInsertData(err, "PingServiceMaster")
+    changecontrol.ChangeControlInsertData(err, "PingServiceMaster", username)
     return err
 }
 
 // curl -X PUT \
 //   https://52.47.197.22:50002/v1/master/deployservice \
 // }
-func DeployServiceMaster()(err error) {
+func DeployServiceMaster(username string)(err error) {
     err = master.DeployServiceMaster()
-    changecontrol.ChangeControlInsertData(err, "DeployServiceMaster")
+    changecontrol.ChangeControlInsertData(err, "DeployServiceMaster", username)
     return err
 }
 
@@ -175,9 +175,9 @@ func DeployServiceMaster()(err error) {
 //     "interface": "v"
 //  }
 // }
-func AddPluginServiceMaster(anode map[string]string)(err error){
+func AddPluginServiceMaster(anode map[string]string, username string)(err error){
     err = master.AddPluginServiceMaster(anode)
-    changecontrol.ChangeControlInsertData(err, "AddPluginServiceMaster")
+    changecontrol.ChangeControlInsertData(err, "AddPluginServiceMaster", username)
     return err
 }
 
@@ -188,9 +188,9 @@ func AddPluginServiceMaster(anode map[string]string)(err error){
 //     "uuid": "v"
 //  }
 // }
-func DeleteServiceMaster(anode map[string]string)(err error){
+func DeleteServiceMaster(anode map[string]string, username string)(err error){
     err = master.DeleteServiceMaster(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteServiceMaster")
+    changecontrol.ChangeControlInsertData(err, "DeleteServiceMaster", username)
     return err
 }
 
@@ -205,9 +205,9 @@ func DeleteServiceMaster(anode map[string]string)(err error){
 //     "interface": "v"
 //  }
 // }
-func ModifyStapValuesMaster(anode map[string]string)(err error){
+func ModifyStapValuesMaster(anode map[string]string, username string)(err error){
     err = master.ModifyStapValuesMaster(anode)
-    changecontrol.ChangeControlInsertData(err, "ModifyStapValuesMaster")
+    changecontrol.ChangeControlInsertData(err, "ModifyStapValuesMaster", username)
     return err
 }
 
@@ -220,9 +220,9 @@ func ModifyStapValuesMaster(anode map[string]string)(err error){
 //     "value": "v"
 //  }
 // }
-func UpdateMasterStapInterface(anode map[string]string)(err error){
+func UpdateMasterStapInterface(anode map[string]string, username string)(err error){
     err = master.UpdateMasterStapInterface(anode)
-    changecontrol.ChangeControlInsertData(err, "UpdateMasterStapInterface")
+    changecontrol.ChangeControlInsertData(err, "UpdateMasterStapInterface", username)
     return err
 }
 
@@ -235,9 +235,9 @@ func UpdateMasterStapInterface(anode map[string]string)(err error){
 //     "value": "v"
 //  }
 // }
-func SetBPF(anode map[string]string)(err error){
+func SetBPF(anode map[string]string, username string)(err error){
     err = master.SetBPF(anode)
-    changecontrol.ChangeControlInsertData(err, "SetBPF")
+    changecontrol.ChangeControlInsertData(err, "SetBPF", username)
     return err
 }
 
@@ -252,9 +252,9 @@ func SetBPF(anode map[string]string)(err error){
 //     "collector": "v"
 //  }
 // }
-func DeployStapServiceMaster(anode map[string]string)(err error){
+func DeployStapServiceMaster(anode map[string]string, username string)(err error){
     err = master.DeployStapServiceMaster(anode)
-    changecontrol.ChangeControlInsertData(err, "DeployStapServiceMaster")
+    changecontrol.ChangeControlInsertData(err, "DeployStapServiceMaster", username)
     return err
 }
 
@@ -266,18 +266,18 @@ func DeployStapServiceMaster(anode map[string]string)(err error){
 //     "type": "v"
 //  }
 // }
-func StopStapServiceMaster(anode map[string]string)(err error){
+func StopStapServiceMaster(anode map[string]string, username string)(err error){
     err = master.StopStapServiceMaster(anode)
-    changecontrol.ChangeControlInsertData(err, "StopStapServiceMaster")
+    changecontrol.ChangeControlInsertData(err, "StopStapServiceMaster", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/incidents \
 // }
-func GetIncidents()(data map[string]map[string]string, err error){
+func GetIncidents(username string)(data map[string]map[string]string, err error){
     data,err = master.GetIncidents()
-    changecontrol.ChangeControlInsertData(err, "GetIncidents")
+    changecontrol.ChangeControlInsertData(err, "GetIncidents", username)
     return data,err
 }
 
@@ -289,9 +289,9 @@ func GetIncidents()(data map[string]map[string]string, err error){
 //     "param": "v",
 //     "value": "v",
 // }
-func PutIncident(anode map[string]string)(err error){
+func PutIncident(anode map[string]string, username string)(err error){
     err = master.PutIncident(anode)
-    changecontrol.ChangeControlInsertData(err, "PutIncident")
+    changecontrol.ChangeControlInsertData(err, "PutIncident", username)
     return err
 }
 
@@ -303,27 +303,27 @@ func PutIncident(anode map[string]string)(err error){
 //     "param": "v",
 //     "node": "v"
 // }
-func SaveZeekValues(anode map[string]string)(err error){
+func SaveZeekValues(anode map[string]string, username string)(err error){
     err = master.SaveZeekValues(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveZeekValues")
+    changecontrol.ChangeControlInsertData(err, "SaveZeekValues", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/incidents \
 // }
-func PingPluginsMaster()(data map[string]map[string]string, err error){
+func PingPluginsMaster(username string)(data map[string]map[string]string, err error){
     data,err = master.PingPluginsMaster()
-    changecontrol.ChangeControlInsertData(err, "PingPluginsMaster")
+    changecontrol.ChangeControlInsertData(err, "PingPluginsMaster", username)
     return data,err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/editPathFile/:path \
 // }
-func GetPathFileContent(param string) (data map[string]string, err error) {
+func GetPathFileContent(param string, username string) (data map[string]string, err error) {
     data, err = master.GetPathFileContent(param)
-    changecontrol.ChangeControlInsertData(err, "GetPathFileContent")
+    changecontrol.ChangeControlInsertData(err, "GetPathFileContent", username)
     return data, err
 }
 
@@ -335,9 +335,9 @@ func GetPathFileContent(param string) (data map[string]string, err error) {
 //     "content": "v"
 //  }
 // }
-func SaveFilePathContent(anode map[string]string) (err error) {
+func SaveFilePathContent(anode map[string]string, username string) (err error) {
     err = master.SaveFilePathContent(anode)
-    changecontrol.ChangeControlInsertData(err, "SaveFilePathContent")
+    changecontrol.ChangeControlInsertData(err, "SaveFilePathContent", username)
     return err
 }
 
@@ -349,9 +349,9 @@ func SaveFilePathContent(anode map[string]string) (err error) {
 //     "password": "v"
 //  }
 // }
-func Login(anode map[string]string) (token string, err error) {
+func Login(anode map[string]string, username string) (token string, err error) {
     token, err = master.Login(anode)
-    changecontrol.ChangeControlInsertData(err, "Login")
+    changecontrol.ChangeControlInsertData(err, "Login", username)
     return token, err
 }
 
@@ -362,18 +362,18 @@ func Login(anode map[string]string) (token string, err error) {
 //     "user": "v",
 //     "pass": "v"
 // }
-func AddUser(anode map[string]string)(err error){
+func AddUser(anode map[string]string, username string)(err error){
     err = master.AddUser(anode)
-    changecontrol.ChangeControlInsertData(err, "AddUser")
+    changecontrol.ChangeControlInsertData(err, "AddUser", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/getAllUsers \
 // }
-func GetAllUsers()(data map[string]map[string]string, err error) {
+func GetAllUsers(username string)(data map[string]map[string]string, err error) {
     data, err = master.GetAllUsers()
-    changecontrol.ChangeControlInsertData(err, "GetAllUsers")
+    changecontrol.ChangeControlInsertData(err, "GetAllUsers", username)
     return data, err
 }
 
@@ -384,9 +384,9 @@ func GetAllUsers()(data map[string]map[string]string, err error) {
 //     "id": "v"
 //  }
 // }
-func DeleteUser(anode map[string]string)(err error){
+func DeleteUser(anode map[string]string, username string)(err error){
     err = master.DeleteUser(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteUser")
+    changecontrol.ChangeControlInsertData(err, "DeleteUser", username)
     return err
 }
 
@@ -397,9 +397,9 @@ func DeleteUser(anode map[string]string)(err error){
 //     "group": "v"
 //  }
 // }
-func AddGroupUsers(anode map[string]string) (err error) {
+func AddGroupUsers(anode map[string]string, username string) (err error) {
     err = master.AddGroupUsers(anode)
-    changecontrol.ChangeControlInsertData(err, "AddGroupUsers")
+    changecontrol.ChangeControlInsertData(err, "AddGroupUsers", username)
     return err
 }
 
@@ -410,27 +410,27 @@ func AddGroupUsers(anode map[string]string) (err error) {
 //     "role": "v"
 //  }
 // }
-func AddRole(anode map[string]string) (err error) {
+func AddRole(anode map[string]string, username string) (err error) {
     err = master.AddRole(anode)
-    changecontrol.ChangeControlInsertData(err, "AddRole")
+    changecontrol.ChangeControlInsertData(err, "AddRole", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/getRolesForUser/:roleID \
 // }
-func GetRolesForUser(id string)(data map[string]map[string]string, err error) {
+func GetRolesForUser(id string, username string)(data map[string]map[string]string, err error) {
     data, err = master.GetRolesForUser(id)
-    changecontrol.ChangeControlInsertData(err, "GetRolesForUser")
+    changecontrol.ChangeControlInsertData(err, "GetRolesForUser", username)
     return data, err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/getGroupsForUser/:groupID \
 // }
-func GetGroupsForUser(id string)(data map[string]map[string]string, err error) {
+func GetGroupsForUser(id string, username string)(data map[string]map[string]string, err error) {
     data, err = master.GetGroupsForUser(id)
-    changecontrol.ChangeControlInsertData(err, "GetGroupsForUser")
+    changecontrol.ChangeControlInsertData(err, "GetGroupsForUser", username)
     return data, err
 }
 
@@ -443,9 +443,9 @@ func GetGroupsForUser(id string)(data map[string]map[string]string, err error) {
 //     "values": [x,y,z]
 //  }
 // }
-func AddUsersTo(anode map[string]string) (err error) {
+func AddUsersTo(anode map[string]string, username string) (err error) {
     err = master.AddUsersTo(anode)
-    changecontrol.ChangeControlInsertData(err, "AddUsersTo")
+    changecontrol.ChangeControlInsertData(err, "AddUsersTo", username)
     return err
 }
 
@@ -457,9 +457,9 @@ func AddUsersTo(anode map[string]string) (err error) {
 //     "pass": "v",
 //  }
 // }
-func ChangePassword(anode map[string]string) (err error) {
+func ChangePassword(anode map[string]string, username string) (err error) {
     err = master.ChangePassword(anode)
-    changecontrol.ChangeControlInsertData(err, "ChangePassword")
+    changecontrol.ChangeControlInsertData(err, "ChangePassword", username)
     return err
 }
 
@@ -469,9 +469,9 @@ func ChangePassword(anode map[string]string) (err error) {
 //   -d '{
 //     "id": "v",
 //     "role": "v"
-func DeleteUserRole(anode map[string]string) (err error) {
+func DeleteUserRole(anode map[string]string, username string) (err error) {
     err = master.DeleteUserRole(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteUserRole")
+    changecontrol.ChangeControlInsertData(err, "DeleteUserRole", username)
     return err
 }
 
@@ -481,18 +481,18 @@ func DeleteUserRole(anode map[string]string) (err error) {
 //   -d '{
 //     "id": "v",
 //     "group": "v"
-func DeleteUserGroup(anode map[string]string) (err error) {
+func DeleteUserGroup(anode map[string]string, username string) (err error) {
     err = master.DeleteUserGroup(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteUserGroup")
+    changecontrol.ChangeControlInsertData(err, "DeleteUserGroup", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/getAllRoles \
 // }
-func GetAllRoles() (data map[string]map[string]string, err error) {
+func GetAllRoles(username string) (data map[string]map[string]string, err error) {
     data, err = master.GetAllRoles()
-    changecontrol.ChangeControlInsertData(err, "GetAllRoles")
+    changecontrol.ChangeControlInsertData(err, "GetAllRoles", username)
     return data, err
 }
 
@@ -501,9 +501,9 @@ func GetAllRoles() (data map[string]map[string]string, err error) {
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "id": "v"
-func DeleteRole(anode map[string]string) (err error) {
+func DeleteRole(anode map[string]string, username string) (err error) {
     err = master.DeleteRole(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteRole")
+    changecontrol.ChangeControlInsertData(err, "DeleteRole", username)
     return err
 }
 
@@ -514,9 +514,9 @@ func DeleteRole(anode map[string]string) (err error) {
 //     "id": "v",
 //     "name": "v",
 //     "permissions": "v",
-func EditRole(anode map[string]string) (err error) {
+func EditRole(anode map[string]string, username string) (err error) {
     err = master.EditRole(anode)
-    changecontrol.ChangeControlInsertData(err, "EditRole")
+    changecontrol.ChangeControlInsertData(err, "EditRole", username)
     return err
 }
 
@@ -526,27 +526,27 @@ func EditRole(anode map[string]string) (err error) {
 //   -d '{
 //     "id": "v",
 //     "name": "v"
-func EditUserGroup(anode map[string]string) (err error) {
+func EditUserGroup(anode map[string]string, username string) (err error) {
     err = master.EditUserGroup(anode)
-    changecontrol.ChangeControlInsertData(err, "EditUserGroup")
+    changecontrol.ChangeControlInsertData(err, "EditUserGroup", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/getAllUserGroups \
 // }
-func GetAllUserGroups() (data map[string]map[string]string, err error) {
+func GetAllUserGroups(username string) (data map[string]map[string]string, err error) {
     data, err = master.GetAllUserGroups()
-    changecontrol.ChangeControlInsertData(err, "GetAllUserGroups")
+    changecontrol.ChangeControlInsertData(err, "GetAllUserGroups", username)
     return data, err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/getRolesForGroups/:roleID \
 // }
-func GetRolesForGroups(id string)(data map[string]map[string]string, err error) {
+func GetRolesForGroups(id string, username string)(data map[string]map[string]string, err error) {
     data, err = master.GetRolesForGroups(id)
-    changecontrol.ChangeControlInsertData(err, "GetRolesForGroups")
+    changecontrol.ChangeControlInsertData(err, "GetRolesForGroups", username)
     return data, err
 }
 
@@ -556,9 +556,9 @@ func GetRolesForGroups(id string)(data map[string]map[string]string, err error) 
 //   -d '{
 //     "id": "id",
 //     "name": "get,put"
-func AddRoleToGroup(anode map[string]string) (err error) {
+func AddRoleToGroup(anode map[string]string, username string) (err error) {
     err = master.AddRoleToGroup(anode)
-    changecontrol.ChangeControlInsertData(err, "AddRoleToGroup")
+    changecontrol.ChangeControlInsertData(err, "AddRoleToGroup", username)
     return err
 }
 
@@ -568,9 +568,9 @@ func AddRoleToGroup(anode map[string]string) (err error) {
 //   -d '{
 //     "id": "v",
 //     "user": "v"
-func DeleteRoleUser(anode map[string]string) (err error) {
+func DeleteRoleUser(anode map[string]string, username string) (err error) {
     err = master.DeleteRoleUser(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteRoleUser")
+    changecontrol.ChangeControlInsertData(err, "DeleteRoleUser", username)
     return err
 }
 
@@ -580,9 +580,9 @@ func DeleteRoleUser(anode map[string]string) (err error) {
 //   -d '{
 //     "id": "v",
 //     "group": "v"
-func DeleteRoleGroup(anode map[string]string) (err error) {
+func DeleteRoleGroup(anode map[string]string, username string) (err error) {
     err = master.DeleteRoleGroup(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteRoleGroup")
+    changecontrol.ChangeControlInsertData(err, "DeleteRoleGroup", username)
     return err
 }
 
@@ -592,9 +592,9 @@ func DeleteRoleGroup(anode map[string]string) (err error) {
 //   -d '{
 //     "id": "v",
 //     "user": "v"
-func DeleteGroupUser(anode map[string]string) (err error) {
+func DeleteGroupUser(anode map[string]string, username string) (err error) {
     err = master.DeleteGroupUser(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteGroupUser")
+    changecontrol.ChangeControlInsertData(err, "DeleteGroupUser", username)
     return err
 }
 
@@ -604,27 +604,27 @@ func DeleteGroupUser(anode map[string]string) (err error) {
 //   -d '{
 //     "id": "v",
 //     "role": "v"
-func DeleteGroupRole(anode map[string]string) (err error) {
+func DeleteGroupRole(anode map[string]string, username string) (err error) {
     err = master.DeleteGroupRole(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteGroupRole")
+    changecontrol.ChangeControlInsertData(err, "DeleteGroupRole", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/getPermissions \
 // }
-func GetPermissions()(data map[string]map[string]string, err error){
+func GetPermissions(username string)(data map[string]map[string]string, err error){
     data,err = master.GetPermissions()
-    changecontrol.ChangeControlInsertData(err, "GetPermissions")
+    changecontrol.ChangeControlInsertData(err, "GetPermissions", username)
     return data,err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/GetPermissionsByRole/:uuid \
 // }
-func GetPermissionsByRole(uuid string)(data map[string]map[string]string, err error){
+func GetPermissionsByRole(uuid string, username string)(data map[string]map[string]string, err error){
     data,err = master.GetPermissionsByRole(uuid)
-    changecontrol.ChangeControlInsertData(err, "GetPermissionsByRole")
+    changecontrol.ChangeControlInsertData(err, "GetPermissionsByRole", username)
     return data,err
 }
 
@@ -635,8 +635,8 @@ func GetPermissionsByRole(uuid string)(data map[string]map[string]string, err er
 //     "role": "v"
 //  }
 // }
-func AddNewRole(anode map[string]string) (err error) {
+func AddNewRole(anode map[string]string, username string) (err error) {
     err = master.AddNewRole(anode)
-    changecontrol.ChangeControlInsertData(err, "AddNewRole")
+    changecontrol.ChangeControlInsertData(err, "AddNewRole", username)
     return err
 }

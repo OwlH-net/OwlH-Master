@@ -894,6 +894,17 @@ func UpdateUserGroup(uuid string, param string, value string) (err error) {
     return nil
 }
 
+func UpdateRolePermissions(uuid string, param string, value string) (err error) {
+    updateData, err := Mdb.Prepare("update rolePermissions set rp_value = ? where rp_uniqueid = ? and rp_param = ?;")
+    if (err != nil){logs.Error("UpdateRolePermissions UPDATE prepare error: "+err.Error()); return err}
+
+    _, err = updateData.Exec(&value, &uuid, &param)
+    defer updateData.Close()
+    if (err != nil){logs.Error("UpdateRolePermissions UPDATE error: "+err.Error()); return err}
+
+    return nil
+}
+
 func GetRolePermissions()(path map[string]map[string]string, err error){
     var pingData = map[string]map[string]string{}
     var uniqid string

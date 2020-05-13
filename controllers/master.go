@@ -26,7 +26,7 @@ func (n *MasterController) GetMasterTitle() {
     //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATION
     //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATION
     //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATION
-    data, err := models.GetMasterTitle()
+    data, err := models.GetMasterTitle(n.Ctx.Input.Header("user"))
     n.Data["json"] = data
     if err != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -54,7 +54,7 @@ func (n *MasterController) GetFileContent() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         file := n.GetString(":file")
-        data, err := models.GetFileContent(file)
+        data, err := models.GetFileContent(file, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -82,7 +82,7 @@ func (n *MasterController) SaveFileContent() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SaveFileContent(anode)
+        err := models.SaveFileContent(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -108,7 +108,7 @@ func (n *MasterController) PingPlugins() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data,err := models.PingPlugins()
+        data,err := models.PingPlugins(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
@@ -134,7 +134,7 @@ func (n *MasterController) PingFlow() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data,err := models.PingFlow()
+        data,err := models.PingFlow(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
@@ -162,7 +162,7 @@ func (n *MasterController) ChangePluginStatus() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.ChangePluginStatus(anode)
+        err := models.ChangePluginStatus(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
@@ -190,7 +190,7 @@ func (n *MasterController) SaveStapInterface() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SaveStapInterface(anode)
+        err := models.SaveStapInterface(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
@@ -218,7 +218,7 @@ func (n *MasterController) ChangeDataflowStatus() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.ChangeDataflowStatus(anode)
+        err := models.ChangeDataflowStatus(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
@@ -244,7 +244,7 @@ func (n *MasterController) GetNetworkInterface() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.GetNetworkInterface()
+        data, err := models.GetNetworkInterface(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -272,7 +272,7 @@ func (n *MasterController) DeployMaster() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeployMaster(anode)
+        err := models.DeployMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
@@ -302,7 +302,7 @@ func (n *MasterController) UpdateMasterNetworkInterface() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.UpdateMasterNetworkInterface(anode)
+        err := models.UpdateMasterNetworkInterface(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error" : err.Error()}
@@ -330,7 +330,7 @@ func (n *MasterController) LoadMasterNetworkValuesSelected() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.LoadMasterNetworkValuesSelected()
+        data, err := models.LoadMasterNetworkValuesSelected(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -356,7 +356,7 @@ func (n *MasterController) PingServiceMaster() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        err := models.PingServiceMaster()
+        err := models.PingServiceMaster(n.Ctx.Input.Header("user"))
         n.Data["json"] =  map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
@@ -382,7 +382,7 @@ func (n *MasterController) DeployServiceMaster() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        err := models.DeployServiceMaster()
+        err := models.DeployServiceMaster(n.Ctx.Input.Header("user"))
         n.Data["json"] =  map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
@@ -410,7 +410,7 @@ func (n *MasterController) AddPluginServiceMaster() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddPluginServiceMaster(anode)
+        err := models.AddPluginServiceMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Error("AddPluginServiceMaster -> error: %s", err.Error())
@@ -437,7 +437,7 @@ func (n *MasterController) DeleteServiceMaster() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteServiceMaster(anode)
+        err := models.DeleteServiceMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -463,7 +463,7 @@ func (n *MasterController) ModifyStapValuesMaster() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.ModifyStapValuesMaster(anode)
+        err := models.ModifyStapValuesMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -491,7 +491,7 @@ func (n *MasterController) UpdateMasterStapInterface() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.UpdateMasterStapInterface(anode)
+        err := models.UpdateMasterStapInterface(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Error("UpdateMasterStapInterface -> error: %s", err.Error())
@@ -520,7 +520,7 @@ func (n *MasterController) SetBPF() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SetBPF(anode)
+        err := models.SetBPF(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Error("SetBPF -> error: %s", err.Error())
@@ -549,7 +549,7 @@ func (n *MasterController) DeployStapServiceMaster() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         
-        err := models.DeployStapServiceMaster(anode)
+        err := models.DeployStapServiceMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
     
         if err != nil {
@@ -578,7 +578,7 @@ func (n *MasterController) StopStapServiceMaster() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         
-        err := models.StopStapServiceMaster(anode)
+        err := models.StopStapServiceMaster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
     
         if err != nil {
@@ -605,7 +605,7 @@ func (n *MasterController) GetIncidents() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data,err := models.GetIncidents()
+        data,err := models.GetIncidents(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false","error": err.Error()}
@@ -650,7 +650,7 @@ func (n *MasterController) SaveZeekValues() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         
-        err := models.SaveZeekValues(anode)
+        err := models.SaveZeekValues(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
     
         if err != nil {
@@ -677,7 +677,7 @@ func (n *MasterController) PingPluginsMaster() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.PingPluginsMaster()
+        data, err := models.PingPluginsMaster(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -704,7 +704,7 @@ func (n *MasterController) GetPathFileContent() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         param := n.GetString(":param")
-        data, err := models.GetPathFileContent(param)
+        data, err := models.GetPathFileContent(param, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -732,7 +732,7 @@ func (n *MasterController) SaveFilePathContent() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SaveFilePathContent(anode)
+        err := models.SaveFilePathContent(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -760,13 +760,10 @@ func (n *MasterController) Login() {
         userPass := strings.Split(string(data), ":")
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        }else{
-            logs.Notice(userPass[0])
-            logs.Notice(userPass[1])
-    
+        }else{   
             anode["user"] = userPass[0]
             anode["password"] = userPass[1]
-            token, err := models.Login(anode)
+            token, err := models.Login(anode, anode["user"])
             n.Data["json"] = token
             if err != nil {
                 n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -774,7 +771,7 @@ func (n *MasterController) Login() {
         }
     }else{
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        token, err := models.Login(anode)
+        token, err := models.Login(anode, anode["user"])
         n.Data["json"] = token
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -802,7 +799,7 @@ func (n *MasterController) AddUser() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddUser(anode)
+        err := models.AddUser(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -829,7 +826,7 @@ func (n *MasterController) GetAllUsers() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.GetAllUsers()
+        data, err := models.GetAllUsers(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -855,7 +852,7 @@ func (n *MasterController) DeleteUser() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteUser(anode)
+        err := models.DeleteUser(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -884,7 +881,7 @@ func (n *MasterController) AddGroupUsers() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         
-        err := models.AddGroupUsers(anode)
+        err := models.AddGroupUsers(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -913,7 +910,7 @@ func (n *MasterController) AddRole() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 
-        err := models.AddRole(anode)
+        err := models.AddRole(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -940,7 +937,7 @@ func (n *MasterController) GetRolesForUser() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         id := n.GetString(":uuid")
-        data, err := models.GetRolesForUser(id)
+        data, err := models.GetRolesForUser(id, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -967,7 +964,7 @@ func (n *MasterController) GetGroupsForUser() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         id := n.GetString(":uuid")
-        data, err := models.GetGroupsForUser(id)
+        data, err := models.GetGroupsForUser(id, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -995,7 +992,7 @@ func (n *MasterController) AddUsersTo() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddUsersTo(anode)
+        err := models.AddUsersTo(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1023,7 +1020,7 @@ func (n *MasterController) ChangePassword() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.ChangePassword(anode)
+        err := models.ChangePassword(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1049,7 +1046,7 @@ func (n *MasterController) DeleteUserRole() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteUserRole(anode)
+        err := models.DeleteUserRole(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1075,7 +1072,7 @@ func (n *MasterController) DeleteUserGroup() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteUserGroup(anode)
+        err := models.DeleteUserGroup(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1101,7 +1098,7 @@ func (n *MasterController) GetAllRoles() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.GetAllRoles()
+        data, err := models.GetAllRoles(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1127,7 +1124,7 @@ func (n *MasterController) DeleteRole() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteRole(anode)
+        err := models.DeleteRole(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1155,7 +1152,7 @@ func (n *MasterController) EditRole() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.EditRole(anode)
+        err := models.EditRole(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1181,7 +1178,7 @@ func (n *MasterController) GetAllUserGroups() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.GetAllUserGroups()
+        data, err := models.GetAllUserGroups(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1209,7 +1206,7 @@ func (n *MasterController) EditUserGroup() {
     }else{
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.EditUserGroup(anode)
+        err := models.EditUserGroup(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1258,7 +1255,7 @@ func (n *MasterController) GetRolesForGroups() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         id := n.GetString(":uuid")
-        data, err := models.GetRolesForGroups(id)
+        data, err := models.GetRolesForGroups(id, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1287,7 +1284,7 @@ func (n *MasterController) AddRoleToGroup() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 
-        err := models.AddRoleToGroup(anode)
+        err := models.AddRoleToGroup(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1313,7 +1310,7 @@ func (n *MasterController) DeleteRoleUser() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteRoleUser(anode)
+        err := models.DeleteRoleUser(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1339,7 +1336,7 @@ func (n *MasterController) DeleteRoleGroup() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteRoleGroup(anode)
+        err := models.DeleteRoleGroup(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1365,7 +1362,7 @@ func (n *MasterController) DeleteGroupUser() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteGroupUser(anode)
+        err := models.DeleteGroupUser(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1391,7 +1388,7 @@ func (n *MasterController) DeleteGroupRole() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteGroupRole(anode)
+        err := models.DeleteGroupRole(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1417,7 +1414,7 @@ func (n *MasterController) GetPermissions() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.GetPermissions()
+        data, err := models.GetPermissions(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1444,7 +1441,7 @@ func (n *MasterController) GetPermissionsByRole() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
-        data, err := models.GetPermissionsByRole(uuid)
+        data, err := models.GetPermissionsByRole(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -1473,7 +1470,7 @@ func (n *MasterController) AddNewRole() {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
 
-        err := models.AddNewRole(anode)
+        err := models.AddNewRole(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

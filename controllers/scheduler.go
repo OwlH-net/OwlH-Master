@@ -30,7 +30,7 @@ func (n *SchedulerController) SchedulerTask() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)    
-        err := models.SchedulerTask(anode)
+        err := models.SchedulerTask(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -59,7 +59,7 @@ func (n *SchedulerController) StopTask() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.StopTask(anode)
+        err := models.StopTask(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -86,7 +86,7 @@ func (n *SchedulerController) GetLog() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
-        logReg,err := models.GetLog(uuid)    
+        logReg,err := models.GetLog(uuid, n.Ctx.Input.Header("user"))    
         n.Data["json"] = logReg
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

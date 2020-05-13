@@ -470,3 +470,37 @@ func DeleteGroupRulesetByValue(param string, value string)(err error){
 
     return nil
 }
+
+func GetRuleName(uuid string)(ruleset string, err error){
+    var nameRule string
+    if Rdb == nil {
+        logs.Warn("GetRuleName -> no access to database")
+        return "", err
+    }
+
+    sql := "SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid = \""+uuid+"\" and ruleset_param = \"name\";"
+    rows,err := Rdb.Query(sql)
+    if err != nil {logs.Warn("GetRuleName -> param or param doesn't exists"); return "", err}
+
+    for rows.Next(){
+        if err = rows.Scan(&nameRule); err != nil { 
+            logs.Error("GetRuleName rows.Scan: %s", err.Error()); 
+            return "", err
+        }
+    }
+    return nameRule, nil
+}
+
+func GetRuleSelected(uuid string)(ruleset string, err error){
+    var ruleSelected string
+    if Rdb != nil {
+        row := Rdb.QueryRow("SELECT ruleset_uniqueid FROM ruleset_node WHERE node_uniqueid = \""+uuid+"\";")
+        err = row.Scan(&ruleSelected)
+        if err != nil {logs.Warn("GetRuleSelected -> row.Scan error %s", err.Error()); return "", err}
+        
+        return ruleSelected, nil
+    }else {
+        logs.Error("GetRuleSelected -> No access to database")
+        return "", err
+    }
+}

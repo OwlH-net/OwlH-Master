@@ -634,6 +634,13 @@ func DeleteUser(anode map[string]string)(err error){
 }
 
 func AddGroupUsers(anode map[string]string) (err error) {
+    groups,err := ndb.GetUserGroups()
+    for x := range groups {
+        if groups[x]["group"] == anode["group"]{
+            return errors.New("This group is already in use.")
+        }
+    }
+
     uuid := utils.Generate()
     err = ndb.InsertGroupUsers(uuid, "group", anode["group"])
     // err = ndb.InsertGroupUsers(uuid, "permissions", anode["permissions"])
@@ -898,18 +905,41 @@ func DeleteUserGroup(anode map[string]string) (err error) {
 
 //edit roles for role management
 func EditRole(anode map[string]string) (err error) {
+    //check if role name already exists
+    roles,err := ndb.GetUserRoles()
+    for x := range roles {
+        if roles[x]["role"] == anode["role"]  && x!=anode["id"] {
+            return errors.New("This role already exists")
+        }
+    }
+
     //update name
     err = ndb.UpdateUserRole(anode["id"], "role", anode["role"])
     if err != nil{logs.Error("master/EditRole Error updating role name: "+err.Error()); return err}
     //update permissions
-    err = ndb.UpdateUserRole(anode["id"], "permissions", anode["permissions"])
-    if err != nil{logs.Error("master/EditRole Error updating role permissions: "+err.Error()); return err}
+    rolePerm,err := ndb.GetRolePermissions()
+    if err != nil{logs.Error("master/EditRole Error getting all role permissions: "+err.Error()); return err}
+    
+    for x := range rolePerm {
+        if rolePerm[x]["role"] == anode["id"]{
+            err = ndb.UpdateRolePermissions(x, "permissions", anode["permissions"])
+            if err != nil{logs.Error("master/EditRole Error updating role permissions: "+err.Error()); return err}
+        }
+    } 
 
-    return err
+    return nil
 }
 
 //edit groups for group management
 func EditUserGroup(anode map[string]string) (err error) {
+    //check if role name already exists
+    groups,err := ndb.GetUserGroups()
+    for x := range groups {
+        if groups[x]["group"] == anode["group"] && x != anode["id"]{
+            return errors.New("This group is already in use")
+        }
+    }
+
     //update name
     err = ndb.UpdateUserGroup(anode["id"], "group", anode["group"])
     if err != nil{logs.Error("master/EditUserGroup Error updating group name: "+err.Error()); return err}
@@ -1019,6 +1049,15 @@ func GetPermissions()(data map[string]map[string]string, err error){
 }
 
 func AddNewRole(anode map[string]string) (err error) {
+    //get roles for check if role exists
+    roles,err := ndb.GetUserRoles()
+    for x := range roles {
+        logs.Notice(roles[x]["role"] == strings.Trim(anode["role"], " "))
+        if roles[x]["role"] == strings.Trim(anode["role"], " ") {
+            return errors.New("This role already exists")
+        }
+    }
+
     //add role to userRoles
     uuidRoles := utils.Generate()
     err = ndb.InsertRoleUsers(uuidRoles, "role", anode["role"])

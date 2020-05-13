@@ -18,9 +18,9 @@ import (
 //     "sourceType": "v",
 // }
 // }
-func CreateRulesetSource(data map[string]string) (err error) {
+func CreateRulesetSource(data map[string]string, username string) (err error) {
     err = rulesetSource.CreateRulesetSource(data)
-    changecontrol.ChangeControlInsertData(err, "CreateRulesetSource")
+    changecontrol.ChangeControlInsertData(err, "CreateRulesetSource", username)
     return err
 }
 
@@ -36,17 +36,17 @@ func CreateRulesetSource(data map[string]string) (err error) {
 //     "sourceType": "v",
 //     "isDownloaded": "v",
 // }
-func CreateCustomRulesetSource(data map[string]string) (err error) {
+func CreateCustomRulesetSource(data map[string]string, username string) (err error) {
     err = rulesetSource.CreateCustomRulesetSource(data)
-    changecontrol.ChangeControlInsertData(err, "CreateCustomRulesetSource")
+    changecontrol.ChangeControlInsertData(err, "CreateCustomRulesetSource", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/rulesetSource/ \
-func GetAllRulesetSource(hasPermissions bool) (data map[string]map[string]string, err error) {
+func GetAllRulesetSource(hasPermissions bool, username string) (data map[string]map[string]string, err error) {
     data, err = rulesetSource.GetAllRulesetSource(hasPermissions)
-    changecontrol.ChangeControlInsertData(err, "GetAllRulesetSource")
+    changecontrol.ChangeControlInsertData(err, "GetAllRulesetSource", username)
     return data, err
 }
 
@@ -59,9 +59,9 @@ func GetAllRulesetSource(hasPermissions bool) (data map[string]map[string]string
 //     "url": "v",
 //     "uuid": "v",
 // }
-func EditRulesetSource(data map[string]string) (err error) {
+func EditRulesetSource(data map[string]string, username string) (err error) {
     err = rulesetSource.EditRulesetSource(data)
-    changecontrol.ChangeControlInsertData(err, "EditRulesetSource")
+    changecontrol.ChangeControlInsertData(err, "EditRulesetSource", username)
     return err
 }
 
@@ -72,17 +72,17 @@ func EditRulesetSource(data map[string]string) (err error) {
 //     "sourceType": "v",
 //     "uuid": "v",
 // }
-func DeleteRulesetSource(anode map[string]string) (err error) {
+func DeleteRulesetSource(anode map[string]string, username string) (err error) {
     err = rulesetSource.DeleteRulesetSource(anode)
-    changecontrol.ChangeControlInsertData(err, "DeleteRulesetSource")
+    changecontrol.ChangeControlInsertData(err, "DeleteRulesetSource", username)
     return err
 }
 
 // curl -X DELETE \
 //   https://52.47.197.22:50002/v1/rulesetSource/DeleteRulesetSource/:uuid \
-func DeleteRulesetFile(uuid string) (err error) {
+func DeleteRulesetFile(uuid string, username string) (err error) {
     err = rulesetSource.DeleteRulesetFile(uuid)
-    changecontrol.ChangeControlInsertData(err, "DeleteRulesetFile")
+    changecontrol.ChangeControlInsertData(err, "DeleteRulesetFile", username)
     return err
 }
 
@@ -95,9 +95,9 @@ func DeleteRulesetFile(uuid string) (err error) {
 //     "name": "v",
 //     "path": "v",
 // }
-func DownloadFile(data map[string]string) (err error) {
+func DownloadFile(data map[string]string, username string) (err error) {
     err = rulesetSource.DownloadFile(data)
-    changecontrol.ChangeControlInsertData(err, "DownloadFile")
+    changecontrol.ChangeControlInsertData(err, "DownloadFile", username)
     return err
 }
 
@@ -110,17 +110,17 @@ func DownloadFile(data map[string]string) (err error) {
 //     "name": "v",
 //     "path": "v",
 // }
-func OverwriteDownload(data map[string]string) (err error) {
+func OverwriteDownload(data map[string]string, username string) (err error) {
     err = rulesetSource.OverwriteDownload(data)
-    changecontrol.ChangeControlInsertData(err, "OverwriteDownload")
+    changecontrol.ChangeControlInsertData(err, "OverwriteDownload", username)
     return err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/rulesetSource/compareSourceFiles/:uuid \
-func CompareFiles(uuid string) (mapData map[string]map[string]string, err error) {
+func CompareFiles(uuid string, username string) (mapData map[string]map[string]string, err error) {
     mapData,err = rulesetSource.CompareFiles(uuid)
-    changecontrol.ChangeControlInsertData(err, "CompareFiles")
+    changecontrol.ChangeControlInsertData(err, "CompareFiles", username)
     return mapData,err
 }
 
@@ -141,32 +141,32 @@ func CompareFiles(uuid string) (mapData map[string]map[string]string, err error)
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/rulesetSource/getDetails/:uuid \
-func GetDetails(uuid string) (files map[string]map[string]string, err error) {
+func GetDetails(uuid string, username string) (files map[string]map[string]string, err error) {
     files, err = rulesetSource.GetDetails(uuid)
-    changecontrol.ChangeControlInsertData(err, "GetDetails")
+    changecontrol.ChangeControlInsertData(err, "GetDetails", username)
     return files ,err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/rulesetSource/GetFileUUIDfromRulesetUUID/:uuid \
-func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
+func GetFileUUIDfromRulesetUUID(value string, username string)(uuid string, err error){
     uuid,err = rulesetSource.GetFileUUIDfromRulesetUUID(value)
-    changecontrol.ChangeControlInsertData(err, "GetFileUUIDfromRulesetUUID")
+    changecontrol.ChangeControlInsertData(err, "GetFileUUIDfromRulesetUUID", username)
     return uuid,err
 }
 
 // curl -X PUT \
 //   https://52.47.197.22:50002/v1/rulesetSource/OverwriteRuleFile/:uuid \
-func OverwriteRuleFile(uuid string)(err error){
+func OverwriteRuleFile(uuid string, username string)(err error){
     err = rulesetSource.OverwriteRuleFile(uuid)
-    changecontrol.ChangeControlInsertData(err, "OverwriteRuleFile")
+    changecontrol.ChangeControlInsertData(err, "OverwriteRuleFile", username)
     return err
 }
 
 // curl -X PUT \
 //   https://52.47.197.22:50002/v1/rulesetSource/AddNewLinesToRuleset/:uuid \
-func AddNewLinesToRuleset(uuid string)(err error){
+func AddNewLinesToRuleset(uuid string, username string)(err error){
     err = rulesetSource.AddNewLinesToRuleset(uuid)
-    changecontrol.ChangeControlInsertData(err, "AddNewLinesToRuleset")
+    changecontrol.ChangeControlInsertData(err, "AddNewLinesToRuleset", username)
     return err
 }

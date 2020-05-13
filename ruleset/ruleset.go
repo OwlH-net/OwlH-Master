@@ -14,7 +14,6 @@ import(
     "owlhmaster/utils"
     "owlhmaster/node"
     "errors"
-    "database/sql"
     "strings"
     "time"
     "strconv"
@@ -283,45 +282,53 @@ func SetRuleSelected(n map[string]string) (err error) {
 }
 
 //Get a specific ruleset
-func GetRuleSelected(nid string)(ruleset string, err error){
-    var ruleSelected string
-    if ndb.Rdb != nil {
-        row := ndb.Rdb.QueryRow("SELECT ruleset_uniqueid FROM ruleset_node WHERE node_uniqueid = \""+nid+"\";")
-        err = row.Scan(&ruleSelected)
-        if err == sql.ErrNoRows{
-            logs.Warn("GetRuleSelected -> There is no ruleset with thie UUID %s", nid)
-            return "", err
-        }
-        if err != nil {
-            logs.Warn("GetRuleSelected -> row.Scan error %s", err.Error())
-            return "", err
-        }
-        return ruleSelected, nil
-    }else {
-        logs.Error("GetRuleSelected -> No access to database")
-        return "", err
-    }
+func GetRuleSelected(uuid string)(ruleset string, err error){
+    rset,err := ndb.GetRuleSelected(uuid)
+    if err != nil {logs.Warn("GetRuleSelected -> row.Scan error %s", err.Error()); return "", err}
+
+    return rset, nil
+    // var ruleSelected string
+    // if ndb.Rdb != nil {
+    //     row := ndb.Rdb.QueryRow("SELECT ruleset_uniqueid FROM ruleset_node WHERE node_uniqueid = \""+nid+"\";")
+    //     err = row.Scan(&ruleSelected)
+    //     if err == sql.ErrNoRows{
+    //         logs.Warn("GetRuleSelected -> There is no ruleset with thie UUID %s", nid)
+    //         return "", err
+    //     }
+    //     if err != nil {
+    //         logs.Warn("GetRuleSelected -> row.Scan error %s", err.Error())
+    //         return "", err
+    //     }
+    //     return ruleSelected, nil
+    // }else {
+    //     logs.Error("GetRuleSelected -> No access to database")
+    //     return "", err
+    // }
 }
 
 //Get a specific rule name
-func GetRuleName(nid string)(ruleset string, err error){
-    var nameRule string
-    if ndb.Rdb != nil {
-        row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid = \""+nid+"\" and ruleset_param = \"name\";")
-        err = row.Scan(&nameRule)
-        if err == sql.ErrNoRows{
-            logs.Warn("GetRuleName -> param or param doesn't exists")
-            return "", err
-        }
-        if err != nil {
-            logs.Warn("GetRuleName -> row.Scan error %s", err.Error())
-            return "", err
-        }
-        return nameRule, nil
-    }else {
-        logs.Warn("GetRuleName -> no access to database")
-        return "", err
-    }
+func GetRuleName(uuid string)(ruleset string, err error){
+    rule,err := ndb.GetRuleName(uuid)
+    if err != nil {logs.Error("GetRuleName error: %s", err.Error()); return "",err}
+
+    return rule, nil
+    // var nameRule string
+    // if ndb.Rdb != nil {
+    //     row := ndb.Rdb.QueryRow("SELECT ruleset_value FROM ruleset WHERE ruleset_uniqueid = \""+nid+"\" and ruleset_param = \"name\";")
+    //     err = row.Scan(&nameRule)
+    //     if err == sql.ErrNoRows{
+    //         logs.Warn("GetRuleName -> param or param doesn't exists")
+    //         return "", err
+    //     }
+    //     if err != nil {
+    //         logs.Warn("GetRuleName -> row.Scan error %s", err.Error())
+    //         return "", err
+    //     }
+    //     return nameRule, nil
+    // }else {
+    //     logs.Warn("GetRuleName -> no access to database")
+    //     return "", err
+    // }
 }
 
 //clone ruleset

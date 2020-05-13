@@ -29,7 +29,7 @@ func (n *CollectorController) PlayCollector() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
-        err := models.PlayCollector(uuid)
+        err := models.PlayCollector(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Error("PlayCollector ERROR -> error: %s", err.Error())
@@ -58,7 +58,7 @@ func (n *CollectorController) StopCollector() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
-        err := models.StopCollector(uuid)
+        err := models.StopCollector(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Error("StopCollector ERROR -> error: %s", err.Error())
@@ -87,7 +87,7 @@ func (n *CollectorController) ShowCollector() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid")
-        data, err := models.ShowCollector(uuid)
+        data, err := models.ShowCollector(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Error("ShowCollector ERROR -> error: %s", err.Error())
@@ -114,7 +114,7 @@ func (n *CollectorController) PlayMasterCollector() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        err := models.PlayMasterCollector()
+        err := models.PlayMasterCollector(n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Error("PlayMasterCollector ERROR -> error: %s", err.Error())
@@ -142,7 +142,7 @@ func (n *CollectorController) StopMasterCollector() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        err := models.StopMasterCollector()
+        err := models.StopMasterCollector(n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             logs.Error("StopMasterCollector ERROR -> error: %s", err.Error())
@@ -170,7 +170,7 @@ func (n *CollectorController) ShowMasterCollector() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        data, err := models.ShowMasterCollector()
+        data, err := models.ShowMasterCollector(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             logs.Error("ShowMasterCollector Error -> error: %s", err.Error())

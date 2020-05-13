@@ -23,8 +23,8 @@ func InsertChangeControl(values map[string]string)(err error){
     timeFormated := currentTime.Format("2006-01-02T15:04:05")
 
     err = ndb.InsertChangeControl(uuid, "deviceName", deviceName); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
-    err = ndb.InsertChangeControl(uuid, "user", "admin"); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
     err = ndb.InsertChangeControl(uuid, "time", timeFormated); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
+    // err = ndb.InsertChangeControl(uuid, "user", "admin"); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
     for x := range values {
         err = ndb.InsertChangeControl(uuid, x, values[x]); if err != nil{logs.Error("Error inserting ChangeControl database value: "+err.Error()); return err}
     }
@@ -32,7 +32,7 @@ func InsertChangeControl(values map[string]string)(err error){
     return nil
 }
 
-func ChangeControlInsertData(err error, desc string){
+func ChangeControlInsertData(err error, desc string, username string){
     //check error
     n := make(map[string]string)
     if err!=nil { 
@@ -43,6 +43,7 @@ func ChangeControlInsertData(err error, desc string){
     }
     n["action"] = "POST"
     n["actionDescription"] = desc
+    n["user"] = username
     
     //add incident
     var controlError error

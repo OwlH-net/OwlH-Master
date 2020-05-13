@@ -33,7 +33,7 @@ func (n *SearchController) GetRulesetsBySearch() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        data, err := models.GetRulesetsBySearch(anode)
+        data, err := models.GetRulesetsBySearch(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

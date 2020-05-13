@@ -31,7 +31,7 @@ func (n *GroupController) AddGroupElement() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddGroupElement(anode)
+        err := models.AddGroupElement(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true!"}
         if err != nil {
             logs.Error("GROUP ADD ELEMENT -> error: %s", err.Error())
@@ -58,7 +58,7 @@ func (n *GroupController) GetAllGroups() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        groups, err := models.GetAllGroups()
+        groups, err := models.GetAllGroups(n.Ctx.Input.Header("user"))
         n.Data["json"] = groups
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -84,7 +84,7 @@ func (n *GroupController) DeleteGroup() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid") 
-        err := models.DeleteGroup(uuid)
+        err := models.DeleteGroup(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -111,7 +111,7 @@ func (n *GroupController) EditGroup() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.EditGroup(anode)
+        err := models.EditGroup(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -137,7 +137,7 @@ func (n *GroupController) GetAllNodesGroup() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid") 
-        groups, err := models.GetAllNodesGroup(uuid)
+        groups, err := models.GetAllNodesGroup(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = groups
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -164,7 +164,7 @@ func (n *GroupController) AddGroupNodes() {
     }else{
         var anode map[string]interface{}
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddGroupNodes(anode)
+        err := models.AddGroupNodes(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -189,7 +189,7 @@ func (n *GroupController) PingGroupNodes() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
-        groups, err := models.PingGroupNodes()
+        groups, err := models.PingGroupNodes(n.Ctx.Input.Header("user"))
         n.Data["json"] = groups
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -215,7 +215,7 @@ func (n *GroupController) GetNodeValues() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid") 
-        groups, err := models.GetNodeValues(uuid)
+        groups, err := models.GetNodeValues(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = groups
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -241,7 +241,7 @@ func (n *GroupController) DeleteNodeGroup() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid") 
-        err := models.DeleteNodeGroup(uuid)
+        err := models.DeleteNodeGroup(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -268,7 +268,7 @@ func (n *GroupController) ChangeGroupRuleset() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.ChangeGroupRuleset(anode)
+        err := models.ChangeGroupRuleset(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -295,7 +295,7 @@ func (n *GroupController) ChangePathsGroups() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.ChangePathsGroups(anode)
+        err := models.ChangePathsGroups(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -322,7 +322,7 @@ func (n *GroupController) SyncPathGroup() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SyncPathGroup(anode)
+        err := models.SyncPathGroup(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -349,7 +349,7 @@ func (n *GroupController) UpdateGroupService() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.UpdateGroupService(anode)
+        err := models.UpdateGroupService(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -379,7 +379,7 @@ func (n *GroupController) SyncAll() {
         // json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
         // err := models.SyncAll(uuid, anode)
-        err := models.SyncAll(uuid)
+        err := models.SyncAll(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -406,7 +406,7 @@ func (n *GroupController) AddCluster() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.AddCluster(anode)
+        err := models.AddCluster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -433,7 +433,7 @@ func (n *GroupController) GetClusterFiles() {
     }else{
         uuid := n.GetString(":uuid") 
     
-        data,err := models.GetClusterFiles(uuid)
+        data,err := models.GetClusterFiles(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -460,7 +460,7 @@ func (n *GroupController) DeleteCluster() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.DeleteCluster(anode)
+        err := models.DeleteCluster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -487,7 +487,7 @@ func (n *GroupController) ChangeClusterValue() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.ChangeClusterValue(anode)
+        err := models.ChangeClusterValue(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -514,7 +514,7 @@ func (n *GroupController) GetClusterFileContent() {
     }else{
         uuid := n.GetString(":uuid") 
     
-        data,err := models.GetClusterFileContent(uuid)
+        data,err := models.GetClusterFileContent(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -541,7 +541,7 @@ func (n *GroupController) SaveClusterFileContent() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SaveClusterFileContent(anode)
+        err := models.SaveClusterFileContent(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -568,7 +568,7 @@ func (n *GroupController) SyncClusterFile() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SyncClusterFile(anode)
+        err := models.SyncClusterFile(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -595,7 +595,7 @@ func (n *GroupController) SyncAllGroupCluster() {
     }else{
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        err := models.SyncAllGroupCluster(anode)
+        err := models.SyncAllGroupCluster(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -623,7 +623,7 @@ func (n *GroupController) SyncAllSuricataGroup() {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
-        err := models.SyncAllSuricataGroup(anode)
+        err := models.SyncAllSuricataGroup(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -651,7 +651,7 @@ func (n *GroupController) SuricataGroupService() {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
-        err := models.SuricataGroupService(anode)
+        err := models.SuricataGroupService(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -678,7 +678,7 @@ func (n *GroupController) SuricataNodesStatus() {
     }else{
         uuid := n.GetString(":uuid") 
     
-        data,err := models.SuricataNodesStatus(uuid)
+        data,err := models.SuricataNodesStatus(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -706,7 +706,7 @@ func (n *GroupController) GetMD5files() {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
-        data,err := models.GetMD5files(anode)
+        data,err := models.GetMD5files(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -732,7 +732,7 @@ func (n *GroupController) GetGroupSelectedRulesets() {
         n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
     }else{
         uuid := n.GetString(":uuid") 
-        rulesets, err := models.GetGroupSelectedRulesets(uuid)
+        rulesets, err := models.GetGroupSelectedRulesets(uuid, n.Ctx.Input.Header("user"))
         n.Data["json"] = rulesets
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -760,7 +760,7 @@ func (n *GroupController) AddRulesetsToGroup() {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
-        err := models.AddRulesetsToGroup(anode)
+        err := models.AddRulesetsToGroup(anode, n.Ctx.Input.Header("user"))
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }else{                
@@ -789,7 +789,7 @@ func (n *GroupController) DeleteExpertGroupRuleset() {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
     
-        err := models.DeleteExpertGroupRuleset(anode)
+        err := models.DeleteExpertGroupRuleset(anode, n.Ctx.Input.Header("user"))
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }else{                

@@ -20,9 +20,9 @@ import (
 //     "status": "v",
 //     "type": "v"
 // }
-func SchedulerTask(data map[string]string) (err error) {
+func SchedulerTask(data map[string]string, username string) (err error) {
     err = scheduler.SchedulerTask(data)
-    changecontrol.ChangeControlInsertData(err, "SchedulerTask")
+    changecontrol.ChangeControlInsertData(err, "SchedulerTask", username)
     return err
 }
 
@@ -32,16 +32,16 @@ func SchedulerTask(data map[string]string) (err error) {
 //   -d '{
 //     "uuid": "v"
 // }
-func StopTask(data map[string]string) (err error) {
+func StopTask(data map[string]string, username string) (err error) {
     err = scheduler.StopTask(data)
-    changecontrol.ChangeControlInsertData(err, "StopTask")
+    changecontrol.ChangeControlInsertData(err, "StopTask", username)
     return err
 }
 
 // curl -X POST \
 //   https://52.47.197.22:50002/v1/scheduler/log/:uuid \
-func GetLog(uuid string) (logReg map[string]map[string]string ,err error) {
+func GetLog(uuid string, username string) (logReg map[string]map[string]string ,err error) {
     logReg,err = scheduler.GetLog(uuid)
-    changecontrol.ChangeControlInsertData(err, "GetLog")
+    changecontrol.ChangeControlInsertData(err, "GetLog", username)
     return logReg,err
 }
