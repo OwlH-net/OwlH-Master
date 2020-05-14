@@ -441,7 +441,84 @@ func checkPermissionsFields()(ok bool){
 	//add user permissions
 	//add user permissions
 	//add user permissions
-	//add user permissions
+    //add user permissions
+    
+	//add hwaddmng
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='AddMacIp' and per_param='desc' and per_value='PCAP add MAC IP'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddMacIp','desc','PCAP add MAC IP')"
+    field.Fname      = "permissions - AddMacIp desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='AddMacIp' and per_param='permissionGroup' and per_value='HwAddMng'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddMacIp','permissionGroup','HwAddMng')"
+    field.Fname      = "permissions - AddMacIp group"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='LoadConfig' and per_param='desc' and per_value='Load PCAP MAC Configuration'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('LoadConfig','desc','Load PCAP MAC Configuration')"
+    field.Fname      = "permissions - LoadConfig desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='LoadConfig' and per_param='permissionGroup' and per_value='HwAddMng'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('LoadConfig','permissionGroup','HwAddMng')"
+    field.Fname      = "permissions - LoadConfig group"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='ConfigPost' and per_param='desc' and per_value='Configuration PCAP MAC POST'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ConfigPost','desc','Configuration PCAP MAC POST')"
+    field.Fname      = "permissions - ConfigPost desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='ConfigPost' and per_param='permissionGroup' and per_value='HwAddMng'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ConfigPost','permissionGroup','HwAddMng')"
+    field.Fname      = "permissions - ConfigPost group"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='Db' and per_param='desc' and per_value='Configuration DB PCAP MAC'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('Db','desc','Configuration DB PCAP MAC')"
+    field.Fname      = "permissions - Db desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='Db' and per_param='permissionGroup' and per_value='HwAddMng'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('Db','permissionGroup','HwAddMng')"
+    field.Fname      = "permissions - Db group"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='ConfigGet' and per_param='desc' and per_value='Configuration PCAP MAC GET'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ConfigGet','desc','Configuration PCAP MAC GET')"
+    field.Fname      = "permissions - ConfigGet desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='ConfigGet' and per_param='permissionGroup' and per_value='HwAddMng'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ConfigGet','permissionGroup','HwAddMng')"
+    field.Fname      = "permissions - ConfigGet group"
+    ok = CheckField(field)
+    if !ok {return false}
+
 	//add user permissions
     field.Fconn      = "masterConn"
     field.Ftable     = "permissions"

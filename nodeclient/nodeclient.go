@@ -2142,3 +2142,68 @@ func SaveSurictaRulesetSelected(ipData string, portData string, anode map[string
 
     return nil
 }
+//
+func AddMacIp(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/hwaddmng/"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("POST", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/AddMacIp ERROR connection through http new Request: "+err.Error()); return err}
+    defer resp.Body.Close()
+
+    return nil
+}
+
+func LoadConfig(ipnid string, portnid string, data map[string]string)(values map[string]string, err error){
+    url := "https://"+ipnid+":"+portnid+"/node/hwaddmng/config"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("PUT", url,  bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/LoadConfig ERROR connection through http new Request: "+err.Error()); return nil, err}
+    defer resp.Body.Close()
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/LoadConfig ERROR reading request data: "+err.Error()); return nil, err}
+    defer resp.Body.Close()
+    
+    // data := make(map[string]string)
+    err = json.Unmarshal(body, &values)
+    if err != nil { logs.Error("nodeclient/LoadConfig ERROR doing unmarshal JSON: "+err.Error()); return nil, err}
+
+    return values, nil
+}
+
+func Config(ipnid string, portnid string, data map[string]interface{})(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/hwaddmng/config"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/Config ERROR connection through http new Request: "+err.Error()); return err}
+    defer resp.Body.Close()
+
+    return nil
+}
+
+func Db(ipnid string, portnid string, data map[string]string)(err error){
+    url := "https://"+ipnid+":"+portnid+"/node/hwaddmng/db"
+    valuesJSON,err := json.Marshal(data)
+    resp,err := utils.NewRequestHTTP("POST", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {logs.Error("nodeclient/Db ERROR connection through http new Request: "+err.Error()); return err}
+    defer resp.Body.Close()
+
+    return nil
+}
+
+func ConfigGet(ipnid string, portnid string)(data map[string]string, err error){
+    url := "https://"+ipnid+":"+portnid+"/node/hwaddmng/config"
+    resp,err := utils.NewRequestHTTP("GET", url, nil)
+    if err != nil {logs.Error("nodeclient/ConfigGet ERROR connection through http new Request: "+err.Error()); return nil, err}
+    defer resp.Body.Close()
+
+    body, err := ioutil.ReadAll(resp.Body)
+    if err != nil { logs.Error("nodeclient/ConfigGet ERROR reading request data: "+err.Error()); return nil, err}
+    defer resp.Body.Close()
+    
+    // data := make(map[string]string)
+    err = json.Unmarshal(body, &data)
+    if err != nil { logs.Error("nodeclient/ConfigGet ERROR doing unmarshal JSON: "+err.Error()); return nil, err}
+
+    return data, nil
+}
