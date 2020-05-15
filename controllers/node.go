@@ -909,8 +909,8 @@ func (n *NodeController) PingPluginsNode() {
     }else{
         nid := n.GetString(":nid")
         data, err := models.PingPluginsNode(nid, n.Ctx.Input.Header("user"))
-        data["ack"] = map[string]string{}
-        data["ack"]["ack"] = "true"
+        // data["ack"] = map[string]string{}
+        // data["ack"]["ack"] = "true"
 
         n.Data["json"] = data
         if err != nil {

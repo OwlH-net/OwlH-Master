@@ -50,6 +50,18 @@ func DeleteGroup(uuid string) (err error) {
         if err != nil {logs.Error("DeleteGroup error for uuid: "+x+": "+ err.Error()); return err}
     }
 
+    //delete groupruleset database
+    //grouprulesets
+    allGR,err := ndb.GetAllGroupRulesets()
+    if err != nil {logs.Error("DeleteGroup error getting all groupruleset data:" + err.Error()); return err}
+    
+    for x := range allGR {
+        if allGR[x]["groupid"] == uuid {
+            err = ndb.DeleteGroupRuleset(x)
+            if err != nil {logs.Error("DeleteGroup error deleting groupruleset data: "+ err.Error()); return err}
+        }        
+    }
+
     return nil
 }
 
