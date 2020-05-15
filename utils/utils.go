@@ -64,9 +64,6 @@ func NewRequestHTTP(order string, url string, values io.Reader) (resp *http.Resp
 
 //create a backup of selected file
 func BackupFile(path string, fileName string, jsonKey string) (err error) {
-    logs.Notice(path)
-    logs.Notice(fileName)
-
     backupFolder, err := GetKeyValueString(jsonKey, "backupPath")
     if err != nil {
         logs.Error("utils.BackupFile Error creating backup: " + err.Error())
@@ -207,7 +204,6 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
         for true {
             header, err := tarReader.Next()
             if err == io.EOF {
-                logs.Error("utils.ExtractFile EOF ERROR")
                 break
             }
             if err != nil {
@@ -564,7 +560,6 @@ func Compress(src string, buf io.Writer) error {
     filepath.Walk(src, func(file string, fi os.FileInfo, err error) error {
         // generate tar header
         header, err := tar.FileInfoHeader(fi, file)
-        logs.Notice(header)
         if err != nil {
             return err
         }

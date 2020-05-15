@@ -6,6 +6,7 @@ import (
     "owlhmaster/utils"
     "owlhmaster/validation"
     "os"
+    "path"
     "encoding/hex"
     "crypto/md5"
     _ "github.com/mattn/go-sqlite3"
@@ -643,6 +644,15 @@ func checkFields()(ok bool){
 func CheckDB(conn string)(ok bool) {
     dbpath, err := utils.GetKeyValueString(conn, "path")
     if err != nil {logs.Error("Configuration -> Can't get "+conn+" path from main.conf"); return false}
+
+    //check if path exists 
+    if _, err := os.Stat(path.Dir(dbpath)); os.IsNotExist(err) {
+        os.MkdirAll(path.Dir(dbpath), os.ModePerm)
+    }
+    //check if folder exists 
+    if _, err := os.Stat(dbpath); os.IsNotExist(err) {
+        os.Create(dbpath)
+    }
 
     exists := DbExists(dbpath)
 

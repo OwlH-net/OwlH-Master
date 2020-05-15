@@ -773,9 +773,6 @@ func OverwriteRuleFile(uuid string)(err error){
 
         for t := range sourceFile {
             //backup-file
-            logs.Debug(filepath.Dir(sourceFile[t]["path"]))
-            logs.Debug(filepath.Dir(sourceFile[t]["path"]))
-            logs.Debug(filepath.Dir(sourceFile[t]["path"]))
             err = utils.BackupFile(filepath.Dir(sourceFile[t]["path"])+"/", sourceFile[t]["file"], "ruleset")
             if err != nil {logs.Error("OverwriteRuleFile failed backing up file: %s", err); return err}
 

@@ -42,8 +42,6 @@ func GetFileContent(file string) (data map[string]string, err error) {
     sendBackArray["fileContent"] = string(fileReaded)
     sendBackArray["fileName"] = file
 
-    logs.Notice(sendBackArray)
-
     return sendBackArray, nil
 }
 
@@ -1052,7 +1050,6 @@ func AddNewRole(anode map[string]string) (err error) {
     //get roles for check if role exists
     roles,err := ndb.GetUserRoles()
     for x := range roles {
-        logs.Notice(roles[x]["role"] == strings.Trim(anode["role"], " "))
         if roles[x]["role"] == strings.Trim(anode["role"], " ") {
             return errors.New("This role already exists")
         }

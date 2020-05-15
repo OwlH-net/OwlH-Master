@@ -1023,6 +1023,7 @@ func SyncToAllDownload(content map[string]string)(err error) {
     //download/overwrite rulesets source content
     data,err := ndb.GetRulesFromRuleset(content["uuid"])
     if err != nil {logs.Error("SyncToAll Error getting GetRulesFromRuleset: %s", err.Error()); return err}
+    if len(data) <= 0 {logs.Error("SyncToAll Error: Ruleset doesn't exists."); return errors.New("Ruleset doesn't exists")}
 
     var sources []string
     for id := range data {
