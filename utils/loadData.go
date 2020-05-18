@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io/ioutil"
 	"reflect"
+	"fmt"
     "errors"
 )
 
@@ -34,6 +35,35 @@ func GetKeyValueSlice(key,sub string)(result []string, err error){
 		return keyValue.([]string), nil
 	default:
 		return nil,errors.New("GetKeyValueSlice This value is not a Slice")
+	}
+}
+func GetKeyValueBool(key, sub string) (result bool, err error) {
+	keyValue, err := GetKeyValue(key, sub)
+	if err != nil {
+		logs.Error(err.Error())
+		return false, err
+	}
+	switch w := reflect.ValueOf(keyValue); w.Kind() {
+	case reflect.Bool:
+		return keyValue.(bool), nil
+	default:
+		return false, errors.New("GetKeyValueSlice This value is not a Slice")
+	}
+}
+func GetKeyValueInt(key, sub string) (result int, err error) {
+	keyValue, err := GetKeyValue(key, sub)
+	if err != nil {
+		logs.Error(err.Error())
+		return -1, err
+	}
+	switch w := reflect.ValueOf(keyValue); w.Kind() {
+	case reflect.Int:
+		return keyValue.(int), nil
+	case reflect.Float64:
+		return int(keyValue.(float64)), nil
+	default:
+		nerr := fmt.Sprintf("GetKeyValueInt This value is not a Integer --> %v",w.Kind())
+		return -1, errors.New(nerr)
 	}
 }
 

@@ -1324,9 +1324,12 @@ func SyncUsersToNode()(){
 
         err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncUsersToNode Error loading node token: %s",err)}  
         err = nodeclient.SyncUsersToNode(ipnid,portnid,userValues)
-        if err != nil{logs.Error("node/SyncUsersToNode Error: "+err.Error())}    
+        if err != nil{
+            logs.Error("Error synchronizing users to node '"+nodes[id]["name"]+"': "+err.Error())
+        }else{
+            logs.Info("Users synchronized to node '"+nodes[id]["name"]+"'")
+        }
     }
-    logs.Info("Users synchronized to nodes")
 }
 
 func SyncRolesToNode()(){
@@ -1354,9 +1357,12 @@ func SyncRolesToNode()(){
         err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncRolesToNode Error loading node token: %s",err)}  
         //get user uuid
         err = nodeclient.SyncRolesToNode(ipnid,portnid,roleValues)
-        if err != nil{logs.Error("node/SyncRolesToNode Error: "+err.Error())}    
+        if err != nil{
+            logs.Error("Error synchronizing roles to node '"+nodes[id]["name"]+"': "+err.Error())
+        }else{
+            logs.Info("Roles synchronized to node '"+nodes[id]["name"]+"'")
+        }
     }
-    logs.Info("Roles synchronized to nodes")
 }
 
 func SyncGroupsToNode()(){
@@ -1383,9 +1389,12 @@ func SyncGroupsToNode()(){
         err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncGroupsToNode Error loading node token: %s",err)}  
         //get user uuid
         err = nodeclient.SyncGroupsToNode(ipnid,portnid,groupValues)
-        if err != nil{logs.Error("node/SyncGroupsToNode Error: "+err.Error())}    
+        if err != nil{
+            logs.Error("Error synchronizing groups to node '"+nodes[id]["name"]+"': "+err.Error())
+        }else{
+            logs.Info("Groups synchronized to node '"+nodes[id]["name"]+"'")
+        }     
     }
-    logs.Info("groups synchronized to nodes")
 }
 
 func SyncUserGroupRolesToNode()(){
@@ -1414,9 +1423,12 @@ func SyncUserGroupRolesToNode()(){
         err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncUserGroupRolesToNode Error loading node token: %s",err)} 
         //get user uuid 
         err = nodeclient.SyncUserGroupRolesToNode(ipnid,portnid,ugrValues)
-        if err != nil{logs.Error("node/SyncUserGroupRolesToNode Error: "+err.Error())}    
+        if err != nil{
+            logs.Error("Error synchronizing users,groups and roles relationship to node '"+nodes[id]["name"]+"': "+err.Error())
+        }else{
+            logs.Info("Users, groups and roles relationship synchronized to node '"+nodes[id]["name"]+"'")
+        }
     }
-    logs.Info("userGroupValues synchronized to nodes")
 }
 
 func ChangeRotationStatus(anode map[string]string)(err error){
@@ -1506,9 +1518,12 @@ func SyncRolePermissions()(){
         err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncRolePermissions Error loading node token: %s",err)}  
         //get user uuid
         err = nodeclient.SyncRolePermissions(ipnid,portnid,values)
-        if err != nil{logs.Error("node/SyncRolePermissions Error: "+err.Error())}    
+        if err != nil{
+            logs.Error("Error synchronizing role permissions to node '"+nodes[id]["name"]+"': "+err.Error())
+        }else{
+            logs.Info("Role permissions synchronized to node '"+nodes[id]["name"]+"'")
+        }    
     }
-    logs.Info("RolePermissions synchronized to nodes")
 }
 
 func SyncRoleGroups()(){
@@ -1537,9 +1552,12 @@ func SyncRoleGroups()(){
         err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncRoleGroups Error loading node token: %s",err)}  
         //get user uuid
         err = nodeclient.SyncRoleGroups(ipnid,portnid,values)
-        if err != nil{logs.Error("node/SyncRoleGroups Error: "+err.Error())}    
+        if err != nil{
+            logs.Error("Error synchronizing group roles to node '"+nodes[id]["name"]+"': "+err.Error())
+        }else{
+            logs.Info("Group roles synchronized to node '"+nodes[id]["name"]+"'")
+        }
     }
-    logs.Info("RoleGroups synchronized to nodes")
 }
 
 func SyncPermissions()(){
@@ -1565,9 +1583,12 @@ func SyncPermissions()(){
         err = ndb.GetTokenByUuid(id); if err!=nil{logs.Error("node/SyncPermissions Error loading node token: %s",err)} 
         //get user uuid 
         err = nodeclient.SyncPermissions(ipnid,portnid,values)
-        if err != nil{logs.Error("node/SyncPermissions Error: "+err.Error())}    
+        if err != nil{
+            logs.Error("Error synchronizing permissions to node '"+nodes[id]["name"]+"': "+err.Error())
+        }else{
+            logs.Info("Permissions synchronized to node '"+nodes[id]["name"]+"'")
+        }
     }
-    logs.Info("permissions synchronized to nodes")
 }
 
 func SyncAllUserData()(){

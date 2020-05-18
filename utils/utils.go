@@ -46,6 +46,10 @@ func Generate() (uuid string) {
 
 //create conection through http.
 func NewRequestHTTP(order string, url string, values io.Reader) (resp *http.Response, err error) {
+    //get default timeout from main.conf
+    userTimeout, _ := GetKeyValueInt("httpRequest", "timeout")
+    if err != nil {userTimeout = 30}//default time for timeout conection
+
     req, err := http.NewRequest(order, url, values)
     req.Header.Set("token", TokenMasterValidated)
     req.Header.Set("user", TokenMasterUser)
@@ -54,7 +58,7 @@ func NewRequestHTTP(order string, url string, values io.Reader) (resp *http.Resp
         logs.Error("Error Executing HTTP new request")
     }
     tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, DisableKeepAlives: true}
-    client := &http.Client{Transport: tr, Timeout: 30 * time.Second}
+    client := &http.Client{Transport: tr, Timeout: time.Duration(userTimeout) * time.Second}
     resp, err = client.Do(req)
     if err != nil {
         logs.Error("Error Retrieving response from client HTTP new request")
