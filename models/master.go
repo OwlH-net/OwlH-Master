@@ -24,6 +24,15 @@ func GetFileContent(file string, username string) (data map[string]string, err e
     return data, err
 }
 
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getAllGroupRulesetsForAllNodes \
+// }
+func GetAllGroupRulesetsForAllNodes(username string) (data map[string]map[string]string, err error) {
+    data, err = master.GetAllGroupRulesetsForAllNodes()
+    changecontrol.ChangeControlInsertData(err, "GetAllGroupRulesetsForAllNodes", username)
+    return data, err
+}
+
 // curl -X PUT \
 //   https://52.47.197.22:50002/v1/master/savefile \
 //   -H 'Content-Type: application/json' \

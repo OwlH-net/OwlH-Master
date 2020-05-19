@@ -1104,3 +1104,37 @@ func GetPermissionsByRole(roleuuid string)(data map[string]map[string]string, er
 
     return allRolePermissions,nil
 }
+
+func GetAllGroupRulesetsForAllNodes() (data map[string]map[string]string, err error) {
+    allNodes,err := ndb.GetAllNodes()
+    if err != nil {logs.Error("GetAllNodes error getting all nodes from db: "+err.Error()); return nil, err}
+    allGroups,err := ndb.GetAllGroups()
+    if err != nil {logs.Error("GetAllNodes error getting all groups from db: "+err.Error()); return nil, err}
+    allGroupRset,err := ndb.GetAllGroupRulesets()
+    if err != nil {logs.Error("GetAllNodes error getting all group rulesets from db: "+err.Error()); return nil, err}
+    allGroupNodes,err := ndb.GetAllGroupNodes()
+    if err != nil {logs.Error("GetAllNodes error getting all group nodes from db: "+err.Error()); return nil, err}
+    allRsets,err := ndb.GetAllRulesets()
+    if err != nil {logs.Error("GetAllNodes error getting all group nodes from db: "+err.Error()); return nil, err}
+    
+    var allData = map[string]map[string]string{}
+
+    for id := range allNodes {
+        for idgr := range allGroupNodes {
+            if allGroupNodes[idgr]["nodesid"] == id {
+                if allData[id] == nil {allData[id] = map[string]string{} }
+                //get group name
+                var rsets []string
+                for r := range allGroupRset {
+                    if allGroupRset[r]["groupid"] == allGroupNodes[idgr]["groupid"]{
+                        rsets = append(rsets, allRsets[allGroupRset[r]["rulesetid"]]["name"])
+                    }
+                }
+                allData[id][allGroups[allGroupNodes[idgr]["groupid"]]["name"]] = strings.Join(rsets, ",")                
+            }
+        }
+    }
+
+    logs.Notice(allData)
+    return allData, err
+}

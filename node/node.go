@@ -198,7 +198,7 @@ func DeleteNode(nodeid string)(err error) {
 
 func GetAllNodes()(data map[string]map[string]string, err error){
     allNodes,err := ndb.GetAllNodes()
-    if err != nil {logs.Error("GetAllNodes error: "+err.Error()); return nil, err}
+    if err != nil {logs.Error("GetAllNodes error getting all nodes from db: "+err.Error()); return nil, err}
 
     for id := range allNodes {
         if allNodes[id]["token"] == "wait"{
@@ -238,7 +238,7 @@ func GetAllNodes()(data map[string]map[string]string, err error){
                 err = nodeclient.SaveNodeInformation(ipData, portData, allNodes)
                 if err != nil {logs.Error("GetAllNodes Error updating node data"); return nil,err}    
             }
-        }
+        }        
     }
 
     return allNodes,nil

@@ -44,6 +44,11 @@ func CreateRulesetSource(n map[string]string) (err error) {
     if n["url"] == "" {
         return errors.New("URL is empty")
     }
+    if content,ok := n["secretKey"]; ok {
+        if content == "" {
+            return errors.New("Secret key for URL is empty")
+        }
+    }
     if err := rulesetSourceExists(rulesetSourceKey); err != nil {
         logs.Error("rulesetSource exist: "+err.Error())
         return errors.New("rulesetSource exist")
@@ -61,11 +66,11 @@ func CreateRulesetSource(n map[string]string) (err error) {
     n["path"] = path + nameWithoutSpaces +"/"+ n["fileName"]
         
     for key, value := range n {
-        if key == "passwd"{
+        if key == "passwd" || key == "secretKey"{
             keyHashed,err := ndb.LoadMasterKEY()
             if err != nil {logs.Error(err); return nil}
             
-            crypted := validation.Encrypt([]byte(n["passwd"]), keyHashed)
+            crypted := validation.Encrypt([]byte(n[key]), keyHashed)
 
             err = ndb.RulesetSourceKeyInsert(rulesetSourceKey, key, string(crypted))
             if err != nil {return err}
@@ -366,6 +371,7 @@ func OverwriteDownload(data map[string]string) (err error) {
     var fileExtension = regexp.MustCompile(`(\w+).rules$`)
     var newFilesDownloaded = make(map[string]string)
     var newFilesDB = make(map[string]map[string]string)
+    var urlParsed string
 
     pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
     if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error()); return err}
@@ -381,21 +387,28 @@ func OverwriteDownload(data map[string]string) (err error) {
     //get user and password
     rulesets,err := ndb.GetAllRulesets()
     if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
+    //check decrypt password
+    keyHashed,err := ndb.LoadMasterKEY()
+    if err != nil {logs.Error(err); return nil}
+
+    //check and replace secret Key
+    if strings.Contains(data["url"], "%(secret-code)s"){
+        //decrypt secret key
+        pswd := validation.Decrypt([]byte(rulesets[data["uuid"]]["secretKey"]), keyHashed)
+        //replace secret code by 
+        urlParsed = strings.Replace(data["url"], "%(secret-code)s", string(pswd), -1)
+    }
 
     if rulesets[data["uuid"]]["passwd"] != "" {
-        //check decrypt password
-        keyHashed,err := ndb.LoadMasterKEY()
-        if err != nil {logs.Error(err); return nil}
-
         uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
 
-        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
+        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, urlParsed, rulesets[data["uuid"]]["user"], string(uncrypted))
         if err != nil {
             logs.Error("OverwriteDownload Error downloading file from RulesetSource with pass-> %s", err.Error())
             return err
         }
     }else{
-        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, data["url"], "", "")
+        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, urlParsed, "", "")
         if err != nil {
             logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
             return err
@@ -487,6 +500,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 }
 
 func DownloadFile(data map[string]string) (err error) {
+    var urlParsed string
     pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
     if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error())}
 
@@ -504,14 +518,22 @@ func DownloadFile(data map[string]string) (err error) {
         rulesets,err := ndb.GetAllRulesets()
         if err != nil {logs.Error("OverwriteDownload Error getting ruleset data: "+err.Error()); return err}
 
+        //load MasterKey for crypt and decrypt
+        keyHashed,err := ndb.LoadMasterKEY()
+        if err != nil {logs.Error(err); return nil}
+        //check and replace secret Key
+        if strings.Contains(data["url"], "%(secret-code)s"){
+            //decrypt secret key
+            pswd := validation.Decrypt([]byte(rulesets[data["uuid"]]["secretKey"]), keyHashed)
+            //replace secret code by 
+            urlParsed = strings.Replace(data["url"], "%(secret-code)s", string(pswd), -1)
+        }
+
         if rulesets[data["uuid"]]["passwd"] != "" {
             //check decrypt password
-            keyHashed,err := ndb.LoadMasterKEY()
-            if err != nil {logs.Error(err); return nil}
-    
             uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
 
-            err = utils.DownloadFile(data["path"], data["url"], rulesets[data["uuid"]]["user"], string(uncrypted))
+            err = utils.DownloadFile(data["path"], urlParsed, rulesets[data["uuid"]]["user"], string(uncrypted))
             if err != nil {
                 logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
                 _ = os.RemoveAll(pathDownloaded+pathSelected)
@@ -519,7 +541,7 @@ func DownloadFile(data map[string]string) (err error) {
                 return err
             }
         }else{
-            err = utils.DownloadFile(data["path"], data["url"], "", "")
+            err = utils.DownloadFile(data["path"], urlParsed, "", "")
             if err != nil {
                 logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
                 _ = os.RemoveAll(pathDownloaded+pathSelected)
