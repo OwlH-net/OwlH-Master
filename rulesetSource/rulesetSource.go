@@ -34,6 +34,7 @@ func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
 
 
 func CreateRulesetSource(n map[string]string) (err error) {
+    logs.Notice(n)
     rulesetSourceKey := utils.Generate()
     if n["name"] == "" {
         return errors.New("Name is empty")
@@ -233,7 +234,7 @@ func GetAllRulesetSource(hasPermissions bool)(sources map[string]map[string]stri
             }
         } 
     }
-
+    delete(allsources[uniqid], "secretKey")
     return allsources, nil
 }
 
@@ -282,7 +283,14 @@ func DeleteRulesetSource(anode map[string]string) (err error) {
         return errors.New("DeleteRulesetSource -- Can't acces to database")
     }
 
-    if sourceType == "url" {
+    if sourceType == "custom" {
+        path,err := ndb.GetRulesetSourceValue(rulesetSourceUUID, "path")
+        err = os.RemoveAll(path)
+        if err != nil {
+            logs.Error("DeleteRulesetSource Error deleting path for URL source type: %s", err.Error())
+            return err
+        }
+    }else{
         name,err := ndb.GetRulesetSourceValue(rulesetSourceUUID, "name")
         nameWithoutSpaces := strings.Replace(name, " ", "_", -1)
         err = os.RemoveAll(pathDownloaded+nameWithoutSpaces)
@@ -290,13 +298,23 @@ func DeleteRulesetSource(anode map[string]string) (err error) {
             logs.Error("DeleteRulesetSource Error deleting path for URL source type: %s", err.Error())
             return err
         }
-    }else{
-        path,err := ndb.GetRulesetSourceValue(rulesetSourceUUID, "path")
-        err = os.RemoveAll(path)
-        if err != nil {
-            logs.Error("DeleteRulesetSource Error deleting path for CUSTOM source type: %s", err.Error())
-        }
     }
+
+    // if sourceType == "url" {
+    //     name,err := ndb.GetRulesetSourceValue(rulesetSourceUUID, "name")
+    //     nameWithoutSpaces := strings.Replace(name, " ", "_", -1)
+    //     err = os.RemoveAll(pathDownloaded+nameWithoutSpaces)
+    //     if err != nil {
+    //         logs.Error("DeleteRulesetSource Error deleting path for URL source type: %s", err.Error())
+    //         return err
+    //     }
+    // }else{
+    //     path,err := ndb.GetRulesetSourceValue(rulesetSourceUUID, "path")
+    //     err = os.RemoveAll(path)
+    //     if err != nil {
+    //         logs.Error("DeleteRulesetSource Error deleting path for CUSTOM source type: %s", err.Error())
+    //     }
+    // }
     
     //delete a ruleset source in ruleset table
     sourceSQL, err := ndb.Rdb.Prepare("delete from ruleset where ruleset_uniqueid = ?")
@@ -368,10 +386,10 @@ func EditRulesetSource(data map[string]string) (err error) {
 }
 
 func OverwriteDownload(data map[string]string) (err error) {
-    var fileExtension = regexp.MustCompile(`(\w+).rules$`)
+    var fileExtension = regexp.MustCompile(`(\w+)[.]rules$`)
     var newFilesDownloaded = make(map[string]string)
     var newFilesDB = make(map[string]map[string]string)
-    var urlParsed string
+    urlParsed := data["url"]
 
     pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
     if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error()); return err}
@@ -392,13 +410,12 @@ func OverwriteDownload(data map[string]string) (err error) {
     if err != nil {logs.Error(err); return nil}
 
     //check and replace secret Key
-    if strings.Contains(data["url"], "%(secret-code)s"){
+    if strings.Contains(data["url"], "<SECRET-CODE>"){
         //decrypt secret key
         pswd := validation.Decrypt([]byte(rulesets[data["uuid"]]["secretKey"]), keyHashed)
         //replace secret code by 
-        urlParsed = strings.Replace(data["url"], "%(secret-code)s", string(pswd), -1)
+        urlParsed = strings.Replace(data["url"], "<SECRET-CODE>", string(pswd), -1)
     }
-
     if rulesets[data["uuid"]]["passwd"] != "" {
         uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
 
@@ -500,7 +517,7 @@ func OverwriteDownload(data map[string]string) (err error) {
 }
 
 func DownloadFile(data map[string]string) (err error) {
-    var urlParsed string
+    urlParsed := data["url"]
     pathDownloaded, err := utils.GetKeyValueString("ruleset", "sourceDownload")
     if err != nil {logs.Error("OverwriteDownload Error getting data from main.conf: "+err.Error())}
 
@@ -522,11 +539,11 @@ func DownloadFile(data map[string]string) (err error) {
         keyHashed,err := ndb.LoadMasterKEY()
         if err != nil {logs.Error(err); return nil}
         //check and replace secret Key
-        if strings.Contains(data["url"], "%(secret-code)s"){
+        if strings.Contains(data["url"], "<SECRET-CODE>"){
             //decrypt secret key
             pswd := validation.Decrypt([]byte(rulesets[data["uuid"]]["secretKey"]), keyHashed)
             //replace secret code by 
-            urlParsed = strings.Replace(data["url"], "%(secret-code)s", string(pswd), -1)
+            urlParsed = strings.Replace(data["url"], "<SECRET-CODE>", string(pswd), -1)
         }
 
         if rulesets[data["uuid"]]["passwd"] != "" {
@@ -561,7 +578,10 @@ func DownloadFile(data map[string]string) (err error) {
         //insert into DB
         ruleFiles, err := Details(data)
         if err != nil{logs.Error("DownloadFile Error getting rule files: "+err.Error());return err}
-
+        logs.Notice(ruleFiles)
+        logs.Notice(ruleFiles)
+        logs.Notice(ruleFiles)
+        logs.Notice(ruleFiles)
         for k,_ := range ruleFiles["files"] {
             //add md5 for every file
             md5,err := utils.CalculateMD5(ruleFiles["files"][k])
@@ -701,7 +721,7 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
     folder := pathSelected[len(pathSelected)-1]
 
     path := pathDownloaded+folder
-    var fileExtension = regexp.MustCompile(`(\w+).rules$`)
+    var fileExtension = regexp.MustCompile(`(\w+)[.]rules$`)
     dataFiles := map[string]map[string]string{}
     dataFiles["files"] = map[string]string{}
 
@@ -712,6 +732,8 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
         }
         if fileExtension.MatchString(info.Name()){
             dataFiles["files"][info.Name()] = file
+            logs.Notice(info.Name())
+            logs.Warn(file)
         }
         return nil
     })

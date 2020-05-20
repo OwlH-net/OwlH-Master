@@ -148,7 +148,7 @@ func DownloadFile(filepath string, url string, username string, passwd string) (
         resp, err = client.Do(req)
         if err != nil {logs.Error("Error downloading file with pass! " + err.Error()); return err}
     }else{
-        resp, err = http.Get(url)        
+        resp, err = http.Get(url)     
         if err != nil {logs.Error("Error downloading file! " + err.Error()); return err}
         if resp.StatusCode != 200 {
             return errors.New("Error downloading file. URL not found. Status: "+strconv.Itoa(resp.StatusCode))
