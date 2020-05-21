@@ -20,6 +20,11 @@ func Zeek(n string) (data nodeclient.ZeekData, err error) {
     if err != nil {
         return data,err
     }
+
+    // data.Nodename = "name node name node"
+    // data.Nodeuuid = "name node name node"
+    // logs.Notice(data.Nodes)
+
     return data,nil
 }
 

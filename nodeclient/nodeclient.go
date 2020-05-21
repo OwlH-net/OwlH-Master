@@ -14,6 +14,8 @@ import (
 //Zeek data struct
 type ZeekData struct {
     Path        bool                `json:"path"`
+    // Nodename    string              `json:"nodename"`
+    // Nodeuuid    string              `json:"nodeuuid"`
     Rol         string              `json:"role"`
     Bin         bool                `json:"bin"`
     Action      string              `json:"action"`
@@ -28,7 +30,7 @@ type ZeekKeys struct {
     Value       string              `json:"value"`
 }
 type ZeekNode struct {
-    Name        string              `json:"name"`
+    Name        string              `json:"name"`    
     Host        string              `json:"host"`
     Status      string              `json:"status"`
     Type        string              `json:"type"`
