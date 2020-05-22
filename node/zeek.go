@@ -23,12 +23,12 @@ func Zeek(n string) (data nodeclient.ZeekData, err error) {
 
     //get node name adn uuid
     nodes,err := ndb.GetAllNodes()
-    for x := range nodes {
-        if nodes[x]["ip"] == data.ManagerIP {
-            data.ManagerUUID = x
-            data.ManagerName = nodes[x]["name"]
-        }
-    }
+    // for x := range nodes {
+    //     if nodes[x]["ip"] == data.ManagerIP {
+    data.ManagerUUID = n
+    data.ManagerName = nodes[n]["name"]
+    //     }
+    // }
 
     return data,nil
 }
