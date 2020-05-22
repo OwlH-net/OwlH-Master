@@ -13,35 +13,37 @@ import (
 
 //Zeek data struct
 type ZeekData struct {
-    Path        bool                `json:"path"`
-    // Nodename    string              `json:"nodename"`
-    // Nodeuuid    string              `json:"nodeuuid"`
-    Rol         string              `json:"role"`
-    Bin         bool                `json:"bin"`
-    Action      string              `json:"action"`
-    Running     []ZeekNodeStatus    `json:"running"`
-    Mode        string              `json:"mode"`
-    Managed     bool                `json:"managed"`
-    Nodes       []ZeekNode          `json:"nodes"`
-    Extra       map[string]string   `json:"extra"`
+    Path        bool              `json:"path"`
+    Rol         string            `json:"role"`
+    Bin         bool              `json:"bin"`
+    Action      string            `json:"action"`
+    Running     []ZeekNodeStatus  `json:"running"`
+    Mode        string            `json:"mode"`
+    Managed     bool              `json:"managed"`
+    Manager     bool              `json:"manager"`
+    ManagerIP   string            `json:"managerip"`
+    ManagerUUID string            `json:"manageruuid"`
+    ManagerName string            `json:"managername"`
+    Nodes       []ZeekNode        `json:"nodes"`
+    Extra       map[string]string `json:"extra"`
 }
 type ZeekKeys struct {
-    Key         string              `json:"key"`
-    Value       string              `json:"value"`
+    Key   string `json:"key"`
+    Value string `json:"value"`
 }
 type ZeekNode struct {
-    Name        string              `json:"name"`    
-    Host        string              `json:"host"`
-    Status      string              `json:"status"`
-    Type        string              `json:"type"`
-    NInterface  string              `json:"interface"`
-    Pid         string              `json:"pid"`
-    Started     string              `json:"started"`
-    Extra       []ZeekKeys          `json:"extra"`
+    Name       string     `json:"name"`
+    Host       string     `json:"host"`
+    Status     string     `json:"status"`
+    Type       string     `json:"type"`
+    NInterface string     `json:"interface"`
+    Pid        string     `json:"pid"`
+    Started    string     `json:"started"`
+    Extra      []ZeekKeys `json:"extra"`
 }
 type ZeekNodeStatus struct {
-    Status      string              `json:"status"`
-    Nodes       int                 `json:"nodes"`
+    Status string `json:"status"`
+    Nodes  int    `json:"nodes"`
 }
 
 
