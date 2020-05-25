@@ -34,7 +34,7 @@ func GetFileUUIDfromRulesetUUID(value string)(uuid string, err error){
 
 
 func CreateRulesetSource(n map[string]string) (err error) {
-    logs.Notice(n)
+    //check map content
     rulesetSourceKey := utils.Generate()
     if n["name"] == "" {
         return errors.New("Name is empty")
@@ -54,18 +54,26 @@ func CreateRulesetSource(n map[string]string) (err error) {
         logs.Error("rulesetSource exist: "+err.Error())
         return errors.New("rulesetSource exist")
     }
-    
+
+    //check if ruleset is into db already
+    allRulesets,err := ndb.GetAllRulesets()
+    for x := range allRulesets {
+        if allRulesets[x]["name"] == n["name"] {
+            return errors.New("The ruleset "+n["name"]+" already exists. Use other name for the new ruleset source.")
+        }
+    }
+
+    //get ruleset path
     path, err := utils.GetKeyValueString("ruleset", "sourceDownload")
     if err != nil {logs.Error("CreateRulesetSource Error getting data from main.conf for load data: "+err.Error()); return err}
+    
+    nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)    
+    n["path"] = path + nameWithoutSpaces +"/"+ n["fileName"]
 
-
-    if _, err := os.Stat(path+n["name"]); !os.IsNotExist(err) {
+    if _, err := os.Stat(path+nameWithoutSpaces); !os.IsNotExist(err) {
         return errors.New("The folder "+n["name"]+" already exists. Use other name for the new ruleset source.")
     }
-    
-    nameWithoutSpaces := strings.Replace(n["name"], " ", "_", -1)
-    n["path"] = path + nameWithoutSpaces +"/"+ n["fileName"]
-        
+            
     for key, value := range n {
         if key == "passwd" || key == "secretKey"{
             keyHashed,err := ndb.LoadMasterKEY()
@@ -396,10 +404,11 @@ func OverwriteDownload(data map[string]string) (err error) {
 
     splitPath := strings.Split(data["url"], "/")
     fileDownloaded := splitPath[len(splitPath)-1]
+    nameWithoutSpaces := strings.Replace(data["name"], " ", "_", -1)    
 
     //check if path exists
-    if _, err := os.Stat(pathDownloaded+data["name"]); os.IsNotExist(err) {
-        os.MkdirAll(pathDownloaded+data["name"], os.ModePerm)
+    if _, err := os.Stat(pathDownloaded+nameWithoutSpaces); os.IsNotExist(err) {
+        os.MkdirAll(pathDownloaded+nameWithoutSpaces, os.ModePerm)
     }
 
     //get user and password
@@ -419,13 +428,13 @@ func OverwriteDownload(data map[string]string) (err error) {
     if rulesets[data["uuid"]]["passwd"] != "" {
         uncrypted := validation.Decrypt([]byte(rulesets[data["uuid"]]["passwd"]), keyHashed)
 
-        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, urlParsed, rulesets[data["uuid"]]["user"], string(uncrypted))
+        err = utils.DownloadFile(pathDownloaded + nameWithoutSpaces + "/" + fileDownloaded, urlParsed, rulesets[data["uuid"]]["user"], string(uncrypted))
         if err != nil {
             logs.Error("OverwriteDownload Error downloading file from RulesetSource with pass-> %s", err.Error())
             return err
         }
     }else{
-        err = utils.DownloadFile(pathDownloaded + data["name"] + "/" + fileDownloaded, urlParsed, "", "")
+        err = utils.DownloadFile(pathDownloaded + nameWithoutSpaces + "/" + fileDownloaded, urlParsed, "", "")
         if err != nil {
             logs.Error("OverwriteDownload Error downloading file from RulesetSource-> %s", err.Error())
             return err
@@ -433,20 +442,20 @@ func OverwriteDownload(data map[string]string) (err error) {
     }
 
     //extract file downloaded
-    err = utils.ExtractFile(pathDownloaded + data["name"] + "/" + fileDownloaded, pathDownloaded+data["name"])
+    err = utils.ExtractFile(pathDownloaded + nameWithoutSpaces + "/" + fileDownloaded, pathDownloaded+nameWithoutSpaces)
     if err != nil {
         logs.Error("Error unzipping file downloaded: "+err.Error())
         return err
     }
 
 
-    err = ndb.UpdateRuleset(data["uuid"], "path", pathDownloaded + data["name"] + "/" + fileDownloaded)
+    err = ndb.UpdateRuleset(data["uuid"], "path", pathDownloaded + nameWithoutSpaces + "/" + fileDownloaded)
     if err!=nil { logs.Error("Error updating path OverwriteDownload: "+err.Error()); return err}
     err = ndb.UpdateRuleset(data["uuid"], "url", data["url"])
     if err!=nil { logs.Error("Error updating url OverwriteDownload: "+err.Error()); return err}
 
     //get map with new files downloaded
-    err = filepath.Walk(pathDownloaded + data["name"],
+    err = filepath.Walk(pathDownloaded + nameWithoutSpaces,
         func(file string, info os.FileInfo, err error) error {
         if err != nil {
             logs.Error("Error Getting downloaded data Map: "+err.Error())
@@ -578,10 +587,7 @@ func DownloadFile(data map[string]string) (err error) {
         //insert into DB
         ruleFiles, err := Details(data)
         if err != nil{logs.Error("DownloadFile Error getting rule files: "+err.Error());return err}
-        logs.Notice(ruleFiles)
-        logs.Notice(ruleFiles)
-        logs.Notice(ruleFiles)
-        logs.Notice(ruleFiles)
+
         for k,_ := range ruleFiles["files"] {
             //add md5 for every file
             md5,err := utils.CalculateMD5(ruleFiles["files"][k])
