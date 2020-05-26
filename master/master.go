@@ -854,6 +854,7 @@ func GetAllRoles() (data map[string]map[string]string, err error) {
         for y := range allPerm{
             if x == allPerm[y]["role"]{
                 allRoles[x]["permissions"] = allPerm[y]["permissions"]
+                allRoles[x]["desc"] = allPerm[y]["desc"]
             }
         }
     }
@@ -922,6 +923,8 @@ func EditRole(anode map[string]string) (err error) {
         if rolePerm[x]["role"] == anode["id"]{
             err = ndb.UpdateRolePermissions(x, "permissions", anode["permissions"])
             if err != nil{logs.Error("master/EditRole Error updating role permissions: "+err.Error()); return err}
+            err = ndb.UpdateRolePermissions(x, "desc", anode["desc"])
+            if err != nil{logs.Error("master/EditRole Error updating role description: "+err.Error()); return err}
         }
     } 
 
@@ -1065,6 +1068,7 @@ func AddNewRole(anode map[string]string) (err error) {
     //add role to rolePermissions
     uuidPermRoles := utils.Generate()
     err = ndb.InsertRolePermissions(uuidPermRoles, "role", uuidRoles)
+    err = ndb.InsertRolePermissions(uuidPermRoles, "desc", anode["desc"])
     err = ndb.InsertRolePermissions(uuidPermRoles, "permissions", anode["permissions"])
     err = ndb.InsertRolePermissions(uuidPermRoles, "object", "any")
 

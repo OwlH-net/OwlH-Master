@@ -488,21 +488,28 @@ func checkFields()(ok bool){
     field.Ftable     = "rolePermissions"
     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','role','00000000-0000-0000-0000-000000000001')"
-    field.Fname      = "rolePermissions - role for rolePermissions"
+    field.Fname      = "rolePermissions - role for admin rolePermissions"
     ok = CheckField(field)
     if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "rolePermissions"
     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='permissions' and rp_value='admin'"
     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','permissions','admin')"
-    field.Fname      = "rolePermissions - role for rolePermissions"
+    field.Fname      = "rolePermissions - role for admin rolePermissions"
     ok = CheckField(field)
     if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "rolePermissions"
     field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='object' and rp_value='any'"
     field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','object','any')"
-    field.Fname      = "rolePermissions - role for rolePermissions"
+    field.Fname      = "rolePermissions - role for admin rolePermissions"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "rolePermissions"
+    field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0001-000000000000' and rp_param='desc' and rp_value='This is the admin role'"
+    field.Finsert    = "insert into rolePermissions (rp_uniqueid,rp_param,rp_value) values ('00000000-0000-0000-0001-000000000000','desc','This is the admin role')"
+    field.Fname      = "rolePermissions - desc for admin rolePermissions"
     ok = CheckField(field)
     if !ok {return false}
     
