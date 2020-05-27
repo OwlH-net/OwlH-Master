@@ -387,3 +387,28 @@ func (n *RulesetSourceController) OverwriteRuleFile() {
     }
     n.ServeJSON()
 }
+
+// @Title LoadDefaultRulesets
+// @Description Get all default rulesets
+// @Success 200 {object} models.RulesetSource
+// @router /loadDefaultRulesets/ [get]
+func (n *RulesetSourceController) LoadDefaultRulesets() { 
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"LoadDefaultRulesets"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        rulesetSource, err := models.LoadDefaultRulesets(n.Ctx.Input.Header("user"))
+        n.Data["json"] = rulesetSource
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

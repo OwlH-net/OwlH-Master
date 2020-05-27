@@ -1972,6 +1972,20 @@ func checkPermissionsFields()(ok bool){
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('OverwriteRuleFile','permissionGroup','RulesetSource')"
     field.Fname      = "permissions - group"
     ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='LoadDefaultRulesets' and per_param='desc' and per_value='Get all default rulesets'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('LoadDefaultRulesets','desc','Get all default rulesets')"
+    field.Fname      = "permissions - LoadDefaultRulesets desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='LoadDefaultRulesets' and per_param='permissionGroup' and per_value='RulesetSource'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('LoadDefaultRulesets','permissionGroup','RulesetSource')"
+    field.Fname      = "permissions - LoadDefaultRulesets group"
+    ok = CheckField(field)
     
     //Ruleset
 	field.Fconn      = "masterConn"

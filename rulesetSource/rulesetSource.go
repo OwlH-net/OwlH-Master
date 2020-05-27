@@ -4,6 +4,7 @@ import (
     "github.com/astaxie/beego/logs"
     "owlhmaster/database"
     "owlhmaster/validation"
+    "encoding/json"
     "errors"
     "owlhmaster/utils"
     // "owlhmaster/validation"
@@ -916,4 +917,16 @@ func AddNewLinesToRuleset(uuid string)(err error){
     }
 
     return nil
+}
+
+func LoadDefaultRulesets() (mapData map[string]map[string]string, err error) {
+    defaultPath, err := utils.GetKeyValueString("ruleset", "defaultRulesets")
+    if err != nil {logs.Error("LoadDefaultRulesets Details Error getting data from main.conf: "+err.Error()); return nil, err}
+    
+    content, err := ioutil.ReadFile(defaultPath)
+    if err != nil {logs.Error("LoadDefaultRulesets Error readding default rulesets file: "+err.Error()); return nil, err}
+
+    json.Unmarshal(content, &mapData)
+    
+    return mapData,err
 }
