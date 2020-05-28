@@ -2278,7 +2278,7 @@ func GetNodeToken(ipData string, portData string, login map[string]string) (toke
     return data["token"], nil
 }
 
-func SaveNodeInformation(ipnid string, portnid string, data map[string]map[string]string) (err error) {
+func SaveNodeInformation(ipnid string, portnid string, data map[string]string) (err error) {
     url := "https://" + ipnid + ":" + portnid + "/node/ping/saveNodeInformation"
     valuesJSON, err := json.Marshal(data)
     resp, err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
