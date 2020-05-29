@@ -361,6 +361,13 @@ func checkFields()(ok bool){
     field.Fname      = "userRoles - role"
     ok = CheckField(field)
     if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "userRoles"
+    field.Fquery     = "select ur_param from userRoles where ur_param='deleteable' and ur_value='false'"
+    field.Finsert    = "insert into userRoles (ur_uniqueid,ur_param,ur_value) values ('00000000-0000-0000-0000-000000000001','deleteable','false')"
+    field.Fname      = "userRoles - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
 
     //add admin to group admin status
     field.Fconn      = "masterConn"
@@ -368,6 +375,13 @@ func checkFields()(ok bool){
     field.Fquery     = "select ug_param from userGroups where ug_param='group' and ug_value='admin'"
     field.Finsert    = "insert into userGroups (ug_uniqueid,ug_param,ug_value) values ('00000000-0000-0000-0000-000000000002','group','admin')"
     field.Fname      = "userGroups - group"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "userGroups"
+    field.Fquery     = "select ug_param from userGroups where ug_param='deleteable' and ug_value='false'"
+    field.Finsert    = "insert into userGroups (ug_uniqueid,ug_param,ug_value) values ('00000000-0000-0000-0000-000000000002','deleteable','false')"
+    field.Fname      = "userGroups - deleteable"
     ok = CheckField(field)
     if !ok {return false}
 

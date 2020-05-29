@@ -3055,6 +3055,20 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='RegisterNode' and per_param='desc' and per_value='Register pending node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('RegisterNode','desc','Register pending node')"
+    field.Fname      = "permissions - RegisterNode desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='RegisterNode' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('RegisterNode','permissionGroup','Node')"
+    field.Fname      = "permissions - RegisterNode group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='PingWazuhFiles' and per_param='desc' and per_value='-'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('PingWazuhFiles','desc','-')"
     field.Fname      = "permissions - desc"
