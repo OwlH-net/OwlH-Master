@@ -517,11 +517,18 @@ func SyncRulesetToNode(anode map[string]string)(err error){
     data, err := CreateNewRuleFile(anode["ruleset"])
     if err != nil {logs.Error("SyncRulesetToNode ERROR creating a nunique ruleset file: "+err.Error()); return err}
 
+    //get ruleset name
+    rsetName,err := ndb.GetRulesetSourceValue(anode["ruleset"], "name")
+    if err!=nil{logs.Error("SyncRulesetToNode Error getting ruleset name: %s",err); return err}
+
     //send lines to node
-    err = ndb.GetTokenByUuid(anode["uuid"]); if err!=nil{logs.Error("SyncRulesetToNode Error loading node token: %s",err); return err}
+    err = ndb.GetTokenByUuid(anode["uuid"])
+    if err!=nil{logs.Error("SyncRulesetToNode Error loading node token: %s",err); return err}
+    
     ipData,portData,err := ndb.ObtainPortIp(anode["uuid"])
     if err != nil {logs.Error("node/GetAllFiles ERROR getting node port/ip : "+err.Error()); return err}    
-    err = nodeclient.SyncRulesetToNode(ipData, portData, data, anode["service"])
+
+    err = nodeclient.SyncRulesetToNode(ipData, portData, data, anode["service"], rsetName)
     if err != nil {logs.Error("SyncRulesetToNode ERROR connection through http new Request: "+err.Error()); return err}
 
     return nil
@@ -608,8 +615,12 @@ func SyncRulesetToAllNodes(anode map[string]string)(err error){
             return err
         }
 
+        //get ruleset name
+        rsetName,err := ndb.GetRulesetSourceValue(uuid, "name")
+        if err!=nil{logs.Error("SyncRulesetToAllNodes Error getting ruleset name: %s",err); return err}
+
         //send lines to node
-        err = nodeclient.SyncRulesetToNode(ipData, portData, data, uuid)
+        err = nodeclient.SyncRulesetToNode(ipData, portData, data, uuid, rsetName)
         if err != nil {logs.Error("SyncRulesetToAllNodes ERROR connection through http new Request: "+err.Error()); return err}
     }
     return nil
