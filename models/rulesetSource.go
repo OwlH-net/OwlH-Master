@@ -170,3 +170,11 @@ func AddNewLinesToRuleset(uuid string, username string)(err error){
     changecontrol.ChangeControlInsertData(err, "AddNewLinesToRuleset", username)
     return err
 }
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/rulesetSource/loadDefaultRulesets \
+func LoadDefaultRulesets(username string) (mapData map[string]map[string]string, err error) {
+    mapData,err = rulesetSource.LoadDefaultRulesets()
+    changecontrol.ChangeControlInsertData(err, "LoadDefaultRulesets", username)
+    return mapData,err
+}

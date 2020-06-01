@@ -2518,3 +2518,31 @@ func (n *NodeController) SaveSurictaRulesetSelected() {
     }
     n.ServeJSON()
 }
+
+// @Title RegisterNode
+// @Description Change mainconf db values
+// @Success 200 {object} models.Node
+// @router /registerNode/:uuid [put]
+func (n *NodeController) RegisterNode() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"RegisterNode"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        uuid := n.GetString(":uuid")
+
+        err := models.RegisterNode(uuid, n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "true"}
+
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

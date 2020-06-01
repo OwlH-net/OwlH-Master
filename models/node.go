@@ -1068,3 +1068,11 @@ func SaveSurictaRulesetSelected(anode map[string]string, username string) (err e
     changecontrol.ChangeControlInsertData(err, "SaveSurictaRulesetSelected", username)
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/registerNode/:uuid \
+func RegisterNode(uuid string, username string) (err error) {
+    err = node.RegisterNode(uuid)
+    changecontrol.ChangeControlInsertData(err, "RegisterNode", username)
+    return err
+}

@@ -2256,7 +2256,7 @@ func GetNodeToken(ipData string, portData string, login map[string]string) (toke
     if err != nil {
         logs.Error("nodeclient/GetNodeAutentication ERROR connection through http new Request: " + err.Error())
         //add to db with wait status
-        return "", err
+        return "", errors.New("connection refused")
     }
 
     defer resp.Body.Close()
