@@ -30,6 +30,7 @@ func (n *ChangecontrolController) GetChangeControl() {
         data, err := models.GetChangeControl(n.Ctx.Input.Header("user"))
         n.Data["json"] = data
         if err != nil {
+
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
 
