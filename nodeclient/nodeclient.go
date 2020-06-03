@@ -286,7 +286,7 @@ func SyncGroupRulesetToNode(ipData string, portData string, data map[string][]by
     return nil
 }
 
-func SyncRulesetToNode(ipData string, portData string, data []byte, service string) (err error) {
+func SyncRulesetToNode(ipData string, portData string, data []byte, service string, rulesetName string) (err error) {
     if data == nil || len(data) <= 0 {
         return errors.New("SyncRulesetToNode error - Can't synchronize an empty ruleset")
     }
@@ -294,6 +294,7 @@ func SyncRulesetToNode(ipData string, portData string, data []byte, service stri
     values := make(map[string][]byte)
     values["data"] = data
     values["service"] = []byte(service)
+    values["rulesetName"] = []byte(rulesetName)
     url := "https://" + ipData + ":" + portData + "/node/suricata/sync"
     valuesJSON, err := json.Marshal(values)
     resp, err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
