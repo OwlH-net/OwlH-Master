@@ -1,4 +1,4 @@
- [![Doc](https://img.shields.io/badge/Documentation-Current-green?style=plastic)](https://documentation.owlh.net)
+ [![Doc](https://img.shields.io/badge/Documentation-Current-green?style=plastic&logo=read-the-docs)](https://documentation.owlh.net)
 
 
 # OwlH-Master
