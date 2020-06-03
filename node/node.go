@@ -129,12 +129,12 @@ func GetAllNodes()(data map[string]map[string]string, err error){
         token,err := nodeclient.GetNodeToken(allNodes[id]["ip"], allNodes[id]["port"], login)
         if err != nil {
             if err.Error() == "connection refused"{
-                _ = ndb.InsertPluginCommand(uuid, "status", "Error")
-                _ = ndb.InsertPluginCommand(uuid, "output", "Add node error: Connection refused")
+                _ = ndb.InsertPluginCommand(logUuid, "status", "Error")
+                _ = ndb.InsertPluginCommand(logUuid, "output", "Add node error: Connection refused")
                 continue
             }else{
-                _ = ndb.InsertPluginCommand(uuid, "status", "Error")
-                _ = ndb.InsertPluginCommand(uuid, "output", "Add node error: "+err.Error())
+                _ = ndb.InsertPluginCommand(logUuid, "status", "Error")
+                _ = ndb.InsertPluginCommand(logUuid, "output", "Add node error: "+err.Error())
 
                 err = ndb.UpdateNode(id, "token", "wait")  
                 if err != nil {logs.Error("node/GetAllNodes ERROR updating node token: "+err.Error()); return nil,err} 
