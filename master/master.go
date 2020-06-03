@@ -10,6 +10,7 @@ import (
     "io/ioutil"
     "os"
     "errors"
+    "time"
     "strings"
     "bytes"
     "os/exec"
@@ -69,12 +70,34 @@ func SaveFileContent(file map[string]string) (err error) {
 }
 
 func GetNetworkInterface()(values map[string]string, err error) {
+    //historical log
+    logUuid := utils.Generate()
+    currentTime := time.Now()
+    timeFormated := currentTime.Format("2006-01-02T15:04:05")
+    _ = ndb.InsertPluginCommand(logUuid, "date", timeFormated)
+    _ = ndb.InsertPluginCommand(logUuid, "type", "Interfaces")
+    _ = ndb.InsertPluginCommand(logUuid, "action", "GetNetworkInterface")
+    _ = ndb.InsertPluginCommand(logUuid, "description", "Get master interfaces")
+
     data := make(map[string]string)
     interfaces, err := pcap.FindAllDevs()
-    if err != nil {logs.Error("GetNetworkInterface Master pcap.FindAllDevs error: "+err.Error()); return nil,err}
+    if err != nil {
+        _ = ndb.InsertPluginCommand(logUuid, "status", "Error")
+        _ = ndb.InsertPluginCommand(logUuid, "output", "ListInterfaces error: "+err.Error())
+        logs.Error("GetNetworkInterface Master pcap.FindAllDevs error: "+err.Error())
+        return nil,err
+    }
 
     for _, localInt := range interfaces {
         data[localInt.Name] = localInt.Name
+    }
+
+    if data == nil || len(data) <= 0 {
+        _ = ndb.InsertPluginCommand(logUuid, "status", "Error")
+        _ = ndb.InsertPluginCommand(logUuid, "output", "No interfaces obtained for master")
+    }else{
+        _ = ndb.InsertPluginCommand(logUuid, "status", "Success")
+        _ = ndb.InsertPluginCommand(logUuid, "output", "GetNetworkInterface get interfaces successfully")
     }
 
     return data, err

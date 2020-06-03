@@ -1017,3 +1017,21 @@ func GetRolePermissionsByValue(val string)(path map[string]map[string]string, er
     } 
     return pingData,nil
 }
+
+func InsertPluginCommand(uuid string, param string, value string) (err error) {
+    insertPlugin, err := Mdb.Prepare("insert into commands(cmd_uniqueid, cmd_param, cmd_value) values (?,?,?);")
+    if err != nil {
+        logs.Error("InsertPluginCommand INSERT prepare error: " + err.Error())
+        return err
+    }
+
+    _, err = insertPlugin.Exec(&uuid, &param, &value)
+    if err != nil {
+        logs.Error("InsertPluginCommand INSERT exec error: " + err.Error())
+        return err
+    }
+
+    defer insertPlugin.Close()
+
+    return nil
+}
