@@ -28,7 +28,7 @@ import (
 func main() {
     
     //Application version
-    logs.Info("Version OwlH Master: 0.15.0.20200529")
+    logs.Info("Version OwlH Master: 0.14.1.20200601")
     utils.Load()
 
     //get logger data
