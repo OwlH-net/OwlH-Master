@@ -15,6 +15,14 @@ import (
 )
 
 func AddNode(n map[string]string) (err error) {
+    //historical log
+    logUuid := utils.Generate()
+    currentTime := time.Now()
+    timeFormated := currentTime.Format("2006-01-02T15:04:05")
+    _ = ndb.InsertPluginCommand(logUuid, "date", timeFormated)
+    _ = ndb.InsertPluginCommand(logUuid, "action", "AddNode")
+    _ = ndb.InsertPluginCommand(logUuid, "description", "Add new node")
+
     //insert node
     uuid := utils.Generate()
 
@@ -40,6 +48,8 @@ func AddNode(n map[string]string) (err error) {
     token,err := nodeclient.GetNodeToken(n["ip"],n["port"], login)
     if err != nil {
         if err.Error() == "CreateMasterToken Incorrect Login credentials" {
+            _ = ndb.InsertPluginCommand(uuid, "status", "Error")
+            _ = ndb.InsertPluginCommand(uuid, "output", "Add node error: Invalid login credentials")
             return errors.New("AddNode ERROR. Invalid login credentials.")
         }
         err = ndb.InsertNodeKey(uuid, "token", "wait"); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
@@ -48,6 +58,9 @@ func AddNode(n map[string]string) (err error) {
         if n["name"] != "" {err = ndb.InsertNodeKey(uuid, "name", n["name"]); if err != nil {logs.Error("AddNode Insert node name error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
         if n["port"] != "" {err = ndb.InsertNodeKey(uuid, "port", n["port"]); if err != nil {logs.Error("AddNode Insert node port error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
         if n["ip"] != "" {err = ndb.InsertNodeKey(uuid, "ip", n["ip"]); if err != nil {logs.Error("AddNode Insert node ip error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
+
+        _ = ndb.InsertPluginCommand(uuid, "status", "Error")
+        _ = ndb.InsertPluginCommand(uuid, "output", "Add node error: Invalid token")
     }else{
         err = ndb.InsertNodeKey(uuid, "token", token); if err != nil {logs.Error("AddNode Insert node token error: "+err.Error()); return err}
         if n["nodeuser"] != "" {err = ndb.InsertNodeKey(uuid, "nodeuser", n["nodeuser"]); if err != nil {logs.Error("AddNode Insert node user error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
@@ -55,7 +68,7 @@ func AddNode(n map[string]string) (err error) {
         if n["name"] != "" {err = ndb.InsertNodeKey(uuid, "name", n["name"]); if err != nil {logs.Error("AddNode Insert node name error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
         if n["port"] != "" {err = ndb.InsertNodeKey(uuid, "port", n["port"]); if err != nil {logs.Error("AddNode Insert node port error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
         if n["ip"] != "" {err = ndb.InsertNodeKey(uuid, "ip", n["ip"]); if err != nil {logs.Error("AddNode Insert node ip error: "+err.Error()); return err}}else{return errors.New("Empty form data")}
-        
+
         //Sync user, group, roles and their relations to the new node
         SyncUsersToNode()
         SyncUserGroupRolesToNode()
@@ -79,12 +92,27 @@ func AddNode(n map[string]string) (err error) {
     delete(nodeValues[uuid], "nodepass")
     delete(nodeValues[uuid], "token")
     err = nodeclient.SaveNodeInformation(n["ip"],n["port"], nodeValues)
-    if err != nil {logs.Error("AddNode Error updating node data"); return err}    
+    if err != nil {
+        _ = ndb.InsertPluginCommand(uuid, "status", "Error")
+        _ = ndb.InsertPluginCommand(uuid, "output", "Add node error: Error saving node information into node")
+        logs.Error("AddNode Error updating node data")
+        return err    
+    }    
     
+    _ = ndb.InsertPluginCommand(logUuid, "status", "Success")
+    _ = ndb.InsertPluginCommand(logUuid, "output", "Node added successfully")
     return nil
 }
 
 func GetAllNodes()(data map[string]map[string]string, err error){
+    //historical log
+    logUuid := utils.Generate()
+    currentTime := time.Now()
+    timeFormated := currentTime.Format("2006-01-02T15:04:05")
+    _ = ndb.InsertPluginCommand(logUuid, "date", timeFormated)
+    _ = ndb.InsertPluginCommand(logUuid, "action", "GetAllNodes")
+    _ = ndb.InsertPluginCommand(logUuid, "description", "Get all nodes")
+
     allNodes,err := ndb.GetAllNodes()
     if err != nil {logs.Error("GetAllNodes error getting all nodes from db: "+err.Error()); return nil, err}
 
@@ -101,8 +129,13 @@ func GetAllNodes()(data map[string]map[string]string, err error){
         token,err := nodeclient.GetNodeToken(allNodes[id]["ip"], allNodes[id]["port"], login)
         if err != nil {
             if err.Error() == "connection refused"{
+                _ = ndb.InsertPluginCommand(logUuid, "status", "Error")
+                _ = ndb.InsertPluginCommand(logUuid, "output", "Add node error: Connection refused")
                 continue
             }else{
+                _ = ndb.InsertPluginCommand(logUuid, "status", "Error")
+                _ = ndb.InsertPluginCommand(logUuid, "output", "Add node error: "+err.Error())
+
                 err = ndb.UpdateNode(id, "token", "wait")  
                 if err != nil {logs.Error("node/GetAllNodes ERROR updating node token: "+err.Error()); return nil,err} 
                 logs.Warn("node/GetAllNodes ERROR getting node id. Pending registering...")
@@ -118,6 +151,9 @@ func GetAllNodes()(data map[string]map[string]string, err error){
         }  
     }
 
+    _ = ndb.InsertPluginCommand(logUuid, "status", "Success")
+    _ = ndb.InsertPluginCommand(logUuid, "output", "All nodes added successfully")
+        
     return allNodes,nil
 }
 

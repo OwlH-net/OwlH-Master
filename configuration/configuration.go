@@ -74,6 +74,14 @@ func checkDatabases()(ok bool){
 func checkTables()(ok bool){
     var table Table
 
+    table.Tname = "commands"
+    table.Tconn = "masterConn"
+    table.Tcreate = "CREATE TABLE commands (cmd_id integer PRIMARY KEY AUTOINCREMENT,cmd_uniqueid text NOT NULL,cmd_param text NOT NULL,cmd_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "objects"
     table.Tconn = "masterConn"
     table.Tcreate = "CREATE TABLE objects (obj_id integer PRIMARY KEY AUTOINCREMENT,obj_uniqueid text NOT NULL,obj_param text NOT NULL,obj_value text NOT NULL)"
@@ -273,7 +281,7 @@ func checkTables()(ok bool){
 func checkFields()(ok bool){
 
     var field Field
-    
+        
     //add any objec to table objects
     field.Fconn      = "masterConn"
     field.Ftable     = "objects"
