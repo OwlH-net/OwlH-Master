@@ -15,6 +15,11 @@ func GetMasterTitle(username string) (data string, err error) {
     return data, err
 }
 
+func CheckDefaultAdmin() (isDefault bool, err error) {
+    isDefault, err = master.CheckDefaultAdmin()
+    return isDefault, err
+}
+
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/master/editFile/:uuid \
 // }

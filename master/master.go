@@ -1165,3 +1165,23 @@ func GetAllGroupRulesetsForAllNodes() (data map[string]map[string]string, err er
     logs.Notice(allData)
     return allData, err
 }
+
+func CheckDefaultAdmin() (isDefault bool, err error) {
+    users,err := ndb.GetLoginData()
+    if err != nil{logs.Error("master/CheckDefaultAdmin Error Getting user values: "+err.Error()); return false,err}   
+    
+    for id := range users {
+        if users[id]["user"] == "admin"{
+            check, err := validation.CheckPasswordHash("admin", users[id]["pass"])
+            
+            if err != nil{logs.Error("master/CheckDefaultAdmin Error checking password: "+err.Error()); return false,err}   
+            if check {
+                isDefault = true
+            }else{
+                isDefault = false
+            }
+        }
+    }
+
+    return isDefault, err
+}

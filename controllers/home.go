@@ -2,6 +2,7 @@ package controllers
 
 import (
     "github.com/astaxie/beego"
+    "owlhmaster/models"
 )
 
 type HomeController struct {
@@ -15,6 +16,11 @@ type HomeController struct {
 // @Success 200 {object} models.Master
 // @router / [get]
 func (n *HomeController) Home() {
-    n.Data["json"] = map[string]string{"ack": "true"}
+    isDefault, _ := models.CheckDefaultAdmin()
+    if isDefault{
+        n.Data["json"] = map[string]string{"ack": "true", "defaults": "true"}
+    }else{
+        n.Data["json"] = map[string]string{"ack": "true"}
+    } 
     n.ServeJSON()
 }
