@@ -340,16 +340,17 @@ func (n *NodeController) GetAllNodes() {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
     } else {
         nodes, err := models.GetAllNodes(n.Ctx.Input.Header("user"))
-        returnResult := make(map[string]string)
-        jsonData, _ := json.Marshal(nodes)
-        returnResult["ack"] = "true"
-        returnResult["result"] = string(jsonData)
+        //returnResult := make(map[string]string)
+        //jsonData, _ := json.Marshal(nodes)
+        //returnResult["ack"] = "true"
+        //returnResult["result"] = string(jsonData)
         if err != nil {
-            returnResult["ack"] = "false"
-            returnResult["error"] = err.Error()
+        //    returnResult["ack"] = "false"
+        //    returnResult["error"] = err.Error()
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
-        n.Data["json"] = returnResult
+        //n.Data["json"] = returnResult
+        n.Data["json"] = nodes
     }
 
     n.ServeJSON()
