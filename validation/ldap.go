@@ -36,27 +36,27 @@ func userAuthentication(user string, password string) (check bool, err error) {
 func readLdapConfig() (err error) {
     ldapEnabled, err := utils.GetKeyValueString("ldap", "enabled")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - enabled data: " + err.Error())
         return err
     }
     ldapServer, err := utils.GetKeyValueString("ldap", "server")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - server data: " + err.Error())
         return err
     }
     ldapPort, err := utils.GetKeyValueString("ldap", "port")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - port data: " + err.Error())
         return err
     }
     ldapDN, err := utils.GetKeyValueString("ldap", "DN")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - DN data: " + err.Error())
         return err
     }
     ldapVerify, err := utils.GetKeyValueString("ldap", "skipverify")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - skipverify data: " + err.Error())
         return err
     }
 
