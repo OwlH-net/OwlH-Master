@@ -794,12 +794,18 @@ func Login(data map[string]string) (newToken string, err error) {
         return "", err
     }
 
+    logs.Debug("check user login - %s", data["user"])
     //check values
     for x := range users {
         if users[x]["user"] == data["user"] {
+            logs.Debug("user matches, let's verify credentials")
+            logs.Debug("user data - %+v", users[x])
             if users[x]["ldap"] == "enabled" {
+                logs.Debug("LDAP user")
                 check, err := validation.CheckLdap(data["user"], users[x]["pass"])
+                logs.Debug("is valid? -> %t", check)
                 if err != nil {
+                    logs.Error("ldap check error -> %s", err.Error())
                     return "", err
                 }
                 if check {
