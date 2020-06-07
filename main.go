@@ -24,6 +24,8 @@ import (
     "syscall"
 )
 
+var version string
+
 func main() {
 
     //Application version
@@ -62,7 +64,8 @@ func main() {
     logs.NewLogger(10000)
     logs.SetLogger(logs.AdapterFile, `{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
-    logs.Info("Version OwlH Master: 0.14.1.20200607")
+    version = "0.14.1.20200607"
+    logs.Info("OwlH Master : v%s", version)
 
     //operative system values
     data := OperativeSystemValues()
