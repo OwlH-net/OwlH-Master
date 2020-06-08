@@ -26,9 +26,9 @@ func userAuthentication(user string, password string) (check bool, err error) {
         return false, err
     }
     if !status { //user/pass problems
-        logs.Error("LDAP connection refused: " + err.Error())
+        logs.Error("LDAP connection refused: Incorrect user or password")
         //handle failed authentication
-        return false, err
+        return false, errors.New("LDAP connection refused: Incorrect user or password")
     }
     return true, nil
 }
