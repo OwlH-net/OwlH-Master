@@ -802,7 +802,7 @@ func Login(data map[string]string) (newToken string, err error) {
             logs.Debug("user data - %+v", users[x])
             if users[x]["ldap"] == "enabled" {
                 logs.Debug("LDAP user")
-                check, err := validation.CheckLdap(data["user"], users[x]["pass"])
+                check, err := validation.CheckLdap(data["user"], data["passwd"])
                 logs.Debug("is valid? -> %t", check)
                 if err != nil {
                     logs.Error("ldap check error -> %s", err.Error())
