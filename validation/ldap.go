@@ -22,7 +22,7 @@ func userAuthentication(user string, password string) (check bool, err error) {
     config := &auth.Config{Server: configLdap.Server, Port: configLdap.Port, BaseDN: configLdap.DN, Security: auth.SecurityStartTLS}
     logs.Debug("LDAP - AUTH - config -> %+v", config)
     logs.Debug("user -> %s", user)
-    logs.Debut("pass -> %s", password)
+    logs.Debug("pass -> %s", password)
     logs.Debug("LDAP - AUTH - Call in progress")
     logs.Debug("SkipVerify -> %t", configLdap.SkipVerify)
     status, err1 := auth.Authenticate(config, user, password, configLdap.SkipVerify)
