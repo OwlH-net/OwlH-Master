@@ -799,7 +799,6 @@ func Login(data map[string]string) (newToken string, err error) {
     for x := range users {
         if users[x]["user"] == data["user"] {
             logs.Debug("user matches, let's verify credentials")
-            logs.Debug("user data - %+v", users[x])
             if users[x]["ldap"] == "enabled" {
                 logs.Debug("LDAP user")
                 check, err := validation.CheckLdap(data["user"], data["password"])
