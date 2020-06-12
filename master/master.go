@@ -888,11 +888,11 @@ func AddUser(data map[string]string) (err error) {
         return err
     }
     err = ndb.InsertUser(uuid, "ldap", data["ldap"])
-    if err != nil {
-        logs.Error("master/AddUser Error inserting ldap into db: " + err.Error())
-        return err
-    }
 
+    if err != nil{logs.Error("master/AddUser Error inserting ldap into db: "+err.Error()); return err}
+    err = ndb.InsertUser(uuid, "type", data["type"])
+    if err != nil{logs.Error("master/AddUser Error inserting ldap into db: "+err.Error()); return err}
+    
     //Sync user, group, roles and their relations to the new node
     node.SyncUsersToNode()
     node.SyncRolesToNode()
