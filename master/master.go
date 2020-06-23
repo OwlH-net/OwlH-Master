@@ -1099,31 +1099,55 @@ func AddUsersTo(anode map[string]string) (err error) {
 }
 
 func ChangePassword(anode map[string]string) (err error) {
-    if anode == nil || anode["pass"] == "" || anode["user"] == "" {
+    if anode == nil {
         return errors.New("Invalid password.")
     }
 
-    hashed, err := validation.HashPassword(anode["pass"])
-    if err != nil {
-        logs.Error("master/ChangePassword Error hashing new password: " + err.Error())
-        return err
-    }
+    if anode["user"] != "" && anode["current"] != "" && anode["new"] != "" && anode["again"] != "" {
+        //check new and again password
+        if anode["new"] == anode["again"]{
+            //get all users
+            allUsers,err := ndb.GetLoginData()
+            if err != nil{logs.Error("master/ChangePassword Error getting users data: "+err.Error()); return err}
+           
+            //get user uuid
+            userId,err := ndb.GetUserID(anode["user"])
+            if err != nil{logs.Error("master/ChangePassword Error updating password: "+err.Error()); return err}
+            
+            //check current password
+            areEquals,err := validation.CheckPasswordHash(anode["current"], allUsers[userId]["pass"])
+            if err != nil{logs.Error("master/ChangePassword Passwords are not equals: "+err.Error()); return err}
+                                    
+            if areEquals {
+                //hash new pass
+                hashed,err := validation.HashPassword(anode["new"])
+                if err != nil{logs.Error("master/ChangePassword Error hashing new password: "+err.Error()); return err}
+                //update user pass
+                err = ndb.UpdateUser(userId, "pass", hashed)
+                if err != nil{logs.Error("master/ChangePassword Error updating password: "+err.Error()); return err}
+            
+                node.SyncUsersToNode()
+            }
 
-    //get user uuid
-    userId, err := ndb.GetUserID(anode["user"])
-    if err != nil {
-        logs.Error("master/ChangePassword Error updating password: " + err.Error())
-        return err
+        }else{
+            return errors.New("The new password fields are not equals. Please, insert the same new password for change it.")
+        }
+    }else if anode["user"] != "" && anode["pass"] != "" {
+        hashed,err := validation.HashPassword(anode["pass"])
+        if err != nil{logs.Error("master/ChangePassword Error hashing new password: "+err.Error()); return err}
+    
+        //get user uuid
+        userId,err := ndb.GetUserID(anode["user"])
+        if err != nil{logs.Error("master/ChangePassword Error updating password: "+err.Error()); return err}
+    
+        //change user password
+        err = ndb.UpdateUser(userId, "pass", hashed)
+        if err != nil{logs.Error("master/ChangePassword Error updating password: "+err.Error()); return err}
+    
+        node.SyncUsersToNode()
+    }else{
+        return errors.New("Invalid user or password for change password request")
     }
-
-    //change user password
-    err = ndb.UpdateUser(userId, "pass", hashed)
-    if err != nil {
-        logs.Error("master/ChangePassword Error updating password: " + err.Error())
-        return err
-    }
-
-    node.SyncUsersToNode()
 
     return nil
 }
