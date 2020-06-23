@@ -20,43 +20,50 @@ var configLdap Ldapconfig
 
 func userAuthentication(user string, password string) (check bool, err error) {
     config := &auth.Config{Server: configLdap.Server, Port: configLdap.Port, BaseDN: configLdap.DN, Security: auth.SecurityStartTLS}
-    status, err := auth.Authenticate(config, user, password, configLdap.SkipVerify)
-    if err != nil { //connection problems
-        logs.Error("LDAP Connection problems: " + err.Error())
+    logs.Debug("LDAP - AUTH - config -> %+v", config)
+    logs.Debug("LDAP - AUTH - Call in progress")
+    logs.Debug("SkipVerify -> %t", configLdap.SkipVerify)
+    status, err1 := auth.Authenticate(config, user, password, configLdap.SkipVerify)
+    logs.Debug("LDAP - AUTH - Call done - status is %t", status)
+
+    if err1 != nil { //connection problems
+        logs.Error("LDAP Connection problems: " + err1.Error())
         return false, err
     }
     if !status { //user/pass problems
-        logs.Error("LDAP connection refused: Incorrect user or password")
-        //handle failed authentication
+
+        logs.Error("LDAP - AUTH - user/pass error")
         return false, errors.New("LDAP connection refused: Incorrect user or password")
+
     }
-    return true, nil
+    logs.Debug("LDAP - auth DONE - user can get in")
+    return true, err1
 }
 
 func readLdapConfig() (err error) {
     ldapEnabled, err := utils.GetKeyValueString("ldap", "enabled")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - enabled data: " + err.Error())
         return err
     }
     ldapServer, err := utils.GetKeyValueString("ldap", "server")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - server data: " + err.Error())
         return err
     }
     ldapPort, err := utils.GetKeyValueString("ldap", "port")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - port data: " + err.Error())
         return err
     }
     ldapDN, err := utils.GetKeyValueString("ldap", "DN")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - DN data: " + err.Error())
         return err
     }
     ldapVerify, err := utils.GetKeyValueString("ldap", "skipverify")
     if err != nil {
-        logs.Error("ldap/readLdapConfig -- Error getting mainconf data: " + err.Error())
+        logs.Error("ldap/readLdapConfig -- Error getting ldap - skipverify data: " + err.Error())
         return err
     }
 
@@ -69,40 +76,23 @@ func readLdapConfig() (err error) {
     isVerified, err := strconv.ParseBool(ldapVerify)
     configLdap.SkipVerify = isVerified
 
-    if !isVerified {
-        return errors.New("This user has not enough permissions for validate using LDAP")
-    }
-
     return nil
-    /////////////////////////////////////////////////////////////////////
-    //READ FROM main.conf
-    //save into Ldapconfig struct
-    //if main.conf ldap.enabled == "disabled" {return err}
-    /////////////////////////////////////////////////////////////////////
-
-    //     file := "config.json"
-    //
-    //     configFile, err := os.Open(file)
-    //     if err != nil {
-    //      logs.Error(err)
-    //         return
-    //     }
-    //     defer configFile.Close()
-    //
-    //     byteValue, _ := ioutil.ReadAll(configFile)
-    //     json.Unmarshal(byteValue, &configLdap)
 }
 
 func CheckLdap(user string, password string) (check bool, err error) {
     err = readLdapConfig()
     if err != nil {
+        logs.Error("LDAP - Error reading LDAP configuration, can't continue user validation")
         return false, err
     }
 
+    logs.Debug("LDAP - Let's verify User -> %s", user)
     check, err = userAuthentication(user, password)
     if err != nil {
+        logs.Error("LDAP - Auth - Error - %s", err.Error())
         return false, err
     }
+    logs.Debug("LDAP - User -> %s, can get in", user)
 
     return true, nil
 }
