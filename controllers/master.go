@@ -742,7 +742,7 @@ func (n *MasterController) SaveFilePathContent() {
 }
 
 // @Title Login
-// @Description Get Master plugins
+// @Description Get master token
 // @Success 200 {object} models.Master
 // @router /login [put]
 func (n *MasterController) Login() {  
@@ -773,6 +773,48 @@ func (n *MasterController) Login() {
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         token, err := models.Login(anode, anode["user"])
         n.Data["json"] = token
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title Auth
+// @Description Get master token
+// @Success 200 {object} models.Master
+// @router /auth [put]
+func (n *MasterController) Auth() {  
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
+    //THIS FUNCTION DOES NOT REQUIRE TOKEN VALIDATE
+    anode := make(map[string]string)
+    
+    if n.Ctx.Input.Header("Authorization") != "" {     
+
+        code := strings.Replace(n.Ctx.Input.Header("Authorization"), "Basic ", "", -1)
+        data, err := base64.StdEncoding.DecodeString(code)
+        userPass := strings.Split(string(data), ":")
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }else{   
+            anode["user"] = userPass[0]
+            anode["password"] = userPass[1]
+            token, err := models.Login(anode, anode["user"])
+            // n.Data["json"] = token
+            n.Data["json"] = map[string]string{"ack": "true", "token": token}
+            if err != nil {
+                n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+            }
+        }
+    }else{
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        token, err := models.Login(anode, anode["user"])
+        // n.Data["json"] = token
+        n.Data["json"] = map[string]string{"ack": "true", "token": token}
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
