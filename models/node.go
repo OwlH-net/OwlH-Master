@@ -2,9 +2,11 @@ package models
 
 import (
     "errors"
+    "github.com/astaxie/beego/logs"
     "owlhmaster/changeControl"
     "owlhmaster/node"
     "owlhmaster/nodeclient"
+    "owlhmaster/utils"
 )
 
 // curl -X GET \
@@ -1075,4 +1077,16 @@ func RegisterNode(uuid string, username string) (err error) {
     err = node.RegisterNode(uuid)
     changecontrol.ChangeControlInsertData(err, "RegisterNode", username)
     return err
+}
+
+func NodeEnrollment(nodeDetails utils.NodeData) (uuid string, success bool, details map[string]string) {
+    logs.Info("lets enroll node %+v", nodeDetails)
+    uuid, enroled, details := node.EnrollNode(nodeDetails)
+    return uuid, enroled, details
+}
+
+func AssignNodeToGroup(uuid string, groupDetails utils.GroupData) (success bool, details map[string]string) {
+    logs.Info("lets assign node %s to %s", uuid, groupDetails.UUID)
+    assigned, details := node.AssignNodeToGroup(uuid, groupDetails)
+    return assigned, details
 }
