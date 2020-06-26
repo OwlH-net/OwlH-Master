@@ -1,10 +1,10 @@
 package controllers
 
 import (
-    "owlhmaster/models"
-    "owlhmaster/validation"
-    // "owlhmaster/utils"
     "encoding/json"
+    "owlhmaster/models"
+    "owlhmaster/utils"
+    "owlhmaster/validation"
     // "jwt"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
@@ -12,6 +12,35 @@ import (
 
 type NodeController struct {
     beego.Controller
+}
+
+type NodeEnroll struct {
+    Node     NodeData     `json:"node"`
+    Group    GroupData    `json:"group"`
+    Suricata SuricataData `json:"suricata"`
+}
+
+type NodeData struct {
+    IP           string `json:"ip"`
+    Name         string `json:"name"`
+    Port         int    `json:"port"`
+    NodeUser     string `json:"nodeuser"`
+    NodePassword string `json:"nodepassword"`
+    Force        bool   `json:"force"`
+}
+
+type GroupData struct {
+    UUID string `json:"uuid"`
+}
+
+type SuricataData struct {
+    Interface  string `json:"interface"`
+    Bpf        string `json:"bpf"`
+    BpfFile    string `json:"bpffile"`
+    ConfigFile string `json:"configfile"`
+    Ruleset    string `json:"ruleset"`
+    Name       string `json:"name"`
+    Status     string `json:"status"`
 }
 
 // @Title CreateNode
@@ -2551,5 +2580,44 @@ func (n *NodeController) RegisterNode() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
+    n.ServeJSON()
+}
+
+// @Title AutoEnroll
+// @Description auto enroll a Node with extra data like group, suricata service and ruleset
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /enroll [post]
+func (n *NodeController) EnrollNode() {
+
+    n.Data["json"] = map[string]string{"ack": "true"}
+
+    permissions := []string{"CreateNode"}
+    canContinue, details := validation.CanContinue(n.Ctx.Input.Header("token"), "any", permissions)
+    if !canContinue {
+        logs.Error("NODE enrollment -> error: %+v", details)
+        n.Data["json"] = map[string]string{"ack": "false", "error": "token invalid or user doesn't have permission"}
+    }
+
+    var nodeDetails utils.NodeEnroll
+    json.Unmarshal(n.Ctx.Input.RequestBody, &nodeDetails)
+    logs.Info("%+v", nodeDetails)
+
+    uuid, enrolled, details := models.NodeEnrollment(nodeDetails.Node)
+    if !enrolled {
+        logs.Error("NODE enrollment -> error: %+v", details)
+        n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+    }
+
+    logs.Info("group uuid -> %s", nodeDetails.Group.UUID)
+    if nodeDetails.Group.UUID != "" {
+        assignedToGroup, details := models.AssignNodeToGroup(uuid, nodeDetails.Group)
+        if !assignedToGroup {
+            logs.Error("NODE assign node to group -> error: %+v", details)
+            n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+        }
+    }
+
+    logs.Info("create Suricata service for node -> %s")
     n.ServeJSON()
 }
