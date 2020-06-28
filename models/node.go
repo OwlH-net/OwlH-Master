@@ -1085,8 +1085,14 @@ func NodeEnrollment(nodeDetails utils.NodeData) (uuid string, success bool, deta
     return uuid, enroled, details
 }
 
-func AssignNodeToGroup(uuid string, groupDetails utils.GroupData) (success bool, details map[string]string) {
+func AssignNodeToGroup(uuid string, groupDetails utils.GroupData) (guuid string, success bool, details map[string]string) {
     logs.Info("lets assign node %s to %s", uuid, groupDetails.UUID)
-    assigned, details := node.AssignNodeToGroup(uuid, groupDetails)
+    guuid, assigned, details := node.AssignNodeToGroup(uuid, groupDetails)
+    return guuid, assigned, details
+}
+
+func CreateSuricataService(guuid, uuid string, suricataDetails utils.SuricataData) (success bool, details map[string]string) {
+    logs.Info("lets create suricata service to node %s to %s", uuid, suricataDetails.Name)
+    assigned, details := node.CreateSuricataService(guuid, uuid, suricataDetails)
     return assigned, details
 }

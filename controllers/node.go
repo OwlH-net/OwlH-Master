@@ -2610,14 +2610,24 @@ func (n *NodeController) EnrollNode() {
     }
 
     logs.Info("group uuid -> %s", nodeDetails.Group.UUID)
+    guuid := ""
+    assignedToGroup := false
     if nodeDetails.Group.UUID != "" {
-        assignedToGroup, details := models.AssignNodeToGroup(uuid, nodeDetails.Group)
+        guuid, assignedToGroup, details = models.AssignNodeToGroup(uuid, nodeDetails.Group)
         if !assignedToGroup {
             logs.Error("NODE assign node to group -> error: %+v", details)
             n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
         }
     }
 
-    logs.Info("create Suricata service for node -> %s")
+    logs.Info("create Suricata service for node -> %s and group -> %s", uuid, guuid)
+    if nodeDetails.Suricata.Name != "" {
+        suricataCreated, details := models.CreateSuricataService(guuid, uuid, nodeDetails.Suricata)
+        if !suricataCreated {
+            logs.Error("NODE create Suricata Service -> error: %+v", details)
+            n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+        }
+    }
+
     n.ServeJSON()
 }

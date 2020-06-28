@@ -2579,7 +2579,10 @@ func GetDefaultGroupUUID() (uuid string) {
     return ndb.GetDefaultGroupUUID()
 }
 
-func AssignNodeToGroup(uuid string, groupDetail utils.GroupData) (assigned bool, details map[string]string) {
+func AssignNodeToGroup(uuid string, groupDetail utils.GroupData) (guuid string, assigned bool, details map[string]string) {
+    if uuid == "" {
+        return "", true, nil
+    }
     logs.Info("%+v", groupDetail)
     logs.Info("asign node %s to group %s", uuid, groupDetail.UUID)
     assignTo := ""
@@ -2600,7 +2603,7 @@ func AssignNodeToGroup(uuid string, groupDetail utils.GroupData) (assigned bool,
     logs.Info(data)
     AddGroupNodes(data)
 
-    return true, nil
+    return assignTo, true, nil
 }
 
 type GroupNode struct {
