@@ -1,10 +1,10 @@
 package controllers
 
 import (
-    "owlhmaster/models"
-    "owlhmaster/validation"
-    // "owlhmaster/utils"
     "encoding/json"
+    "owlhmaster/models"
+    "owlhmaster/utils"
+    "owlhmaster/validation"
     // "jwt"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
@@ -12,6 +12,35 @@ import (
 
 type NodeController struct {
     beego.Controller
+}
+
+type NodeEnroll struct {
+    Node     NodeData     `json:"node"`
+    Group    GroupData    `json:"group"`
+    Suricata SuricataData `json:"suricata"`
+}
+
+type NodeData struct {
+    IP           string `json:"ip"`
+    Name         string `json:"name"`
+    Port         int    `json:"port"`
+    NodeUser     string `json:"nodeuser"`
+    NodePassword string `json:"nodepassword"`
+    Force        bool   `json:"force"`
+}
+
+type GroupData struct {
+    UUID string `json:"uuid"`
+}
+
+type SuricataData struct {
+    Interface  string `json:"interface"`
+    Bpf        string `json:"bpf"`
+    BpfFile    string `json:"bpffile"`
+    ConfigFile string `json:"configfile"`
+    Ruleset    string `json:"ruleset"`
+    Name       string `json:"name"`
+    Status     string `json:"status"`
 }
 
 // @Title CreateNode
@@ -351,6 +380,32 @@ func (n *NodeController) GetAllNodes() {
         }
         n.Data["json"] = returnResult
         // n.Data["json"] = nodes
+    }
+
+    n.ServeJSON()
+}
+
+// @Title GetAllNodes2
+// @Description Get full list of nodes
+// @Success 200 {object} models.Node
+// @router /GetAllNodes2 [get]
+func (n *NodeController) GetAllNodes2() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetAllNodes"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        nodes, err := models.GetAllNodes(n.Ctx.Input.Header("user"))
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+        n.Data["json"] = nodes
     }
 
     n.ServeJSON()
@@ -2551,5 +2606,54 @@ func (n *NodeController) RegisterNode() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
+    n.ServeJSON()
+}
+
+// @Title AutoEnroll
+// @Description auto enroll a Node with extra data like group, suricata service and ruleset
+// @Success 200 {object} models.Node
+// @Failure 403 body is empty
+// @router /enroll [post]
+func (n *NodeController) EnrollNode() {
+
+    n.Data["json"] = map[string]string{"ack": "true"}
+
+    permissions := []string{"CreateNode"}
+    canContinue, details := validation.CanContinue(n.Ctx.Input.Header("token"), "any", permissions)
+    if !canContinue {
+        logs.Error("NODE enrollment -> error: %+v", details)
+        n.Data["json"] = map[string]string{"ack": "false", "error": "token invalid or user doesn't have permission"}
+    }
+
+    var nodeDetails utils.NodeEnroll
+    json.Unmarshal(n.Ctx.Input.RequestBody, &nodeDetails)
+    logs.Info("%+v", nodeDetails)
+
+    uuid, enrolled, details := models.NodeEnrollment(nodeDetails.Node)
+    if !enrolled {
+        logs.Error("NODE enrollment -> error: %+v", details)
+        n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+    }
+
+    logs.Info("group uuid -> %s", nodeDetails.Group.UUID)
+    guuid := ""
+    assignedToGroup := false
+    if nodeDetails.Group.UUID != "" {
+        guuid, assignedToGroup, details = models.AssignNodeToGroup(uuid, nodeDetails.Group)
+        if !assignedToGroup {
+            logs.Error("NODE assign node to group -> error: %+v", details)
+            n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+        }
+    }
+
+    logs.Info("create Suricata service for node -> %s and group -> %s", uuid, guuid)
+    if nodeDetails.Suricata.Name != "" {
+        suricataCreated, details := models.CreateSuricataService(guuid, uuid, nodeDetails.Suricata)
+        if !suricataCreated {
+            logs.Error("NODE create Suricata Service -> error: %+v", details)
+            n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+        }
+    }
+
     n.ServeJSON()
 }

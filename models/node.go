@@ -2,9 +2,11 @@ package models
 
 import (
     "errors"
+    "github.com/astaxie/beego/logs"
     "owlhmaster/changeControl"
     "owlhmaster/node"
     "owlhmaster/nodeclient"
+    "owlhmaster/utils"
 )
 
 // curl -X GET \
@@ -1075,4 +1077,22 @@ func RegisterNode(uuid string, username string) (err error) {
     err = node.RegisterNode(uuid)
     changecontrol.ChangeControlInsertData(err, "RegisterNode", username)
     return err
+}
+
+func NodeEnrollment(nodeDetails utils.NodeData) (uuid string, success bool, details map[string]string) {
+    logs.Info("lets enroll node %+v", nodeDetails)
+    uuid, enroled, details := node.EnrollNode(nodeDetails)
+    return uuid, enroled, details
+}
+
+func AssignNodeToGroup(uuid string, groupDetails utils.GroupData) (guuid string, success bool, details map[string]string) {
+    logs.Info("lets assign node %s to %s", uuid, groupDetails.UUID)
+    guuid, assigned, details := node.AssignNodeToGroup(uuid, groupDetails)
+    return guuid, assigned, details
+}
+
+func CreateSuricataService(guuid, uuid string, suricataDetails utils.SuricataData) (success bool, details map[string]string) {
+    logs.Info("lets create suricata service to node %s to %s", uuid, suricataDetails.Name)
+    assigned, details := node.CreateSuricataService(guuid, uuid, suricataDetails)
+    return assigned, details
 }

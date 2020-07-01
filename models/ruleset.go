@@ -1,25 +1,25 @@
-package models 
+package models
 
 import (
-    "owlhmaster/ruleset"
-    "owlhmaster/node"
     "owlhmaster/changeControl"
+    "owlhmaster/node"
+    "owlhmaster/ruleset"
 )
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/default \
-func GetRules(username string)(rules map[string]map[string]string, err error) {
-    rules,err = ruleset.ReadRuleset("")
+func GetRules(username string) (rules map[string]map[string]string, err error) {
+    rules, err = ruleset.ReadRuleset("")
     changecontrol.ChangeControlInsertData(err, "GetRules", username)
-    return rules,err
+    return rules, err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/rule/:sid/:uuid  \
 func GetRuleSID(ruleSidPath map[string]string, username string) (rules map[string]string, err error) {
-    rules,err = ruleset.ReadSID(ruleSidPath)
+    rules, err = ruleset.ReadSID(ruleSidPath)
     changecontrol.ChangeControlInsertData(err, "GetRuleSID", username)
-    return rules,err
+    return rules, err
 }
 
 // // curl -X POST \
@@ -35,23 +35,23 @@ func GetRuleSID(ruleSidPath map[string]string, username string) (rules map[strin
 // func AddRuleset(n map[string]string)(err error){
 //     err = ruleset.AddRuleset(n)
 //     changecontrol.ChangeControlInsertData(err, "")
-    // return err
+// return err
 // }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/rule/:sid/:uuid  \
-func GetAllRulesets(username string)(rulesets map[string]map[string]string, err error){
-    rulesets,err = ruleset.GetAllRulesets()
+func GetAllRulesets(username string) (rulesets map[string]map[string]string, err error) {
+    rulesets, err = ruleset.GetAllRulesets()
     changecontrol.ChangeControlInsertData(err, "GetAllRulesets", username)
-    return rulesets,err
+    return rulesets, err
 }
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/rules/:uuid  \
-func GetRulesetRules(nid string, username string)(rulesets map[string]map[string]string, err error){
-    rulesets,err = ruleset.GetRulesetRules(nid)
+func GetRulesetRules(nid string, username string) (rulesets map[string]map[string]string, err error) {
+    rulesets, err = ruleset.GetRulesetRules(nid)
     changecontrol.ChangeControlInsertData(err, "GetRulesetRules", username)
-    return rulesets,err
+    return rulesets, err
 }
 
 // curl -X PUT \
@@ -62,7 +62,7 @@ func GetRulesetRules(nid string, username string)(rulesets map[string]map[string
 //     "uuid": "v",
 // }
 // }
-func SetRuleSelected(n map[string]string, username string)(err error){
+func SetRuleSelected(n map[string]string, username string) (err error) {
     err = ruleset.SetRuleSelected(n)
     changecontrol.ChangeControlInsertData(err, "SetRuleSelected", username)
     return err
@@ -70,7 +70,7 @@ func SetRuleSelected(n map[string]string, username string)(err error){
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/get/:uuid  \
-func GetRuleSelected(nidSelected string, username string)(rulesetBack string, err error){
+func GetRuleSelected(nidSelected string, username string) (rulesetBack string, err error) {
     rulesetBack, err = ruleset.GetRuleSelected(nidSelected)
     changecontrol.ChangeControlInsertData(err, "GetRuleSelected", username)
     return rulesetBack, err
@@ -78,7 +78,7 @@ func GetRuleSelected(nidSelected string, username string)(rulesetBack string, er
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/get/name/:uuid  \
-func GetRuleName(nidRule string, username string)(rulesetBack string, err error){
+func GetRuleName(nidRule string, username string) (rulesetBack string, err error) {
     rulesetBack, err = ruleset.GetRuleName(nidRule)
     changecontrol.ChangeControlInsertData(err, "GetRuleName", username)
     return rulesetBack, err
@@ -95,9 +95,8 @@ func GetRuleName(nidRule string, username string)(rulesetBack string, err error)
 // func SetClonedRuleset(ruleCloned map[string]string)(err error){
 //     err = ruleset.SetClonedRuleset(ruleCloned)
 //     changecontrol.ChangeControlInsertData(err, "")
-    // return err
+// return err
 // }
-
 
 // curl -X PUT \
 //   https://52.47.197.22:50002/v1/ruleset/action \
@@ -108,7 +107,7 @@ func GetRuleName(nidRule string, username string)(rulesetBack string, err error)
 //     "uuid": "v"
 // }
 // }
-func SetRulesetAction(ruleAction map[string]string, username string)(err error){
+func SetRulesetAction(ruleAction map[string]string, username string) (err error) {
     err = ruleset.SetRulesetAction(ruleAction)
     changecontrol.ChangeControlInsertData(err, "SetRulesetAction", username)
     return err
@@ -123,7 +122,7 @@ func SetRulesetAction(ruleAction map[string]string, username string)(err error){
 //     "uuid": "v"
 // }
 // }
-func SetRuleNote(ruleNote map[string]string, username string)(err error){
+func SetRuleNote(ruleNote map[string]string, username string) (err error) {
     err = ruleset.SetRuleNote(ruleNote)
     changecontrol.ChangeControlInsertData(err, "SetRuleNote", username)
     return err
@@ -131,10 +130,10 @@ func SetRuleNote(ruleNote map[string]string, username string)(err error){
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/getnote/:uuid/:sid \
-func GetRuleNote(ruleGetNote map[string]string, username string)(note string, err error){
-    note,err = ruleset.GetRuleNote(ruleGetNote)
+func GetRuleNote(ruleGetNote map[string]string, username string) (note string, err error) {
+    note, err = ruleset.GetRuleNote(ruleGetNote)
     changecontrol.ChangeControlInsertData(err, "GetRuleNote", username)
-    return note,err
+    return note, err
 }
 
 // curl -X DELETE \
@@ -145,7 +144,7 @@ func GetRuleNote(ruleGetNote map[string]string, username string)(note string, er
 //     "uuid": "v"
 // }
 // }
-func DeleteRuleset(rulesetMap map[string]string, username string)(err error){
+func DeleteRuleset(rulesetMap map[string]string, username string) (err error) {
     err = ruleset.DeleteRuleset(rulesetMap)
     changecontrol.ChangeControlInsertData(err, "DeleteRuleset", username)
     return err
@@ -158,7 +157,7 @@ func DeleteRuleset(rulesetMap map[string]string, username string)(err error){
 //     "uuid": "v"
 // }
 // }
-func SyncRulesetToAllNodes(anode map[string]string, username string)(err error){
+func SyncRulesetToAllNodes(anode map[string]string, username string) (err error) {
     err = node.SyncRulesetToAllNodes(anode)
     changecontrol.ChangeControlInsertData(err, "SyncRulesetToAllNodes", username)
     return err
@@ -166,7 +165,7 @@ func SyncRulesetToAllNodes(anode map[string]string, username string)(err error){
 
 // curl -X PUT \
 //   https://52.47.197.22:50002/v1/ruleset/syncAllRulesets \
-func SynchronizeAllRulesets(username string)(err error){
+func SynchronizeAllRulesets(username string) (err error) {
     err = ruleset.SynchronizeAllRulesets()
     changecontrol.ChangeControlInsertData(err, "SynchronizeAllRulesets", username)
     return err
@@ -174,10 +173,10 @@ func SynchronizeAllRulesets(username string)(err error){
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/getAllRuleData \
-func GetAllRuleData(username string)(data map[string]map[string]string,err error) {
-    data,err = ruleset.GetAllRuleData()
+func GetAllRuleData(username string) (data map[string]map[string]string, err error) {
+    data, err = ruleset.GetAllRuleData()
     changecontrol.ChangeControlInsertData(err, "GetAllRuleData", username)
-    return data,err
+    return data, err
 }
 
 // curl -X PUT \
@@ -193,7 +192,7 @@ func GetAllRuleData(username string)(data map[string]map[string]string,err error
 //          "sourceType":"aaa",
 //      }
 // }
-func AddNewRuleset(data map[string]map[string]string, username string)(duplicated []byte, err error) {
+func AddNewRuleset(data map[string]map[string]string, username string) (duplicated []byte, err error) {
     duplicated, err = ruleset.AddNewRuleset(data)
     changecontrol.ChangeControlInsertData(err, "AddNewRuleset", username)
     return duplicated, err
@@ -212,7 +211,7 @@ func AddNewRuleset(data map[string]map[string]string, username string)(duplicate
 //          "sourceType":"aaa",
 //      }
 // }
-func ModifyRuleset(data map[string]map[string]string, username string)(duplicated []byte, err error) {
+func ModifyRuleset(data map[string]map[string]string, username string) (duplicated []byte, err error) {
     duplicated, err = ruleset.ModifyRuleset(data)
     changecontrol.ChangeControlInsertData(err, "ModifyRuleset", username)
     return duplicated, err
@@ -220,10 +219,10 @@ func ModifyRuleset(data map[string]map[string]string, username string)(duplicate
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/custom \
-func GetAllCustomRulesets(username string)(data map[string]map[string]string,err error) {
-    data,err = ruleset.GetAllCustomRulesets()
+func GetAllCustomRulesets(username string) (data map[string]map[string]string, err error) {
+    data, err = ruleset.GetAllCustomRulesets()
     changecontrol.ChangeControlInsertData(err, "GetAllCustomRulesets", username)
-    return data,err
+    return data, err
 }
 
 // curl -X PUT \
@@ -237,7 +236,7 @@ func GetAllCustomRulesets(username string)(data map[string]map[string]string,err
 //          "sids":"aaa",
 //      }
 // }
-func AddRulesToCustomRuleset(anode map[string]string, username string)(duplicatedRules map[string]string, err error) {
+func AddRulesToCustomRuleset(anode map[string]string, username string) (duplicatedRules map[string]string, err error) {
     duplicatedRules, err = ruleset.AddRulesToCustomRuleset(anode)
     changecontrol.ChangeControlInsertData(err, "AddRulesToCustomRuleset", username)
     return duplicatedRules, err
@@ -245,7 +244,7 @@ func AddRulesToCustomRuleset(anode map[string]string, username string)(duplicate
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/ruleset/readRuleset/:uuid \
-func ReadRulesetData(uuid string, username string)(content map[string]string, err error) {
+func ReadRulesetData(uuid string, username string) (content map[string]string, err error) {
     content, err = ruleset.ReadRulesetData(uuid)
     changecontrol.ChangeControlInsertData(err, "ReadRulesetData", username)
     return content, err
@@ -260,7 +259,7 @@ func ReadRulesetData(uuid string, username string)(content map[string]string, er
 //          "content":"aaa",
 //      }
 // }
-func SaveRulesetData(content map[string]string, username string)(err error) {
+func SaveRulesetData(content map[string]string, username string) (err error) {
     err = ruleset.SaveRulesetData(content)
     changecontrol.ChangeControlInsertData(err, "SaveRulesetData", username)
     return err
@@ -280,7 +279,7 @@ func SaveRulesetData(content map[string]string, username string)(err error) {
 // func TimeSchedule(content map[string]string)(err error) {
 //     // err = ruleset.TimeSchedule(content)
 //     changecontrol.ChangeControlInsertData(err, "")
-    // return err
+// return err
 // }
 
 // // curl -X PUT \
@@ -297,7 +296,7 @@ func SaveRulesetData(content map[string]string, username string)(err error) {
 // func StopTimeSchedule(content map[string]string)(err error) {
 //     // err = ruleset.StopTimeSchedule(content)
 //     changecontrol.ChangeControlInsertData(err, "")
-    // return err
+// return err
 // }
 
 // curl -X PUT \
@@ -307,7 +306,7 @@ func SaveRulesetData(content map[string]string, username string)(err error) {
 //      "uuid":"aaa",
 //      "line":"aaa",
 // }
-func UpdateRule(anode map[string]string, username string)(err error) {
+func UpdateRule(anode map[string]string, username string) (err error) {
     err = ruleset.UpdateRule(anode)
     changecontrol.ChangeControlInsertData(err, "UpdateRule", username)
     return err
@@ -319,8 +318,13 @@ func UpdateRule(anode map[string]string, username string)(err error) {
 //   -d '{
 //      "uuid":"aaa"
 // }
-func SyncToAll(anode map[string]string, username string)(err error) {
+func SyncToAll(anode map[string]string, username string) (err error) {
     err = ruleset.SyncToAll(anode)
     changecontrol.ChangeControlInsertData(err, "SyncToAll", username)
+    return err
+}
+
+func SetDefaultRuleset(uuid string) (err error) {
+    err = ruleset.SetDefaultRuleset(uuid)
     return err
 }

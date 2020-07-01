@@ -2762,3 +2762,34 @@ func ConfigGet(ipnid string, portnid string) (data map[string]string, err error)
 
     return data, nil
 }
+
+func AddSuricataService(uuid string, anode map[string]string) (err error) {
+    ipData, portData, err := ndb.ObtainPortIp(uuid)
+    url := "https://" + ipData + ":" + portData + "/node/suricata/service"
+    valuesJSON, err := json.Marshal(anode)
+    resp, err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/AddSuricataService ERROR connection through http new Request: " + err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil {
+        logs.Error("nodeclient/AddSuricataService ERROR reading request data: " + err.Error())
+        return err
+    }
+
+    data := make(map[string]string)
+    err = json.Unmarshal(body, &data)
+    if err != nil {
+        logs.Error("nodeclient/AddSuricataService ERROR doing unmarshal JSON: " + err.Error())
+        return err
+    }
+
+    if data["ack"] == "false" {
+        return errors.New(data["error"])
+    }
+
+    return nil
+}
