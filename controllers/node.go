@@ -385,6 +385,32 @@ func (n *NodeController) GetAllNodes() {
     n.ServeJSON()
 }
 
+// @Title GetAllNodes2
+// @Description Get full list of nodes
+// @Success 200 {object} models.Node
+// @router /GetAllNodes2 [get]
+func (n *NodeController) GetAllNodes2() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetAllNodes"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        nodes, err := models.GetAllNodes(n.Ctx.Input.Header("user"))
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+        n.Data["json"] = nodes
+    }
+
+    n.ServeJSON()
+}
+
 // @Title GetServiceStatus
 // @Description Get service status for a specific node
 // @Success 200 {object} models.Node
