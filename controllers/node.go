@@ -2633,6 +2633,8 @@ func (n *NodeController) EnrollNode() {
     if !enrolled {
         logs.Error("NODE enrollment -> error: %+v", details)
         n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+        n.ServeJSON()
+        return
     }
 
     logs.Info("group uuid -> %s", nodeDetails.Group.UUID)
