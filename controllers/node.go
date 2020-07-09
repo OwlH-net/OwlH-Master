@@ -2633,6 +2633,8 @@ func (n *NodeController) EnrollNode() {
     if !enrolled {
         logs.Error("NODE enrollment -> error: %+v", details)
         n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+        n.ServeJSON()
+        return
     }
 
     logs.Info("group uuid -> %s", nodeDetails.Group.UUID)
@@ -2653,6 +2655,32 @@ func (n *NodeController) EnrollNode() {
             logs.Error("NODE create Suricata Service -> error: %+v", details)
             n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
         }
+    }
+
+    n.ServeJSON()
+}
+
+// @Title GetAllNodesReact
+// @Description Get full list of nodes
+// @Success 200 {object} models.Node
+// @router /getAllNodesReact [get]
+func (n *NodeController) GetAllNodesReact() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetAllNodes"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        nodes, err := models.GetAllNodesReact(n.Ctx.Input.Header("user"))
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+        n.Data["json"] = nodes
     }
 
     n.ServeJSON()
