@@ -1105,3 +1105,17 @@ func CreateSuricataService(guuid, uuid string, suricataDetails utils.SuricataDat
     assigned, details := node.CreateSuricataService(guuid, uuid, suricataDetails)
     return assigned, details
 }
+
+// curl -X POST \
+//   https://52.47.197.22:50002/v1/node/enrollNewNode  \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "NODE": {},
+//     "GROUPS": [],
+//     "SURICATA": {}
+// }
+func EnrollNewNode(anode utils.EnrollNewNodeStruct, username string) (err error) {
+    err = node.EnrollNewNode(anode)
+    changecontrol.ChangeControlInsertData(err, "EnrollNewNode", username)
+    return err
+}

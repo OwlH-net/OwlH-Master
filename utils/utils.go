@@ -30,7 +30,7 @@ import (
 var TokenMasterValidated string
 var TokenMasterUser string
 
-// var TokenMasterUuid string
+var TokenMasterUuid string
 // var NodeToken string
 //**********token global variables**********
 
@@ -55,7 +55,7 @@ func NewRequestHTTP(order string, url string, values io.Reader) (resp *http.Resp
     req, err := http.NewRequest(order, url, values)
     req.Header.Set("token", TokenMasterValidated)
     req.Header.Set("user", TokenMasterUser)
-    // req.Header.Set("uuid", TokenMasterUuid)
+    req.Header.Set("uuid", TokenMasterUuid)
     if err != nil {
         logs.Error("Error Executing HTTP new request")
     }

@@ -482,6 +482,9 @@ func DeleteNode(nodeid string) (err error) {
         }
     }
 
+    ///get master iu
+    ndb.LoadMasterID()
+
     //delete node information at node db
     err = nodeclient.DeleteNode(ipData, portData)
     if err != nil {
@@ -2601,6 +2604,7 @@ func InsertNode(n map[string]string) (uuid string, err error) {
 
     uuid = utils.Generate()
     ndb.InsertNodeKey(uuid, "nodeuser", n["nodeuser"])
+    ndb.InsertNodeKey(uuid, "status", "n/a")
     ndb.InsertNodeKey(uuid, "nodepass", n["nodepass"])
     ndb.InsertNodeKey(uuid, "name", n["name"])
     ndb.InsertNodeKey(uuid, "port", n["port"])
@@ -2728,4 +2732,54 @@ func AddGroupNodes(data map[string]interface{}) (err error) {
         nodeExists = false
     }
     return nil
+}
+
+
+
+
+
+
+func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {  
+    logs.Notice(anode)     
+    nodeExists := false
+    //add new node
+    newNode := make(map[string]string)
+    newNode["ip"] = anode.Node.IP
+    newNode["name"] = anode.Node.Name
+    newNode["port"] = anode.Node.Port
+    newNode["nodeuser"] = anode.Node.NodeUser
+    newNode["nodepass"] = anode.Node.NodePass
+    
+    nodeUUID,err := InsertNode(newNode)
+    if err != nil {logs.Error("EnrollNewNode ERROR addingnew node: " + err.Error()); return err}
+    //loop groups
+    groupNodes, err := ndb.GetAllGroupNodes()
+    for x := range anode.Group {
+        logs.Debug(anode.Group[x])
+        if err != nil {logs.Error("EnrollNewNode GetAllGroupNodes error: " + err.Error()); return err}
+        for y := range groupNodes {
+            if nodeUUID == groupNodes[y]["nodesid"] && anode.Group[x] == groupNodes[y]["groupid"] {
+                nodeExists = true
+            }
+        }
+        if !nodeExists {
+            uuid := utils.Generate()
+            err = ndb.InsertGroupNodes(uuid, "groupid", anode.Group[x])
+            if err != nil {
+                logs.Error("AddGroupNodes group uuid error: " + err.Error())
+                return err
+            }
+            err = ndb.InsertGroupNodes(uuid, "nodesid", nodeUUID)
+            if err != nil {
+                logs.Error("AddGroupNodes nodes uuid error: " + err.Error())
+                return err
+            }
+        }
+        nodeExists = false
+    }
+
+    //¿suricata?
+
+
+    return err
 }

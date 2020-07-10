@@ -2614,7 +2614,7 @@ func (n *NodeController) RegisterNode() {
 // @Success 200 {object} models.Node
 // @Failure 403 body is empty
 // @router /enroll [post]
-func (n *NodeController) EnrollNode() {
+func (n *NodeController) AutoEnroll() {
 
     n.Data["json"] = map[string]string{"ack": "true"}
 
@@ -2683,5 +2683,34 @@ func (n *NodeController) GetAllNodesReact() {
         n.Data["json"] = nodes
     }
 
+    n.ServeJSON()
+}
+
+// @Title EnrollNewNode
+// @Description Enroll new Node with extra data
+// @Success 200 {string} node deployed
+// @Failure 403 :nid is empty
+// @router /enrollNewNode [post]
+func (n *NodeController) EnrollNewNode() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"EnrollNewNode"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var nodeDetails utils.EnrollNewNodeStruct
+        json.Unmarshal(n.Ctx.Input.RequestBody, &nodeDetails)
+
+        err := models.EnrollNewNode(nodeDetails, n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
     n.ServeJSON()
 }
