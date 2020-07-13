@@ -2698,7 +2698,8 @@ func (n *NodeController) EnrollNewNode() {
         n.ServeJSON()
         return
     }
-    permissions := []string{"EnrollNewNode"}
+    permissions := []string{"CreateNode"}
+    // permissions := []string{"EnrollNewNode"}
     hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
