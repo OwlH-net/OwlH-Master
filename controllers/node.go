@@ -2677,10 +2677,10 @@ func (n *NodeController) GetAllNodesReact() {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
     } else {
         nodes, err := models.GetAllNodesReact(n.Ctx.Input.Header("user"))
+        n.Data["json"] = nodes
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
-        n.Data["json"] = nodes
     }
 
     n.ServeJSON()

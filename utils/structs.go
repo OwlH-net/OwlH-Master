@@ -46,3 +46,4 @@ type NewNodeData struct {
 // type GroupArray struct {
 //     UUID    []string `json:"uuid"`
 // }
+
