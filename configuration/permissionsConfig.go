@@ -3783,6 +3783,20 @@ func checkPermissionsFields()(ok bool){
         //Deploy
         field.Fconn      = "masterConn"
         field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='EnrollNewNode' and per_param='desc' and per_value='Add node with groups and suricata'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('EnrollNewNode','desc','Add node with groups and suricata')"
+        field.Fname      = "permissions"
+        ok = CheckField(field)
+        if !ok {return false}
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
+        field.Fquery     = "select per_value from permissions where per_uniqueid='EnrollNewNode' and per_param='permissionGroup'"
+        field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('EnrollNewNode','permissionGroup','Deploy')"
+        field.Fname      = "permissions"
+        ok = CheckField(field)
+        
+        field.Fconn      = "masterConn"
+        field.Ftable     = "permissions"
         field.Fquery     = "select per_value from permissions where per_uniqueid='DeployNode' and per_param='desc' and per_value='-'"
         field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeployNode','desc','-')"
         field.Fname      = "permissions"

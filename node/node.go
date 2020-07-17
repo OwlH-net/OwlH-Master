@@ -218,7 +218,7 @@ func AddNode(n map[string]string) (err error) {
     return nil
 }
 
-func GetAllNodesReact() (data map[string]map[string]string, err error) {
+func GetAllNodesReact() (data NodeList, err error) {
     //historical log
     logUuid := utils.Generate()
     currentTime := time.Now()
@@ -230,7 +230,7 @@ func GetAllNodesReact() (data map[string]map[string]string, err error) {
     allNodes, err := ndb.GetAllNodes()
     if err != nil {
         logs.Error("GetAllNodesReact error getting all nodes from db: " + err.Error())
-        return nil, err
+        return data, err
     }
 
     for id := range allNodes {
@@ -247,7 +247,7 @@ func GetAllNodesReact() (data map[string]map[string]string, err error) {
         masterid, err := ndb.LoadMasterID()
         if err != nil {
             logs.Error("node/GetAllNodesReact ERROR getting master id: " + err.Error())
-            return nil, err
+            return data, err
         }
 
         login["user"] = allNodes[id]["nodeuser"]
@@ -267,7 +267,7 @@ func GetAllNodesReact() (data map[string]map[string]string, err error) {
                 err = ndb.UpdateNode(id, "token", "wait")
                 if err != nil {
                     logs.Error("node/GetAllNodesReact ERROR updating node token: " + err.Error())
-                    return nil, err
+                    return data, err
                 }
                 logs.Warn("node/GetAllNodesReact ERROR getting node id. Pending registering...")
                 allNodes[id]["token"] = "wait"
@@ -277,7 +277,7 @@ func GetAllNodesReact() (data map[string]map[string]string, err error) {
                 err = ndb.UpdateNode(id, "token", "wait")
                 if err != nil {
                     logs.Error("node/GetAllNodesReact ERROR updating node token: " + err.Error())
-                    return nil, err
+                    return data, err
                 }
                 logs.Warn("node/GetAllNodesReact ERROR getting node id. Pending registering...")
                 allNodes[id]["token"] = "wait"
@@ -288,7 +288,43 @@ func GetAllNodesReact() (data map[string]map[string]string, err error) {
     _ = ndb.InsertPluginCommand(logUuid, "status", "Success")
     _ = ndb.InsertPluginCommand(logUuid, "output", "All nodes added successfully")
 
-    return allNodes, nil
+    newnodeValues := setNodesToSlice(allNodes)
+
+    return newnodeValues, nil
+}
+
+
+//return nodes as objects
+type NodeList struct {
+    Nodes        []NewNodeValue 
+}
+type NewNodeValue struct {
+    IP           string     `json:"ip"`
+    Token        string     `json:"token"`
+    Name         string     `json:"name"`
+    Port         string     `json:"port"`
+    Status       string     `json:"status"`
+    NodeUser     string     `json:"nodeuser"`
+    NodePass     string     `json:"nodepass"`
+    UUID         string     `json:"uuid"`
+}
+func setNodesToSlice(nodes map[string]map[string]string)(val NodeList) {
+    var nodeList NodeList
+    for x := range nodes{
+        values := NewNodeValue{}
+        values.IP = nodes[x]["ip"]
+        values.Token = nodes[x]["token"]
+        values.Name = nodes[x]["name"]
+        values.Port = nodes[x]["port"]
+        values.Status = nodes[x]["status"]
+        values.NodeUser = nodes[x]["nodeuser"]
+        values.NodePass = nodes[x]["nodepass"]
+        values.UUID = x
+
+        nodeList.Nodes = append(nodeList.Nodes, values)
+    }
+
+    return nodeList
 }
 
 func GetAllNodes() (data map[string]map[string]string, err error) {
@@ -481,6 +517,9 @@ func DeleteNode(nodeid string) (err error) {
             return err
         }
     }
+
+    ///get master iu
+    ndb.LoadMasterID()
 
     //delete node information at node db
     err = nodeclient.DeleteNode(ipData, portData)
@@ -2601,6 +2640,7 @@ func InsertNode(n map[string]string) (uuid string, err error) {
 
     uuid = utils.Generate()
     ndb.InsertNodeKey(uuid, "nodeuser", n["nodeuser"])
+    ndb.InsertNodeKey(uuid, "status", "n/a")
     ndb.InsertNodeKey(uuid, "nodepass", n["nodepass"])
     ndb.InsertNodeKey(uuid, "name", n["name"])
     ndb.InsertNodeKey(uuid, "port", n["port"])
@@ -2728,4 +2768,49 @@ func AddGroupNodes(data map[string]interface{}) (err error) {
         nodeExists = false
     }
     return nil
+}
+
+func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {  
+    logs.Notice(anode)     
+    nodeExists := false
+    //add new node
+    newNode := make(map[string]string)
+    newNode["ip"] = anode.Node.IP
+    newNode["name"] = anode.Node.Name
+    newNode["port"] = anode.Node.Port
+    newNode["nodeuser"] = anode.Node.NodeUser
+    newNode["nodepass"] = anode.Node.NodePass
+    
+    nodeUUID,err := InsertNode(newNode)
+    if err != nil {logs.Error("EnrollNewNode ERROR addingnew node: " + err.Error()); return err}
+    //loop groups
+    groupNodes, err := ndb.GetAllGroupNodes()
+    for x := range anode.Group {
+        logs.Debug(anode.Group[x])
+        if err != nil {logs.Error("EnrollNewNode GetAllGroupNodes error: " + err.Error()); return err}
+        for y := range groupNodes {
+            if nodeUUID == groupNodes[y]["nodesid"] && anode.Group[x] == groupNodes[y]["groupid"] {
+                nodeExists = true
+            }
+        }
+        if !nodeExists {
+            uuid := utils.Generate()
+            err = ndb.InsertGroupNodes(uuid, "groupid", anode.Group[x])
+            if err != nil {
+                logs.Error("AddGroupNodes group uuid error: " + err.Error())
+                return err
+            }
+            err = ndb.InsertGroupNodes(uuid, "nodesid", nodeUUID)
+            if err != nil {
+                logs.Error("AddGroupNodes nodes uuid error: " + err.Error())
+                return err
+            }
+        }
+        nodeExists = false
+    }
+
+    //¿suricata?
+
+
+    return err
 }
