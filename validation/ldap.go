@@ -28,7 +28,7 @@ func userAuthentication(user string, password string) (check bool, err error) {
 
     if err1 != nil { //connection problems
         logs.Error("LDAP Connection problems: " + err1.Error())
-        return false, err
+        return false, err1
     }
     if !status { //user/pass problems
 
