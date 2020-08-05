@@ -14,6 +14,7 @@ import (
     "owlhmaster/validation"
     "strconv"
     "strings"
+    "path/filepath"
     "time"
 )
 
@@ -768,6 +769,33 @@ func PingPluginsMaster() (data map[string]map[string]string, err error) {
         return nil, err
     }
     return data, nil
+}
+
+func GetGroupFile(data map[string]string) (content map[string]string, err error) {
+    fileReaded, err := ioutil.ReadFile(data["file"]) // just pass the file name
+    if err != nil {logs.Error("GetPathFileContent Error reading file for path: " + data["file"]); return nil, err}
+
+    sendBackArray := make(map[string]string)
+    sendBackArray["fileContent"] = string(fileReaded)
+    sendBackArray["fileName"] = filepath.Base(data["file"])
+
+    return sendBackArray, nil
+}
+
+func GetFileContentByType(data map[string]string)(values map[string]string, err error) {
+    switch data["type"]{
+    case "group":
+        values,err = GetGroupFile(data)
+        if err != nil {logs.Error("GetFileContentByType Error - "+err.Error()); return nil, err}
+    case "node":
+        logs.Info("TODO")
+    case "ruleset":
+        logs.Info("TODO")
+    default:
+        return nil,errors.New("GetFileContentByType Error - Error getting file by type.")
+    }
+    
+    return values, err
 }
 
 func GetPathFileContent(param string) (file map[string]string, err error) {

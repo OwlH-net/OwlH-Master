@@ -3027,6 +3027,20 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetFileContentByType' and per_param='desc' and per_value='Get file content by type'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetFileContentByType','desc','Get file content by type')"
+    field.Fname      = "permissions - GetFileContentByType desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetFileContentByType' and per_param='permissionGroup' and per_value='Master'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetFileContentByType','permissionGroup','Master')"
+    field.Fname      = "permissions - GetFileContentByType group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='ModifyNodeOptionValues' and per_param='desc' and per_value='Modify node option values'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('ModifyNodeOptionValues','desc','Modify node option values')"
     field.Fname      = "permissions - ModifyNodeOptionValues desc"

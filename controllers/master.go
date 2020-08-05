@@ -1546,3 +1546,32 @@ func (n *MasterController) GetAllGroupRulesetsForAllNodes() {
     }
     n.ServeJSON()
 }
+
+// @Title GetFileContentByType
+// @Description Add role for users
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getFileContentByType [put]
+func (n *MasterController) GetFileContentByType() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetFileContentByType"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+
+        content, err := models.GetFileContentByType(anode, n.Ctx.Input.Header("user"))
+        n.Data["json"] = content
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}

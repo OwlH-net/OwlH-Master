@@ -477,6 +477,20 @@ func ChangePassword(anode map[string]string, username string) (err error) {
     return err
 }
 
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/getFileContentByType \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "file": "v",
+//     "type": "v",
+//  }
+// }
+func GetFileContentByType(anode map[string]string, username string) (content map[string]string, err error) {
+    content,err = master.GetFileContentByType(anode)
+    changecontrol.ChangeControlInsertData(err, "GetFileContentByType", username)
+    return content, err
+}
+
 // curl -X DELETE \
 //   https://52.47.197.22:50002/v1/master/deleteUserRole \
 //   -H 'Content-Type: application/json' \
