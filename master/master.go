@@ -783,6 +783,7 @@ func GetGroupFile(data map[string]string) (content map[string]string, err error)
 }
 
 func GetFileContentByType(data map[string]string)(values map[string]string, err error) {
+    logs.Notice(data)
     switch data["type"]{
     case "group":
         values,err = GetGroupFile(data)
@@ -796,6 +797,15 @@ func GetFileContentByType(data map[string]string)(values map[string]string, err 
     }
     
     return values, err
+}
+
+func SaveNewFileContent(data map[string]string)(err error) {
+    logs.Notice(data)
+   
+    err = utils.WriteNewDataOnFile(data["path"], []byte(data["content"]))
+    if err != nil { logs.Error("SaveNewFileContent ERROR: "+err.Error()); return err}
+
+    return nil
 }
 
 func GetPathFileContent(param string) (file map[string]string, err error) {

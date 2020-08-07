@@ -491,6 +491,20 @@ func GetFileContentByType(anode map[string]string, username string) (content map
     return content, err
 }
 
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/saveNewFileContent \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "file": "v",
+//     "type": "v",
+//  }
+// }
+func SaveNewFileContent(anode map[string]string, username string) (err error) {
+    err = master.SaveNewFileContent(anode)
+    changecontrol.ChangeControlInsertData(err, "SaveNewFileContent", username)
+    return err
+}
+
 // curl -X DELETE \
 //   https://52.47.197.22:50002/v1/master/deleteUserRole \
 //   -H 'Content-Type: application/json' \
