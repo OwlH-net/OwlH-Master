@@ -471,7 +471,7 @@ func (n *RulesetController) ModifyRuleset() {
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
     } else {
-        var anode map[string]map[string]string
+        var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
         duplicated, err := models.ModifyRuleset(anode, n.Ctx.Input.Header("user"))
 

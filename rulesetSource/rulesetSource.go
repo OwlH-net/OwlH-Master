@@ -250,26 +250,37 @@ func GetAllRulesetSource(hasPermissions bool)(sources map[string]map[string]stri
 
 //Delete specific file for ruleset
 func DeleteRulesetFile(uuid string) (err error) {
-    var pathToDelete string
-    if ndb.Rdb == nil {
-        logs.Error("DeleteRulesetSource -- Can't acces to database")
-        return errors.New("DeleteRulesetSource -- Can't acces to database")
+    //check if file is local for delete only local files
+    isLocal:= false
+    allRuleFiles,err := ndb.GetAllRuleFiles()
+    if err != nil {logs.Error("ndb.Rdb.Query Error checking if ruleset is local: %s", err.Error()); return err}
+    for id := range allRuleFiles {
+        if uuid == id && allRuleFiles[id]["type"] == "local" { isLocal=true }
     }
 
-    //delete file selected
-    uuidPath, err := ndb.Rdb.Query("select rule_value from rule_files where rule_uniqueid = '"+uuid+"' and rule_param='path'")
-    if err != nil {
-        logs.Error("ndb.Rdb.Query Error checking path for delete a file on rule_files: %s", err.Error())
-        return err
-    }
-    defer uuidPath.Close()
-    for uuidPath.Next() {
-        if err = uuidPath.Scan(&pathToDelete); err != nil {
-            logs.Error("DeleteRulesetSource for delete path rows.Scan: %s", err.Error())
-            return err
+    //delete the file only if it isn't local
+    if !isLocal {
+        var pathToDelete string
+        if ndb.Rdb == nil {
+            logs.Error("DeleteRulesetSource -- Can't acces to database")
+            return errors.New("DeleteRulesetSource -- Can't acces to database")
         }
     
-        err = os.Remove(pathToDelete)
+        //delete file selected
+        uuidPath, err := ndb.Rdb.Query("select rule_value from rule_files where rule_uniqueid = '"+uuid+"' and rule_param='path'")
+        if err != nil {
+            logs.Error("ndb.Rdb.Query Error checking path for delete a file on rule_files: %s", err.Error())
+            return err
+        }
+        defer uuidPath.Close()
+        for uuidPath.Next() {
+            if err = uuidPath.Scan(&pathToDelete); err != nil {
+                logs.Error("DeleteRulesetSource for delete path rows.Scan: %s", err.Error())
+                return err
+            }
+        
+            err = os.Remove(pathToDelete)
+        }
     }
     
     //delete a ruleset source in ruleset table
@@ -763,13 +774,16 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
     return dataFiles ,nil
 }
 
-//
+//get local ruleset list and their status (check or uncheck)
 func GetDetails(uuid string) (data map[string]map[string]string, err error){
+    logs.Notice(uuid)
     var checked string
     
     dbFiles,err := ndb.GetRulesFromRuleset(uuid) // all rule files that belongs to the same ruleset
     
     for x := range dbFiles{
+        logs.Notice(dbFiles[x])
+
         checked = utils.VerifyPathExists(dbFiles[x]["path"])
         err = ndb.UpdateRuleFiles(x, "exists", checked)
         if err != nil {logs.Error("GetDetails ndb.UpdateRuleFiles Error : %s", err.Error()); return nil, err}

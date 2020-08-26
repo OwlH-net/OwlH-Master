@@ -211,7 +211,7 @@ func AddNewRuleset(data map[string]map[string]string, username string) (duplicat
 //          "sourceType":"aaa",
 //      }
 // }
-func ModifyRuleset(data map[string]map[string]string, username string) (duplicated []byte, err error) {
+func ModifyRuleset(data map[string]string, username string) (duplicated []byte, err error) {
     duplicated, err = ruleset.ModifyRuleset(data)
     changecontrol.ChangeControlInsertData(err, "ModifyRuleset", username)
     return duplicated, err
