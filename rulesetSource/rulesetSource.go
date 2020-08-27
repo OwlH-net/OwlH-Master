@@ -760,7 +760,6 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
         }
         if fileExtension.MatchString(info.Name()){
             dataFiles["files"][info.Name()] = file
-            logs.Notice(info.Name())
             logs.Warn(file)
         }
         return nil
@@ -776,14 +775,11 @@ func Details(data map[string]string) (files map[string]map[string]string, err er
 
 //get local ruleset list and their status (check or uncheck)
 func GetDetails(uuid string) (data map[string]map[string]string, err error){
-    logs.Notice(uuid)
     var checked string
     
     dbFiles,err := ndb.GetRulesFromRuleset(uuid) // all rule files that belongs to the same ruleset
     
     for x := range dbFiles{
-        logs.Notice(dbFiles[x])
-
         checked = utils.VerifyPathExists(dbFiles[x]["path"])
         err = ndb.UpdateRuleFiles(x, "exists", checked)
         if err != nil {logs.Error("GetDetails ndb.UpdateRuleFiles Error : %s", err.Error()); return nil, err}

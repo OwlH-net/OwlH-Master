@@ -765,9 +765,10 @@ func FindDuplicatedSIDs(data map[string]map[string]string) (duplicated []byte, e
 }
 
 //Add new ruleset to locale ruleset
-//if action is modify: check if ruleset exists for not create again the same ruleset.
 func AddNewRuleset(data map[string]map[string]string) (duplicated []byte, err error) {
     
+    logs.Critical(data)
+
     //check for duplicated rule SIDs
     if duplicated, err = FindDuplicatedSIDs(data); duplicated != nil {
         return duplicated, nil
@@ -795,7 +796,6 @@ func AddNewRuleset(data map[string]map[string]string) (duplicated []byte, err er
     rsets,err := ndb.GetAllRulesets()
     for x := range data {
         for rsetID := range rsets {
-            logs.Notice(rsetID +"   -->   "+ data[x]["uuid"])
             if rsetID == data[x]["uuid"] && !rulesetCreated { rulesetCreated = true }
         }
 
@@ -1122,101 +1122,109 @@ func UpdateRule(anode map[string]string) (err error) {
 }
 
 //Add new ruleset to locale ruleset
-func ModifyRuleset(data map[string]string) (duplicated []byte, err error) {
-    logs.Debug(data)
+func ModifyRuleset(data map[string]map[string]string) (duplicated []byte, err error) {
+    
+    logs.Info(data)
 
-    // //check for duplicated rule SIDs
-    // if duplicated, err = FindDuplicatedSIDs(data); duplicated != nil {
-    //     return duplicated, nil
-    // }
-    // if err != nil {
-    //     logs.Error("ruleset/ModifyRuleset -- duplicated error: %s", err.Error())
-    //     return nil, err
-    // }
-    // if ndb.Rdb == nil {
-    //     logs.Error("ruleset/ModifyRuleset -- Can't access to database")
-    //     return nil, errors.New("ruleset/ModifyRuleset -- Can't access to database")
-    // }
+    if ndb.Rdb == nil {
+        logs.Error("ruleset/ModifyRuleset -- Can't access to database")
+        return nil, errors.New("ruleset/ModifyRuleset -- Can't access to database")
+    }
 
-    // //delete all rule files
-    // for x := range data {
-    //     err = ndb.DeleteRuleFileParamValue("sourceUUID", data[x]["uuid"])
-    //     if err != nil {
-    //         logs.Error("ruleset/ModifyRuleset -- delete files for update error: %s", err.Error())
-    //         return nil, err
-    //     }
-    // }
+    //check for duplicated rule SIDs
+    if duplicated, err = FindDuplicatedSIDs(data); duplicated != nil {
+        return duplicated, nil
+    }
+    if err != nil {
+        logs.Error("ruleset/ModifyRuleset -- duplicated error: %s", err.Error())
+        return nil, err
+    }
 
-    // //insert all files
-    // localFiles, err := utils.GetKeyValueString("ruleset", "localRulesets")
-    // if err != nil {
-    //     logs.Error("DeleteRuleset Error getting data from main.conf for load data: " + err.Error())
-    //     return duplicated, err
-    // }
+    //delete all rule files by source UUID
+    for x := range data {
+        rsets, err := ndb.GetAllRuleFiles()
+        for id := range rsets {
+            if rsets[id]["sourceUUID"] == data[x]["uuid"] {
+                //delete local file
+                err = os.RemoveAll(rsets[id]["path"])                
+                if err != nil {logs.Error("ruleset/ModifyRuleset -- delete files locally for update error: %s", err.Error()); return nil, err}
+                //delete rule_file by uuid
+                err = ndb.DeleteRuleFilesByUuid(id)
+                if err != nil {logs.Error("ruleset/ModifyRuleset -- delete files at database for update error: %s", err.Error()); return nil, err}
+            }
+        }
+    }
 
-    // rulesetModified := false
-    // for x := range data {
-    //     rulesetFolderName := strings.Replace(data[x]["rulesetName"], " ", "_", -1)
-    //     path := localFiles + rulesetFolderName + "/" + data[x]["fileName"]
+    //get local ruleset path
+    localFiles, err := utils.GetKeyValueString("ruleset", "localRulesets")
+    if err != nil {
+        logs.Error("DeleteRuleset Error getting data from main.conf for load data: " + err.Error())
+        return duplicated, err
+    }
 
-    //     if !rulesetModified {
-    //         //change ruleset name and desc
-    //         err = ndb.UpdateRuleset(data[x]["uuid"], "name", data[x]["rulesetName"])
-    //         if err != nil {
-    //             logs.Error("ruleset/ModifyRuleset -- modify name error: %s", err.Error())
-    //             return nil, err
-    //         }
-    //         err = ndb.UpdateRuleset(data[x]["uuid"], "desc", data[x]["rulesetDesc"])
-    //         if err != nil {
-    //             logs.Error("ruleset/ModifyRuleset -- modify desc error: %s", err.Error())
-    //             return nil, err
-    //         }
-    //         rulesetModified = true
-    //     }
+    rulesetModified := false
+    for x := range data {
+        rulesetFolderName := strings.Replace(data[x]["rulesetName"], " ", "_", -1)
+        path := localFiles + rulesetFolderName + "/" + data[x]["fileName"]
 
-    //     //check source file folder
-    //     if _, err := os.Stat(localFiles + rulesetFolderName); os.IsNotExist(err) {
-    //         os.MkdirAll(localFiles+rulesetFolderName, os.ModePerm)
-    //     }
+        //change ruleset name and desc
+        if !rulesetModified {
+            err = ndb.UpdateRuleset(data[x]["uuid"], "name", data[x]["rulesetName"])
+            if err != nil {
+                logs.Error("ruleset/ModifyRuleset -- modify name error: %s", err.Error())
+                return nil, err
+            }
+            err = ndb.UpdateRuleset(data[x]["uuid"], "desc", data[x]["rulesetDesc"])
+            if err != nil {
+                logs.Error("ruleset/ModifyRuleset -- modify desc error: %s", err.Error())
+                return nil, err
+            }
+            rulesetModified = true
+        }
 
-    //     //copyfile
-    //     copy, err := utils.GetKeyValueString("execute", "copy")
-    //     if err != nil {
-    //         logs.Error("SetRulesetAction Error getting data from main.conf")
-    //         return nil, err
-    //     }
+        //check source file folder
+        if _, err := os.Stat(localFiles + rulesetFolderName); os.IsNotExist(err) {
+            os.MkdirAll(localFiles+rulesetFolderName, os.ModePerm)
+        }
 
-    //     cpCmd := exec.Command(copy, data[x]["filePath"], path)
-    //     err = cpCmd.Run()
-    //     if err != nil {
-    //         logs.Error("ruleset/ModifyRuleset -- Error copying new file: %s", err.Error())
-    //         return nil, err
-    //     }
+        //copyfile
+        copy, err := utils.GetKeyValueString("execute", "copy")
+        if err != nil {
+            logs.Error("SetRulesetAction Error getting data from main.conf")
+            return nil, err
+        }
 
-    //     //add md5 for every file
-    //     md5, err := utils.CalculateMD5(path)
-    //     if err != nil {
-    //         logs.Error("ruleset/ModifyRuleset -- Error calculating md5: %s", err.Error())
-    //         return nil, err
-    //     }
+        cpCmd := exec.Command(copy, data[x]["filePath"], path)
+        err = cpCmd.Run()
+        if err != nil {
+            logs.Error("ruleset/ModifyRuleset -- Error copying new file: %s", err.Error())
+            return nil, err
+        }
 
-    //     ruleFilesUUID := utils.Generate()
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "name", data[x]["rulesetName"])
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "path", path)
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "file", data[x]["fileName"])
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "type", "local")
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceUUID", data[x]["uuid"])
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceFileUUID", x)
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "exists", "true")
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "isUpdated", "false")
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "md5", md5)
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceType", data[x]["sourceType"])
-    //     err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "linesAdded", "true")
-    //     if err != nil {
-    //         logs.Error("ruleset/ModifyRuleset -- Error Inserting Ruleset: %s", err.Error())
-    //         return nil, err
-    //     }
-    // }
+        //add md5 for every file
+        md5, err := utils.CalculateMD5(path)
+        if err != nil {
+            logs.Error("ruleset/ModifyRuleset -- Error calculating md5: %s", err.Error())
+            return nil, err
+        }
+
+        ruleFilesUUID := utils.Generate()
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "name", data[x]["rulesetName"])
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "path", path)
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "file", data[x]["fileName"])
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "type", "local")
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceUUID", data[x]["uuid"])
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceFileUUID", x)
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "exists", "true")
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "isUpdated", "false")
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "md5", md5)
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "sourceType", data[x]["sourceType"])
+        err = ndb.InsertRulesetSourceRules(ruleFilesUUID, "linesAdded", "true")
+        if err != nil {
+            logs.Error("ruleset/ModifyRuleset -- Error Inserting Ruleset: %s", err.Error())
+            return nil, err
+        }
+    }
 
     return nil, nil
 }
