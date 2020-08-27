@@ -846,20 +846,20 @@ func SaveFilePathContent(file map[string]string) (err error) {
 }
 
 func Login(data map[string]string) (newToken string, err error) {
-    users, err := ndb.GetLoginData()
-    if err != nil {
-        logs.Error("master/Login Error Getting user values: " + err.Error())
-        return "", err
-    }
+    logs.Notice(data)
 
-    logs.Debug("check user login - %s", data["user"])
+    users, err := ndb.GetLoginData()
+    if err != nil {logs.Error("master/Login Error Getting user values: " + err.Error()); return "", err}
+    
+    err = validation.VerifyUserToken(data["user"])
+    if err != nil {logs.Error("master/Login Error checking all user tokens: " + err.Error()); return "", err}
+
     //check values
     for x := range users {
         if users[x]["user"] == data["user"] {
             if users[x]["ldap"] == "enabled" {
-                logs.Debug("LDAP user")
                 check, err := validation.CheckLdap(data["user"], data["password"])
-                logs.Debug("is valid? -> %t", check)
+                logs.Info("is valid? -> %t", check)
                 if err != nil {
                     logs.Error("ldap check error -> %s", err.Error())
                     return "", err
@@ -911,25 +911,22 @@ func AddUser(data map[string]string) (err error) {
     secret := utils.Generate()
     //user
     err = ndb.InsertUser(uuid, "user", data["user"])
-    if err != nil {
-        logs.Error("master/AddUser Error inserting user into db: " + err.Error())
-        return err
-    }
-    err = ndb.InsertUser(uuid, "pass", passHashed)
-    if err != nil {
-        logs.Error("master/AddUser Error inserting pass into db: " + err.Error())
-        return err
-    }
-    err = ndb.InsertUser(uuid, "secret", secret)
-    if err != nil {
-        logs.Error("master/AddUser Error inserting secret into db: " + err.Error())
-        return err
-    }
-    err = ndb.InsertUser(uuid, "ldap", data["ldap"])
+    if err != nil {logs.Error("master/AddUser Error inserting user into db: " + err.Error()); return err}
 
+    err = ndb.InsertUser(uuid, "pass", passHashed)
+    if err != nil {logs.Error("master/AddUser Error inserting pass into db: " + err.Error()); return err}
+
+    err = ndb.InsertUser(uuid, "secret", secret)
+    if err != nil {logs.Error("master/AddUser Error inserting secret into db: " + err.Error()); return err}
+
+    err = ndb.InsertUser(uuid, "ldap", data["ldap"])
     if err != nil{logs.Error("master/AddUser Error inserting ldap into db: "+err.Error()); return err}
+    
     err = ndb.InsertUser(uuid, "type", data["type"])
-    if err != nil{logs.Error("master/AddUser Error inserting ldap into db: "+err.Error()); return err}
+    if err != nil{logs.Error("master/AddUser Error inserting type into db: "+err.Error()); return err}
+
+    err = ndb.InsertUser(uuid, "userTokens", "")
+    if err != nil{logs.Error("master/AddUser Error inserting userToken into db: "+err.Error()); return err}
     
     //Sync user, group, roles and their relations to the new node
     node.SyncUsersToNode()

@@ -11,6 +11,8 @@ import (
     jwt "github.com/dgrijalva/jwt-go"
     "golang.org/x/crypto/bcrypt"
     "io"
+    // "strings"
+    "encoding/json"
     "owlhmaster/database"
     "owlhmaster/utils"
     // "encoding/base64"
@@ -57,6 +59,31 @@ func CheckPasswordHash(password string, hash string) (bool, error) {
     return true, nil
 }
 
+
+type Token struct {
+    token       string `json:"token"`
+    timestamp   string `json:"timestamp"`
+}
+type Tokens struct {
+    tokens []Token
+}
+
+//verify token for every user
+func VerifyUserToken(user string) (err error) {
+    users, err := ndb.GetLoginData()
+    for x := range users {
+        if users[x]["user"] == user {
+            keys := make([]Token,0)
+            json.Unmarshal([]byte(users[x]["userTokens"]), &keys)
+            
+            logs.Notice(keys)
+        }
+    }
+
+    return nil
+}
+
+//verify master token
 func VerifyToken(token string, user string) (err error) {
     users, err := ndb.GetLoginData()
     for x := range users {
@@ -76,6 +103,8 @@ func VerifyToken(token string, user string) (err error) {
     }
     return errors.New("There are not token. Error creating Token")
 }
+
+
 
 func VerifyPermissions(user string, object string, permissions []string) (hasPermissions bool, err error) {
     for x := range permissions {
