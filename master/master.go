@@ -783,7 +783,6 @@ func GetGroupFile(data map[string]string) (content map[string]string, err error)
 }
 
 func GetFileContentByType(data map[string]string)(values map[string]string, err error) {
-    logs.Notice(data)
     switch data["type"]{
     case "group":
         values,err = GetGroupFile(data)
@@ -799,9 +798,7 @@ func GetFileContentByType(data map[string]string)(values map[string]string, err 
     return values, err
 }
 
-func SaveNewFileContent(data map[string]string)(err error) {
-    logs.Notice(data)
-   
+func SaveNewFileContent(data map[string]string)(err error) {   
     err = utils.WriteNewDataOnFile(data["path"], []byte(data["content"]))
     if err != nil { logs.Error("SaveNewFileContent ERROR: "+err.Error()); return err}
 
@@ -846,15 +843,14 @@ func SaveFilePathContent(file map[string]string) (err error) {
 }
 
 func Login(data map[string]string) (newToken string, err error) {
-    logs.Notice(data)
-
     users, err := ndb.GetLoginData()
     if err != nil {logs.Error("master/Login Error Getting user values: " + err.Error()); return "", err}
     
-    err = validation.VerifyUserToken(data["user"])
-    if err != nil {logs.Error("master/Login Error checking all user tokens: " + err.Error()); return "", err}
+    // err = validation.VerifyUserToken(data["user"])
+    // if err != nil {logs.Error("master/Login Error checking all user tokens: " + err.Error()); return "", err}
 
     //check values
+    newSecret := utils.Generate()
     for x := range users {
         if users[x]["user"] == data["user"] {
             if users[x]["ldap"] == "enabled" {
@@ -865,23 +861,28 @@ func Login(data map[string]string) (newToken string, err error) {
                     return "", err
                 }
                 if check {
-                    token, err := validation.Encode(data["user"], users[x]["secret"])
-                    if err != nil {
-                        return "", err
-                    }
+                    token, err := validation.Encode(data["user"], newSecret)
+                    if err != nil {return "", err}
+                    
+                    //save secret and timestamp
+                    err = validation.SaveUserLoginData(data["user"], newSecret)
+                    if err != nil {return "", err}
+
                     return token, nil
                 }
-
             } else {
                 check, err := validation.CheckPasswordHash(data["password"], users[x]["pass"])
                 if err != nil {
                     return "", err
                 }
                 if check {
-                    token, err := validation.Encode(data["user"], users[x]["secret"])
-                    if err != nil {
-                        return "", err
-                    }
+                    token, err := validation.Encode(data["user"], newSecret)
+                    if err != nil {return "", err}
+                    
+                    //save secret and timestamp
+                    err = validation.SaveUserLoginData(data["user"], newSecret)
+                    if err != nil {return "", err}
+
                     return token, nil
                 }
             }
@@ -1728,7 +1729,6 @@ func GetAllGroupRulesetsForAllNodes() (data map[string]map[string]string, err er
         }
     }
 
-    logs.Notice(allData)
     return allData, err
 }
 

@@ -11,7 +11,8 @@ import (
     jwt "github.com/dgrijalva/jwt-go"
     "golang.org/x/crypto/bcrypt"
     "io"
-    // "strings"
+    "time"
+    "strconv"
     "encoding/json"
     "owlhmaster/database"
     "owlhmaster/utils"
@@ -61,44 +62,140 @@ func CheckPasswordHash(password string, hash string) (bool, error) {
 
 
 type Token struct {
-    token       string `json:"token"`
-    timestamp   string `json:"timestamp"`
+    Secret      string `json:"secret"`
+    Timestamp   string `json:"timestamp"`
 }
-type Tokens struct {
-    tokens []Token
-}
-
-//verify token for every user
-func VerifyUserToken(user string) (err error) {
+func SaveUserLoginData(user string, secret string) (err error) {
+    var tokens = []Token{}
+    var newToken = Token{}
+    
+    //get default time for check if timestamp has expired
+    mainTimeout, nil := utils.GetKeyValueInt("master", "tokenTimestamp")
+    if err != nil {
+        mainTimeout = 300
+    } //default time for check 
+    
+    //get timestamp    
+    currentTime := time.Now().Unix()
+    
+    //get db struct
     users, err := ndb.GetLoginData()
+    if err != nil {logs.Error("ERROR saving user login data: %s", err); return err}
+
     for x := range users {
         if users[x]["user"] == user {
-            keys := make([]Token,0)
-            json.Unmarshal([]byte(users[x]["userTokens"]), &keys)
+            // keys := make(tokens,0)            
+            json.Unmarshal([]byte(users[x]["userTokens"]), &tokens)
             
-            logs.Notice(keys)
+            newToken.Secret = secret
+            newToken.Timestamp = strconv.Itoa(int(currentTime) + int(mainTimeout))
+            
+            tokens = append(tokens, newToken)
+            
+            for tokenID := range tokens{
+                logs.Notice("Secret -> %s, Timestamp -> %s", tokens[tokenID].Secret, tokens[tokenID].Timestamp)
+            } 
+            
+            userTokens, _ := json.Marshal(tokens)            
+
+            err = ndb.UpdateUser(x, "userTokens", string(userTokens))
+            if err != nil {logs.Error("ERROR updating user login data: %s", err); return err}
         }
     }
+
+    //save new data into struct
 
     return nil
 }
 
+// //verify token for every user
+// func VerifyUserToken(user string) (err error) {
+//     var tokens = []Token{}
+//     users, err := ndb.GetLoginData()
+    
+//     logs.Info("%+v",users)
+
+//     for x := range users {
+//         if users[x]["user"] == user {
+//             // keys := make(tokens,0)            
+//             json.Unmarshal([]byte(users[x]["userTokens"]), &tokens)
+            
+//             for tokenID := range tokens{
+//                 logs.Debug("Token -> %s, Timestamp -> %s", tokens[tokenID].Secret, tokens[tokenID].Timestamp)
+//             }
+            
+//         }
+//     }
+
+//     return nil
+// }
+
 //verify master token
-func VerifyToken(token string, user string) (err error) {
+func VerifyToken(tokenRetrieved string, user string) (err error) {
+    var tokens = []Token{}
+    var tokensFiltered = []Token{}
+    var newToken = Token{}
+    currentTime := time.Now().Unix()
+
+    //get default time for check if timestamp has expired
+    mainTimeout, nil := utils.GetKeyValueInt("master", "tokenTimestamp")
+    if err != nil {
+        mainTimeout = 300
+    } //default time for check    
+    
     users, err := ndb.GetLoginData()
+    if err != nil {logs.Error("VerifyToken ERROR getting login data: %s", err); return err}
+
     for x := range users {
         if users[x]["user"] == user {
-            tkn, err := Encode(users[x]["user"], users[x]["secret"])
-            if err != nil {
-                logs.Error("Error checking token: %s", err)
-                return err
-            } else {
-                if token == tkn {
-                    return nil
-                } else {
-                    return errors.New("The token retrieved is false")
+            json.Unmarshal([]byte(users[x]["userTokens"]), &tokens)
+
+            //Delete invalid secret keys for tokens
+            for tokenID := range tokens{                   
+                ts,_ := strconv.ParseInt(tokens[tokenID].Timestamp, 10, 64)
+                tkn, err := Encode(user, tokens[tokenID].Secret)
+                if err != nil {logs.Error("VerifyToken ERROR checking token: %s", err); return err}
+                
+                if int(ts) >= (int(currentTime)) {
+                    if tkn == tokenRetrieved{
+                        //save secret and timstamp
+                        newToken.Secret = tokens[tokenID].Secret
+                        newToken.Timestamp = strconv.Itoa(int(currentTime) + int(mainTimeout))
+    
+                        tokensFiltered = append(tokensFiltered, newToken)
+                    }else{
+                        //save secret and timstamp
+                        newToken.Secret = tokens[tokenID].Secret
+                        newToken.Timestamp = tokens[tokenID].Timestamp
+        
+                        tokensFiltered = append(tokensFiltered, newToken)
+                    }             
                 }
-            }
+            }        
+            
+            //save tokens into db
+            userTokens, _ := json.Marshal(tokensFiltered)
+            err = ndb.UpdateUser(x, "userTokens", string(userTokens))
+            if err != nil {logs.Error("ERROR updating user login data: %s", err); return err}    
+                
+            //over all valid secret keys, check tokens
+            for tokenID := range tokensFiltered{   
+                tkn, err := Encode(user, tokensFiltered[tokenID].Secret)
+
+                if err != nil {
+                    logs.Error("Error checking token: %s", err)
+                    return err
+                } else {
+                    if tokenRetrieved == tkn {
+                        return nil
+                    }
+                    // } else {
+                    //     return errors.New("The token retrieved is false")
+                    // }
+                }
+            }             
+
+
         }
     }
     return errors.New("There are not token. Error creating Token")
