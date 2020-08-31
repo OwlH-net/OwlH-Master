@@ -14,6 +14,7 @@ import (
     "io"
     "io/ioutil"
     "net/http"
+    // "net/url"
     "os"
     "os/exec"
     "path/filepath"
@@ -139,9 +140,13 @@ func BackupFile(path string, fileName string, jsonKey string) (err error) {
 
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
-func DownloadFile(headers string, filepath string, url string, username string, passwd string) (err error) {
-    req, err := http.NewRequest("GET", url, nil)
+func DownloadFile(headers string, filepath string, urlRequest string, username string, passwd string) (err error) {
+    req, err := http.NewRequest("GET", urlRequest, nil)
     var resp *http.Response
+    //proxy variables
+    status,err := GetKeyValueBool("httpRequest", "proxyenabled")
+    proxyIP,err := GetKeyValueString("httpRequest", "proxyserver")
+    proxyPort,err := GetKeyValueString("httpRequest", "proxyport")
 
     //get headers
     if headers != "" {
@@ -152,12 +157,16 @@ func DownloadFile(headers string, filepath string, url string, username string, 
         }
     }
 
+    //check if proxy is enabled
+    tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, DisableKeepAlives: true}    
+    if status {
+        urlParsed,_ := req.URL.Parse("http://"+proxyIP+":"+proxyPort)
+        tr.Proxy = http.ProxyURL(urlParsed)// set proxy         
+    }
+
+    
     if username != "" && passwd != "" {
-        client := &http.Client{}
-        if err != nil {
-            logs.Error("DownloadFile request ERROR: " + err.Error())
-            return err
-        }
+        client := &http.Client{Transport: tr}
         req.SetBasicAuth(username, passwd)
         resp, err = client.Do(req)
         if err != nil {
@@ -165,7 +174,16 @@ func DownloadFile(headers string, filepath string, url string, username string, 
             return err
         }
     } else {
-        resp, err = http.Get(url)
+        //check proxy status for select http request type
+        if status {
+            logs.Info("TRUE --> resp, err = client.Do(req)")
+            resp, err = client.Do(req)
+        }else{
+            logs.Info("FALSE --> resp, err = http.Get(urlRequest)")
+            resp, err = http.Get(urlRequest)
+            // resp, err = client.Do(req)
+        }
+
         if err != nil {
             logs.Error("Error downloading file! " + err.Error())
             return err
