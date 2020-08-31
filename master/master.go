@@ -14,6 +14,7 @@ import (
     "owlhmaster/validation"
     "strconv"
     "strings"
+    "path/filepath"
     "time"
 )
 
@@ -770,6 +771,40 @@ func PingPluginsMaster() (data map[string]map[string]string, err error) {
     return data, nil
 }
 
+func GetGroupFile(data map[string]string) (content map[string]string, err error) {
+    fileReaded, err := ioutil.ReadFile(data["file"]) // just pass the file name
+    if err != nil {logs.Error("GetPathFileContent Error reading file for path: " + data["file"]); return nil, err}
+
+    sendBackArray := make(map[string]string)
+    sendBackArray["fileContent"] = string(fileReaded)
+    sendBackArray["fileName"] = filepath.Base(data["file"])
+
+    return sendBackArray, nil
+}
+
+func GetFileContentByType(data map[string]string)(values map[string]string, err error) {
+    switch data["type"]{
+    case "group":
+        values,err = GetGroupFile(data)
+        if err != nil {logs.Error("GetFileContentByType Error - "+err.Error()); return nil, err}
+    case "node":
+        logs.Info("TODO")
+    case "ruleset":
+        logs.Info("TODO")
+    default:
+        return nil,errors.New("GetFileContentByType Error - Error getting file by type.")
+    }
+    
+    return values, err
+}
+
+func SaveNewFileContent(data map[string]string)(err error) {   
+    err = utils.WriteNewDataOnFile(data["path"], []byte(data["content"]))
+    if err != nil { logs.Error("SaveNewFileContent ERROR: "+err.Error()); return err}
+
+    return nil
+}
+
 func GetPathFileContent(param string) (file map[string]string, err error) {
     data, err := ndb.GetPlugins()
     sendBackArray := make(map[string]string)
@@ -809,41 +844,45 @@ func SaveFilePathContent(file map[string]string) (err error) {
 
 func Login(data map[string]string) (newToken string, err error) {
     users, err := ndb.GetLoginData()
-    if err != nil {
-        logs.Error("master/Login Error Getting user values: " + err.Error())
-        return "", err
-    }
+    if err != nil {logs.Error("master/Login Error Getting user values: " + err.Error()); return "", err}
+    
+    // err = validation.VerifyUserToken(data["user"])
+    // if err != nil {logs.Error("master/Login Error checking all user tokens: " + err.Error()); return "", err}
 
-    logs.Debug("check user login - %s", data["user"])
     //check values
+    newSecret := utils.Generate()
     for x := range users {
         if users[x]["user"] == data["user"] {
             if users[x]["ldap"] == "enabled" {
-                logs.Debug("LDAP user")
                 check, err := validation.CheckLdap(data["user"], data["password"])
-                logs.Debug("is valid? -> %t", check)
+                logs.Info("is valid? -> %t", check)
                 if err != nil {
                     logs.Error("ldap check error -> %s", err.Error())
                     return "", err
                 }
                 if check {
-                    token, err := validation.Encode(data["user"], users[x]["secret"])
-                    if err != nil {
-                        return "", err
-                    }
+                    token, err := validation.Encode(data["user"], newSecret)
+                    if err != nil {return "", err}
+                    
+                    //save secret and timestamp
+                    err = validation.SaveUserLoginData(data["user"], newSecret)
+                    if err != nil {return "", err}
+
                     return token, nil
                 }
-
             } else {
                 check, err := validation.CheckPasswordHash(data["password"], users[x]["pass"])
                 if err != nil {
                     return "", err
                 }
                 if check {
-                    token, err := validation.Encode(data["user"], users[x]["secret"])
-                    if err != nil {
-                        return "", err
-                    }
+                    token, err := validation.Encode(data["user"], newSecret)
+                    if err != nil {return "", err}
+                    
+                    //save secret and timestamp
+                    err = validation.SaveUserLoginData(data["user"], newSecret)
+                    if err != nil {return "", err}
+
                     return token, nil
                 }
             }
@@ -873,25 +912,22 @@ func AddUser(data map[string]string) (err error) {
     secret := utils.Generate()
     //user
     err = ndb.InsertUser(uuid, "user", data["user"])
-    if err != nil {
-        logs.Error("master/AddUser Error inserting user into db: " + err.Error())
-        return err
-    }
-    err = ndb.InsertUser(uuid, "pass", passHashed)
-    if err != nil {
-        logs.Error("master/AddUser Error inserting pass into db: " + err.Error())
-        return err
-    }
-    err = ndb.InsertUser(uuid, "secret", secret)
-    if err != nil {
-        logs.Error("master/AddUser Error inserting secret into db: " + err.Error())
-        return err
-    }
-    err = ndb.InsertUser(uuid, "ldap", data["ldap"])
+    if err != nil {logs.Error("master/AddUser Error inserting user into db: " + err.Error()); return err}
 
+    err = ndb.InsertUser(uuid, "pass", passHashed)
+    if err != nil {logs.Error("master/AddUser Error inserting pass into db: " + err.Error()); return err}
+
+    err = ndb.InsertUser(uuid, "secret", secret)
+    if err != nil {logs.Error("master/AddUser Error inserting secret into db: " + err.Error()); return err}
+
+    err = ndb.InsertUser(uuid, "ldap", data["ldap"])
     if err != nil{logs.Error("master/AddUser Error inserting ldap into db: "+err.Error()); return err}
+    
     err = ndb.InsertUser(uuid, "type", data["type"])
-    if err != nil{logs.Error("master/AddUser Error inserting ldap into db: "+err.Error()); return err}
+    if err != nil{logs.Error("master/AddUser Error inserting type into db: "+err.Error()); return err}
+
+    err = ndb.InsertUser(uuid, "userTokens", "")
+    if err != nil{logs.Error("master/AddUser Error inserting userToken into db: "+err.Error()); return err}
     
     //Sync user, group, roles and their relations to the new node
     node.SyncUsersToNode()
@@ -1693,7 +1729,6 @@ func GetAllGroupRulesetsForAllNodes() (data map[string]map[string]string, err er
         }
     }
 
-    logs.Notice(allData)
     return allData, err
 }
 

@@ -385,6 +385,32 @@ func (n *NodeController) GetAllNodes() {
     n.ServeJSON()
 }
 
+// @Title GetAllNodes2
+// @Description Get full list of nodes
+// @Success 200 {object} models.Node
+// @router /GetAllNodes2 [get]
+func (n *NodeController) GetAllNodes2() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetAllNodes"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        nodes, err := models.GetAllNodes(n.Ctx.Input.Header("user"))
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+        n.Data["json"] = nodes
+    }
+
+    n.ServeJSON()
+}
+
 // @Title GetServiceStatus
 // @Description Get service status for a specific node
 // @Success 200 {object} models.Node
@@ -2588,7 +2614,7 @@ func (n *NodeController) RegisterNode() {
 // @Success 200 {object} models.Node
 // @Failure 403 body is empty
 // @router /enroll [post]
-func (n *NodeController) EnrollNode() {
+func (n *NodeController) AutoEnroll() {
 
     n.Data["json"] = map[string]string{"ack": "true"}
 
@@ -2607,6 +2633,8 @@ func (n *NodeController) EnrollNode() {
     if !enrolled {
         logs.Error("NODE enrollment -> error: %+v", details)
         n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+        n.ServeJSON()
+        return
     }
 
     logs.Info("group uuid -> %s", nodeDetails.Group.UUID)
@@ -2629,5 +2657,61 @@ func (n *NodeController) EnrollNode() {
         }
     }
 
+    n.ServeJSON()
+}
+
+// @Title GetAllNodesReact
+// @Description Get full list of nodes
+// @Success 200 {object} models.Node
+// @router /getAllNodesReact [get]
+func (n *NodeController) GetAllNodesReact() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetAllNodes"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        nodes, err := models.GetAllNodesReact(n.Ctx.Input.Header("user"))
+        n.Data["json"] = nodes
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title EnrollNewNode
+// @Description Enroll new Node with extra data
+// @Success 200 {string} node deployed
+// @Failure 403 :nid is empty
+// @router /enrollNewNode [post]
+func (n *NodeController) EnrollNewNode() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"CreateNode"}
+    // permissions := []string{"EnrollNewNode"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var nodeDetails utils.EnrollNewNodeStruct
+        json.Unmarshal(n.Ctx.Input.RequestBody, &nodeDetails)
+
+        err := models.EnrollNewNode(nodeDetails, n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
     n.ServeJSON()
 }

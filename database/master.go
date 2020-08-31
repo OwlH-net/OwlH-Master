@@ -145,6 +145,8 @@ func LoadMasterID() (id string, err error) {
             return "", err
         }
     }
+
+    utils.TokenMasterUuid = masterConfigID
     return masterConfigID, nil
 }
 

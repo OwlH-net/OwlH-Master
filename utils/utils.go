@@ -30,7 +30,7 @@ import (
 var TokenMasterValidated string
 var TokenMasterUser string
 
-// var TokenMasterUuid string
+var TokenMasterUuid string
 // var NodeToken string
 //**********token global variables**********
 
@@ -47,13 +47,15 @@ func Generate() (uuid string) {
 //create conection through http.
 func NewRequestHTTP(order string, url string, values io.Reader) (resp *http.Response, err error) {
     //get default timeout from main.conf
-    userTimeout, _ := GetKeyValueInt("httpRequest", "timeout")
-    if err != nil {userTimeout = 30}//default time for timeout conection
+    userTimeout, nil := GetKeyValueInt("httpRequest", "timeout")
+    if err != nil {
+        userTimeout = 300
+    } //default time for timeout conection
 
     req, err := http.NewRequest(order, url, values)
     req.Header.Set("token", TokenMasterValidated)
     req.Header.Set("user", TokenMasterUser)
-    // req.Header.Set("uuid", TokenMasterUuid)
+    req.Header.Set("uuid", TokenMasterUuid)
     if err != nil {
         logs.Error("Error Executing HTTP new request")
     }
@@ -123,7 +125,7 @@ func BackupFile(path string, fileName string, jsonKey string) (err error) {
 
     //check if file exist
     if _, err := os.Stat(srcFolder); os.IsNotExist(err) {
-        return errors.New("utils.BackupFile error: Source file doesn't exists --> "+srcFolder)
+        return errors.New("utils.BackupFile error: Source file doesn't exists --> " + srcFolder)
     } else {
         cpCmd := exec.Command(copy, srcFolder, destFolder)
         err = cpCmd.Run()
@@ -137,7 +139,7 @@ func BackupFile(path string, fileName string, jsonKey string) (err error) {
 
 // DownloadFile will download a url to a local file. It's efficient because it will
 // write as it downloads and not load the whole file into memory.
-func DownloadFile(headers string, filepath string, url string, username string, passwd string) (err error) {  
+func DownloadFile(headers string, filepath string, url string, username string, passwd string) (err error) {
     req, err := http.NewRequest("GET", url, nil)
     var resp *http.Response
 
@@ -150,17 +152,26 @@ func DownloadFile(headers string, filepath string, url string, username string, 
         }
     }
 
-    if username != "" && passwd != "" {   
-        client := &http.Client{}        
-        if err != nil {logs.Error("DownloadFile request ERROR: " + err.Error()); return err}
+    if username != "" && passwd != "" {
+        client := &http.Client{}
+        if err != nil {
+            logs.Error("DownloadFile request ERROR: " + err.Error())
+            return err
+        }
         req.SetBasicAuth(username, passwd)
         resp, err = client.Do(req)
-        if err != nil {logs.Error("Error downloading file with pass! " + err.Error()); return err}
-    }else{
-        resp, err = http.Get(url)     
-        if err != nil {logs.Error("Error downloading file! " + err.Error()); return err}
+        if err != nil {
+            logs.Error("Error downloading file with pass! " + err.Error())
+            return err
+        }
+    } else {
+        resp, err = http.Get(url)
+        if err != nil {
+            logs.Error("Error downloading file! " + err.Error())
+            return err
+        }
         if resp.StatusCode != 200 {
-            return errors.New("Error downloading file. URL not found. Status: "+strconv.Itoa(resp.StatusCode))
+            return errors.New("Error downloading file. URL not found. Status: " + strconv.Itoa(resp.StatusCode))
         }
     }
 
@@ -203,16 +214,18 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
     } else {
         // if fileType[len(fileType)-2] == "tar"{
         file, err := os.Open(tarGzFile)
-        if err != nil {logs.Error("utils.ExtractFile opening file ERROR: "+err.Error())}
+        if err != nil {
+            logs.Error("utils.ExtractFile opening file ERROR: " + err.Error())
+        }
         defer file.Close()
         if err != nil {
-            logs.Error("utils.ExtractFile ERROR: "+err.Error())
+            logs.Error("utils.ExtractFile ERROR: " + err.Error())
             return err
         }
 
         uncompressedStream, err := gzip.NewReader(file)
         if err != nil {
-            logs.Error("utils.ExtractFile newReader ERROR: "+err.Error())
+            logs.Error("utils.ExtractFile newReader ERROR: " + err.Error())
             return err
         }
 
@@ -223,7 +236,7 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
                 break
             }
             if err != nil {
-                logs.Error("utils.ExtractFile newReader ERROR: "+err.Error())
+                logs.Error("utils.ExtractFile newReader ERROR: " + err.Error())
                 return err
             }
 
@@ -236,10 +249,15 @@ func ExtractFile(tarGzFile string, pathDownloads string) (err error) {
                 }
             case tar.TypeReg:
                 outFile, err := os.Create(pathDownloads + "/" + header.Name)
-                if err != nil {logs.Error("utils.ExtractFile ERROR creating path for download: "+err.Error())}
-                
+                if err != nil {
+                    logs.Error("utils.ExtractFile ERROR creating path for download: " + err.Error())
+                }
+
                 _, err = io.Copy(outFile, tarReader)
-                if err != nil {logs.Error("TypeReg: " + err.Error()); return err}
+                if err != nil {
+                    logs.Error("TypeReg: " + err.Error())
+                    return err
+                }
             default:
                 logs.Error(
                     "ExtractTarGz: uknown type: %s in %s",

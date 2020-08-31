@@ -727,7 +727,7 @@ func (n *RulesetController) SetDefaultRuleset() {
         n.ServeJSON()
         return
     }
-    permissions := []string{"AddNewRuleset"}
+    permissions := []string{"SetDefaultRuleset"}
     hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
     if permissionsErr != nil || hasPermission == false {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
