@@ -229,7 +229,7 @@ func GetAllNodesReact() (data NodeList, err error) {
 
     allNodes, err := ndb.GetAllNodes()
     if err != nil {
-        logs.Error("GetAllNodesReact error getting all nodes from db: " + err.Error())
+        logs.Error("node/GetAllNodesReact error getting all nodes from db: " + err.Error())
         return data, err
     }
 
@@ -239,6 +239,7 @@ func GetAllNodesReact() (data NodeList, err error) {
         if err != nil {
             _ = ndb.UpdateNode(id, "status", "offline")
             logs.Error("GetAllNodesReact error ping all nodes: " + err.Error())
+            continue
         }else if values["ack"] == "true" {
             _ = ndb.UpdateNode(id, "status", "online")
         }

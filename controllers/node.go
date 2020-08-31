@@ -2682,7 +2682,7 @@ func (n *NodeController) GetAllNodesReact() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
-
+    
     n.ServeJSON()
 }
 
