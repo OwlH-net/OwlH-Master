@@ -358,6 +358,7 @@ func (n *NodeController) PutSuricataBPF() {
 // @router / [get]
 func (n *NodeController) GetAllNodes() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
@@ -2665,7 +2666,16 @@ func (n *NodeController) AutoEnroll() {
 // @Success 200 {object} models.Node
 // @router /getAllNodesReact [get]
 func (n *NodeController) GetAllNodesReact() {
+    logs.Critical("CHECK")
+    logs.Critical("CHECK")
+    logs.Critical("CHECK")
+    
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    
+    logs.Error(errToken)
+    logs.Error(errToken)
+    logs.Error(errToken)
+
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
