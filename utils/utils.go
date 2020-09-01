@@ -147,7 +147,8 @@ func DownloadFile(headers string, filepath string, urlRequest string, username s
     status,err := GetKeyValueBool("httpRequest", "proxyenabled")
     proxyIP,err := GetKeyValueString("httpRequest", "proxyserver")
     proxyPort,err := GetKeyValueString("httpRequest", "proxyport")
-
+    proxyUser,err := GetKeyValueString("httpRequest", "proxyuser")
+    proxyPass,err := GetKeyValueString("httpRequest", "proxypassword")
     //get headers
     if headers != "" {
         headersSplitted := strings.Split(headers, ",")
@@ -157,16 +158,18 @@ func DownloadFile(headers string, filepath string, urlRequest string, username s
         }
     }
 
-    //check if proxy is enabled
+    //add custom transport parameters to client
     tr := &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}, DisableKeepAlives: true}    
+
+    //check if proxy is enabled
     if status {
-        urlParsed,_ := req.URL.Parse("http://"+proxyIP+":"+proxyPort)
-        tr.Proxy = http.ProxyURL(urlParsed)// set proxy         
+        urlParsed,_ := req.URL.Parse("http://"+proxyUser+":"+proxyPass+"@"+proxyIP+":"+proxyPort)
+        tr.Proxy = http.ProxyURL(urlParsed)
     }
 
+    client := &http.Client{Transport: tr}
     
     if username != "" && passwd != "" {
-        client := &http.Client{Transport: tr}
         req.SetBasicAuth(username, passwd)
         resp, err = client.Do(req)
         if err != nil {
@@ -176,18 +179,14 @@ func DownloadFile(headers string, filepath string, urlRequest string, username s
     } else {
         //check proxy status for select http request type
         if status {
-            logs.Info("TRUE --> resp, err = client.Do(req)")
             resp, err = client.Do(req)
+            if err != nil {logs.Error("Error downloading file! " + err.Error()); return err}
         }else{
-            logs.Info("FALSE --> resp, err = http.Get(urlRequest)")
             resp, err = http.Get(urlRequest)
-            // resp, err = client.Do(req)
+            if err != nil {logs.Error("Error downloading file! " + err.Error()); return err}
         }
 
-        if err != nil {
-            logs.Error("Error downloading file! " + err.Error())
-            return err
-        }
+        //check for status code returned
         if resp.StatusCode != 200 {
             return errors.New("Error downloading file. URL not found. Status: " + strconv.Itoa(resp.StatusCode))
         }
