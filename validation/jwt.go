@@ -91,11 +91,7 @@ func SaveUserLoginData(user string, secret string) (err error) {
             newToken.Timestamp = strconv.Itoa(int(currentTime) + int(mainTimeout))
             
             tokens = append(tokens, newToken)
-            
-            for tokenID := range tokens{
-                logs.Notice("Secret -> %s, Timestamp -> %s", tokens[tokenID].Secret, tokens[tokenID].Timestamp)
-            } 
-            
+                        
             userTokens, _ := json.Marshal(tokens)            
 
             err = ndb.UpdateUser(x, "userTokens", string(userTokens))
