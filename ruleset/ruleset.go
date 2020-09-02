@@ -1036,10 +1036,7 @@ func SaveRulesetData(anode map[string]string) (err error) {
     path, err := ndb.GetRulesetPath(uuid)
 
     file, err := os.OpenFile(path, os.O_RDWR, 0644)
-    if err != nil {
-        logs.Error("SaveRulesetData failed opening file: %s", err)
-        return err
-    }
+    if err != nil {logs.Error("SaveRulesetData failed opening file: %s", err); return err}
 
     defer file.Close()
     file.Truncate(0)
