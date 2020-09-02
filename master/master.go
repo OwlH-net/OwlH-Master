@@ -798,7 +798,7 @@ func GetFileContentByType(data map[string]string)(values map[string]string, err 
     return values, err
 }
 
-func SaveNewFileContent(data map[string]string)(err error) {   
+func SaveNewFileContent(data map[string]string)(err error) {  
     err = utils.WriteNewDataOnFile(data["path"], []byte(data["content"]))
     if err != nil { logs.Error("SaveNewFileContent ERROR: "+err.Error()); return err}
 
