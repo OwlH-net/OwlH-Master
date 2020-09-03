@@ -27,6 +27,15 @@ func GetAllNodesReact(username string) (anode node.NodeList, err error) {
     return anode, err
 }
 
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/node/getAllTags \
+// }
+func GetAllTags(username string) (tags map[string]map[string]string, err error) {
+    tags, err = node.GetAllTags()
+    changecontrol.ChangeControlInsertData(err, "Get all tags", username)
+    return tags, err
+}
+
 // curl -X POST \
 //   https://52.47.197.22:50002/v1/node/ \
 //   -H 'Content-Type: application/json' \

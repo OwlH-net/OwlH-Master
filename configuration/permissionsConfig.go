@@ -2425,16 +2425,31 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllNodes' and per_param='desc' and per_value='-'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllNodes','desc','-')"
-    field.Fname      = "permissions - desc"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllNodes' and per_param='desc' and per_value='Get list of all nodes'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllNodes','desc','Get list of all nodes')"
+    field.Fname      = "GetAllNodes permissions - desc"
     ok = CheckField(field)
     if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllNodes' and per_param='permissionGroup' and per_value='Node'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllNodes','permissionGroup','Node')"
-    field.Fname      = "permissions - group"
+    field.Fname      = "GetAllNodes permissions - group"
+    ok = CheckField(field)
+	
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllTags' and per_param='desc' and per_value='Get list of all node tags'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllTags','desc','Get list of all node tags')"
+    field.Fname      = "GetAllTags permissions - desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllTags' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllTags','permissionGroup','Node')"
+    field.Fname      = "GetAllTags permissions - group"
     ok = CheckField(field)
 	
 	field.Fconn      = "masterConn"

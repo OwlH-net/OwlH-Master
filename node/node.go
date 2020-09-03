@@ -294,6 +294,12 @@ func GetAllNodesReact() (data NodeList, err error) {
     return newnodeValues, nil
 }
 
+func GetAllTags() (tags map[string]map[string]string, err error) {
+    allTags,err := ndb.GetAllTags()
+    if err != nil {logs.Error("node/GetAllTags ERROR getting all tags: " + err.Error()); return nil, err}
+
+    return allTags, nil
+}
 
 //return nodes as objects
 type NodeList struct {

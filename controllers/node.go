@@ -2666,16 +2666,7 @@ func (n *NodeController) AutoEnroll() {
 // @Success 200 {object} models.Node
 // @router /getAllNodesReact [get]
 func (n *NodeController) GetAllNodesReact() {
-    logs.Critical("CHECK")
-    logs.Critical("CHECK")
-    logs.Critical("CHECK")
-    
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    
-    logs.Error(errToken)
-    logs.Error(errToken)
-    logs.Error(errToken)
-
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
@@ -2687,6 +2678,32 @@ func (n *NodeController) GetAllNodesReact() {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
     } else {
         nodes, err := models.GetAllNodesReact(n.Ctx.Input.Header("user"))
+        n.Data["json"] = nodes
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title GetAllTags
+// @Description Get full list of node tags
+// @Success 200 {object} models.Node
+// @router /getAllTags [get]
+func (n *NodeController) GetAllTags() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetAllTags"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        nodes, err := models.GetAllTags(n.Ctx.Input.Header("user"))
         n.Data["json"] = nodes
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}

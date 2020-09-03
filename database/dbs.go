@@ -107,3 +107,25 @@ func GetNodeIpbyName(n string)(ip string, err error) {
     }
     return "", errors.New("There is no IP for given node name")
 }
+
+func GetAllTags() (tags map[string]map[string]string, err error) {
+    var allTags = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Db == nil {logs.Error("no access to database"); return nil, err}
+
+    sql := "select tag_uniqueid, tag_param, tag_value from tags;"
+    rows, err := Db.Query(sql)
+    if err != nil {logs.Error("GetAllTags Db.Query Error : %s", err.Error()); return nil, err}
+
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {logs.Error("GetAllTags rows.Scan: %s", err.Error()); return nil, err}
+
+        if allTags[uniqid] == nil {
+            allTags[uniqid] = map[string]string{}
+        }
+        allTags[uniqid][param] = value
+    }
+    return allTags, nil
+}
