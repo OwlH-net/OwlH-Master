@@ -2733,7 +2733,7 @@ func (n *NodeController) EnrollNewNode() {
     } else {
         var nodeDetails utils.EnrollNewNodeStruct
         json.Unmarshal(n.Ctx.Input.RequestBody, &nodeDetails)
-
+        
         err := models.EnrollNewNode(nodeDetails, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {

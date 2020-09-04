@@ -314,6 +314,7 @@ type NewNodeValue struct {
     NodeUser     string     `json:"nodeuser"`
     NodePass     string     `json:"nodepass"`
     UUID         string     `json:"uuid"`
+    Tags         string     `json:"tags"`
 }
 func setNodesToSlice(nodes map[string]map[string]string)(val NodeList) {
     var nodeList NodeList
@@ -326,6 +327,7 @@ func setNodesToSlice(nodes map[string]map[string]string)(val NodeList) {
         values.Status = nodes[x]["status"]
         values.NodeUser = nodes[x]["nodeuser"]
         values.NodePass = nodes[x]["nodepass"]
+        values.Tags = nodes[x]["tags"]
         values.UUID = x
 
         nodeList.Nodes = append(nodeList.Nodes, values)
@@ -2652,6 +2654,7 @@ func InsertNode(n map[string]string) (uuid string, err error) {
     ndb.InsertNodeKey(uuid, "name", n["name"])
     ndb.InsertNodeKey(uuid, "port", n["port"])
     ndb.InsertNodeKey(uuid, "ip", n["ip"])
+    ndb.InsertNodeKey(uuid, "tags", n["tags"])
 
     masterid, err := ndb.LoadMasterID()
     if err != nil {
@@ -2787,13 +2790,13 @@ func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {
     newNode["port"] = anode.Node.Port
     newNode["nodeuser"] = anode.Node.NodeUser
     newNode["nodepass"] = anode.Node.NodePass
+    newNode["tags"] = anode.Tags
     
     nodeUUID,err := InsertNode(newNode)
     if err != nil {logs.Error("EnrollNewNode ERROR addingnew node: " + err.Error()); return err}
     //loop groups
     groupNodes, err := ndb.GetAllGroupNodes()
     for x := range anode.Group {
-        logs.Debug(anode.Group[x])
         if err != nil {logs.Error("EnrollNewNode GetAllGroupNodes error: " + err.Error()); return err}
         for y := range groupNodes {
             if nodeUUID == groupNodes[y]["nodesid"] && anode.Group[x] == groupNodes[y]["groupid"] {

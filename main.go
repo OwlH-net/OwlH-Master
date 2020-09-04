@@ -64,7 +64,7 @@ func main() {
     logs.NewLogger(10000)
     logs.SetLogger(logs.AdapterFile, `{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
-    version = "0.16.0.20200902"
+    version = "0.17.0.20200904"
     logs.Info("OwlH Master : v%s", version)
 
     //operative system values
