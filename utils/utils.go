@@ -144,6 +144,7 @@ func DownloadFile(headers string, filepath string, urlRequest string, username s
     req, err := http.NewRequest("GET", urlRequest, nil)
     var resp *http.Response
     //proxy variables
+    connTimeout,err := GetKeyValueInt("httpRequest", "timeout")
     status,err := GetKeyValueBool("httpRequest", "proxyenabled")
     proxyIP,err := GetKeyValueString("httpRequest", "proxyserver")
     proxyPort,err := GetKeyValueString("httpRequest", "proxyport")
@@ -167,7 +168,7 @@ func DownloadFile(headers string, filepath string, urlRequest string, username s
         tr.Proxy = http.ProxyURL(urlParsed)
     }
 
-    client := &http.Client{Transport: tr}
+    client := &http.Client{Transport: tr, Timeout: time.Duration(connTimeout) * time.Second}
     
     if username != "" && passwd != "" {
         req.SetBasicAuth(username, passwd)
