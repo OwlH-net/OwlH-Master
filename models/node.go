@@ -1128,3 +1128,15 @@ func EnrollNewNode(anode utils.EnrollNewNodeStruct, username string) (err error)
     changecontrol.ChangeControlInsertData(err, "EnrollNewNode", username)
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/updateNodeReact  \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "NODE": {},
+// }
+func UpdateNodeReact(anode utils.EnrollNewNodeStruct, username string) (err error) {
+    err = node.UpdateNodeReact(anode)
+    changecontrol.ChangeControlInsertData(err, "UpdateNodeReact", username)
+    return err
+}

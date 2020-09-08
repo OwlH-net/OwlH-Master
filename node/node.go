@@ -575,7 +575,7 @@ func nodeExists(nodeid string) (err error) {
 // }
 
 func UpdateNode(n map[string]string) (err error) {
-    //cehck if exists a node with the same ip and port
+    //check if exists a node with the same ip and port
     nodes, err := ndb.GetAllNodes()
     for id := range nodes {
         if nodes[id]["ip"] == n["ip"] {
@@ -2823,4 +2823,47 @@ func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {
 
 
     return err
+}
+
+
+
+func UpdateNodeReact(anode utils.EnrollNewNodeStruct) (err error) {
+    //update node
+    err = ndb.UpdateNode(anode.Node.UUID, "name", anode.Node.Name)
+    if err != nil {logs.Error("UpdateNodeReact name error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "ip",  anode.Node.IP)
+    if err != nil {logs.Error("UpdateNodeReact ip error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "port",  anode.Node.Port)
+    if err != nil {logs.Error("UpdateNodeReact port error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "nodeuser",  anode.Node.NodeUser)
+    if err != nil {logs.Error("UpdateNodeReact nodeuser error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "nodepass",  anode.Node.NodePass)
+    if err != nil {logs.Error("UpdateNodeReact nodepass error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "tags",  anode.Tags)
+    if err != nil {logs.Error("UpdateNodeReact nodeuser error: " + err.Error()); return err}
+
+    //update node
+    nodeValues, err := ndb.GetNodeById(anode.Node.UUID)
+    if err != nil {
+        logs.Error("node/NodePing ERROR getting node data for update : " + err.Error())
+        return err
+    }
+
+    err = ndb.GetTokenByUuid(anode.Node.UUID)
+    if err != nil {
+        logs.Error("UpdateNodeReact Error loading node token: %s", err)
+        return err
+    }
+
+    ipnid, portnid, err := ndb.ObtainPortIp(anode.Node.UUID)
+    if err != nil {
+        logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: " + err.Error())
+        return err
+    }
+    err = nodeclient.UpdateNodeData(ipnid, portnid, nodeValues)
+    if err != nil {
+        logs.Error("Error updating node data")
+    }
+
+    return nil
 }

@@ -38,6 +38,7 @@ type EnrollNewNodeStruct struct {
     Tags        string          `json:"tags"`
 }
 type NewNodeData struct {
+    UUID         string     `json:"uuid"`
     IP           string     `json:"ip"`
     Name         string     `json:"name"`
     Port         string     `json:"port"`

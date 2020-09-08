@@ -2742,3 +2742,33 @@ func (n *NodeController) EnrollNewNode() {
     }
     n.ServeJSON()
 }
+
+// @Title UpdateNodeReact
+// @Description Update Node
+// @Success 200 {string} node updated
+// @Failure 403 body is empty
+// @router /updateNodeReact [put]
+func (n *NodeController) UpdateNodeReact() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"UpdateNode"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var anode utils.EnrollNewNodeStruct
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        err := models.UpdateNodeReact(anode, n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Info("NODE UPDATE -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
