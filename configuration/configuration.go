@@ -227,6 +227,14 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "nodeTags"
+    table.Tconn = "dbsConn"
+    table.Tcreate = "CREATE TABLE nodeTags (nt_id integer PRIMARY KEY AUTOINCREMENT,nt_uniqueid text NOT NULL,nt_param text NOT NULL,nt_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "ruleset"
     table.Tconn = "rulesetConn"
     table.Tcreate = "CREATE TABLE ruleset (ruleset_id integer PRIMARY KEY AUTOINCREMENT,ruleset_uniqueid text NOT NULL,ruleset_param text NOT NULL,ruleset_value text NOT NULL)"

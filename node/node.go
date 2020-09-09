@@ -11,6 +11,7 @@ import (
     "owlhmaster/nodeclient"
     "owlhmaster/utils"
     "regexp"
+    "strings"
     "strconv"
     "time"
 )
@@ -235,6 +236,9 @@ func GetAllNodesReact() (data NodeList, err error) {
 
     for id := range allNodes {
         
+        tags,_ := getAllNodeTags(id)
+
+        allNodes[id]["tags"] = tags
         values,err := NodePing(id)
         if err != nil {
             _ = ndb.UpdateNode(id, "status", "offline")
@@ -504,6 +508,16 @@ func DeleteNode(nodeid string) (err error) {
     if err != nil {
         logs.Error("DeleteNode error for uuid: " + nodeid + ": " + err.Error())
         return err
+    }
+
+    //delete nodeTags from database
+    nodeTags,err := ndb.GetNodeTags()
+    if err != nil {logs.Error("DeleteNode error getting nodeTags: " + nodeid + ": " + err.Error()); return err}
+    for x := range nodeTags{
+        if nodeTags[x]["node"] == nodeid{
+            err = ndb.DeleteNodeTag(x)
+            if err != nil {logs.Error("DeleteNode error deleting nodeTags relations: " + nodeid + ": " + err.Error()); return err}
+        }
     }
 
     //delete ruleset for this node
@@ -2654,7 +2668,7 @@ func InsertNode(n map[string]string) (uuid string, err error) {
     ndb.InsertNodeKey(uuid, "name", n["name"])
     ndb.InsertNodeKey(uuid, "port", n["port"])
     ndb.InsertNodeKey(uuid, "ip", n["ip"])
-    ndb.InsertNodeKey(uuid, "tags", n["tags"])
+    // ndb.InsertNodeKey(uuid, "tags", n["tags"])
 
     masterid, err := ndb.LoadMasterID()
     if err != nil {
@@ -2781,7 +2795,6 @@ func AddGroupNodes(data map[string]interface{}) (err error) {
 }
 
 func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {  
-    logs.Notice(anode)     
     nodeExists := false
     //add new node
     newNode := make(map[string]string)
@@ -2790,10 +2803,20 @@ func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {
     newNode["port"] = anode.Node.Port
     newNode["nodeuser"] = anode.Node.NodeUser
     newNode["nodepass"] = anode.Node.NodePass
-    newNode["tags"] = anode.Tags
+    // newNode["tags"] = anode.Tags
     
     nodeUUID,err := InsertNode(newNode)
     if err != nil {logs.Error("EnrollNewNode ERROR addingnew node: " + err.Error()); return err}
+
+    //add node uuid to struct
+    anode.Node.UUID = nodeUUID
+    //add new tags into db
+    err = addTagsToDatabase(anode)
+    if err != nil {logs.Error("node/EnrollNewNode error adding tags to database: " + err.Error()); return err}
+    //add relationship between tags and nodes
+    err = addTagsToNode(anode)
+    if err != nil {logs.Error("node/EnrollNewNode error adding tags to node database: " + err.Error()); return err}
+
     //loop groups
     groupNodes, err := ndb.GetAllGroupNodes()
     for x := range anode.Group {
@@ -2825,45 +2848,141 @@ func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {
     return err
 }
 
+//check if tag exists and add to db if not
+func addTagsToDatabase(anode utils.EnrollNewNodeStruct) (err error) {
+    tagsList := strings.Split(anode.Tags, ",")
+    allTags, err := ndb.GetAllTags()
+    if err != nil {logs.Error("node/addTagsToDatabase error getting all tags: " + err.Error()); return err}
 
+    for tag := range tagsList {
+        tagExists := false
+        for id := range allTags {
+            if allTags[id]["tagName"] == tagsList[tag] {tagExists = true; break}
+        }
 
-func UpdateNodeReact(anode utils.EnrollNewNodeStruct) (err error) {
+        if !tagExists {
+            uuid := utils.Generate()
+            err = ndb.InsertTag(uuid, "tagName", tagsList[tag])
+            if err != nil {logs.Error("node/addTagsToDatabase error inserting new tags: " + err.Error()); return err}
+        }
+    }
+
+    return nil 
+}
+
+//add nodeTag relation to db if not exists
+func addTagsToNode(anode utils.EnrollNewNodeStruct) (err error) {
+    tagsList := strings.Split(anode.Tags, ",")
+    nodeTagsRel, err := ndb.GetNodeTags()
+    if err != nil {logs.Error("node/addTagsToNode error getting node tags: " + err.Error()); return err}
+    
+    for tag := range tagsList {
+        tagID, err := ndb.GetTagIDByName(tagsList[tag])
+        if err != nil {logs.Error("node/addTagsToNode error getting tag id: " + err.Error()); return err}
+        
+        relationExists := false
+
+        for id := range nodeTagsRel {
+            if nodeTagsRel[id]["node"] == anode.Node.UUID && nodeTagsRel[id]["tag"] == tagID {
+                relationExists = true                
+                break
+            }
+        }
+
+        if !relationExists {
+            //get tag uuid by name
+            tagID,err := ndb.GetTagIDByName(tagsList[tag])
+            if err != nil {logs.Error("node/addTagsToNode error getting tag ID by name: " + err.Error()); return err}
+
+            //save relation
+            uuid := utils.Generate()
+            err = ndb.InsertNodeTag(uuid, "node", anode.Node.UUID)
+            if err != nil {logs.Error("node/addTagsToNode error adding node to nodeTags table: " + err.Error()); return err}
+            err = ndb.InsertNodeTag(uuid, "tag", tagID)
+            if err != nil {logs.Error("node/addTagsToNode error adding tag to nodeTags table: " + err.Error()); return err}
+        }
+    }
+
+    return nil 
+}
+
+//clear relations who not exists
+func clearNodeTagsDatabase(anode utils.EnrollNewNodeStruct) (err error) {
+    tagsList := strings.Split(anode.Tags, ",")
+    nodeTagsRel, err := ndb.GetNodeTags()
+    if err != nil {logs.Error("node/clearNodeTagsDatabase error getting nodeTags: " + err.Error()); return err}
+
+    for id := range nodeTagsRel {
+        existsRelation := false
+        if nodeTagsRel[id]["node"] == anode.Node.UUID{
+            for tag := range tagsList {            
+                tagID, err := ndb.GetTagsByID(tagsList[tag])
+                if err != nil {logs.Error("node/clearNodeTagsDatabase error getting tag by id: " + err.Error()); return err}
+                if nodeTagsRel[id]["tag"] == tagID {
+                    existsRelation = true
+                }
+            }
+            if !existsRelation {
+                err = ndb.DeleteNodeTag(id)
+            }
+        }
+    }
+    return nil
+}
+
+//get all tags for specific node
+func getAllNodeTags(node string)(tagsList string, err error ){
+    var tags []string
+    nodeTagsRel, err := ndb.GetNodeTags()
+    if err != nil {logs.Error("node/getAllNodeTags error getting node tags: " + err.Error()); return "",err}
+    
+    for id := range nodeTagsRel {
+        if node == nodeTagsRel[id]["node"]{
+            name,err := ndb.GetTagsByID(nodeTagsRel[id]["tag"])
+            if err != nil {logs.Error("node/getAllNodeTags error getting node tags by id: " + err.Error()); return "",err}
+            tags = append(tags, name)
+        }        
+    }    
+        return strings.Join(tags,","), nil
+}
+
+func UpdateNodeReact(anode utils.EnrollNewNodeStruct)(err error) {
+    //Clear deleted relationship between node and tags
+    err = clearNodeTagsDatabase(anode)
+    if err != nil {logs.Error("node/UpdateNodeReact error adding tags to database: " + err.Error()); return err}
+    //add new tags into db
+    err = addTagsToDatabase(anode)
+    if err != nil {logs.Error("node/UpdateNodeReact error adding tags to database: " + err.Error()); return err}
+    //add relationship between tags and nodes
+    err = addTagsToNode(anode)
+    if err != nil {logs.Error("node/UpdateNodeReact error adding tags to database: " + err.Error()); return err}
+
     //update node
     err = ndb.UpdateNode(anode.Node.UUID, "name", anode.Node.Name)
-    if err != nil {logs.Error("UpdateNodeReact name error: " + err.Error()); return err}
-    err = ndb.UpdateNode(anode.Node.UUID, "ip",  anode.Node.IP)
-    if err != nil {logs.Error("UpdateNodeReact ip error: " + err.Error()); return err}
-    err = ndb.UpdateNode(anode.Node.UUID, "port",  anode.Node.Port)
-    if err != nil {logs.Error("UpdateNodeReact port error: " + err.Error()); return err}
-    err = ndb.UpdateNode(anode.Node.UUID, "nodeuser",  anode.Node.NodeUser)
-    if err != nil {logs.Error("UpdateNodeReact nodeuser error: " + err.Error()); return err}
-    err = ndb.UpdateNode(anode.Node.UUID, "nodepass",  anode.Node.NodePass)
-    if err != nil {logs.Error("UpdateNodeReact nodepass error: " + err.Error()); return err}
-    err = ndb.UpdateNode(anode.Node.UUID, "tags",  anode.Tags)
-    if err != nil {logs.Error("UpdateNodeReact nodeuser error: " + err.Error()); return err}
+    if err != nil {logs.Error("node/UpdateNodeReact name error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "ip", anode.Node.IP)
+    if err != nil {logs.Error("node/UpdateNodeReact ip error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "port", anode.Node.Port)
+    if err != nil {logs.Error("node/UpdateNodeReact port error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "nodeuser", anode.Node.NodeUser)
+    if err != nil {logs.Error("node/UpdateNodeReact nodeuser error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "nodepass", anode.Node.NodePass)
+    if err != nil {logs.Error("node/UpdateNodeReact nodepass error: " + err.Error()); return err}
+    err = ndb.UpdateNode(anode.Node.UUID, "tags", anode.Tags)
+    if err != nil {logs.Error("node/UpdateNodeReact nodeuser error: " + err.Error()); return err}
 
     //update node
     nodeValues, err := ndb.GetNodeById(anode.Node.UUID)
-    if err != nil {
-        logs.Error("node/NodePing ERROR getting node data for update : " + err.Error())
-        return err
-    }
+    if err != nil {logs.Error("node/UpdateNodeReact ERROR getting node data for update : " + err.Error()); return err}
 
     err = ndb.GetTokenByUuid(anode.Node.UUID)
-    if err != nil {
-        logs.Error("UpdateNodeReact Error loading node token: %s", err)
-        return err
-    }
+    if err != nil {logs.Error("node/UpdateNodeReact Error loading node token: %s", err); return err}
 
     ipnid, portnid, err := ndb.ObtainPortIp(anode.Node.UUID)
-    if err != nil {
-        logs.Error("node/GetChangeControlNode ERROR Obtaining Port and Ip: " + err.Error())
-        return err
-    }
+    if err != nil {logs.Error("node/UpdateNodeReact ERROR Obtaining Port and Ip: " + err.Error()); return err}
+
     err = nodeclient.UpdateNodeData(ipnid, portnid, nodeValues)
-    if err != nil {
-        logs.Error("Error updating node data")
-    }
+    if err != nil {logs.Error("node/UpdateNodeReactError updating node data")}
 
     return nil
 }

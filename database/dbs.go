@@ -108,6 +108,28 @@ func GetNodeIpbyName(n string)(ip string, err error) {
     return "", errors.New("There is no IP for given node name")
 }
 
+func GetNodeTags() (tags map[string]map[string]string, err error) {
+    var allNodeTags = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Db == nil {logs.Error("no access to database"); return nil, err}
+
+    sql := "select nt_uniqueid, nt_param, nt_value from nodeTags;"
+    rows, err := Db.Query(sql)
+    if err != nil {logs.Error("GetNodeTags Db.Query Error : %s", err.Error()); return nil, err}
+
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {logs.Error("GetNodeTags rows.Scan: %s", err.Error()); return nil, err}
+
+        if allNodeTags[uniqid] == nil {
+            allNodeTags[uniqid] = map[string]string{}
+        }
+        allNodeTags[uniqid][param] = value
+    }
+    return allNodeTags, nil
+}
+
 func GetAllTags() (tags map[string]map[string]string, err error) {
     var allTags = map[string]map[string]string{}
     var uniqid string
@@ -128,4 +150,63 @@ func GetAllTags() (tags map[string]map[string]string, err error) {
         allTags[uniqid][param] = value
     }
     return allTags, nil
+}
+
+func InsertTag(nkey string, key string, value string) (err error) {
+    if Db == nil {logs.Error("no access to database"); return errors.New("no access to database")}
+    stmt, err := Db.Prepare("insert into tags (tag_uniqueid, tag_param, tag_value) values(?,?,?);")
+    if err != nil {logs.Error("InsertTag Prepare -> %s", err.Error()); return err}
+
+    _, err = stmt.Exec(&nkey, &key, &value)
+    if err != nil {logs.Error("InsertTag Execute -> %s", err.Error()); return err}
+    return nil
+}
+
+func GetTagIDByName(name string) (tag string, err error) {
+    var value string
+    if Db == nil {logs.Error("no access to database"); return "", err}
+
+    sql := "select tag_uniqueid from tags where tag_param = 'tagName' and tag_value = '"+name+"' ;"
+    rows, err := Db.Query(sql)
+    if err != nil {logs.Error("GetTagIDByName Db.Query Error : %s", err.Error()); return "", err}
+
+    for rows.Next() {
+        if err = rows.Scan(&value); err != nil {logs.Error("GetTagIDByName rows.Scan: %s", err.Error()); return "", err}
+    }
+    return value, nil
+}
+
+func GetTagsByID(uuid string) (tag string, err error) {
+    var value string
+    if Db == nil {logs.Error("no access to database"); return "", err}
+
+    sql := "select tag_value from tags where tag_param = 'tagName' and tag_uniqueid = '"+uuid+"' ;"
+    rows, err := Db.Query(sql)
+    if err != nil {logs.Error("GetTagsByID Db.Query Error : %s", err.Error()); return "", err}
+
+    for rows.Next() {
+        if err = rows.Scan(&value); err != nil {logs.Error("GetTagsByID rows.Scan: %s", err.Error()); return "", err}
+    }
+    return value, nil
+}
+
+func DeleteNodeTag(uuid string)(err error){
+    deleteNodeQuery, err := Db.Prepare("delete from nodeTags where nt_uniqueid = ?;")
+    _, err = deleteNodeQuery.Exec(&uuid)
+    defer deleteNodeQuery.Close()
+    if err != nil {
+        logs.Error("DeleteNodeTag -> ERROR on table nodeTags...")
+        return errors.New("DeleteNodeTag -> ERROR on table nodeTags...")
+    }
+    return nil
+}
+
+func InsertNodeTag(nkey string, key string, value string) (err error) {
+    if Db == nil {logs.Error("no access to database"); return errors.New("no access to database")}
+    stmt, err := Db.Prepare("insert into nodeTags (nt_uniqueid, nt_param, nt_value) values(?,?,?);")
+    if err != nil {logs.Error("InsertNodeTag Prepare -> %s", err.Error()); return err}
+
+    _, err = stmt.Exec(&nkey, &key, &value)
+    if err != nil {logs.Error("InsertNodeTag Execute -> %s", err.Error()); return err}
+    return nil
 }
