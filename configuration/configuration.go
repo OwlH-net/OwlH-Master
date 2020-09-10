@@ -557,6 +557,107 @@ func checkFields()(ok bool){
     ok = CheckField(field)
     if !ok {return false}
     
+
+    //CREATE DEFAULT GROUP "Acme"
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='name' and group_value='ACME'"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','name','ACME')"
+    field.Fname      = "groups - group name for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='desc' and group_value='Default group'"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','desc','Default group')"
+    field.Fname      = "groups - group desc for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='type' and group_value='Nodes'"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','type','Nodes')"
+    field.Fname      = "groups - group type for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='nodesuricata' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','nodesuricata','')"
+    field.Fname      = "groups - group nodesuricata for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='ruleset' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','ruleset','')"
+    field.Fname      = "groups - group ruleset for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='rulesetID' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','rulesetID','')"
+    field.Fname      = "groups - group rulesetID for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='masterzeek' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','masterzeek','')"
+    field.Fname      = "groups - group masterzeek for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='nodezeek' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','nodezeek','')"
+    field.Fname      = "groups - group nodezeek for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='BPFfile' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','BPFfile','')"
+    field.Fname      = "groups - group BPFfile for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='commandLine' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','commandLine','')"
+    field.Fname      = "groups - group commandLine for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='configFile' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','configFile','')"
+    field.Fname      = "groups - group configFile for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='mastersuricata' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','mastersuricata','')"
+    field.Fname      = "groups - group mastersuricata for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='interface' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','interface','')"
+    field.Fname      = "groups - group interface for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='BPFrule' and group_value=''"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','BPFrule','')"
+    field.Fname      = "groups - group BPFrule for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+
     // field.Fconn      = "masterConn"
     // field.Ftable     = "rolePermissions"
     // field.Fquery     = "select rp_value from rolePermissions where rp_uniqueid='00000000-0000-0000-0002-000000000000' and rp_param='role' and rp_value='00000000-0000-0000-0000-000000000001'"
