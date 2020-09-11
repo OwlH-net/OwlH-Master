@@ -657,6 +657,13 @@ func checkFields()(ok bool){
     field.Fname      = "groups - group BPFrule for Groups"
     ok = CheckField(field)
     if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "groups"
+    field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='default' and group_value='true'"
+    field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','default','true')"
+    field.Fname      = "groups - group default for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
 
     // field.Fconn      = "masterConn"
     // field.Ftable     = "rolePermissions"
