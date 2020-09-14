@@ -227,6 +227,22 @@ func checkTables()(ok bool){
         return false
     }
 
+    table.Tname = "organizations"
+    table.Tconn = "dbsConn"
+    table.Tcreate = "CREATE TABLE organizations (org_id integer PRIMARY KEY AUTOINCREMENT,org_uniqueid text NOT NULL,org_param text NOT NULL,org_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
+    table.Tname = "nodeOrgs"
+    table.Tconn = "dbsConn"
+    table.Tcreate = "CREATE TABLE nodeOrgs (no_id integer PRIMARY KEY AUTOINCREMENT,no_uniqueid text NOT NULL,no_param text NOT NULL,no_value text NOT NULL)"
+    ok = CheckTable(table)
+    if !ok {
+        return false
+    }
+
     table.Tname = "nodeTags"
     table.Tconn = "dbsConn"
     table.Tcreate = "CREATE TABLE nodeTags (nt_id integer PRIMARY KEY AUTOINCREMENT,nt_uniqueid text NOT NULL,nt_param text NOT NULL,nt_value text NOT NULL)"
@@ -662,6 +678,29 @@ func checkFields()(ok bool){
     field.Fquery     = "select group_value from groups where group_uniqueid='00000011-0000-0000-0000-000000000000' and group_param='default' and group_value='true'"
     field.Finsert    = "insert into groups (group_uniqueid,group_param,group_value) values ('00000011-0000-0000-0000-000000000000','default','true')"
     field.Fname      = "groups - group default for Groups"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //default organization
+    field.Fconn      = "dbsConn"
+    field.Ftable     = "organizations"
+    field.Fquery     = "select org_value from organizations where org_uniqueid='00000000-0000-0001-0000-000000000000' and org_param='name' and org_value='ACME'"
+    field.Finsert    = "insert into organizations (org_uniqueid,org_param,org_value) values ('00000000-0000-0001-0000-000000000000','name','ACME')"
+    field.Fname      = "organizations - name for organizations"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "dbsConn"
+    field.Ftable     = "organizations"
+    field.Fquery     = "select org_value from organizations where org_uniqueid='00000000-0000-0001-0000-000000000000' and org_param='desc' and org_value='Default organization'"
+    field.Finsert    = "insert into organizations (org_uniqueid,org_param,org_value) values ('00000000-0000-0001-0000-000000000000','desc','Default organization')"
+    field.Fname      = "organizations - description for organizations"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "dbsConn"
+    field.Ftable     = "organizations"
+    field.Fquery     = "select org_value from organizations where org_uniqueid='00000000-0000-0001-0000-000000000000' and org_param='default' and org_value='true'"
+    field.Finsert    = "insert into organizations (org_uniqueid,org_param,org_value) values ('00000000-0000-0001-0000-000000000000','default','true')"
+    field.Fname      = "organizations - default for organizations"
     ok = CheckField(field)
     if !ok {return false}
 

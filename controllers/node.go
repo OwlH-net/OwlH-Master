@@ -2772,3 +2772,29 @@ func (n *NodeController) UpdateNodeReact() {
     }
     n.ServeJSON()
 }
+
+// @Title GetAllOrganizations
+// @Description Get full list of node tags
+// @Success 200 {object} models.Node
+// @router /getAllOrganizations [get]
+func (n *NodeController) GetAllOrganizations() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetAllOrganizations"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        nodes, err := models.GetAllOrganizations(n.Ctx.Input.Header("user"))
+        n.Data["json"] = nodes
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    
+    n.ServeJSON()
+}

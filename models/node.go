@@ -1140,3 +1140,12 @@ func UpdateNodeReact(anode utils.EnrollNewNodeStruct, username string) (err erro
     changecontrol.ChangeControlInsertData(err, "UpdateNodeReact", username)
     return err
 }
+
+// // curl -X GET \
+// //   https://52.47.197.22:50002/v1/node/getAllOrganizations/:uuid \
+// // }
+func GetAllOrganizations(username string) (data map[string]map[string]string, err error) {
+    data, err = node.GetAllOrganizations()
+    changecontrol.ChangeControlInsertData(err, "GetAllOrganizations", username)
+    return data, err
+}

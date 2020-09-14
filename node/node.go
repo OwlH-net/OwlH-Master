@@ -2730,7 +2730,6 @@ func AssignNodeToGroup(uuid string, groupDetail utils.GroupData) (guuid string, 
     if uuid == "" {
         return "", true, nil
     }
-    logs.Info("%+v", groupDetail)
     logs.Info("asign node %s to group %s", uuid, groupDetail.UUID)
     assignTo := ""
     if groupDetail.UUID == "default" {
@@ -2740,14 +2739,11 @@ func AssignNodeToGroup(uuid string, groupDetail utils.GroupData) (guuid string, 
         logs.Info("group %s will be assigned", groupDetail.UUID)
         assignTo = groupDetail.UUID
     }
-    logs.Info(assignTo)
     data := make(map[string]interface{})
 
     data["uuid"] = assignTo
-    logs.Info("data uuid set")
 
     data["nodes"] = []string{uuid}
-    logs.Info(data)
     AddGroupNodes(data)
 
     return assignTo, true, nil
@@ -2985,4 +2981,11 @@ func UpdateNodeReact(anode utils.EnrollNewNodeStruct)(err error) {
     if err != nil {logs.Error("node/UpdateNodeReactError updating node data")}
 
     return nil
+}
+
+func GetAllOrganizations() (data map[string]map[string]string, err error) {
+    data, err = ndb.GetAllOrganizations()
+    if err != nil {logs.Error("node/GetAllOrganizations ERROR gettingh organizations"); return nil, err}
+
+    return data, err
 }

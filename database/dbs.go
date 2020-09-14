@@ -130,6 +130,28 @@ func GetNodeTags() (tags map[string]map[string]string, err error) {
     return allNodeTags, nil
 }
 
+func GetAllOrganizations() (orgs map[string]map[string]string, err error) {
+    var allOrgs = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Db == nil {logs.Error("no access to database"); return nil, err}
+
+    sql := "select org_uniqueid, org_param, org_value from organizations;"
+    rows, err := Db.Query(sql)
+    if err != nil {logs.Error("GetAllOrganizations Db.Query Error : %s", err.Error()); return nil, err}
+
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {logs.Error("GetAllOrganizations rows.Scan: %s", err.Error()); return nil, err}
+
+        if allOrgs[uniqid] == nil {
+            allOrgs[uniqid] = map[string]string{}
+        }
+        allOrgs[uniqid][param] = value
+    }
+    return allOrgs, nil
+}
+
 func GetAllTags() (tags map[string]map[string]string, err error) {
     var allTags = map[string]map[string]string{}
     var uniqid string
