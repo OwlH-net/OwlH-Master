@@ -35,7 +35,8 @@ type EnrollNewNodeStruct struct {
     Node        NewNodeData     `json:"node"`
     Group       []string        `json:"group"`
     Suricata    SuricataData    `json:"suricata"`
-    Tags        string          `json:"tags"`
+    Tags        []string          `json:"tags"`
+    Orgs        []string          `json:"orgs"`
 }
 type NewNodeData struct {
     UUID         string     `json:"uuid"`

@@ -1149,3 +1149,26 @@ func GetAllOrganizations(username string) (data map[string]map[string]string, er
     changecontrol.ChangeControlInsertData(err, "GetAllOrganizations", username)
     return data, err
 }
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/node/deleteOrg/:uuid \
+func DeleteOrganization(uuid string, username string) (err error) {
+    err = node.DeleteOrganization(uuid)
+    changecontrol.ChangeControlInsertData(err, "Delete org", username)
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/editOrganization  \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     uuid: z
+//     name: z
+//     desc: z
+//     default: z
+// }
+func EditOrganization(anode map[string]string, username string) (err error) {
+    err = node.EditOrganization(anode)
+    changecontrol.ChangeControlInsertData(err, "EditOrganization", username)
+    return err
+}

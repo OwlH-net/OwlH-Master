@@ -2467,6 +2467,34 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteOrganization' and per_param='desc' and per_value='Delete organization'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteOrganization','desc','Delete organization')"
+    field.Fname      = "DeleteOrganization permissions - desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteOrganization' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteOrganization','permissionGroup','Node')"
+    field.Fname      = "DeleteOrganization permissions - group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='EditOrganization' and per_param='desc' and per_value='Edit organization'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('EditOrganization','desc','Edit organization')"
+    field.Fname      = "EditOrganization permissions - desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='EditOrganization' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('EditOrganization','permissionGroup','Node')"
+    field.Fname      = "EditOrganization permissions - group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='GetServiceStatus' and per_param='desc' and per_value='-'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetServiceStatus','desc','-')"
     field.Fname      = "permissions - desc"

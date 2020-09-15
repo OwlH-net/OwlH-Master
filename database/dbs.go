@@ -152,6 +152,28 @@ func GetAllOrganizations() (orgs map[string]map[string]string, err error) {
     return allOrgs, nil
 }
 
+func GetNodeOrgs() (orgs map[string]map[string]string, err error) {
+    var allOrgs = map[string]map[string]string{}
+    var uniqid string
+    var param string
+    var value string
+    if Db == nil {logs.Error("no access to database"); return nil, err}
+
+    sql := "select no_uniqueid, no_param, no_value from nodeOrgs;"
+    rows, err := Db.Query(sql)
+    if err != nil {logs.Error("GetNodeOrgs Db.Query Error : %s", err.Error()); return nil, err}
+
+    for rows.Next() {
+        if err = rows.Scan(&uniqid, &param, &value); err != nil {logs.Error("GetNodeOrgs rows.Scan: %s", err.Error()); return nil, err}
+
+        if allOrgs[uniqid] == nil {
+            allOrgs[uniqid] = map[string]string{}
+        }
+        allOrgs[uniqid][param] = value
+    }
+    return allOrgs, nil
+}
+
 func GetAllTags() (tags map[string]map[string]string, err error) {
     var allTags = map[string]map[string]string{}
     var uniqid string
@@ -212,6 +234,34 @@ func GetTagsByID(uuid string) (tag string, err error) {
     return value, nil
 }
 
+func GetOrgsByID(uuid string) (tag string, err error) {
+    var value string
+    if Db == nil {logs.Error("no access to database"); return "", err}
+
+    sql := "select org_value from organizations where org_param = 'name' and org_uniqueid = '"+uuid+"' ;"
+    rows, err := Db.Query(sql)
+    if err != nil {logs.Error("GetOrgsByID Db.Query Error : %s", err.Error()); return "", err}
+
+    for rows.Next() {
+        if err = rows.Scan(&value); err != nil {logs.Error("GetOrgsByID rows.Scan: %s", err.Error()); return "", err}
+    }
+    return value, nil
+}
+
+func GetOrgByID(uuid string) (tag string, err error) {
+    var value string
+    if Db == nil {logs.Error("no access to database"); return "", err}
+
+    sql := "select org_value from organizations where org_param = 'name' and org_uniqueid = '"+uuid+"' ;"
+    rows, err := Db.Query(sql)
+    if err != nil {logs.Error("GetOrgByID Db.Query Error : %s", err.Error()); return "", err}
+
+    for rows.Next() {
+        if err = rows.Scan(&value); err != nil {logs.Error("GetOrgByID rows.Scan: %s", err.Error()); return "", err}
+    }
+    return value, nil
+}
+
 func DeleteNodeTag(uuid string)(err error){
     deleteNodeQuery, err := Db.Prepare("delete from nodeTags where nt_uniqueid = ?;")
     _, err = deleteNodeQuery.Exec(&uuid)
@@ -223,6 +273,28 @@ func DeleteNodeTag(uuid string)(err error){
     return nil
 }
 
+func DeleteNodeOrg(uuid string)(err error){
+    deleteNodeQuery, err := Db.Prepare("delete from nodeOrgs where no_uniqueid = ?;")
+    _, err = deleteNodeQuery.Exec(&uuid)
+    defer deleteNodeQuery.Close()
+    if err != nil {
+        logs.Error("DeleteNodeOrg -> ERROR on table nodeOrgs...")
+        return errors.New("DeleteNodeOrg -> ERROR on table nodeOrgs...")
+    }
+    return nil
+}
+
+func DeleteOrganization(uuid string)(err error){
+    deleteNodeQuery, err := Db.Prepare("delete from organizations where org_uniqueid = ?;")
+    _, err = deleteNodeQuery.Exec(&uuid)
+    defer deleteNodeQuery.Close()
+    if err != nil {
+        logs.Error("DeleteOrganization -> ERROR on table organizations...")
+        return errors.New("DeleteOrganization -> ERROR on table organizations...")
+    }
+    return nil
+}
+
 func InsertNodeTag(nkey string, key string, value string) (err error) {
     if Db == nil {logs.Error("no access to database"); return errors.New("no access to database")}
     stmt, err := Db.Prepare("insert into nodeTags (nt_uniqueid, nt_param, nt_value) values(?,?,?);")
@@ -230,5 +302,25 @@ func InsertNodeTag(nkey string, key string, value string) (err error) {
 
     _, err = stmt.Exec(&nkey, &key, &value)
     if err != nil {logs.Error("InsertNodeTag Execute -> %s", err.Error()); return err}
+    return nil
+}
+
+func InsertNodeOrgs(nkey string, key string, value string) (err error) {
+    if Db == nil {logs.Error("no access to database"); return errors.New("no access to database")}
+    stmt, err := Db.Prepare("insert into nodeOrgs (no_uniqueid, no_param, no_value) values(?,?,?);")
+    if err != nil {logs.Error("InsertNodeOrgs Prepare -> %s", err.Error()); return err}
+
+    _, err = stmt.Exec(&nkey, &key, &value)
+    if err != nil {logs.Error("InsertNodeOrgs Execute -> %s", err.Error()); return err}
+    return nil
+}
+
+func EditOrganization(uuid string, param string, value string)(err error){
+    EditOrganization, err := Db.Prepare("update organizations set org_value = ? where org_uniqueid = ? and org_param = ?;")
+    if (err != nil){logs.Error("EditOrganization UPDATE prepare error for update-- "+err.Error()); return err}
+
+    _, err = EditOrganization.Exec(&value, &uuid, &param)
+    defer EditOrganization.Close()
+    if (err != nil){logs.Error("EditOrganization UPDATE error -- "+err.Error()); return err}
     return nil
 }

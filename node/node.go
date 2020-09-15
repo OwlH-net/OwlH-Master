@@ -236,9 +236,13 @@ func GetAllNodesReact() (data NodeList, err error) {
 
     for id := range allNodes {
         
+        //get tags
         tags,_ := getAllNodeTags(id)
-
         allNodes[id]["tags"] = tags
+        //get orgs
+        orgs,_ := getAllNodeOrgs(id)
+        allNodes[id]["orgs"] = orgs
+
         values,err := NodePing(id)
         if err != nil {
             _ = ndb.UpdateNode(id, "status", "offline")
@@ -319,6 +323,7 @@ type NewNodeValue struct {
     NodePass     string     `json:"nodepass"`
     UUID         string     `json:"uuid"`
     Tags         string     `json:"tags"`
+    Orgs         string     `json:"orgs"`
 }
 func setNodesToSlice(nodes map[string]map[string]string)(val NodeList) {
     var nodeList NodeList
@@ -332,6 +337,7 @@ func setNodesToSlice(nodes map[string]map[string]string)(val NodeList) {
         values.NodeUser = nodes[x]["nodeuser"]
         values.NodePass = nodes[x]["nodepass"]
         values.Tags = nodes[x]["tags"]
+        values.Orgs = nodes[x]["orgs"]
         values.UUID = x
 
         nodeList.Nodes = append(nodeList.Nodes, values)
@@ -2791,7 +2797,11 @@ func AddGroupNodes(data map[string]interface{}) (err error) {
 }
 
 func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {  
-    nodeExists := false
+    logs.Notice(anode)
+    logs.Notice(anode)
+    logs.Notice(anode)
+    logs.Notice(anode)
+
     //add new node
     newNode := make(map[string]string)
     newNode["ip"] = anode.Node.IP
@@ -2813,10 +2823,12 @@ func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {
     err = addTagsToNode(anode)
     if err != nil {logs.Error("node/EnrollNewNode error adding tags to node database: " + err.Error()); return err}
 
-    //loop groups
+    //Insert groupNodes
     groupNodes, err := ndb.GetAllGroupNodes()
+    if err != nil {logs.Error("EnrollNewNode GetAllGroupNodes error: " + err.Error()); return err}
+
     for x := range anode.Group {
-        if err != nil {logs.Error("EnrollNewNode GetAllGroupNodes error: " + err.Error()); return err}
+        nodeExists := false
         for y := range groupNodes {
             if nodeUUID == groupNodes[y]["nodesid"] && anode.Group[x] == groupNodes[y]["groupid"] {
                 nodeExists = true
@@ -2825,18 +2837,16 @@ func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {
         if !nodeExists {
             uuid := utils.Generate()
             err = ndb.InsertGroupNodes(uuid, "groupid", anode.Group[x])
-            if err != nil {
-                logs.Error("AddGroupNodes group uuid error: " + err.Error())
-                return err
-            }
+            if err != nil {logs.Error("EnrollNewNode group uuid error: " + err.Error()); return err}
+
             err = ndb.InsertGroupNodes(uuid, "nodesid", nodeUUID)
-            if err != nil {
-                logs.Error("AddGroupNodes nodes uuid error: " + err.Error())
-                return err
-            }
+            if err != nil {logs.Error("EnrollNewNode nodes uuid error: " + err.Error()); return err}
         }
-        nodeExists = false
     }
+
+    //add nodeOrgs
+    err = addOrgsToNode(anode, nodeUUID)
+    if err != nil {logs.Error("EnrollNewNode error adding nodes: " + err.Error()); return err}
 
     //¿suricata?
 
@@ -2845,20 +2855,49 @@ func EnrollNewNode(anode utils.EnrollNewNodeStruct) (err error) {
 }
 
 //check if tag exists and add to db if not
+func addOrgsToNode(anode utils.EnrollNewNodeStruct, nodeUUID string) (err error) {
+    nodeOrgs,err := ndb.GetNodeOrgs()
+    if err != nil {logs.Error("EnrollNewNode nodes uuid error: " + err.Error()); return err}
+    for x := range anode.Orgs {
+        nodeOrgExists := false
+        for y := range nodeOrgs {
+            logs.Info(nodeUUID)
+            logs.Info(y)
+            logs.Info("-------------------------------")
+            logs.Info(nodeOrgs[y]["node"])
+            logs.Info(nodeOrgs[y]["org"])
+
+            if nodeUUID == nodeOrgs[y]["node"] && y == nodeOrgs[y]["org"] {
+                nodeOrgExists = true
+            }
+        }
+        if !nodeOrgExists{        
+            uuid := utils.Generate()
+            err = ndb.InsertNodeOrgs(uuid, "org", anode.Orgs[x])
+            if err != nil {logs.Error("EnrollNewNode organization uuid error: " + err.Error()); return err}
+
+            err = ndb.InsertNodeOrgs(uuid, "node", nodeUUID)
+            if err != nil {logs.Error("EnrollNewNode node uuid error: " + err.Error()); return err}
+        }
+    }
+
+    return nil 
+}
+
+//check if tag exists and add to db if not
 func addTagsToDatabase(anode utils.EnrollNewNodeStruct) (err error) {
-    tagsList := strings.Split(anode.Tags, ",")
     allTags, err := ndb.GetAllTags()
     if err != nil {logs.Error("node/addTagsToDatabase error getting all tags: " + err.Error()); return err}
 
-    for tag := range tagsList {
+    for tag := range anode.Tags {
         tagExists := false
         for id := range allTags {
-            if allTags[id]["tagName"] == tagsList[tag] {tagExists = true; break}
+            if allTags[id]["tagName"] == anode.Tags[tag] {tagExists = true; break}
         }
 
         if !tagExists {
             uuid := utils.Generate()
-            err = ndb.InsertTag(uuid, "tagName", tagsList[tag])
+            err = ndb.InsertTag(uuid, "tagName", anode.Tags[tag])
             if err != nil {logs.Error("node/addTagsToDatabase error inserting new tags: " + err.Error()); return err}
         }
     }
@@ -2868,12 +2907,11 @@ func addTagsToDatabase(anode utils.EnrollNewNodeStruct) (err error) {
 
 //add nodeTag relation to db if not exists
 func addTagsToNode(anode utils.EnrollNewNodeStruct) (err error) {
-    tagsList := strings.Split(anode.Tags, ",")
     nodeTagsRel, err := ndb.GetNodeTags()
     if err != nil {logs.Error("node/addTagsToNode error getting node tags: " + err.Error()); return err}
     
-    for tag := range tagsList {
-        tagID, err := ndb.GetTagIDByName(tagsList[tag])
+    for tag := range anode.Tags {
+        tagID, err := ndb.GetTagIDByName(anode.Tags[tag])
         if err != nil {logs.Error("node/addTagsToNode error getting tag id: " + err.Error()); return err}
         
         relationExists := false
@@ -2887,7 +2925,7 @@ func addTagsToNode(anode utils.EnrollNewNodeStruct) (err error) {
 
         if !relationExists {
             //get tag uuid by name
-            tagID,err := ndb.GetTagIDByName(tagsList[tag])
+            tagID,err := ndb.GetTagIDByName(anode.Tags[tag])
             if err != nil {logs.Error("node/addTagsToNode error getting tag ID by name: " + err.Error()); return err}
 
             //save relation
@@ -2904,15 +2942,14 @@ func addTagsToNode(anode utils.EnrollNewNodeStruct) (err error) {
 
 //clear relations who not exists
 func clearNodeTagsDatabase(anode utils.EnrollNewNodeStruct) (err error) {
-    tagsList := strings.Split(anode.Tags, ",")
     nodeTagsRel, err := ndb.GetNodeTags()
     if err != nil {logs.Error("node/clearNodeTagsDatabase error getting nodeTags: " + err.Error()); return err}
 
     for id := range nodeTagsRel {
         existsRelation := false
         if nodeTagsRel[id]["node"] == anode.Node.UUID{
-            for tag := range tagsList {            
-                tagID, err := ndb.GetTagsByID(tagsList[tag])
+            for tag := range anode.Tags {            
+                tagID, err := ndb.GetTagsByID(anode.Tags[tag])
                 if err != nil {logs.Error("node/clearNodeTagsDatabase error getting tag by id: " + err.Error()); return err}
                 if nodeTagsRel[id]["tag"] == tagID {
                     existsRelation = true
@@ -2920,6 +2957,29 @@ func clearNodeTagsDatabase(anode utils.EnrollNewNodeStruct) (err error) {
             }
             if !existsRelation {
                 err = ndb.DeleteNodeTag(id)
+            }
+        }
+    }
+    return nil
+}
+
+//clear relations who not exists
+func clearNodeOrgsDatabase(anode utils.EnrollNewNodeStruct) (err error) {
+    nodeOrgsRel, err := ndb.GetNodeOrgs()
+    if err != nil {logs.Error("node/clearNodeOrgsDatabase error getting nodeTags: " + err.Error()); return err}
+
+    for id := range nodeOrgsRel {
+        existsRelation := false
+        if nodeOrgsRel[id]["node"] == anode.Node.UUID{
+            for tag := range anode.Tags {            
+                orgID, err := ndb.GetOrgByID(anode.Tags[tag])
+                if err != nil {logs.Error("node/clearNodeOrgsDatabase error getting tag by id: " + err.Error()); return err}
+                if nodeOrgsRel[id]["org"] == orgID {
+                    existsRelation = true
+                }
+            }
+            if !existsRelation {
+                err = ndb.DeleteNodeOrg(id)
             }
         }
     }
@@ -2939,19 +2999,41 @@ func getAllNodeTags(node string)(tagsList string, err error ){
             tags = append(tags, name)
         }        
     }    
-        return strings.Join(tags,","), nil
+    return strings.Join(tags,","), nil
+}
+
+//get all orgs for specific node
+func getAllNodeOrgs(node string)(orgsList string, err error ){
+    var orgs []string
+    nodeOrgsRel, err := ndb.GetNodeOrgs()
+    if err != nil {logs.Error("node/getAllNodeOrgs error getting node orgs: " + err.Error()); return "",err}
+    
+    for id := range nodeOrgsRel {
+        if node == nodeOrgsRel[id]["node"]{
+            name,err := ndb.GetOrgsByID(nodeOrgsRel[id]["org"])
+            if err != nil {logs.Error("node/getAllNodeOrgs error getting node orgs by id: " + err.Error()); return "",err}
+            orgs = append(orgs, name)
+        }        
+    }    
+    return strings.Join(orgs,","), nil
 }
 
 func UpdateNodeReact(anode utils.EnrollNewNodeStruct)(err error) {
     //Clear deleted relationship between node and tags
     err = clearNodeTagsDatabase(anode)
-    if err != nil {logs.Error("node/UpdateNodeReact error adding tags to database: " + err.Error()); return err}
+    if err != nil {logs.Error("node/UpdateNodeReact error adding nodeTags to database: " + err.Error()); return err}
     //add new tags into db
     err = addTagsToDatabase(anode)
     if err != nil {logs.Error("node/UpdateNodeReact error adding tags to database: " + err.Error()); return err}
     //add relationship between tags and nodes
     err = addTagsToNode(anode)
-    if err != nil {logs.Error("node/UpdateNodeReact error adding tags to database: " + err.Error()); return err}
+    if err != nil {logs.Error("node/UpdateNodeReact error adding nodeTags to database: " + err.Error()); return err}
+    // //add relationship between orgs and nodes
+    // err = addOrgsToNode(anode, anode.Node.UUID)
+    // if err != nil {logs.Error("node/UpdateNodeReact error adding nodeOrgs to database: " + err.Error()); return err}
+    // //Clear deleted relationship between node and orgs
+    // err = clearNodeOrgsDatabase(anode)
+    // if err != nil {logs.Error("node/UpdateNodeReact error adding nodeOrgs to database: " + err.Error()); return err}
 
     //update node
     err = ndb.UpdateNode(anode.Node.UUID, "name", anode.Node.Name)
@@ -2964,8 +3046,8 @@ func UpdateNodeReact(anode utils.EnrollNewNodeStruct)(err error) {
     if err != nil {logs.Error("node/UpdateNodeReact nodeuser error: " + err.Error()); return err}
     err = ndb.UpdateNode(anode.Node.UUID, "nodepass", anode.Node.NodePass)
     if err != nil {logs.Error("node/UpdateNodeReact nodepass error: " + err.Error()); return err}
-    err = ndb.UpdateNode(anode.Node.UUID, "tags", anode.Tags)
-    if err != nil {logs.Error("node/UpdateNodeReact nodeuser error: " + err.Error()); return err}
+    // err = ndb.UpdateNode(anode.Node.UUID, "tags", anode.Tags)
+    // if err != nil {logs.Error("node/UpdateNodeReact nodeuser error: " + err.Error()); return err}
 
     //update node
     nodeValues, err := ndb.GetNodeById(anode.Node.UUID)
@@ -2985,7 +3067,25 @@ func UpdateNodeReact(anode utils.EnrollNewNodeStruct)(err error) {
 
 func GetAllOrganizations() (data map[string]map[string]string, err error) {
     data, err = ndb.GetAllOrganizations()
-    if err != nil {logs.Error("node/GetAllOrganizations ERROR gettingh organizations"); return nil, err}
+    if err != nil {logs.Error("node/GetAllOrganizations ERROR getting organizations"); return nil, err}
 
     return data, err
+}
+
+func DeleteOrganization(uuid string) (err error) {
+    err = ndb.DeleteOrganization(uuid)
+    if err != nil {logs.Error("node/DeleteOrganization ERROR deleting organization"); return err}
+
+    return err
+}
+
+func EditOrganization(anode map[string]string) (err error) {
+    err = ndb.EditOrganization(anode["uuid"], "name", anode["name"] )
+    if err != nil {logs.Error("node/EditOrganization ERROR editing organization name"); return err}
+    err = ndb.EditOrganization(anode["uuid"], "desc", anode["desc"] )
+    if err != nil {logs.Error("node/EditOrganization ERROR editing organization desc"); return err}
+    err = ndb.EditOrganization(anode["uuid"], "default", anode["default"] )
+    if err != nil {logs.Error("node/EditOrganization ERROR editing organization default"); return err}
+
+    return err
 }
