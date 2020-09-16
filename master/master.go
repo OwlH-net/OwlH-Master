@@ -1742,11 +1742,7 @@ func CheckDefaultAdmin() (isDefault bool, err error) {
     for id := range users {
         if users[id]["user"] == "admin" {
             check, err := validation.CheckPasswordHash("admin", users[id]["pass"])
-
-            if err != nil {
-                logs.Error("master/CheckDefaultAdmin Error checking password: " + err.Error())
-                return false, err
-            }
+            if err != nil {logs.Error("master/CheckDefaultAdmin Error checking password: " + err.Error()); return false, err}
             if check {
                 isDefault = true
             } else {
@@ -1756,4 +1752,49 @@ func CheckDefaultAdmin() (isDefault bool, err error) {
     }
 
     return isDefault, err
+}
+
+func AddOrganization(anode map[string]string) (err error) {
+    //check org with the same name
+    orgs, err := ndb.GetAllOrganizations()
+    if err != nil {logs.Error("master/AddOrganization Error checking new organization: " + err.Error()); return err}
+
+    for x := range orgs {
+        if orgs[x]["name"] == anode["name"] {
+            return errors.New("An organization with that name already exists")
+        }
+    }
+
+    uuid := utils.Generate()
+    err = ndb.InsertOrganization(uuid, "name", anode["name"])
+    if err != nil {logs.Error("master/AddOrganization Error adding organization name: " + err.Error()); return err}
+    err = ndb.InsertOrganization(uuid, "desc", anode["desc"])
+    if err != nil {logs.Error("master/AddOrganization Error adding organization desc: " + err.Error()); return err}
+    err = ndb.InsertOrganization(uuid, "default", anode["default"])
+    if err != nil {logs.Error("master/AddOrganization Error adding organization default status: " + err.Error()); return err}
+    
+    return err
+}
+
+func GetAllOrganizationNodes(orgID string) (data map[string]string, err error) {
+
+    nodeOrgs,err := ndb.GetNodeOrgs()
+    if err != nil {logs.Error("master/GetAllOrganizationNodes Error getting nodeOrgs: " + err.Error()); return nil, err}
+    nodes,err := ndb.GetAllNodes()
+    if err != nil {logs.Error("master/GetAllOrganizationNodes Error getting nodes: " + err.Error()); return nil, err}
+
+    //list of node names
+    var nodeList []string
+    //return map
+    values := make(map[string]string)
+
+    for x := range nodeOrgs {
+        if nodeOrgs[x]["org"] == orgID {
+            nodeList = append(nodeList, nodes[nodeOrgs[x]["node"]]["name"])
+        }
+    }
+    
+    values["nodes"] = strings.Join(nodeList, ",")
+
+    return values, nil
 }

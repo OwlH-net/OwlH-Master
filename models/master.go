@@ -682,3 +682,27 @@ func AddNewRole(anode map[string]string, username string) (err error) {
     changecontrol.ChangeControlInsertData(err, "AddNewRole", username)
     return err
 }
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addOrganization \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "name": "v"
+//     "desc": "v"
+//     "default": "v"
+//  }
+// }
+func AddOrganization(anode map[string]string, username string) (err error) {
+    err = master.AddOrganization(anode)
+    changecontrol.ChangeControlInsertData(err, "AddOrganization", username)
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getAllOrganizationNodes/:uuid \
+// }
+func GetAllOrganizationNodes(file string, username string) (data map[string]string, err error) {
+    data, err = master.GetAllOrganizationNodes(file)
+    changecontrol.ChangeControlInsertData(err, "GetAllOrganizationNodes", username)
+    return data, err
+}

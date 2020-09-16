@@ -324,3 +324,13 @@ func EditOrganization(uuid string, param string, value string)(err error){
     if (err != nil){logs.Error("EditOrganization UPDATE error -- "+err.Error()); return err}
     return nil
 }
+
+func InsertOrganization(nkey string, key string, value string) (err error) {
+    if Db == nil {logs.Error("no access to database"); return errors.New("no access to database")}
+    stmt, err := Db.Prepare("insert into organizations (org_uniqueid, org_param, org_value) values(?,?,?);")
+    if err != nil {logs.Error("InsertOrganization Prepare -> %s", err.Error()); return err}
+
+    _, err = stmt.Exec(&nkey, &key, &value)
+    if err != nil {logs.Error("InsertOrganization Execute -> %s", err.Error()); return err}
+    return nil
+}
