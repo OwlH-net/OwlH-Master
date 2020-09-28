@@ -501,6 +501,16 @@ func PingPlugins() (data map[string]map[string]string, err error) {
         logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
         return nil, err
     }
+    stapConnCount, err := utils.GetKeyValueString("execute", "stapConnCount")
+    if err != nil {
+        logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
+        return nil, err
+    }
+    stapConn, err := utils.GetKeyValueString("execute", "stapConn")
+    if err != nil {
+        logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
+        return nil, err
+    }
 
     allPlugins, err := ndb.PingPlugins()
     for x := range allPlugins {
@@ -517,7 +527,25 @@ func PingPlugins() (data map[string]map[string]string, err error) {
                 allPlugins[x]["running"] = "true"
             }
         }
+        if (allPlugins[x]["type"] == "socket-pcap" || allPlugins[x]["type"] == "socket-network"){
+            //add stap connections
+            data, err := exec.Command(command, param, strings.Replace(stapConnCount, "<PORT>", allPlugins[x]["port"], -1)).Output()
+            if err != nil {
+                logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())
+            }
+            count, err := exec.Command(command, param, strings.Replace(stapConn, "<PORT>", allPlugins[x]["port"], -1)).Output()
+            if err != nil {
+                logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())
+            }
+            allPlugins[x]["connections"] = ""
+            if !strings.Contains(string(data), "0.0.0.0"){
+                logs.Warn(string(data))
+                allPlugins[x]["connections"] = string(data)
+            }
+            allPlugins[x]["connectionsCount"] = string(count)
+        }
     }
+    
     return allPlugins, err
 }
 
