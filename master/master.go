@@ -529,19 +529,12 @@ func PingPlugins() (data map[string]map[string]string, err error) {
         }
         if (allPlugins[x]["type"] == "socket-pcap" || allPlugins[x]["type"] == "socket-network"){
             //add stap connections
-            data, err := exec.Command(command, param, strings.Replace(stapConnCount, "<PORT>", allPlugins[x]["port"], -1)).Output()
-            if err != nil {
-                logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())
-            }
-            count, err := exec.Command(command, param, strings.Replace(stapConn, "<PORT>", allPlugins[x]["port"], -1)).Output()
-            if err != nil {
-                logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())
-            }
-            allPlugins[x]["connections"] = ""
-            if !strings.Contains(string(data), "0.0.0.0"){
-                logs.Warn(string(data))
-                allPlugins[x]["connections"] = string(data)
-            }
+            data, err := exec.Command(command, param, strings.Replace(stapConn, "<PORT>", allPlugins[x]["port"], -1)).Output()
+            if err != nil {logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())}
+            allPlugins[x]["connections"] = string(data)
+
+            count, err := exec.Command(command, param, strings.Replace(stapConnCount, "<PORT>", allPlugins[x]["port"], -1)).Output()
+            if err != nil {logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())}            
             allPlugins[x]["connectionsCount"] = string(count)
         }
     }
