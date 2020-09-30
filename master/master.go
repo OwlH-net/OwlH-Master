@@ -563,7 +563,7 @@ func PingPlugins() (data map[string]map[string]string, err error) {
             //check clients umbral
             if len(dataConn) <= greenMax && len(dataConn) >= greenMin {
                 allPlugins[x]["connectionsColor"] = "success"
-            }else if (len(dataConn) > greenMax && len(dataConn) <= yellowMax) || (len(dataConn) < greenMin && len(dataConn) >= yellowMin) {
+            }else if (len(dataConn) <= yellowMax) && (len(dataConn) >= yellowMin) {
                 allPlugins[x]["connectionsColor"] = "warning"            
             }else{
                 allPlugins[x]["connectionsColor"] = "danger"
