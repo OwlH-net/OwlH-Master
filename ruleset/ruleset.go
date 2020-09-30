@@ -765,10 +765,7 @@ func FindDuplicatedSIDs(data map[string]map[string]string) (duplicated []byte, e
 }
 
 //Add new ruleset to locale ruleset
-func AddNewRuleset(data map[string]map[string]string) (duplicated []byte, err error) {
-    
-    logs.Critical(data)
-
+func AddNewRuleset(data map[string]map[string]string) (duplicated []byte, err error) {    
     //check for duplicated rule SIDs
     if duplicated, err = FindDuplicatedSIDs(data); duplicated != nil {
         return duplicated, nil

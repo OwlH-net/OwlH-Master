@@ -2425,16 +2425,72 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
-    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllNodes' and per_param='desc' and per_value='-'"
-    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllNodes','desc','-')"
-    field.Fname      = "permissions - desc"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllNodes' and per_param='desc' and per_value='Get list of all nodes'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllNodes','desc','Get list of all nodes')"
+    field.Fname      = "GetAllNodes permissions - desc"
     ok = CheckField(field)
     if !ok {return false}
     field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllNodes' and per_param='permissionGroup' and per_value='Node'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllNodes','permissionGroup','Node')"
-    field.Fname      = "permissions - group"
+    field.Fname      = "GetAllNodes permissions - group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllTags' and per_param='desc' and per_value='Get list of all node tags'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllTags','desc','Get list of all node tags')"
+    field.Fname      = "GetAllTags permissions - desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllTags' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllTags','permissionGroup','Node')"
+    field.Fname      = "GetAllTags permissions - group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllOrganizations' and per_param='desc' and per_value='Get list of all organizations'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllOrganizations','desc','Get list of all organizations')"
+    field.Fname      = "GetAllOrganizations permissions - desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllOrganizations' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllOrganizations','permissionGroup','Node')"
+    field.Fname      = "GetAllOrganizations permissions - group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteOrganization' and per_param='desc' and per_value='Delete organization'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteOrganization','desc','Delete organization')"
+    field.Fname      = "DeleteOrganization permissions - desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='DeleteOrganization' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('DeleteOrganization','permissionGroup','Node')"
+    field.Fname      = "DeleteOrganization permissions - group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='EditOrganization' and per_param='desc' and per_value='Edit organization'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('EditOrganization','desc','Edit organization')"
+    field.Fname      = "EditOrganization permissions - desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='EditOrganization' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('EditOrganization','permissionGroup','Node')"
+    field.Fname      = "EditOrganization permissions - group"
     ok = CheckField(field)
 	
 	field.Fconn      = "masterConn"
@@ -3041,6 +3097,20 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllOrganizationNodes' and per_param='desc' and per_value='Get all nodes for an organization'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllOrganizationNodes','desc','Get all nodes for an organization')"
+    field.Fname      = "permissions - GetAllOrganizationNodes desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='GetAllOrganizationNodes' and per_param='permissionGroup' and per_value='Master'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetAllOrganizationNodes','permissionGroup','Master')"
+    field.Fname      = "permissions - GetAllOrganizationNodes group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='GetFileContentByType' and per_param='desc' and per_value='Get file content by type'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetFileContentByType','desc','Get file content by type')"
     field.Fname      = "permissions - GetFileContentByType desc"
@@ -3051,6 +3121,20 @@ func checkPermissionsFields()(ok bool){
     field.Fquery     = "select per_value from permissions where per_uniqueid='GetFileContentByType' and per_param='permissionGroup' and per_value='Master'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('GetFileContentByType','permissionGroup','Master')"
     field.Fname      = "permissions - GetFileContentByType group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='AddOrganization' and per_param='desc' and per_value='Add new organization'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddOrganization','desc','Add new organization')"
+    field.Fname      = "permissions - AddOrganization desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='AddOrganization' and per_param='permissionGroup' and per_value='Master'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddOrganization','permissionGroup','Master')"
+    field.Fname      = "permissions - AddOrganization group"
     ok = CheckField(field)
 	
 	field.Fconn      = "masterConn"

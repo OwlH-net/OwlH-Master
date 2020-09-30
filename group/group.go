@@ -121,7 +121,7 @@ type Group struct {
     BPFRule        string `json:"BPFrule"`
     ConfigFile     string `json:"configFile"`
     CommandLine    string `json:"commandLine"`
-    Default        bool   `json:"default"`
+    Default        string `json:"default"`
     Nodes          []Node
 }
 type Node struct {
@@ -161,6 +161,7 @@ func GetAllGroups() (Groups []Group, err error) {
         gr.BPFRule = allGroups[gid]["BPFrule"]
         gr.ConfigFile = allGroups[gid]["configFile"]
         gr.CommandLine = allGroups[gid]["commandLine"]
+        gr.Default = allGroups[gid]["default"]
 
         for nid := range groupNodes {
             if gid == groupNodes[nid]["groupid"] {

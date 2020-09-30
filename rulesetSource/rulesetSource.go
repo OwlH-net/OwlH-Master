@@ -583,15 +583,15 @@ func DownloadFile(data map[string]string) (err error) {
 
             err = utils.DownloadFile(headers, data["path"], urlParsed, rulesets[data["uuid"]]["user"], string(uncrypted))
             if err != nil {
-                logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
-                _ = os.RemoveAll(pathDownloaded+pathSelected)
+                logs.Error("Error downloading file from RulesetSource with credentials-> %s", err.Error())
+                _ = os.RemoveAll(pathDownloaded+pathSelected)                
                 _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
                 return err
             }
         }else{
             err = utils.DownloadFile(headers, data["path"], urlParsed, "", "")
             if err != nil {
-                logs.Error("Error downloading file from RulesetSource-> %s", err.Error())
+                logs.Error("Error downloading file from RulesetSource without credentials-> %s", err.Error())
                 _ = os.RemoveAll(pathDownloaded+pathSelected)
                 _ = ndb.UpdateRuleset(data["uuid"], "isDownloaded", "false")
                 return err

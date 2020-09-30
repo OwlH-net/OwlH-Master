@@ -2666,16 +2666,7 @@ func (n *NodeController) AutoEnroll() {
 // @Success 200 {object} models.Node
 // @router /getAllNodesReact [get]
 func (n *NodeController) GetAllNodesReact() {
-    logs.Critical("CHECK")
-    logs.Critical("CHECK")
-    logs.Critical("CHECK")
-    
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    
-    logs.Error(errToken)
-    logs.Error(errToken)
-    logs.Error(errToken)
-
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
@@ -2687,6 +2678,32 @@ func (n *NodeController) GetAllNodesReact() {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
     } else {
         nodes, err := models.GetAllNodesReact(n.Ctx.Input.Header("user"))
+        n.Data["json"] = nodes
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title GetAllTags
+// @Description Get full list of node tags
+// @Success 200 {object} models.Node
+// @router /getAllTags [get]
+func (n *NodeController) GetAllTags() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetAllTags"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        nodes, err := models.GetAllTags(n.Ctx.Input.Header("user"))
         n.Data["json"] = nodes
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
@@ -2716,10 +2733,124 @@ func (n *NodeController) EnrollNewNode() {
     } else {
         var nodeDetails utils.EnrollNewNodeStruct
         json.Unmarshal(n.Ctx.Input.RequestBody, &nodeDetails)
-
+        
         err := models.EnrollNewNode(nodeDetails, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title UpdateNodeReact
+// @Description Update Node
+// @Success 200 {string} node updated
+// @Failure 403 body is empty
+// @router /updateNodeReact [put]
+func (n *NodeController) UpdateNodeReact() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"UpdateNode"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var anode utils.EnrollNewNodeStruct
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        err := models.UpdateNodeReact(anode, n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Info("NODE UPDATE -> error: %s", err.Error())
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetAllOrganizations
+// @Description Get full list of node tags
+// @Success 200 {object} models.Node
+// @router /getAllOrganizations [get]
+func (n *NodeController) GetAllOrganizations() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"GetAllOrganizations"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        nodes, err := models.GetAllOrganizations(n.Ctx.Input.Header("user"))
+        n.Data["json"] = nodes
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    
+    n.ServeJSON()
+}
+
+// @Title DeleteOrganization
+// @Description delete organization by id
+// @Success 200 {object} models.Node
+// @Failure 403 :uuid is empty
+// @router /deleteOrg/:uuid [delete]
+func (n *NodeController) DeleteOrganization() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"DeleteOrganization"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        uuid := n.GetString(":uuid")
+        err := models.DeleteOrganization(uuid, n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "uuid": uuid, "error": err.Error()}
+        }
+    }
+
+    n.ServeJSON()
+}
+
+// @Title EditOrganization
+// @Description Update Node
+// @Success 200 {string} node updated
+// @Failure 403 body is empty
+// @router /editOrganization [put]
+func (n *NodeController) EditOrganization() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"EditOrganization"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        var anode map[string]string
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+    
+        err := models.EditOrganization(anode, n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            logs.Info("NODE UPDATE -> error: %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }

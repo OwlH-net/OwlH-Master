@@ -501,6 +501,31 @@ func PingPlugins() (data map[string]map[string]string, err error) {
         logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
         return nil, err
     }
+    stapConn, err := utils.GetKeyValueString("execute", "stapConn")
+    if err != nil {
+        logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
+        return nil, err
+    }
+    greenMax, err := utils.GetKeyValueInt("stapCollector", "greenMax")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    greenMin, err := utils.GetKeyValueInt("stapCollector", "greenMin")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    yellowMax, err := utils.GetKeyValueInt("stapCollector", "yellowMax")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    yellowMin, err := utils.GetKeyValueInt("stapCollector", "yellowMin")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
 
     allPlugins, err := ndb.PingPlugins()
     for x := range allPlugins {
@@ -517,7 +542,35 @@ func PingPlugins() (data map[string]map[string]string, err error) {
                 allPlugins[x]["running"] = "true"
             }
         }
+        if (allPlugins[x]["type"] == "socket-pcap" || allPlugins[x]["type"] == "socket-network"){
+            //add stap connections
+            data, err := exec.Command(command, param, strings.Replace(stapConn, "<PORT>", allPlugins[x]["port"], -1)).Output()
+            if err != nil {logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())}
+            allPlugins[x]["connections"] = string(data)
+
+            //split connections
+            splitted := strings.Split(allPlugins[x]["connections"], "\n")
+            var dataConn []string
+            for _,val := range splitted {
+                if val != "" {
+                    dataConn = append(dataConn,  val)
+                }
+            }
+
+            //get number of connections
+            allPlugins[x]["connectionsCount"] = strconv.Itoa(len(dataConn))
+
+            //check clients umbral
+            if len(dataConn) <= greenMax && len(dataConn) >= greenMin {
+                allPlugins[x]["connectionsColor"] = "success"
+            }else if (len(dataConn) <= yellowMax) && (len(dataConn) >= yellowMin) {
+                allPlugins[x]["connectionsColor"] = "warning"            
+            }else{
+                allPlugins[x]["connectionsColor"] = "danger"
+            }        
+        }
     }
+    
     return allPlugins, err
 }
 
@@ -1742,11 +1795,7 @@ func CheckDefaultAdmin() (isDefault bool, err error) {
     for id := range users {
         if users[id]["user"] == "admin" {
             check, err := validation.CheckPasswordHash("admin", users[id]["pass"])
-
-            if err != nil {
-                logs.Error("master/CheckDefaultAdmin Error checking password: " + err.Error())
-                return false, err
-            }
+            if err != nil {logs.Error("master/CheckDefaultAdmin Error checking password: " + err.Error()); return false, err}
             if check {
                 isDefault = true
             } else {
@@ -1756,4 +1805,49 @@ func CheckDefaultAdmin() (isDefault bool, err error) {
     }
 
     return isDefault, err
+}
+
+func AddOrganization(anode map[string]string) (err error) {
+    //check org with the same name
+    orgs, err := ndb.GetAllOrganizations()
+    if err != nil {logs.Error("master/AddOrganization Error checking new organization: " + err.Error()); return err}
+
+    for x := range orgs {
+        if orgs[x]["name"] == anode["name"] {
+            return errors.New("An organization with that name already exists")
+        }
+    }
+
+    uuid := utils.Generate()
+    err = ndb.InsertOrganization(uuid, "name", anode["name"])
+    if err != nil {logs.Error("master/AddOrganization Error adding organization name: " + err.Error()); return err}
+    err = ndb.InsertOrganization(uuid, "desc", anode["desc"])
+    if err != nil {logs.Error("master/AddOrganization Error adding organization desc: " + err.Error()); return err}
+    err = ndb.InsertOrganization(uuid, "default", anode["default"])
+    if err != nil {logs.Error("master/AddOrganization Error adding organization default status: " + err.Error()); return err}
+    
+    return err
+}
+
+func GetAllOrganizationNodes(orgID string) (data map[string]string, err error) {
+
+    nodeOrgs,err := ndb.GetNodeOrgs()
+    if err != nil {logs.Error("master/GetAllOrganizationNodes Error getting nodeOrgs: " + err.Error()); return nil, err}
+    nodes,err := ndb.GetAllNodes()
+    if err != nil {logs.Error("master/GetAllOrganizationNodes Error getting nodes: " + err.Error()); return nil, err}
+
+    //list of node names
+    var nodeList []string
+    //return map
+    values := make(map[string]string)
+
+    for x := range nodeOrgs {
+        if nodeOrgs[x]["org"] == orgID {
+            nodeList = append(nodeList, nodes[nodeOrgs[x]["node"]]["name"])
+        }
+    }
+    
+    values["nodes"] = strings.Join(nodeList, ",")
+
+    return values, nil
 }
