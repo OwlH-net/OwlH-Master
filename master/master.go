@@ -501,14 +501,29 @@ func PingPlugins() (data map[string]map[string]string, err error) {
         logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
         return nil, err
     }
-    stapConnCount, err := utils.GetKeyValueString("execute", "stapConnCount")
+    stapConn, err := utils.GetKeyValueString("execute", "stapConn")
     if err != nil {
         logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
         return nil, err
     }
-    stapConn, err := utils.GetKeyValueString("execute", "stapConn")
+    greenMax, err := utils.GetKeyValueInt("stapCollector", "greenMax")
     if err != nil {
-        logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    greenMin, err := utils.GetKeyValueInt("stapCollector", "greenMin")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    yellowMax, err := utils.GetKeyValueInt("stapCollector", "yellowMax")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    yellowMin, err := utils.GetKeyValueInt("stapCollector", "yellowMin")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
     }
 
@@ -533,9 +548,26 @@ func PingPlugins() (data map[string]map[string]string, err error) {
             if err != nil {logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())}
             allPlugins[x]["connections"] = string(data)
 
-            count, err := exec.Command(command, param, strings.Replace(stapConnCount, "<PORT>", allPlugins[x]["port"], -1)).Output()
-            if err != nil {logs.Error("ping/PingPluginsNode getting STAP connections: " + err.Error())}            
-            allPlugins[x]["connectionsCount"] = string(count)
+            //split connections
+            splitted := strings.Split(allPlugins[x]["connections"], "\n")
+            var dataConn []string
+            for _,val := range splitted {
+                if val != "" {
+                    dataConn = append(dataConn,  val)
+                }
+            }
+
+            //get number of connections
+            allPlugins[x]["connectionsCount"] = strconv.Itoa(len(dataConn))
+
+            //check clients umbral
+            if len(dataConn) <= greenMax && len(dataConn) >= greenMin {
+                allPlugins[x]["connectionsColor"] = "success"
+            }else if (len(dataConn) > greenMax && len(dataConn) <= yellowMax) || (len(dataConn) < greenMin && len(dataConn) >= yellowMin) {
+                allPlugins[x]["connectionsColor"] = "warning"            
+            }else{
+                allPlugins[x]["connectionsColor"] = "danger"
+            }        
         }
     }
     
