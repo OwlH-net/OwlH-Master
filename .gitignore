@@ -1,0 +1,8 @@
+# ignore a file type
+*.tar.gz
+*.db
+
+#ignore folders
+conf/downloads
+conf/localRulesets
+conf/customRulesets

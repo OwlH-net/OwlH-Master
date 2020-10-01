@@ -1,0 +1,26 @@
+{
+  "nodes": [
+    {
+      "name": "node01",
+      "ntype": "pool",
+      "pcappath": "/tmp/dispatcher/node01/"
+    },
+    {
+      "name": "node02",
+      "ntype": "pool",
+      "pcappath": "/tmp/dispatcher/node02/"
+    },
+    {
+      "name": "node03",
+      "ntype": "alone",
+      "pcappath": "/tmp/dispatcher/node03/"
+    }
+  ],
+  "folders": [
+    {
+      "fname": "main",
+      "ftype": "local",
+      "fpath": "/tmp/dispatcher/pcaps/"
+    }
+  ]
+}

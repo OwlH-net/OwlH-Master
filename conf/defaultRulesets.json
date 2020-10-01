@@ -1,0 +1,57 @@
+{
+	"open-rules":{
+		"name":"Emerging Threats Open Ruleset",
+		"desc":"Proofpoint ET Open is a timely and accurate rule set for detecting and blocking advanced threats",
+		"url":"https://rules.emergingthreats.net/open/suricata-%(__version__)s/emerging.rules.tar.gz"
+	},    
+	"pro-ruleset":{
+		"name":"Emerging Threats Pro Ruleset",
+		"desc":"Proofpoint ET Pro is a timely and accurate rule set for detecting and blocking advanced threats",
+		"url": "https://rules.emergingthreatspro.com/<SECRET-CODE>/suricata-%(__version__)s/etpro.rules.tar.gz"
+	},    
+	"traffic-id":{
+		"name":"Suricata Traffic ID ruleset",
+		"desc":"Suricata Traffic ID ruleset",
+		"url": "https://openinfosecfoundation.org/rules/trafficid/trafficid.rules"
+	},    
+	"attack-detection":{
+		"name":"Positive Technologies Attack Detection Team ruleset",
+		"desc":"The Attack Detection Team searches for new vulnerabilities and 0-days, reproduces it and creates PoC exploits to understand how these security flaws work and how related attacks can be detected on the network layer. Additionally, we are interested in malware and hackers’ TTPs, so we develop Suricata rules for detecting all sorts of such activities.",
+		"url": "https://raw.githubusercontent.com/ptresearch/AttackDetection/master/pt.rules.tar.gz"
+	},    
+	"suricata-latest":{
+		"name":"Secureworks suricata-enhanced ruleset",
+		"desc":"Broad ruleset composed of malware rules and other security-related countermeasures, and curated by the Secureworks Counter Threat Unit research team.  This ruleset has been enhanced with comprehensive and fully standard-compliant BETTER metadata (https://better-schema.readthedocs.io/).",
+		"url": "https://ws.secureworks.com/ti/ruleset/<SECRET-CODE>/Suricata_suricata-enhanced_latest.tgz"
+	},    
+	"suricata-malware":{
+		"name":"Secureworks suricata-malware ruleset",
+		"desc":"High-fidelity, high-priority ruleset composed mainly of malware-related countermeasures and curated by the Secureworks Counter Threat Unit research team.",
+		"url": "https://ws.secureworks.com/ti/ruleset/<SECRET-CODE>/Suricata_suricata-malware_latest.tgz"
+	},    
+	"threat-intelligence":{
+		"name":"Secureworks suricata-security ruleset",
+		"desc":"Broad ruleset composed of malware rules and other security-related countermeasures, and curated by the Secureworks Counter Threat Unit research team.",
+		"url": "https://ws.secureworks.com/ti/ruleset/<SECRET-CODE>/Suricata_suricata-security_latest.tgz"
+	},    
+	"sslblacklist":{
+		"name":"Abuse.ch SSL Blacklist",
+		"desc":"The SSL Blacklist (SSLBL) is a project of abuse.ch with the goal of detecting malicious SSL connections, by identifying and blacklisting SSL certificates used by botnet C&C servers. In addition, SSLBL identifies JA3 fingerprints that helps you to detect & block malware botnet C&C communication on the TCP layer.",
+		"url": "https://sslbl.abuse.ch/blacklist/sslblacklist.rules"
+    },    
+    "ja3-fingerprint":{
+		"name":"Abuse.ch Suricata JA3 Fingerprint Ruleset",
+		"desc":"If you are running Suricata, you can use the SSLBLs Suricata JA3 FingerprintRuleset to detect and/or block malicious SSL connections in your network based on the JA3 fingerprint. Please note that your need Suricata 4.1.0 or newer in order to use the JA3 fingerprint ruleset.",
+		"url": "https://sslbl.abuse.ch/blacklist/ja3_fingerprints.rules"
+	},    
+    "ip-blacklist":{
+		"name":"Etnetera aggressive IP blacklist",
+		"desc":"Etnetera aggressive IP blacklist",
+		"url": "https://security.etnetera.cz/feeds/etn_aggressive.rules"
+	},    
+    "threat-hunting":{
+		"name":"Threat hunting rules",
+		"desc":"Heuristic ruleset for hunting. Focus on anomaly detection and showcasing latest engine features, not performance.",
+		"url": "https://raw.githubusercontent.com/travisbgreen/hunting-rules/master/hunting.rules"
+	}
+}
