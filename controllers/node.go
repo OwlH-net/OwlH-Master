@@ -2678,6 +2678,7 @@ func (n *NodeController) GetAllNodesReact() {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
     } else {
         nodes, err := models.GetAllNodesReact(n.Ctx.Input.Header("user"))
+        logs.Notice("%+v",nodes)
         n.Data["json"] = nodes
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
