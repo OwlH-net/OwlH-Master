@@ -703,3 +703,67 @@ func CompareFolderMapMD5(masterFiles map[string]map[string]string, nodeFiles map
 
     return fileList
 }
+
+func GetBytesFromSizeType(data string)(size string, err error){
+    //check for kb
+    fileType := data[len(data)-1:]
+    fileSize := data[:len(data)-1]
+
+    fileInt,err := strconv.Atoi(fileSize)
+    if err != nil {logs.Error(err.Error()); return "5000000000",err}
+    
+    if fileType == "K" || fileType == "k"{return strconv.Itoa(fileInt * 1000), nil}
+    if fileType == "M" || fileType == "m"{return strconv.Itoa(fileInt * 1000000), nil}
+    if fileType == "G" || fileType == "g"{return strconv.Itoa(fileInt * 1000000000), nil}
+    if fileType == "T" || fileType == "t"{return strconv.Itoa(fileInt * 1000000000000), nil}
+
+    return "5000000000",err
+}
+
+func ClearOlderLogFiles(path string, fileName string, quantity int) error  {
+pathMap := make(map[string]string)
+
+//get older backup file
+err := filepath.Walk(path,
+    func(file string, info os.FileInfo, err error) error {
+        if err != nil {return err}
+        
+        if !info.IsDir() {
+            re := regexp.MustCompile("owlhmaster-api[.]\\d{4}[-]\\d{2}[-]\\d{2}[.]\\d{3}.log")
+            match := re.FindStringSubmatch(file)
+
+            if match != nil{                
+                pathMap[file] = file
+            }
+        }
+    return nil
+})
+
+if err != nil {
+    logs.Error("utils.ClearOlderLogFiles Error filepath walk: " + err.Error())
+    return err
+}
+
+//sort files
+mk := make([]string, len(pathMap))
+i := 0
+for k, _ := range pathMap {
+    mk[i] = k
+    i++
+}
+sort.Strings(mk)
+
+if len(mk) > quantity {
+    count := 0
+    totalForDelete := len(mk) - quantity
+    for x := range mk {
+        count++
+        if count <= totalForDelete {
+            err = os.Remove(mk[x])
+            if err != nil {logs.Error("utils.ClearOlderLogFiles Error deleting older log files"); return err}
+        }
+    }
+}
+
+return nil
+}

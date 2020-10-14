@@ -32,6 +32,10 @@ func main() {
     utils.Load()
 
     //get logger data
+    filepath, err := utils.GetKeyValueString("logs", "filepath")
+    if err != nil {
+        logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
+    }
     filename, err := utils.GetKeyValueString("logs", "filename")
     if err != nil {
         logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
@@ -60,10 +64,21 @@ func main() {
     if err != nil {
         logs.Error("Main Error getting data from main.conf for load Logger data: " + err.Error())
     }
+    maxfiles, err := utils.GetKeyValueInt("logs", "maxfiles")
+    if err != nil {
+        logs.Error("Error getting data from main.conf for load Logger data: " + err.Error())
+    }
 
+    //transform maxsize to bytes
+    newMaxSize,_ := utils.GetBytesFromSizeType(maxsize)
+    //clear older log files
+    err = utils.ClearOlderLogFiles(filepath, filename+"." , maxfiles)
+    if err != nil {logs.Error(err.Error())}
+    //create logger
     logs.NewLogger(10000)
-    logs.SetLogger(logs.AdapterFile, `{"filename":"`+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+maxsize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
+    logs.SetLogger(logs.AdapterFile, `{"filename":"`+filepath+filename+`", "maxlines":`+maxlines+` ,"maxsize":`+newMaxSize+`, "daily":`+daily+`, "maxdays":`+maxdays+`, "rotate":`+rotate+`, "level":`+level+`}`)
 
+    
     version = "0.17.0.20200904"
     logs.Info("OwlH Master : v%s", version)
 
