@@ -28,6 +28,13 @@ func GetMasterTitle() (data string, err error) {
     return name, nil
 }
 
+func ChangePluginStatus(anode map[string]string) (err error) {  
+    err = ndb.UpdatePluginValueMaster(anode["uuid"], anode["param"], anode["value"])
+    if err != nil {logs.Error("SendFile Error getting data from main.conf"); return err}
+
+    return err
+}
+
 func GetFileContent(file string) (data map[string]string, err error) {
     sendBackArray := make(map[string]string)
 

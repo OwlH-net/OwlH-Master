@@ -3,7 +3,7 @@ package models
 import (
     "owlhmaster/master"
     "owlhmaster/changeControl"
-    "owlhmaster/database"
+    "owlhmaster/database"    
 )
 
 // curl -X GET \
@@ -79,7 +79,7 @@ func PingFlow(username string) (data map[string]map[string]string, err error) {
 //  }
 // }
 func ChangePluginStatus(anode map[string]string, username string) (err error) {
-    err = ndb.UpdatePluginValueMaster(anode["uuid"], anode["param"], anode["value"])
+    err = master.ChangePluginStatus(anode)
     changecontrol.ChangeControlInsertData(err, "ChangePluginStatus", username)
     return err
 }

@@ -2,12 +2,12 @@
   "nodes": [
     {
       "name": "node01",
-      "ntype": "pool",
+      "ntype": "alone",
       "pcappath": "/tmp/dispatcher/node01/"
     },
     {
       "name": "node02",
-      "ntype": "pool",
+      "ntype": "alone",
       "pcappath": "/tmp/dispatcher/node02/"
     },
     {
