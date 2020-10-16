@@ -47,7 +47,7 @@ func GetKeyValueBool(key, sub string) (result bool, err error) {
 	case reflect.Bool:
 		return keyValue.(bool), nil
 	default:
-		return false, errors.New("GetKeyValueSlice This value is not a Slice")
+		return false, errors.New("GetKeyValueBool This value is not a Slice")
 	}
 }
 func GetKeyValueInt(key, sub string) (result int, err error) {

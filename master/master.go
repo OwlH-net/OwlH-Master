@@ -28,6 +28,13 @@ func GetMasterTitle() (data string, err error) {
     return name, nil
 }
 
+func ChangePluginStatus(anode map[string]string) (err error) {  
+    err = ndb.UpdatePluginValueMaster(anode["uuid"], anode["param"], anode["value"])
+    if err != nil {logs.Error("SendFile Error getting data from main.conf"); return err}
+
+    return err
+}
+
 func GetFileContent(file string) (data map[string]string, err error) {
     sendBackArray := make(map[string]string)
 
@@ -506,6 +513,11 @@ func PingPlugins() (data map[string]map[string]string, err error) {
         logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
         return nil, err
     }
+    check, err := utils.GetKeyValueString("execute", "check")
+    if err != nil {
+        logs.Error("CheckServicesStatus Error getting data from main.conf: " + err.Error())
+        return nil, err
+    }
     greenMax, err := utils.GetKeyValueInt("stapCollector", "greenMax")
     if err != nil {
         logs.Error("ping/PingPluginsNode Error getting data from main.conf")
@@ -522,6 +534,16 @@ func PingPlugins() (data map[string]map[string]string, err error) {
         return nil, err
     }
     yellowMin, err := utils.GetKeyValueInt("stapCollector", "yellowMin")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    checkTCPDUMP, err := utils.GetKeyValueString("stapCollector", "checkTCPDUMP")
+    if err != nil {
+        logs.Error("ping/PingPluginsNode Error getting data from main.conf")
+        return nil, err
+    }
+    checkSOCAT, err := utils.GetKeyValueString("stapCollector", "checkSOCAT")
     if err != nil {
         logs.Error("ping/PingPluginsNode Error getting data from main.conf")
         return nil, err
@@ -570,7 +592,23 @@ func PingPlugins() (data map[string]map[string]string, err error) {
             }        
         }
     }
-    
+
+        //check if tcpdump, pcapreplay and socat are installed
+        allPlugins["installed"] = map[string]string{}
+        checkTcpdump, err := exec.Command(check, checkTCPDUMP).Output()
+        if err != nil {logs.Error("ping/PingPlugins checking tcpdump: " + err.Error())}
+        if len(checkTcpdump) > 0 {
+            allPlugins["installed"]["checkTcpdump"] = "true"
+        } else {
+            allPlugins["installed"]["checkTcpdump"] = "false"
+        }    
+        checkSocat, err := exec.Command(check, checkSOCAT).Output()
+        if err != nil {logs.Error("ping/PingPlugins checking socat: " + err.Error())}
+        if len(checkSocat) > 0 {
+            allPlugins["installed"]["checkSocat"] = "true"
+        } else {
+            allPlugins["installed"]["checkSocat"] = "false"
+        }        
     return allPlugins, err
 }
 

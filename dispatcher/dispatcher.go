@@ -197,37 +197,39 @@ func dispatch(theList listOfNodesAndFolders) {
             continue
         }
         
-        for _, file := range files {                    
-            if latest == len(pool) {
-                latest = 0
-            }
-
-            err := copyFileToNode(pool[latest], theList.Folders[i].Fpath,file.Name(), bufferSize)
-            if err != nil {
-                break
-            }
-            for k:=0; k < len(alone); k++ {
-                logs.Notice("Copying file to node: "+alone[k])
-                err = copyFileToNode(alone[k], theList.Folders[i].Fpath,file.Name(), bufferSize)
+        if pool != nil {
+            for _, file := range files {                    
+                if latest == len(pool) {
+                    latest = 0
+                }
+    
+                err := copyFileToNode(pool[latest], theList.Folders[i].Fpath,file.Name(), bufferSize)
                 if err != nil {
-                    logs.Error("CopyFileToNode alone: "+err.Error())    
                     break
                 }
+                for k:=0; k < len(alone); k++ {
+                    logs.Notice("Copying file to node: "+alone[k])
+                    err = copyFileToNode(alone[k], theList.Folders[i].Fpath,file.Name(), bufferSize)
+                    if err != nil {
+                        logs.Error("CopyFileToNode alone: "+err.Error())    
+                        break
+                    }
+                }
+    
+                if !KeepPcapStatus {
+                    logs.Notice("Deleting file: "+file.Name())
+                    err = os.Remove(theList.Folders[i].Fpath+file.Name())
+                    if err != nil { logs.Notice("Error Removing =-> "+err.Error())}
+                }else{
+                    logs.Notice("Keeping file: "+file.Name())
+                    err := copyFileToNode(output, theList.Folders[i].Fpath,file.Name(), bufferSize)
+                    if err != nil { logs.Error("CopyFileToNode cleaning pcap: "+err.Error())}
+                    
+                    err = os.Remove(theList.Folders[i].Fpath+file.Name())
+                    if err != nil { logs.Error("Error Removing =-> "+err.Error())}
+                }
+                latest += 1
             }
-
-            if !KeepPcapStatus {
-                logs.Notice("Deleting file: "+file.Name())
-                err = os.Remove(theList.Folders[i].Fpath+file.Name())
-                if err != nil { logs.Notice("Error Removing =-> "+err.Error())}
-            }else{
-                logs.Notice("Keeping file: "+file.Name())
-                err := copyFileToNode(output, theList.Folders[i].Fpath,file.Name(), bufferSize)
-                if err != nil { logs.Error("CopyFileToNode cleaning pcap: "+err.Error())}
-                
-                err = os.Remove(theList.Folders[i].Fpath+file.Name())
-                if err != nil { logs.Error("Error Removing =-> "+err.Error())}
-            }
-            latest += 1
         }
     }
     return
