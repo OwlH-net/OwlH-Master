@@ -33,7 +33,7 @@ func main() {
     //init logger
     utils.Logger()
     
-    version = "0.17.0.20200904"
+    version = "0.17.0.20201019"
     logs.Info("OwlH Master : v%s", version)
 
     //operative system values
