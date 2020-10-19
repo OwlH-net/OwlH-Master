@@ -376,6 +376,53 @@ func checkFields()(ok bool){
     ok = CheckField(field)
     if !ok {return false}
 
+    //add wazuh user by default
+    // secret := utils.Generate()
+    wazuhPass,err := validation.HashPassword("wazuhapi")
+    if err!=nil {logs.Error("Error hashing password at configuration.")}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='user' and user_value='wazuhapi'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','user','wazuhapi')"
+    field.Fname      = "users - user"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='type' and user_value='local'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','type','local')"
+    field.Fname      = "users - type"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='pass' and user_uniqueid='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','pass','"+wazuhPass+"')"
+    field.Fname      = "users - pass"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='deleteable' and user_uniqueid='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','deleteable','false')"
+    field.Fname      = "users - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='ldap' and user_uniqueid='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','ldap','disabled')"
+    field.Fname      = "users - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='userTokens' and user_uniqueid='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','userTokens','eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoid2F6dWhVc2VyIiwiZXhwIjoxNTAwMCwiaXNzIjoiT3dsSCJ9.KECxDwjx0mOAb-XmaPUUTbH3FX0DQsycZpCOLdaieis')"
+    field.Fname      = "users - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
+
     //add admin to role admin status
     masterUUID := utils.Generate()
     field.Fconn      = "masterConn"
