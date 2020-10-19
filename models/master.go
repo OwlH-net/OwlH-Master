@@ -3,7 +3,7 @@ package models
 import (
     "owlhmaster/master"
     "owlhmaster/changeControl"
-    "owlhmaster/database"
+    "owlhmaster/database"    
 )
 
 // curl -X GET \
@@ -79,7 +79,7 @@ func PingFlow(username string) (data map[string]map[string]string, err error) {
 //  }
 // }
 func ChangePluginStatus(anode map[string]string, username string) (err error) {
-    err = ndb.UpdatePluginValueMaster(anode["uuid"], anode["param"], anode["value"])
+    err = master.ChangePluginStatus(anode)
     changecontrol.ChangeControlInsertData(err, "ChangePluginStatus", username)
     return err
 }
@@ -681,4 +681,28 @@ func AddNewRole(anode map[string]string, username string) (err error) {
     err = master.AddNewRole(anode)
     changecontrol.ChangeControlInsertData(err, "AddNewRole", username)
     return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/master/addOrganization \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "name": "v"
+//     "desc": "v"
+//     "default": "v"
+//  }
+// }
+func AddOrganization(anode map[string]string, username string) (err error) {
+    err = master.AddOrganization(anode)
+    changecontrol.ChangeControlInsertData(err, "AddOrganization", username)
+    return err
+}
+
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/master/getAllOrganizationNodes/:uuid \
+// }
+func GetAllOrganizationNodes(file string, username string) (data map[string]string, err error) {
+    data, err = master.GetAllOrganizationNodes(file)
+    changecontrol.ChangeControlInsertData(err, "GetAllOrganizationNodes", username)
+    return data, err
 }

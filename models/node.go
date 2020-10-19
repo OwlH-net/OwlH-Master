@@ -27,6 +27,15 @@ func GetAllNodesReact(username string) (anode node.NodeList, err error) {
     return anode, err
 }
 
+// curl -X GET \
+//   https://52.47.197.22:50002/v1/node/getAllTags \
+// }
+func GetAllTags(username string) (tags map[string]map[string]string, err error) {
+    tags, err = node.GetAllTags()
+    changecontrol.ChangeControlInsertData(err, "Get all tags", username)
+    return tags, err
+}
+
 // curl -X POST \
 //   https://52.47.197.22:50002/v1/node/ \
 //   -H 'Content-Type: application/json' \
@@ -1117,5 +1126,49 @@ func CreateSuricataService(guuid, uuid string, suricataDetails utils.SuricataDat
 func EnrollNewNode(anode utils.EnrollNewNodeStruct, username string) (err error) {
     err = node.EnrollNewNode(anode)
     changecontrol.ChangeControlInsertData(err, "EnrollNewNode", username)
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/updateNodeReact  \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "NODE": {},
+// }
+func UpdateNodeReact(anode utils.EnrollNewNodeStruct, username string) (err error) {
+    err = node.UpdateNodeReact(anode)
+    changecontrol.ChangeControlInsertData(err, "UpdateNodeReact", username)
+    return err
+}
+
+// // curl -X GET \
+// //   https://52.47.197.22:50002/v1/node/getAllOrganizations/:uuid \
+// // }
+func GetAllOrganizations(username string) (data map[string]map[string]string, err error) {
+    data, err = node.GetAllOrganizations()
+    changecontrol.ChangeControlInsertData(err, "GetAllOrganizations", username)
+    return data, err
+}
+
+// curl -X DELETE \
+//   https://52.47.197.22:50002/v1/node/deleteOrg/:uuid \
+func DeleteOrganization(uuid string, username string) (err error) {
+    err = node.DeleteOrganization(uuid)
+    changecontrol.ChangeControlInsertData(err, "Delete org", username)
+    return err
+}
+
+// curl -X PUT \
+//   https://52.47.197.22:50002/v1/node/editOrganization  \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     uuid: z
+//     name: z
+//     desc: z
+//     default: z
+// }
+func EditOrganization(anode map[string]string, username string) (err error) {
+    err = node.EditOrganization(anode)
+    changecontrol.ChangeControlInsertData(err, "EditOrganization", username)
     return err
 }

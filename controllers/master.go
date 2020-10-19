@@ -1604,3 +1604,59 @@ func (n *MasterController) SaveNewFileContent() {
     }
     n.ServeJSON()
 }
+
+// @Title AddOrganization
+// @Description Add new organization
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /addOrganization [put]
+func (n *MasterController) AddOrganization() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"AddOrganization"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        
+        err := models.AddOrganization(anode, n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+// @Title GetAllOrganizationNodes
+// @Description Get all user roles
+// @Param body body models.Master true "body for master content"
+// @Success 200 {object} models.Master
+// @router /getAllOrganizationNodes/:uuid [get]
+func (n *MasterController) GetAllOrganizationNodes() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
+        n.ServeJSON()
+        return
+    }    
+    permissions := []string{"GetAllOrganizationNodes"}
+    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
+    }else{
+        id := n.GetString(":uuid")
+        data, err := models.GetAllOrganizationNodes(id, n.Ctx.Input.Header("user"))
+        n.Data["json"] = data
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
