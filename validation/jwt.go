@@ -52,6 +52,8 @@ func HashPassword(password string) (string, error) {
 }
 
 func CheckPasswordHash(password string, hash string) (bool, error) {
+    logs.Notice(password)
+    logs.Notice(hash)
     err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
     if err != nil {
         logs.Error(err)
@@ -126,6 +128,7 @@ func SaveUserLoginData(user string, secret string) (err error) {
 //     return nil
 // }
 
+
 //verify master token
 func VerifyToken(tokenRetrieved string, user string) (err error) {
     var tokens = []Token{}
@@ -143,66 +146,58 @@ func VerifyToken(tokenRetrieved string, user string) (err error) {
     if err != nil {logs.Error("VerifyToken ERROR getting login data: %s", err); return err}
 
     for x := range users {
+
         if users[x]["user"] == user {
             json.Unmarshal([]byte(users[x]["userTokens"]), &tokens)
-
-            //Delete invalid secret keys for tokens
-            for tokenID := range tokens{                                               
-                if users[x]["type"] == "wazuh" {
-                    tkn, err := Encode(user, tokens[tokenID].Secret)
-                    if err != nil {logs.Error("VerifyToken ERROR checking Wazuh token: %s", err); return err}
-
-                    if tkn == tokenRetrieved{
-                        return nil
-                    }else{
-                        return errors.New("Error checking Wazuh token: "+err.Error())
-                    }
-                }else{
-                    ts,_ := strconv.ParseInt(tokens[tokenID].Timestamp, 10, 64)
-                    tkn, err := Encode(user, tokens[tokenID].Secret)
-                    if err != nil {logs.Error("VerifyToken ERROR checking token: %s", err); return err}
-
-                    if int(ts) >= (int(currentTime)) {
+            
+            //Delete invalid secret keys for token
+            for tokenID := range tokens{    
+                ts,_ := strconv.ParseInt(tokens[tokenID].Timestamp, 10, 64)
+                tkn, err := Encode(user, tokens[tokenID].Secret)
+                if err != nil {logs.Error("VerifyToken ERROR checking token: %s", err); return err}
+                
+                if users[x]["expire"] == "true"{
+                    if int(ts) >= (int(currentTime)){
                         if tkn == tokenRetrieved{
                             //save secret and timstamp
                             newToken.Secret = tokens[tokenID].Secret
-                            newToken.Timestamp = strconv.Itoa(int(currentTime) + int(mainTimeout))
-        
+                            newToken.Timestamp = strconv.Itoa(int(currentTime) + int(mainTimeout))    
                             tokensFiltered = append(tokensFiltered, newToken)
                         }else{
                             //save secret and timstamp
                             newToken.Secret = tokens[tokenID].Secret
-                            newToken.Timestamp = tokens[tokenID].Timestamp
-            
+                            newToken.Timestamp = tokens[tokenID].Timestamp                    
                             tokensFiltered = append(tokensFiltered, newToken)
                         }             
                     }
-                    //save tokens into db
-                    userTokens, _ := json.Marshal(tokensFiltered)
-                    err = ndb.UpdateUser(x, "userTokens", string(userTokens))
-                    if err != nil {logs.Error("ERROR updating user login data: %s", err); return err}    
-                    
-                    //over all valid secret keys, check tokens
-                    for tokenID := range tokensFiltered{   
-                        tkn, err := Encode(user, tokensFiltered[tokenID].Secret)
-        
-                        if err != nil {
-                            logs.Error("Error checking token: %s", err)
-                            return err
-                        } else {
-                            if tokenRetrieved == tkn {
-                                return nil
-                            }
-                        }
-                    }             
-                }
+                }else{
+                    newToken.Secret = tokens[tokenID].Secret
+                    tokensFiltered = append(tokensFiltered, newToken)
+                    newToken.Timestamp = "0"
+                }                
             }        
+            
+            //save tokens into db
+            userTokens, _ := json.Marshal(tokensFiltered)
+            err = ndb.UpdateUser(x, "userTokens", string(userTokens))
+            if err != nil {logs.Error("ERROR updating user login data: %s", err); return err}    
+                
+            //over all valid secret keys, check tokens
+            for tokenID := range tokensFiltered{   
+                tkn, err := Encode(user, tokensFiltered[tokenID].Secret)
+                if err != nil {
+                    logs.Error("Error checking token: %s", err)
+                    return err
+                } else {
+                    if tokenRetrieved == tkn {
+                        return nil
+                    }
+                }
+            }         
         }
     }
     return errors.New("There are not token. Error creating Token")
 }
-
-
 
 func VerifyPermissions(user string, object string, permissions []string) (hasPermissions bool, err error) {
     for x := range permissions {

@@ -937,9 +937,6 @@ func Login(data map[string]string) (newToken string, err error) {
     users, err := ndb.GetLoginData()
     if err != nil {logs.Error("master/Login Error Getting user values: " + err.Error()); return "", err}
     
-    // err = validation.VerifyUserToken(data["user"])
-    // if err != nil {logs.Error("master/Login Error checking all user tokens: " + err.Error()); return "", err}
-
     //check values
     newSecret := utils.Generate()
     for x := range users {
@@ -962,8 +959,9 @@ func Login(data map[string]string) (newToken string, err error) {
                     return token, nil
                 }
             } else {
-                check, err := validation.CheckPasswordHash(data["password"], users[x]["pass"])
+                check, err := validation.CheckPasswordHash(data["password"], users[x]["pass"])                
                 if err != nil {
+                    logs.Error("Checking hashed password ERROR: "+err.Error())
                     return "", err
                 }
                 if check {
@@ -973,14 +971,14 @@ func Login(data map[string]string) (newToken string, err error) {
                     //save secret and timestamp
                     err = validation.SaveUserLoginData(data["user"], newSecret)
                     if err != nil {return "", err}
-
+                    
                     return token, nil
                 }
             }
         }
     }
 
-    return "", errors.New("There are not token. Error creating Token")
+    return "", errors.New("Login ERROR: There are not token. Error creating Token")
 }
 
 func AddUser(data map[string]string) (err error) {
