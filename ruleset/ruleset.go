@@ -764,6 +764,23 @@ func FindDuplicatedSIDs(data map[string]map[string]string) (duplicated []byte, e
     }
 }
 
+//set local ruleset as default
+func SetDefaultRuleset(uuid string) (err error) {
+    //get all rulesets
+    rsets,err := ndb.GetAllRulesets()
+    for x := range rsets {
+        if rsets[x]["default"] == "true" && rsets[x]["type"] == "local"{
+            err = ndb.UpdateRuleset(x, "default", "false")
+            if err != nil {logs.Error("ruleset/SetDefaultRuleset: %s", err.Error()); return err}
+        }
+    }
+    
+    err = ndb.UpdateRuleset(uuid, "default", "true")
+    if err != nil {logs.Error("ruleset/SetDefaultRuleset: %s", err.Error()); return err}
+
+    return err
+}
+
 //Add new ruleset to locale ruleset
 func AddNewRuleset(data map[string]map[string]string) (duplicated []byte, err error) {    
     //check for duplicated rule SIDs
@@ -791,6 +808,17 @@ func AddNewRuleset(data map[string]map[string]string) (duplicated []byte, err er
 
     //get all rulesets
     rsets,err := ndb.GetAllRulesets()
+
+    //check for previous default ruleset. If not, set as default
+    setAsDefault := true
+    for x := range rsets {
+        if rsets[x]["default"] == "true" && rsets[x]["type"] == "local"{
+            setAsDefault = false
+            break
+        }
+    }
+
+    //add new ruleset
     for x := range data {
         for rsetID := range rsets {
             if rsetID == data[x]["uuid"] && !rulesetCreated { rulesetCreated = true }
@@ -803,6 +831,11 @@ func AddNewRuleset(data map[string]map[string]string) (duplicated []byte, err er
             err = insertRulesetValues(rulesetUUID, "type", "local")
             err = insertRulesetValues(rulesetUUID, "name", data[x]["rulesetName"])
             err = insertRulesetValues(rulesetUUID, "desc", data[x]["rulesetDesc"])
+            if setAsDefault{
+                err = insertRulesetValues(rulesetUUID, "default", "true")
+            }else{
+                err = insertRulesetValues(rulesetUUID, "default", "false")
+            }
             if err != nil {
                 logs.Error("ruleset/AddNewRuleset -- Insert error: %s", err.Error())
                 return nil, err
@@ -1446,18 +1479,18 @@ func SyncToAllNodes(content map[string]string) (err error) {
     return err
 }
 
-func SetDefaultRuleset(uuid string) (err error) {
-    logs.Info("lest set the default ruleset to %s", uuid)
-    rulesets, _ := GetAllRulesets()
-    for ruleset := range rulesets {
-        logs.Info("ruleset element -> %+v", ruleset)
-        if ruleset == uuid {
-            logs.Info("we do have a match %s", uuid)
-            insertRulesetValues(uuid, "default", "true")
-        } else {
-            insertRulesetValues(uuid, "default", "false")
-            logs.Info("this is not the right one -> %s, we are looking for %s", ruleset, uuid)
-        }
-    }
-    return nil
-}
+// func SetDefaultRuleset(uuid string) (err error) {
+//     logs.Info("lest set the default ruleset to %s", uuid)
+//     rulesets, _ := GetAllRulesets()
+//     for ruleset := range rulesets {
+//         logs.Info("ruleset element -> %+v", ruleset)
+//         if ruleset == uuid {
+//             logs.Info("we do have a match %s", uuid)
+//             insertRulesetValues(uuid, "default", "true")
+//         } else {
+//             insertRulesetValues(uuid, "default", "false")
+//             logs.Info("this is not the right one -> %s, we are looking for %s", ruleset, uuid)
+//         }
+//     }
+//     return nil
+// }
