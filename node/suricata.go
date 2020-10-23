@@ -350,3 +350,26 @@ func CreateSuricataService(guuid, nuuid string, suricataData utils.SuricataData)
 
     return true, nil
 }
+
+func CreateStapService(nuuid string, stapData utils.StapData) (assigned bool, details map[string]string) {
+    if nuuid == "" {
+        return true, nil
+    }
+
+    sData := make(map[string]string)
+    sData["name"] = stapData.Name
+    sData["type"] = stapData.Type
+    sData["status"] = stapData.Status
+    sData["interface"] = stapData.Interface
+    sData["cert"] = stapData.Cert
+    sData["port"] = stapData.Port
+
+    logs.Info("Create STAP Service -> %+v", sData)
+    nodeclient.AddStapService(nuuid, sData)
+
+    if stapData.Status == "enable" {
+        logs.Info("start STAP service")
+    }
+
+    return true, nil
+}

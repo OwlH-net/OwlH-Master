@@ -375,6 +375,67 @@ func checkFields()(ok bool){
     field.Fname      = "users - deleteable"
     ok = CheckField(field)
     if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='expire' and user_uniqueid='00000000-0000-0000-0000-000000000000'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-000000000000','expire','true')"
+    field.Fname      = "users - expire"
+    ok = CheckField(field)
+    if !ok {return false}
+
+    //add wazuh user by default
+    // secret := utils.Generate()
+    wazuhPass,err := validation.HashPassword("wazuhapi")
+    if err!=nil {logs.Error("Error hashing password at configuration.")}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='user' and user_value='wazuhapi'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','user','wazuhapi')"
+    field.Fname      = "users - user"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='type' and user_value='wazuh'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','type','wazuh')"
+    field.Fname      = "users - type"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='pass' and user_uniqueid='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','pass','"+wazuhPass+"')"
+    field.Fname      = "users - pass"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='deleteable' and user_uniqueid='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','deleteable','false')"
+    field.Fname      = "users - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='ldap' and user_uniqueid='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','ldap','disabled')"
+    field.Fname      = "users - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='userTokens' and user_uniqueid='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','userTokens','')"
+    field.Fname      = "users - deleteable"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "users"
+    field.Fquery     = "select user_param from users where user_param='expire' and user_uniqueid='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into users (user_uniqueid,user_param,user_value) values ('00000000-0000-0000-0000-999999999999','expire','false')"
+    field.Fname      = "users - expire"
+    ok = CheckField(field)
+    if !ok {return false}
 
     //add admin to role admin status
     masterUUID := utils.Generate()
@@ -474,6 +535,35 @@ func checkFields()(ok bool){
     field.Fname      = "group - usergrouproles"
     ok = CheckField(field)
     if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000006' and ugr_param='user' and ugr_value='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000006','user','00000000-0000-0000-0000-999999999999')"
+    field.Fname      = "usergrouproles - user"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000006' and ugr_param='group' and ugr_value='00000000-0000-0000-0000-000000000002'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000006','group','00000000-0000-0000-0000-000000000002')"
+    field.Fname      = "usergrouproles - user"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000007' and ugr_param='user' and ugr_value='00000000-0000-0000-0000-999999999999'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000007','user','00000000-0000-0000-0000-999999999999')"
+    field.Fname      = "usergrouproles - user"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "usergrouproles"
+    field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000007' and ugr_param='role' and ugr_value='00000000-0000-0000-0000-000000000001'"
+    field.Finsert    = "insert into usergrouproles (ugr_uniqueid,ugr_param,ugr_value) values ('00000000-0000-0000-0000-000000000007','role','00000000-0000-0000-0000-000000000001')"
+    field.Fname      = "usergrouproles - user"
+    ok = CheckField(field)
+    if !ok {return false}
+
     // field.Fconn      = "masterConn"
     // field.Ftable     = "usergrouproles"
     // field.Fquery     = "select ugr_uniqueid from usergrouproles where ugr_uniqueid='00000000-0000-0000-0000-000000000006' and ugr_param='role' and ugr_value='00000000-0000-0000-0000-000000000001'"

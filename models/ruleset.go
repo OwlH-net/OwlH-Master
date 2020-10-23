@@ -199,6 +199,18 @@ func AddNewRuleset(data map[string]map[string]string, username string) (duplicat
 }
 
 // curl -X PUT \
+//   https://52.47.197.22:50002/v1/ruleset/setDefaultRuleset \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//      "uuid":"uuid",
+// }
+func SetDefaultRuleset(data string, username string) (err error) {
+    err = ruleset.SetDefaultRuleset(data)
+    changecontrol.ChangeControlInsertData(err, "SetDefaultRuleset", username)
+    return err
+}
+
+// curl -X PUT \
 //   https://52.47.197.22:50002/v1/ruleset/modify \
 //   -H 'Content-Type: application/json' \
 //   -d '{
@@ -324,7 +336,7 @@ func SyncToAll(anode map[string]string, username string) (err error) {
     return err
 }
 
-func SetDefaultRuleset(uuid string) (err error) {
-    err = ruleset.SetDefaultRuleset(uuid)
-    return err
-}
+// func SetDefaultRuleset(uuid string) (err error) {
+//     err = ruleset.SetDefaultRuleset(uuid)
+//     return err
+// }
