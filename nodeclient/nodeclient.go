@@ -2793,3 +2793,34 @@ func AddSuricataService(uuid string, anode map[string]string) (err error) {
 
     return nil
 }
+
+func AddStapService(uuid string, anode map[string]string) (err error) {
+    ipData, portData, err := ndb.ObtainPortIp(uuid)
+    url := "https://" + ipData + ":" + portData + "/node/plugin/addService"
+    valuesJSON, err := json.Marshal(anode)
+    resp, err := utils.NewRequestHTTP("PUT", url, bytes.NewBuffer(valuesJSON))
+    if err != nil {
+        logs.Error("nodeclient/AddStapService ERROR connection through http new Request: " + err.Error())
+        return err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil {
+        logs.Error("nodeclient/AddStapService ERROR reading request data: " + err.Error())
+        return err
+    }
+
+    data := make(map[string]string)
+    err = json.Unmarshal(body, &data)
+    if err != nil {
+        logs.Error("nodeclient/AddStapService ERROR doing unmarshal JSON: " + err.Error())
+        return err
+    }
+
+    if data["ack"] == "false" {
+        return errors.New(data["error"])
+    }
+
+    return nil
+}

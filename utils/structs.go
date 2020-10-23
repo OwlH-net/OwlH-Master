@@ -4,6 +4,7 @@ type NodeEnroll struct {
     Node     NodeData     `json:"node"`
     Group    GroupData    `json:"group"`
     Suricata SuricataData `json:"suricata"`
+    Stap     StapData     `json:"stap"`
 }
 
 type NodeData struct {
@@ -29,24 +30,32 @@ type SuricataData struct {
     Status     string `json:"status"`
 }
 
+type StapData struct {
+    Interface string `json:"interface"`
+    Cert      string `json:"cert"`
+    Port      string `json:"port"`
+    Type      string `json:"type"`
+    Name      string `json:"name"`
+    Status    string `json:"status"`
+}
 
 /////////////////////////////////////////////
 type EnrollNewNodeStruct struct {
-    Node        NewNodeData     `json:"node"`
-    Group       []string        `json:"group"`
-    Suricata    SuricataData    `json:"suricata"`
-    Tags        []string          `json:"tags"`
-    Orgs        []string          `json:"orgs"`
+    Node     NewNodeData  `json:"node"`
+    Group    []string     `json:"group"`
+    Suricata SuricataData `json:"suricata"`
+    Tags     []string     `json:"tags"`
+    Orgs     []string     `json:"orgs"`
 }
 type NewNodeData struct {
-    UUID         string     `json:"uuid"`
-    IP           string     `json:"ip"`
-    Name         string     `json:"name"`
-    Port         string     `json:"port"`
-    NodeUser     string     `json:"nodeuser"`
-    NodePass     string     `json:"nodepass"`
+    UUID     string `json:"uuid"`
+    IP       string `json:"ip"`
+    Name     string `json:"name"`
+    Port     string `json:"port"`
+    NodeUser string `json:"nodeuser"`
+    NodePass string `json:"nodepass"`
 }
+
 // type GroupArray struct {
 //     UUID    []string `json:"uuid"`
 // }
-
