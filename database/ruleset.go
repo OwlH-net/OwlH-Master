@@ -593,10 +593,25 @@ func RulesetParamExists(uuid, param string) bool {
 }
 
 func GetGroupRulesets(guuid string) string {
+    if Rdb == nil {
+        logs.Warn("GetDefaultRuleset -> no access to database")
+        return ""
+    }
     sql := Rdb.QueryRow("select gr_uniqueid from grouprulesets where gr_param = 'groupid' and gr_value='" + guuid + "'")
     gruuid := ""
     sql.Scan(&gruuid)
     sql = Rdb.QueryRow("select gr_value from grouprulesets where gr_param = 'rulesetid' and gr_uniqueid='" + gruuid + "'")
+    ruuid := ""
+    sql.Scan(&ruuid)
+    return ruuid
+}
+
+func GetDefaultRuleset() string {
+    if Rdb == nil {
+        logs.Warn("GetDefaultRuleset -> no access to database")
+        return ""
+    }
+    sql := Rdb.QueryRow("select ruleset_uniqueid from ruleset where ruleset_param = 'default' and ruleset_value='true'")
     ruuid := ""
     sql.Scan(&ruuid)
     return ruuid

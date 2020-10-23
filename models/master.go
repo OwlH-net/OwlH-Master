@@ -30,11 +30,11 @@ func GetFileContent(file string, username string) (data map[string]string, err e
 }
 
 // curl -X GET \
-//   https://52.47.197.22:50002/v1/master/getAllGroupRulesetsForAllNodes \
+//   https://52.47.197.22:50002/v1/master/GetAllRulesetsForAllNodes \
 // }
-func GetAllGroupRulesetsForAllNodes(username string) (data map[string]map[string]string, err error) {
-    data, err = master.GetAllGroupRulesetsForAllNodes()
-    changecontrol.ChangeControlInsertData(err, "GetAllGroupRulesetsForAllNodes", username)
+func GetAllRulesetsForAllNodes(username string) (data map[string]map[string]string, err error) {
+    data, err = master.GetAllRulesetsForAllNodes()
+    changecontrol.ChangeControlInsertData(err, "GetAllRulesetsForAllNodes", username)
     return data, err
 }
 

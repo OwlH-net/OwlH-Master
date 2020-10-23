@@ -12,6 +12,7 @@ import (
     "owlhmaster/node"
     "owlhmaster/utils"
     "owlhmaster/validation"
+    "owlhmaster/nodeclient"
     "strconv"
     "strings"
     "path/filepath"
@@ -1771,7 +1772,7 @@ func GetPermissionsByRole(roleuuid string) (data map[string]map[string]string, e
     return allRolePermissions, nil
 }
 
-func GetAllGroupRulesetsForAllNodes() (data map[string]map[string]string, err error) {
+func GetAllRulesetsForAllNodes() (data map[string]map[string]string, err error) {
     allNodes, err := ndb.GetAllNodes()
     if err != nil {
         logs.Error("GetAllNodes error getting all nodes from db: " + err.Error())
@@ -1801,11 +1802,11 @@ func GetAllGroupRulesetsForAllNodes() (data map[string]map[string]string, err er
     var allData = map[string]map[string]string{}
 
     for id := range allNodes {
+        if allData[id] == nil {
+            allData[id] = map[string]string{}
+        }
         for idgr := range allGroupNodes {
             if allGroupNodes[idgr]["nodesid"] == id {
-                if allData[id] == nil {
-                    allData[id] = map[string]string{}
-                }
                 //get group name
                 var rsets []string
                 for r := range allGroupRset {
@@ -1816,8 +1817,23 @@ func GetAllGroupRulesetsForAllNodes() (data map[string]map[string]string, err er
                 allData[id][allGroups[allGroupNodes[idgr]["groupid"]]["name"]] = strings.Join(rsets, ",")
             }
         }
+
+        //get plugins and their ruleset
+        err = ndb.GetTokenByUuid(id)
+        if err != nil {logs.Error("GetAllRulesetsForAllNodes Error loading node token: %s", err); return nil, err}
+        nodeRsets,err := nodeclient.GetSuricataRulesets(allNodes[id]["ip"], allNodes[id]["port"])
+        if err != nil {logs.Error("GetAllRulesetsForAllNodes Error getting node rulesets from suricata: %s", err); return nil, err}
+
+        var nodeRulesets []string
+        for x := range nodeRsets {
+            nodeRulesets = append(nodeRulesets, "Suricata "+nodeRsets[x]["name"]+": "+nodeRsets[x]["ruleset"])
+        }
+        allData[id]["suricata"] = strings.Join(nodeRulesets, ",")
+
+
     }
 
+    logs.Notice(allData)
     return allData, err
 }
 
