@@ -2186,6 +2186,20 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='SetDefault' and per_param='desc' and per_value='Set default ruleset'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SetDefault','desc','Set default ruleset')"
+    field.Fname      = "permissions - desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='SetDefault' and per_param='permissionGroup' and per_value='Ruleset'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SetDefault','permissionGroup','Ruleset')"
+    field.Fname      = "permissions - group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='SetDefaultRuleset' and per_param='desc' and per_value='Set default ruleset'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('SetDefaultRuleset','desc','Set default ruleset')"
     field.Fname      = "permissions - SetDefaultRuleset desc"

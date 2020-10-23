@@ -996,7 +996,7 @@ func SuricataNodesStatus(uuid string) (data map[string]map[string]string, err er
 func SetDefaultGroup(uuid string) {
     groups, err := ndb.GetAllGroups()
     if err != nil {
-        logs.Error("group/SetDefaultRuleset Error ERROR getting all group nodes: " + err.Error())
+        logs.Error("group/SetDefaultGroup Error ERROR getting all group nodes: " + err.Error())
         return
     }
     for x := range groups {
