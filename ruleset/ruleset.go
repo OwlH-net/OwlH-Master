@@ -769,6 +769,12 @@ func SetDefaultRuleset(uuid string) (err error) {
     //get all rulesets
     rsets,err := ndb.GetAllRulesets()
     for x := range rsets {
+    
+        if rsets[x]["default"] == "" && rsets[x]["type"] == "local"{            
+            err = ndb.RulesetSourceKeyInsert(x,  "default", "false")
+            if err != nil {logs.Error("ruleset/SetDefaultRuleset: %s", err.Error()); return err}
+        }
+        
         if rsets[x]["default"] == "true" && rsets[x]["type"] == "local"{
             err = ndb.UpdateRuleset(x, "default", "false")
             if err != nil {logs.Error("ruleset/SetDefaultRuleset: %s", err.Error()); return err}

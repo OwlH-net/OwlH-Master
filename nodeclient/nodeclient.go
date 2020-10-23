@@ -2793,3 +2793,37 @@ func AddSuricataService(uuid string, anode map[string]string) (err error) {
 
     return nil
 }
+
+func GetSuricataRulesets(ipnid string, portnid string) (data map[string]map[string]string, err error) {
+    url := "https://" + ipnid + ":" + portnid + "/node/suricata/getSuricataRulesets/"
+    resp, err := utils.NewRequestHTTP("GET", url, nil)
+    if err != nil {
+        logs.Error("nodeclient/GetSuricataRulesets ERROR connection through http new Request: " + err.Error())
+        return data, err
+    }
+
+    body, err := ioutil.ReadAll(resp.Body)
+    defer resp.Body.Close()
+    if err != nil {
+        logs.Error("nodeclient/GetSuricataRulesets ERROR reading request data: " + err.Error())
+        return data, err
+    }
+
+    // errorMap := make(map[string]string)
+    // err = json.Unmarshal(body, &errorMap)
+    // if errorMap["ack"] == "false"{ logs.Error("nodeclient/GetSuricataRulesets ERROR: "+err.Error()); return nil,errors.New(errorMap["error"])}
+
+    err = json.Unmarshal(body, &data)
+    if err != nil {
+        logs.Error("nodeclient/GetSuricataRulesets ERROR doing unmarshal JSON: " + err.Error())
+    }
+
+    logs.Notice(data)
+
+    if data["hasError"]["ack"] == "false" {
+        logs.Error("nodeclient/GetSuricataRulesets ERROR: " + data["hasError"]["error"])
+        return nil, errors.New(data["hasError"]["error"])
+    }
+
+    return data, nil
+}
