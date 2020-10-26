@@ -328,6 +328,8 @@ func CreateSuricataService(guuid, nuuid string, suricataData utils.SuricataData)
         return true, nil
     }
     if suricataData.Ruleset == "default" {
+        suricataData.Ruleset = ndb.GetDefaultRuleset()
+    } else if suricataData.Ruleset == "group" {
         suricataData.Ruleset = ndb.GetGroupRulesets(guuid)
     }
 
