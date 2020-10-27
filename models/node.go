@@ -1115,13 +1115,20 @@ func CreateSuricataService(guuid, uuid string, suricataDetails utils.SuricataDat
     return assigned, details
 }
 
+func CreateStapService(uuid string, stapDetails utils.StapData) (success bool, details map[string]string) {
+    logs.Info("lets create stap service to node %s to %s", uuid, stapDetails.Name)
+    assigned, details := node.CreateStapService(uuid, stapDetails)
+    return assigned, details
+}
+
 // curl -X POST \
 //   https://52.47.197.22:50002/v1/node/enrollNewNode  \
 //   -H 'Content-Type: application/json' \
 //   -d '{
 //     "NODE": {},
 //     "GROUPS": [],
-//     "SURICATA": {}
+//     "SURICATA": {},
+//     "STAP": {}
 // }
 func EnrollNewNode(anode utils.EnrollNewNodeStruct, username string) (err error) {
     err = node.EnrollNewNode(anode)

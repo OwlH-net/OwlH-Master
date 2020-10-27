@@ -18,6 +18,7 @@ type NodeEnroll struct {
     Node     NodeData     `json:"node"`
     Group    GroupData    `json:"group"`
     Suricata SuricataData `json:"suricata"`
+    Stap     StapData     `json:"stap"`
 }
 
 type NodeData struct {
@@ -41,6 +42,15 @@ type SuricataData struct {
     Ruleset    string `json:"ruleset"`
     Name       string `json:"name"`
     Status     string `json:"status"`
+}
+
+type StapData struct {
+    Interface string `json:"interface"`
+    Cert      string `json:"cert"`
+    Port      string `json:"port"`
+    Type      string `json:"type"`
+    Name      string `json:"name"`
+    Status    string `json:"status"`
 }
 
 // @Title CreateNode
@@ -358,7 +368,7 @@ func (n *NodeController) PutSuricataBPF() {
 // @router / [get]
 func (n *NodeController) GetAllNodes() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    
+
     if errToken != nil {
         n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
         n.ServeJSON()
@@ -1500,6 +1510,7 @@ func (n *NodeController) AddPluginService() {
     } else {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        logs.Info("add stap to node -> %+v", anode)
         err := models.AddPluginService(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -2657,6 +2668,16 @@ func (n *NodeController) AutoEnroll() {
             n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
         }
     }
+    logs.Info("Suricata process done")
+
+    logs.Info("create Stap service for node -> %s ", uuid)
+    if nodeDetails.Stap.Name != "" {
+        stapCreated, details := models.CreateStapService(uuid, nodeDetails.Stap)
+        if !stapCreated {
+            logs.Error("NODE create Stap Service -> error: %+v", details)
+            n.Data["json"] = map[string]string{"ack": "false", "error": "There were problems with node enrollment"}
+        }
+    }
 
     n.ServeJSON()
 }
@@ -2678,13 +2699,13 @@ func (n *NodeController) GetAllNodesReact() {
         n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
     } else {
         nodes, err := models.GetAllNodesReact(n.Ctx.Input.Header("user"))
-        logs.Notice("%+v",nodes)
+        logs.Notice("%+v", nodes)
         n.Data["json"] = nodes
         if err != nil {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
-    
+
     n.ServeJSON()
 }
 
@@ -2710,7 +2731,7 @@ func (n *NodeController) GetAllTags() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
-    
+
     n.ServeJSON()
 }
 
@@ -2734,7 +2755,7 @@ func (n *NodeController) EnrollNewNode() {
     } else {
         var nodeDetails utils.EnrollNewNodeStruct
         json.Unmarshal(n.Ctx.Input.RequestBody, &nodeDetails)
-        
+
         err := models.EnrollNewNode(nodeDetails, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -2763,7 +2784,7 @@ func (n *NodeController) UpdateNodeReact() {
     } else {
         var anode utils.EnrollNewNodeStruct
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
+
         err := models.UpdateNodeReact(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
@@ -2796,7 +2817,7 @@ func (n *NodeController) GetAllOrganizations() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
-    
+
     n.ServeJSON()
 }
 
@@ -2847,7 +2868,7 @@ func (n *NodeController) EditOrganization() {
     } else {
         var anode map[string]string
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-    
+
         err := models.EditOrganization(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
