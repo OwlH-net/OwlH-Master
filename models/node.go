@@ -102,7 +102,7 @@ func ZeekCommand(n, cmd, username string) (data map[string]string, err error) {
 
 // curl -X GET \
 //   https://52.47.197.22:50002/v1/node/wazuh/:uuid \
-func Wazuh(n string, username string) (data map[string]bool, err error) {
+func Wazuh(n string, username string) (data utils.WazuhDetails, err error) {
     data, err = node.Wazuh(n)
     changecontrol.ChangeControlInsertData(err, "Ping Wazuh", username)
     return data, err

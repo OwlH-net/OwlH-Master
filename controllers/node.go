@@ -302,9 +302,8 @@ func (n *NodeController) GetWazuh() {
         nid := n.GetString(":nid")
         n.Data["json"] = map[string]string{"status": "false", "error": "No hay NID"}
         data, err := models.Wazuh(nid, n.Ctx.Input.Header("user"))
-        logs.Warn("GetWazuh")
-        logs.Warn(data)
-        n.Data["json"] = data
+        wData, _ := json.Marshal(data)
+        n.Data["json"] = string(wData)
         if err != nil {
             n.Data["json"] = map[string]string{"status": "false", "nid": nid, "error": err.Error()}
         }
