@@ -2,12 +2,12 @@
 	"open-rules":{
 		"name":"Emerging Threats Open Ruleset",
 		"desc":"Proofpoint ET Open is a timely and accurate rule set for detecting and blocking advanced threats",
-		"url":"https://rules.emergingthreats.net/open/suricata-%(__version__)s/emerging.rules.tar.gz"
+		"url":"https://rules.emergingthreats.net/open/suricata-<VERSION>/emerging.rules.tar.gz"
 	},    
 	"pro-ruleset":{
 		"name":"Emerging Threats Pro Ruleset",
 		"desc":"Proofpoint ET Pro is a timely and accurate rule set for detecting and blocking advanced threats",
-		"url": "https://rules.emergingthreatspro.com/<SECRET-CODE>/suricata-%(__version__)s/etpro.rules.tar.gz"
+		"url": "https://rules.emergingthreatspro.com/<SECRET-CODE>/suricata-<VERSION>/etpro.rules.tar.gz"
 	},    
 	"traffic-id":{
 		"name":"Suricata Traffic ID ruleset",
