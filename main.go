@@ -32,8 +32,8 @@ func main() {
     utils.Load()
     //init logger
     utils.Logger()
-    
-    version = "0.17.0.20201019"
+
+    version = "0.17.2.20201031"
     logs.Info("OwlH Master : v%s", version)
 
     //operative system values
@@ -56,7 +56,7 @@ func main() {
     ndb.RConn()
     // ndb.GConn()
     ndb.MConn()
-   
+
     //CheckServicesStatus
     go ManageSignals()
     master.CheckServicesStatus()
