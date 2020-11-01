@@ -59,3 +59,12 @@ type NewNodeData struct {
 // type GroupArray struct {
 //     UUID    []string `json:"uuid"`
 // }
+
+type WazuhDetails struct {
+    Path    bool   `json:"path"`
+    Bin     bool   `json:"bin"`
+    Running bool   `json:"running"`
+    Name    string `json:"name"`
+    ID      string `json:"id"`
+    Ip      string `json:"ip"`
+}

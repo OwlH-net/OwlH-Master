@@ -8,6 +8,7 @@ import (
     "io/ioutil"
     "owlhmaster/database"
     "owlhmaster/utils"
+    "strconv"
     "time"
 )
 
@@ -151,20 +152,22 @@ func Zeek(ip string, port string) (data ZeekData, err error) {
     return data, nil
 }
 
-func Wazuh(ip string, port string) (data map[string]bool, err error) {
+func Wazuh(ip string, port string) (data utils.WazuhDetails, err error) {
     logs.Info("NodeClient wazuh status -> %s, %s", ip, port)
     url := "https://" + ip + ":" + port + "/node/wazuh"
     resp, err := utils.NewRequestHTTP("GET", url, nil)
     if err != nil {
         logs.Error("nodeClient/Wazuh ERROR connection through http new Request: " + err.Error())
-        return nil, err
+        return data, err
     }
     body, _ := ioutil.ReadAll(resp.Body)
+    //Convert []byte to utils.WazuhDetails
+    s, _ := strconv.Unquote(string(body))
+    err = json.Unmarshal([]byte(s), &data)
 
-    //Convert []byte to map[string]bool
-    err = json.Unmarshal(body, &data)
     if err != nil {
-        return nil, err
+        logs.Error("Get Wazuh status Error -> %+v", err.Error())
+        return data, err
     }
     defer resp.Body.Close()
     return data, nil
