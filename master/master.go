@@ -1829,8 +1829,6 @@ func GetAllRulesetsForAllNodes() (data map[string]map[string]string, err error) 
             nodeRulesets = append(nodeRulesets, "Suricata "+nodeRsets[x]["name"]+": "+nodeRsets[x]["ruleset"])
         }
         allData[id]["suricata"] = strings.Join(nodeRulesets, ",")
-
-
     }
 
     logs.Notice(allData)

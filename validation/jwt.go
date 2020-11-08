@@ -52,8 +52,6 @@ func HashPassword(password string) (string, error) {
 }
 
 func CheckPasswordHash(password string, hash string) (bool, error) {
-    logs.Notice(password)
-    logs.Notice(hash)
     err := bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
     if err != nil {
         logs.Error(err)
