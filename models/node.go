@@ -555,6 +555,21 @@ func AddPluginService(anode map[string]string, username string) (err error) {
     return err
 }
 
+// curl -X POST \
+//   https://52.47.197.22:50002/v1/node/addService  \
+//   -H 'Content-Type: application/json' \
+//   -d '{
+//     "uuid": "v",
+//     "name": "v",
+//     "type": "v"
+// }
+// }
+func AddService(anode map[string]string, username string) (err error) {
+    err = node.AddService(anode)
+    changecontrol.ChangeControlInsertData(err, "AddService", username)
+    return err
+}
+
 // // curl -X GET \
 // //   https://52.47.197.22:50002/v1/node/pingmonitor/:uuid \
 // // }

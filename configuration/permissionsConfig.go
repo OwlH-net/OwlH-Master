@@ -1260,6 +1260,20 @@ func checkPermissionsFields()(ok bool){
 	
 	field.Fconn      = "masterConn"
     field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='AddService' and per_param='desc' and per_value='Add service'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddService','desc','Add service')"
+    field.Fname      = "permissions - AddService desc"
+    ok = CheckField(field)
+    if !ok {return false}
+    field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
+    field.Fquery     = "select per_value from permissions where per_uniqueid='AddService' and per_param='permissionGroup' and per_value='Node'"
+    field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddService','permissionGroup','Node')"
+    field.Fname      = "permissions - AddService group"
+    ok = CheckField(field)
+	
+	field.Fconn      = "masterConn"
+    field.Ftable     = "permissions"
     field.Fquery     = "select per_value from permissions where per_uniqueid='AddPluginServiceMaster' and per_param='desc' and per_value='-'"
     field.Finsert    = "insert into permissions (per_uniqueid,per_param,per_value) values ('AddPluginServiceMaster','desc','-')"
     field.Fname      = "permissions - desc"
