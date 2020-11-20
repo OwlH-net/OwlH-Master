@@ -1550,6 +1550,7 @@ func (n *NodeController) AddService() {
 // @Success 200 {object} models.Node
 // @Failure 403 :uuid is empty
 // @router /changeServiceStatus [put]
+// @router /ChangeServiceStatus [put]
 func (n *NodeController) ChangeServiceStatus() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
     if errToken != nil {
