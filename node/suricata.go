@@ -144,6 +144,35 @@ func AddPluginService(anode map[string]string) (err error) {
     return nil
 }
 
+func AddService(anode map[string]string) (err error) {
+    if ndb.Db == nil {
+        logs.Error("AddService -- Can't acces to database: ")
+        return errors.New("AddService -- Can't acces to database")
+    }
+
+    err = ndb.GetTokenByUuid(anode["uuid"])
+    if err != nil {
+        logs.Error("Error loading node token: %s", err)
+        return err
+    }
+    // ipnid, portnid, err := ndb.ObtainPortIp(anode["uuid"])
+    // if err != nil {
+    //     logs.Error("node/AddService ERROR Obtaining Port and Ip: " + err.Error())
+    //     return err
+    // }
+
+    //add a suricata with all the params
+    if anode["type"] == "suricata" {
+        rname, _ := ndb.GetRuleName(anode["ruleset"])
+        anode["localRulesetName"] = rname
+        anode["status"] = "disabled"
+
+        nodeclient.AddSuricataService(anode["uuid"], anode)
+    }
+
+    return nil
+}
+
 func GetSuricataServices(uuid string) (data map[string]map[string]string, err error) {
     if ndb.Db == nil {
         logs.Error("GetSuricataServices -- Can't acces to database: ")

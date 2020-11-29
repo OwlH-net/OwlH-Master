@@ -1507,21 +1507,49 @@ func (n *NodeController) AddPluginService() {
     } else {
         anode := make(map[string]string)
         json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
-        logs.Info("add stap to node -> %+v", anode)
         err := models.AddPluginService(anode, n.Ctx.Input.Header("user"))
         n.Data["json"] = map[string]string{"ack": "true"}
         if err != nil {
-            logs.Info("AddPluginService -> error: %s", err.Error())
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
     n.ServeJSON()
 }
 
+// @Title addService
+// @Description Add new service
+// @Success 200 {object} models.ruleset
+// @Failure 403 Connection Failure
+// @router /addService [post]
+func (n *NodeController) AddService() {
+    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+    if errToken != nil {
+        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
+        n.ServeJSON()
+        return
+    }
+    permissions := []string{"AddService"}
+    hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+    if permissionsErr != nil || hasPermission == false {
+        n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+    } else {
+        anode := make(map[string]string)
+        json.Unmarshal(n.Ctx.Input.RequestBody, &anode)
+        err := models.AddService(anode, n.Ctx.Input.Header("user"))
+        n.Data["json"] = map[string]string{"ack": "true"}
+        if err != nil {
+            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+        }
+    }
+    n.ServeJSON()
+}
+
+
 // @Title ChangeServiceStatus
 // @Description Change a service status
 // @Success 200 {object} models.Node
 // @Failure 403 :uuid is empty
+// @router /changeServiceStatus [put]
 // @router /ChangeServiceStatus [put]
 func (n *NodeController) ChangeServiceStatus() {
     errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))

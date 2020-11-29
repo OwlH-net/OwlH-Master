@@ -2,11 +2,11 @@ package controllers
 
 import (
     "encoding/json"
-    "owlhmaster/models"
-    "owlhmaster/validation"
-    //"strconv"
     "github.com/astaxie/beego"
     "github.com/astaxie/beego/logs"
+    "owlhmaster/models"
+    "owlhmaster/search"
+    "owlhmaster/validation"
 )
 
 type RulesetController struct {
@@ -274,6 +274,7 @@ func (n *RulesetController) SetRulesetAction() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
+    go search.BuildRuleIndex()
     n.ServeJSON()
 }
 
@@ -451,6 +452,7 @@ func (n *RulesetController) AddNewRuleset() {
             }
         }
     }
+    go search.BuildRuleIndex()
     n.ServeJSON()
 }
 
@@ -513,6 +515,7 @@ func (n *RulesetController) ModifyRuleset() {
             }
         }
     }
+    go search.BuildRuleIndex()
     n.ServeJSON()
 }
 
@@ -593,6 +596,7 @@ func (n *RulesetController) AddRulesToCustomRuleset() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
+    go search.BuildRuleIndex()
     n.ServeJSON()
 }
 
@@ -648,6 +652,7 @@ func (n *RulesetController) SaveRulesetData() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
+    go search.BuildRuleIndex()
     n.ServeJSON()
 }
 
@@ -708,6 +713,7 @@ func (n *RulesetController) UpdateRule() {
             n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
         }
     }
+    go search.BuildRuleIndex()
     n.ServeJSON()
 }
 

@@ -3,6 +3,7 @@
 *.db
 
 #ignore folders
+.vscode
 conf/downloads
 conf/localRulesets
 conf/customRulesets
