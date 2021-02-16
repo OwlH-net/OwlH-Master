@@ -8,6 +8,7 @@ import (
 	"os"
 	"os/signal"
 	"owlhmaster/configuration"
+	ndb "owlhmaster/database"
 	"owlhmaster/dispatcher"
 	"owlhmaster/master"
 	"owlhmaster/node"
