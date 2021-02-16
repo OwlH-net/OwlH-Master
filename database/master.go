@@ -48,6 +48,8 @@ func PingPlugins() (path map[string]map[string]string, err error) {
 		logs.Error("PingPlugins Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("PingPlugins -- Query return error: %s", err.Error())
@@ -73,6 +75,8 @@ func PingFlow() (path map[string]map[string]string, err error) {
 		logs.Error("PingFlow Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("PingFlow -- Query return error: %s", err.Error())
@@ -86,29 +90,15 @@ func PingFlow() (path map[string]map[string]string, err error) {
 	return pingData, nil
 }
 
-// func ChangePluginStatus(anode map[string]string) (err error) {
-//     updatePluginMaster, err := Mdb.Prepare("update plugins set plugin_value = ? where plugin_uniqueid = ? and plugin_param = ?;")
-//     if (err != nil){
-//         logs.Error("ChangePluginStatus UPDATE prepare error : "+err.Error())
-//         return err
-//     }
-//     _, err = updatePluginMaster.Exec(anode["value"], anode["uuid"], anode["param"])
-//     defer updatePluginMaster.Close()
-//     if (err != nil){
-//         logs.Error("ChangePluginStatus UPDATE error: "+err.Error())
-//         return err
-//     }
-//     return nil
-// }
-
 func ChangeDataflowStatus(anode map[string]string) (err error) {
 	updateDataflowMaster, err := Mdb.Prepare("update dataflow set flow_value = ? where flow_uniqueid = ? and flow_param = ?;")
 	if err != nil {
 		logs.Error("ChangeDataflowStatus UPDATE prepare error: " + err.Error())
 		return err
 	}
-	_, err = updateDataflowMaster.Exec(anode["value"], anode["uuid"], anode["param"])
 	defer updateDataflowMaster.Close()
+
+	_, err = updateDataflowMaster.Exec(anode["value"], anode["uuid"], anode["param"])
 	if err != nil {
 		logs.Error("ChangeDataflowStatus UPDATE error: " + err.Error())
 		return err
@@ -122,8 +112,9 @@ func UpdateMasterNetworkInterface(anode map[string]string) (err error) {
 		logs.Error("UpdateMasterNetworkInterface UPDATE prepare error: " + err.Error())
 		return err
 	}
-	_, err = updateDataflowMaster.Exec(anode["value"], anode["uuid"], anode["param"])
 	defer updateDataflowMaster.Close()
+
+	_, err = updateDataflowMaster.Exec(anode["value"], anode["uuid"], anode["param"])
 	if err != nil {
 		logs.Error("UpdateMasterNetworkInterface UPDATE error: " + err.Error())
 		return err
@@ -140,6 +131,8 @@ func LoadMasterID() (id string, err error) {
 		logs.Error("LoadMasterID Mdb.Query Error : %s", err.Error())
 		return "", err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&masterConfigID); err != nil {
 			logs.Error("LoadMasterID -- Query return error: %s", err.Error())
@@ -160,6 +153,8 @@ func LoadMasterKEY() (id string, err error) {
 		logs.Error("LoadMasterKEY Mdb.Query Error : %s", err.Error())
 		return "", err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&masterConfigID); err != nil {
 			logs.Error("LoadMasterKEY -- Query return error: %s", err.Error())
@@ -181,6 +176,8 @@ func LoadMasterNetworkValuesSelected() (path map[string]map[string]string, err e
 		logs.Error("LoadMasterNetworkValuesSelected Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("LoadMasterNetworkValuesSelected -- Query return error: %s", err.Error())
@@ -200,14 +197,13 @@ func InsertPluginService(uuid string, param string, value string) (err error) {
 		logs.Error("InsertPluginService INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer updatePluginNode.Close()
 
 	_, err = updatePluginNode.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertPluginService INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer updatePluginNode.Close()
 
 	return nil
 }
@@ -218,14 +214,13 @@ func DeleteServiceMaster(uuid string) (err error) {
 		logs.Error("DeleteServiceMaster UPDATE prepare error: " + err.Error())
 		return err
 	}
+	defer DeleteService.Close()
 
 	_, err = DeleteService.Exec(&uuid)
 	if err != nil {
 		logs.Error("DeleteServiceMaster exec error: " + err.Error())
 		return err
 	}
-
-	defer DeleteService.Close()
 
 	return nil
 }
@@ -236,14 +231,13 @@ func UpdatePluginValueMaster(uuid string, param string, value string) (err error
 		logs.Error("UpdatePluginValueMaster UPDATE prepare error: " + err.Error())
 		return err
 	}
+	defer UpdatePluginValue.Close()
 
 	_, err = UpdatePluginValue.Exec(&value, &uuid, &param)
 	if err != nil {
 		logs.Error("UpdatePluginValueMaster UPDATE exec error: " + err.Error())
 		return err
 	}
-
-	defer UpdatePluginValue.Close()
 
 	return nil
 }
@@ -259,6 +253,7 @@ func GetPlugins() (path map[string]map[string]string, err error) {
 		return nil, err
 	}
 	defer rowsQuery.Close()
+
 	for rowsQuery.Next() {
 		if err = rowsQuery.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("GetPlugins -- Query return error: %s", err.Error())
@@ -284,6 +279,7 @@ func GetChangeControl() (path map[string]map[string]string, err error) {
 		return nil, err
 	}
 	defer rowsQuery.Close()
+
 	for rowsQuery.Next() {
 		if err = rowsQuery.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("GetChangeControl -- Query return error: %s", err.Error())
@@ -304,14 +300,13 @@ func InsertChangeControl(uuid string, param string, value string) (err error) {
 		logs.Error("InsertChangeControl prepare error: " + err.Error())
 		return err
 	}
+	defer insertChangeControlValues.Close()
 
 	_, err = insertChangeControlValues.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertChangeControl exec error: " + err.Error())
 		return err
 	}
-
-	defer insertChangeControlValues.Close()
 
 	return nil
 }
@@ -327,6 +322,7 @@ func GetIncidents() (path map[string]map[string]string, err error) {
 		return nil, err
 	}
 	defer rowsQuery.Close()
+
 	for rowsQuery.Next() {
 		if err = rowsQuery.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("GetIncidents -- Query return error: %s", err.Error())
@@ -347,14 +343,13 @@ func PutIncident(uuid string, param string, value string) (err error) {
 		logs.Error("PutIncident prepare error: " + err.Error())
 		return err
 	}
+	defer PutIncidentValues.Close()
 
 	_, err = PutIncidentValues.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("PutIncident exec error: " + err.Error())
 		return err
 	}
-
-	defer PutIncidentValues.Close()
 
 	return nil
 }
@@ -375,6 +370,7 @@ func GetAllGroups() (groups map[string]map[string]string, err error) {
 		logs.Error("Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -402,8 +398,8 @@ func GroupExists(uuid string) (err error) {
 		logs.Error("Error on query groupExist at group.go " + err.Error())
 		return err
 	}
-
 	defer rows.Close()
+
 	if rows.Next() {
 		return err
 	} else {
@@ -447,6 +443,7 @@ func DeleteGroup(uuid string) (err error) {
 		logs.Error("Prepare DeleteGroup -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&uuid)
 	if err != nil {
@@ -467,6 +464,7 @@ func InsertGroup(uuid string, param string, value string) (err error) {
 		logs.Error("Prepare InsertGroup-> %s", err.Error())
 		return err
 	}
+	defer insertGroup.Close()
 
 	_, err = insertGroup.Exec(&uuid, &param, &value)
 	if err != nil {
@@ -487,6 +485,7 @@ func InsertGroupNodes(uuid string, param string, value string) (err error) {
 		logs.Error("Prepare InssertGroupNodes-> %s", err.Error())
 		return err
 	}
+	defer insertGroupnodesValues.Close()
 
 	_, err = insertGroupnodesValues.Exec(&uuid, &param, &value)
 	if err != nil {
@@ -513,6 +512,7 @@ func GetAllGroupNodes() (groups map[string]map[string]string, err error) {
 		logs.Error("Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -539,6 +539,7 @@ func DeleteNodeGroupById(uuid string) (err error) {
 		logs.Error("Prepare DeleteNodeGroupById -> %s", err.Error())
 		return err
 	}
+	defer stmt.close()
 
 	_, err = stmt.Exec(&uuid)
 	if err != nil {
@@ -565,6 +566,7 @@ func GetGroupNodesByValue(uuid string) (groups map[string]map[string]string, err
 		logs.Error("Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -585,11 +587,14 @@ func UpdateGroupValue(uuid string, param string, value string) (err error) {
 		logs.Info("does exist -> son only need to update default field")
 		updateGroup, _ := Mdb.Prepare("update groups set group_value = ? where group_param = ? and group_uniqueid = ?")
 		updateGroup.Exec(&value, &param, &uuid)
+		defer updateGroup.Close()
 	} else {
 		logs.Info("does Not exist -> son only need to update default field")
 		insertGroupnodesValues, _ := Mdb.Prepare("insert into groups(group_uniqueid, group_param, group_value) values(?,?,?);")
 		insertGroupnodesValues.Exec(&uuid, &param, &value)
+		defer insertGroupnodesValues.Close()
 	}
+
 	return nil
 }
 
@@ -600,12 +605,13 @@ func GroupValueExists(uuid, param string) bool {
 		logs.Error("Mdb.Query Error : %s", err.Error())
 		return false
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		logs.Info("field -> %v DOES exist for group -> %v", param, uuid)
-		rows.Close()
 		return true
 	}
+
 	logs.Info("field -> %v DOES NOT exist for group -> %v", param, uuid)
 	return false
 }
@@ -626,6 +632,7 @@ func GetAllGroupsBValue(val string) (groups map[string]map[string]string, err er
 		logs.Error("Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -658,6 +665,7 @@ func GetGroupNodesByUUID(uuid string) (groups map[string]map[string]string, err 
 		logs.Error("Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&id); err != nil {
@@ -693,14 +701,13 @@ func InsertCluster(uuid string, param string, value string) (err error) {
 		logs.Error("InsertCluster INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer insertClusterNode.Close()
 
 	_, err = insertClusterNode.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertCluster INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer insertClusterNode.Close()
 
 	return nil
 }
@@ -722,6 +729,7 @@ func GetClusterByValue(uuid string) (groups map[string]map[string]string, err er
 		logs.Error("Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&id); err != nil {
@@ -757,14 +765,13 @@ func DeleteCluster(uuid string) (err error) {
 		logs.Error("DeleteCluster UPDATE prepare error: " + err.Error())
 		return err
 	}
+	defer DeleteService.Close()
 
 	_, err = DeleteService.Exec(&uuid)
 	if err != nil {
 		logs.Error("DeleteCluster exec error: " + err.Error())
 		return err
 	}
-
-	defer DeleteService.Close()
 
 	return nil
 }
@@ -775,14 +782,13 @@ func UpdateGroupClusterValue(uuid string, param string, value string) (err error
 		logs.Error("UpdateGroupClusterValue UPDATE prepare error: " + err.Error())
 		return err
 	}
+	defer UpdatePluginValue.Close()
 
 	_, err = UpdatePluginValue.Exec(&value, &uuid, &param)
 	if err != nil {
 		logs.Error("UpdateGroupClusterValue UPDATE exec error: " + err.Error())
 		return err
 	}
-
-	defer UpdatePluginValue.Close()
 
 	return nil
 }
@@ -803,6 +809,7 @@ func GetClusterByUUID(id string) (groups map[string]map[string]string, err error
 		logs.Error("GetClusterByUUID Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -834,6 +841,7 @@ func GetAllCluster() (groups map[string]map[string]string, err error) {
 		logs.Error("GetAllCluster Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -865,6 +873,7 @@ func GetLoginData() (groups map[string]map[string]string, err error) {
 		logs.Error("GetLoginData Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -893,6 +902,7 @@ func GetUserID(user string) (id string, err error) {
 		logs.Error("GetUserID Mdb.Query Error : %s", err.Error())
 		return "", err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid); err != nil {
@@ -909,14 +919,13 @@ func DeleteUser(uuid string) (err error) {
 		logs.Error("DeleteUser UPDATE prepare error: " + err.Error())
 		return err
 	}
+	defer DeleteUserDB.Close()
 
 	_, err = DeleteUserDB.Exec(&uuid)
 	if err != nil {
 		logs.Error("DeleteUser exec error: " + err.Error())
 		return err
 	}
-
-	defer DeleteUserDB.Close()
 
 	return nil
 }
@@ -927,14 +936,13 @@ func InsertUser(uuid string, param string, value string) (err error) {
 		logs.Error("InsertUser INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer insertUserDB.Close()
 
 	_, err = insertUserDB.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertUser INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer insertUserDB.Close()
 
 	return nil
 }
@@ -945,14 +953,13 @@ func InsertPrivilege(uuid string, param string, value string) (err error) {
 		logs.Error("InsertPrivilege INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer InsertPrivilegeDB.Close()
 
 	_, err = InsertPrivilegeDB.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertPrivilege INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer InsertPrivilegeDB.Close()
 
 	return nil
 }
@@ -963,14 +970,13 @@ func InsertGroupUsers(uuid string, param string, value string) (err error) {
 		logs.Error("InsertGroupUsers INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer insertGroupDB.Close()
 
 	_, err = insertGroupDB.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertGroupUsers INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer insertGroupDB.Close()
 
 	return nil
 }
@@ -981,14 +987,13 @@ func InsertRoleUsers(uuid string, param string, value string) (err error) {
 		logs.Error("InsertRoleUsers INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer insertRoleDB.Close()
 
 	_, err = insertRoleDB.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertRoleUsers INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer insertRoleDB.Close()
 
 	return nil
 }
@@ -999,14 +1004,13 @@ func InsertUserGroupRole(uuid string, param string, value string) (err error) {
 		logs.Error("InsertUserGroupRole INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer insertDB.Close()
 
 	_, err = insertDB.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertUserGroupRole INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer insertDB.Close()
 
 	return nil
 }
@@ -1027,6 +1031,7 @@ func GetUserGroups() (groups map[string]map[string]string, err error) {
 		logs.Error("GetUserGroups Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -1058,6 +1063,7 @@ func GetUserRoles() (groups map[string]map[string]string, err error) {
 		logs.Error("GetUserRoles Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -1089,6 +1095,7 @@ func GetUserGroupRoles() (groups map[string]map[string]string, err error) {
 		logs.Error("GetUserGroupRoles Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -1110,9 +1117,9 @@ func UpdateUser(uuid string, param string, value string) (err error) {
 		logs.Error("UpdateUser UPDATE prepare error: " + err.Error())
 		return err
 	}
+	defer updateData.Close()
 
 	_, err = updateData.Exec(&value, &uuid, &param)
-	defer updateData.Close()
 	if err != nil {
 		logs.Error("UpdateUser UPDATE error: " + err.Error())
 		return err
@@ -1127,14 +1134,13 @@ func InsertMasterconfigValues(uuid string, param string, value string) (err erro
 		logs.Error("InsertMasterconfigValues INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer insertMasterconfig.Close()
 
 	_, err = insertMasterconfig.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertMasterconfigValues INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer insertMasterconfig.Close()
 
 	return nil
 }
@@ -1155,6 +1161,7 @@ func GetUserPermissions() (permissions map[string]map[string]string, err error) 
 		logs.Error("GetUserPermissions Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -1186,6 +1193,7 @@ func GetuserRoleByUUID(id string) (role map[string]map[string]string, err error)
 		logs.Error("GetuserRoleByUUID Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -1217,6 +1225,7 @@ func GetuserGroupByUUID(id string) (role map[string]map[string]string, err error
 		logs.Error("GetuserGroupByUUID Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -1238,14 +1247,13 @@ func DeleteUserGroup(uuid string) (err error) {
 		logs.Error("DeleteUserGroup DELETE prepare error: " + err.Error())
 		return err
 	}
+	defer DeleteUserDB.Close()
 
 	_, err = DeleteUserDB.Exec(&uuid)
 	if err != nil {
 		logs.Error("DeleteUserGroup exec error: " + err.Error())
 		return err
 	}
-
-	defer DeleteUserDB.Close()
 
 	return nil
 }
@@ -1256,14 +1264,13 @@ func DeleteUserRole(uuid string) (err error) {
 		logs.Error("DeleteUserRole DELETE prepare error: " + err.Error())
 		return err
 	}
+	defer DeleteUserDB.Close()
 
 	_, err = DeleteUserDB.Exec(&uuid)
 	if err != nil {
 		logs.Error("DeleteUserRole exec error: " + err.Error())
 		return err
 	}
-
-	defer DeleteUserDB.Close()
 
 	return nil
 }
@@ -1274,14 +1281,13 @@ func DeleteUserGroupRole(uuid string) (err error) {
 		logs.Error("DeleteUserRole DELETE prepare error: " + err.Error())
 		return err
 	}
+	defer DeleteUserDB.Close()
 
 	_, err = DeleteUserDB.Exec(&uuid)
 	if err != nil {
 		logs.Error("DeleteUserRole exec error: " + err.Error())
 		return err
 	}
-
-	defer DeleteUserDB.Close()
 
 	return nil
 }
@@ -1292,9 +1298,9 @@ func UpdateUserRole(uuid string, param string, value string) (err error) {
 		logs.Error("UpdateUserRole UPDATE prepare error: " + err.Error())
 		return err
 	}
+	defer updateData.Close()
 
 	_, err = updateData.Exec(&value, &uuid, &param)
-	defer updateData.Close()
 	if err != nil {
 		logs.Error("UpdateUserRole UPDATE error: " + err.Error())
 		return err
@@ -1309,9 +1315,9 @@ func UpdateUserGroup(uuid string, param string, value string) (err error) {
 		logs.Error("UpdateUserGroup UPDATE prepare error: " + err.Error())
 		return err
 	}
+	defer updateData.Close()
 
 	_, err = updateData.Exec(&value, &uuid, &param)
-	defer updateData.Close()
 	if err != nil {
 		logs.Error("UpdateUserGroup UPDATE error: " + err.Error())
 		return err
@@ -1326,9 +1332,9 @@ func UpdateRolePermissions(uuid string, param string, value string) (err error) 
 		logs.Error("UpdateRolePermissions UPDATE prepare error: " + err.Error())
 		return err
 	}
+	defer updateData.Close()
 
 	_, err = updateData.Exec(&value, &uuid, &param)
-	defer updateData.Close()
 	if err != nil {
 		logs.Error("UpdateRolePermissions UPDATE error: " + err.Error())
 		return err
@@ -1349,6 +1355,8 @@ func GetRolePermissions() (path map[string]map[string]string, err error) {
 		logs.Error("getRolePermissions Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("getRolePermissions -- Mdb.Query return error: %s", err.Error())
@@ -1374,6 +1382,8 @@ func GetPermissions() (path map[string]map[string]string, err error) {
 		logs.Error("GetPermissions Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("GetPermissions -- Mdb.Query return error: %s", err.Error())
@@ -1399,6 +1409,8 @@ func GetRoleGroups() (path map[string]map[string]string, err error) {
 		logs.Error("GetRoleGroups Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("GetRoleGroups -- Mdb.Query return error: %s", err.Error())
@@ -1418,14 +1430,13 @@ func InsertRolePermissions(uuid string, param string, value string) (err error) 
 		logs.Error("InsertRolePermissions INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer insertData.Close()
 
 	_, err = insertData.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertRolePermissions INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer insertData.Close()
 
 	return nil
 }
@@ -1443,6 +1454,8 @@ func GetRolePermissionsByValue(val string) (path map[string]map[string]string, e
 		logs.Error("GetRolePermissionsByValue Mdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&id); err != nil {
 			logs.Error("GetRolePermissionsByValue -- Mdb.Query return error: %s", err.Error())
@@ -1476,14 +1489,13 @@ func InsertPluginCommand(uuid string, param string, value string) (err error) {
 		logs.Error("InsertPluginCommand INSERT prepare error: " + err.Error())
 		return err
 	}
+	defer insertPlugin.Close()
 
 	_, err = insertPlugin.Exec(&uuid, &param, &value)
 	if err != nil {
 		logs.Error("InsertPluginCommand INSERT exec error: " + err.Error())
 		return err
 	}
-
-	defer insertPlugin.Close()
 
 	return nil
 }

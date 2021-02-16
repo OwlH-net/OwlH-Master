@@ -46,6 +46,8 @@ func RulesetSourceKeyInsert(nkey string, key string, value string) (err error) {
 		logs.Error("Prepare -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
+
 	_, err = stmt.Exec(&nkey, &key, &value)
 	if err != nil {
 		logs.Error("Execute -> %s", err.Error())
@@ -64,6 +66,7 @@ func InsertRulesetSourceRules(nkey string, key string, value string) (err error)
 		logs.Error("Prepare -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&nkey, &key, &value)
 	if err != nil {
@@ -79,8 +82,10 @@ func UpdateRuleset(uuid string, param string, value string) (err error) {
 		logs.Error("UpdateRuleset UPDATE prepare error for update isDownloaded -- " + err.Error())
 		return err
 	}
-	_, err = updateRulesetNode.Exec(&value, &uuid, &param)
 	defer updateRulesetNode.Close()
+
+	_, err = updateRulesetNode.Exec(&value, &uuid, &param)
+
 	if err != nil {
 		logs.Error("UpdateRuleset UPDATE error for update isDownloaded -- " + err.Error())
 		return err
@@ -90,17 +95,15 @@ func UpdateRuleset(uuid string, param string, value string) (err error) {
 
 func UpdateRuleFiles(uuid string, param string, value string) (err error) {
 	updateRulesetNode, err := Rdb.Prepare("update rule_files set rule_value = ? where rule_uniqueid = ? and rule_param = ?;")
-	defer updateRulesetNode.Close()
 	if err != nil {
 		logs.Error("UpdateRuleFiles UPDATE prepare error for update isDownloaded -- " + err.Error())
-		// defer updateRulesetNode.Close()
 		return err
 	}
-	// defer updateRulesetNode.Close()
+	defer updateRulesetNode.Close()
+
 	_, err = updateRulesetNode.Exec(&value, &uuid, &param)
 	if err != nil {
 		logs.Error("UpdateRuleFiles UPDATE error for update isDownloaded -- " + err.Error())
-		// defer updateRulesetNode.Close()
 		return err
 	}
 	return nil
@@ -114,6 +117,8 @@ func GetRulesetSourceValue(uuid string, param string) (val string, err error) {
 		logs.Error("Rdb.Query Error : %s", err.Error())
 		return "", err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&value); err != nil {
 			logs.Error("GetRulesetSourcePath rows.Scan: %s", err.Error())
@@ -133,6 +138,8 @@ func GetAllCustomRulesetDB() (path []string, err error) {
 		logs.Error("GetAllCustomRuleset Rdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid); err != nil {
 			logs.Error("GetAllCustomRuleset -- Query return error: %s", err.Error())
@@ -153,6 +160,8 @@ func GetAllLocalRulesetDB() (path []string, err error) {
 		logs.Error("GetAllLocalRulesetDB Rdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid); err != nil {
 			logs.Error("GetAllLocalRulesetDB -- Query return error: %s", err.Error())
@@ -175,6 +184,8 @@ func GetAllDataRulesetDB(uuid string) (data map[string]map[string]string, err er
 		logs.Error("GetAllDataRulesetDB Rdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("GetAllDataRulesetDB -- Query return error: %s", err.Error())
@@ -200,6 +211,8 @@ func GetAllRulesets() (data map[string]map[string]string, err error) {
 		logs.Error("GetAllRulesets Rdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("GetAllRulesets -- Query return error: %s", err.Error())
@@ -218,6 +231,7 @@ func GetRulesetPath(uuid string) (n string, err error) {
 	var path string
 	if Rdb != nil {
 		row := Rdb.QueryRow("SELECT rule_value FROM rule_files WHERE rule_uniqueid=$1 and rule_param=\"path\";", uuid)
+		defer row.Close()
 		err = row.Scan(&path)
 
 		if err == sql.ErrNoRows {
@@ -243,6 +257,8 @@ func GetRuleFilesValue(uuid string, param string) (path string, err error) {
 		logs.Error("Rdb.Query Error : %s", err.Error())
 		return "", err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&value); err != nil {
 			logs.Error("GetRulesetSourcePath rows.Scan: %s", err.Error())
@@ -269,6 +285,7 @@ func GetRulesFromRuleset(uuid string) (data map[string]map[string]string, err er
 		return nil, err
 	}
 	defer uuidRows.Close()
+
 	for uuidRows.Next() {
 		if err = uuidRows.Scan(&uuidSource); err != nil {
 			logs.Error("GetDetails UUIDSource uuidRows.Scan: %s", err.Error())
@@ -281,6 +298,7 @@ func GetRulesFromRuleset(uuid string) (data map[string]map[string]string, err er
 			return nil, err
 		}
 		defer rows.Close()
+
 		for rows.Next() {
 			if err = rows.Scan(&uniqid, &param, &value); err != nil {
 				logs.Error("GetDetails rows.Scan: %s", err.Error())
@@ -307,6 +325,7 @@ func GetRuleFilesByUniqueid(uuid string) (data map[string]map[string]string, err
 		return nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("GetDetails rows.Scan: %s", err.Error())
@@ -324,9 +343,10 @@ func DeleteRulesetByUniqueid(uuid string) (err error) {
 	deleteRulesetQuery, err := Rdb.Prepare("delete from ruleset where ruleset_uniqueid = ?;")
 	_, err = deleteRulesetQuery.Exec(&uuid)
 	defer deleteRulesetQuery.Close()
+
 	if err != nil {
-		logs.Error("DB DeleteRulese/deleteRulesetQueryt -> ERROR on table Ruleset...")
-		return errors.New("DB DeleteRuleset/deleteRulesetQuery -> ERROR on table Ruleset...")
+		logs.Error("DB DeleteRulese/deleteRulesetQueryt -> ERROR on table Ruleset")
+		return errors.New("DB DeleteRuleset/deleteRulesetQuery -> ERROR on table Ruleset")
 	}
 	return nil
 }
@@ -335,6 +355,7 @@ func DeleteRulesetNodeByUniqueid(uuid string) (err error) {
 	deleteRulesetNodeQuery, err := Rdb.Prepare("delete from ruleset_node where ruleset_uniqueid = ?;")
 	_, err = deleteRulesetNodeQuery.Exec(&uuid)
 	defer deleteRulesetNodeQuery.Close()
+
 	if err != nil {
 		logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
 		return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
@@ -346,6 +367,7 @@ func DeleteRulesetNodeByNode(uuid string) (err error) {
 	deleteRulesetNodeQuery, err := Rdb.Prepare("delete from ruleset_node where node_uniqueid = ?;")
 	_, err = deleteRulesetNodeQuery.Exec(&uuid)
 	defer deleteRulesetNodeQuery.Close()
+
 	if err != nil {
 		logs.Error("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
 		return errors.New("DB DeleteRuleset/deleteRulesetNodeQuery -> ERROR on table Ruleset_node...")
@@ -359,6 +381,8 @@ func DeleteRuleFilesByUuid(uuid string) (err error) {
 		logs.Error("DeleteRulese Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
 		return err
 	}
+	defer DeleteUUIDPrepare.Close()
+
 	_, err = DeleteUUIDPrepare.Exec(&uuid)
 	if err != nil {
 		logs.Error("DeleteRulese deleting a ruleset source -> %s", err.Error())
@@ -373,6 +397,8 @@ func DeleteRuleFileParamValue(param string, value string) (err error) {
 		logs.Error("DeleteRulese Rdb.Query Error deleting by rule_uniqueid for rule_files: %s", err.Error())
 		return err
 	}
+	defer DeleteUUIDPrepare.Close()
+
 	_, err = DeleteUUIDPrepare.Exec(&param, &value)
 	if err != nil {
 		logs.Error("DeleteRulese deleting a ruleset source -> %s", err.Error())
@@ -393,6 +419,7 @@ func GetAllRuleFiles() (data map[string]map[string]string, err error) {
 		return nil, err
 	}
 	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
 			logs.Error("GetAllRuleFiles rows.Scan error: %s", err.Error())
@@ -414,6 +441,7 @@ func GetRulesetUUID(node string) (uuid string, err error) {
 		return "", err
 	}
 	defer rows.Close()
+
 	if rows.Next() {
 		if err = rows.Scan(&uuid); err != nil {
 			logs.Error("GetRulesetUUID rows.Scan error: %s", err.Error())
@@ -433,6 +461,8 @@ func GetNodeWithRulesetUUID(ruleset string) (data []string, err error) {
 		logs.Error("GetNodeWithRulesetUUID Rdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
+
 	for rows.Next() {
 		if err = rows.Scan(&uniqid); err != nil {
 			logs.Error("GetNodeWithRulesetUUID -- Query return error: %s", err.Error())
@@ -453,6 +483,7 @@ func InsertGroupRulesets(uuid string, param string, value string) (err error) {
 		logs.Error("Prepare InsertGroupRulesets-> %s", err.Error())
 		return err
 	}
+	defer insertValues.Close()
 
 	_, err = insertValues.Exec(&uuid, &param, &value)
 	if err != nil {
@@ -479,6 +510,7 @@ func GetAllGroupRulesets() (groups map[string]map[string]string, err error) {
 		logs.Error("GetAllGroupRulesets Rdb.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -505,6 +537,7 @@ func DeleteGroupRuleset(uuid string) (err error) {
 		logs.Error("Prepare DeleteGroupRuleset -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&uuid)
 	if err != nil {
@@ -526,6 +559,7 @@ func DeleteGroupRulesetByValue(param string, value string) (err error) {
 		logs.Error("Prepare DeleteGroupRulesetByValue -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&param, &value)
 	if err != nil {
@@ -549,6 +583,7 @@ func GetRuleName(uuid string) (ruleset string, err error) {
 		logs.Warn("GetRuleName -> param or param doesn't exists")
 		return "", err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&nameRule); err != nil {
@@ -563,6 +598,7 @@ func GetRuleSelected(uuid string) (ruleset string, err error) {
 	var ruleSelected string
 	if Rdb != nil {
 		row := Rdb.QueryRow("SELECT ruleset_uniqueid FROM ruleset_node WHERE node_uniqueid = \"" + uuid + "\";")
+		defer row.Close()
 		err = row.Scan(&ruleSelected)
 		if err != nil {
 			logs.Warn("GetRuleSelected -> row.Scan error %s", err.Error())
@@ -583,10 +619,10 @@ func RulesetParamExists(uuid, param string) bool {
 		logs.Error("Rdb.Query Error : %s", err.Error())
 		return false
 	}
+	defer rows.Cloose()
 
 	for rows.Next() {
 		logs.Info("field -> %v DOES exist for ruleset -> %v", param, uuid)
-		rows.Close()
 		return true
 	}
 	logs.Info("field -> %v DOES NOT exist for ruleset -> %v", param, uuid)
@@ -601,9 +637,12 @@ func GetGroupRulesets(guuid string) string {
 	sql := Rdb.QueryRow("select gr_uniqueid from grouprulesets where gr_param = 'groupid' and gr_value='" + guuid + "'")
 	gruuid := ""
 	sql.Scan(&gruuid)
+	sql.Close()
 	sql = Rdb.QueryRow("select gr_value from grouprulesets where gr_param = 'rulesetid' and gr_uniqueid='" + gruuid + "'")
+
 	ruuid := ""
 	sql.Scan(&ruuid)
+	sql.Close()
 	return ruuid
 }
 
@@ -615,5 +654,6 @@ func GetDefaultRuleset() string {
 	sql := Rdb.QueryRow("select ruleset_uniqueid from ruleset where ruleset_param = 'default' and ruleset_value='true'")
 	ruuid := ""
 	sql.Scan(&ruuid)
+	sql.Close()
 	return ruuid
 }

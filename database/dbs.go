@@ -49,6 +49,7 @@ func DeleteNode(uuid string) (err error) {
 	deleteNodeQuery, err := Db.Prepare("delete from nodes where node_uniqueid = ?;")
 	_, err = deleteNodeQuery.Exec(&uuid)
 	defer deleteNodeQuery.Close()
+
 	if err != nil {
 		logs.Error("DB DeleteRulese/deleteNodeQuery -> ERROR on table Ruleset...")
 		return errors.New("DB DeleteRuleset/deleteNodeQuery -> ERROR on table Ruleset...")
@@ -62,12 +63,14 @@ func NodeKeyExists(nodekey string, key string) (id int, err error) {
 		return 0, errors.New("no access to database")
 	}
 	sql := "SELECT node_id FROM nodes where node_uniqueid = '" + nodekey + "' and node_param = '" + key + "';"
+
 	rows, err := Db.Query(sql)
 	if err != nil {
 		logs.Error(err.Error())
 		return 0, err
 	}
 	defer rows.Close()
+
 	if rows.Next() {
 		if err = rows.Scan(&id); err == nil {
 			return id, err
@@ -86,6 +89,7 @@ func InsertNodeKey(nkey string, key string, value string) (err error) {
 		logs.Error("InsertNodeKey Prepare -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&nkey, &key, &value)
 	if err != nil {
@@ -101,9 +105,9 @@ func UpdateNode(uuid string, param string, value string) (err error) {
 		logs.Error("updateNode UPDATE prepare error for update-- " + err.Error())
 		return err
 	}
+	defer updateNode.Close()
 
 	_, err = updateNode.Exec(&value, &uuid, &param)
-	defer updateNode.Close()
 	if err != nil {
 		logs.Error("updateNode UPDATE error -- " + err.Error())
 		return err
@@ -117,12 +121,14 @@ func GetNodeIpbyName(n string) (ip string, err error) {
 		return "", errors.New("no access to database")
 	}
 	sql := "select node_value from nodes where node_uniqueid like '%" + n + "%' and node_param = 'ip';"
+
 	rows, err := Db.Query(sql)
 	if err != nil {
 		logs.Error(err.Error())
 		return "", err
 	}
 	defer rows.Close()
+
 	if rows.Next() {
 		if err = rows.Scan(&ip); err == nil {
 			return ip, err
@@ -147,6 +153,7 @@ func GetNodeTags() (tags map[string]map[string]string, err error) {
 		logs.Error("GetNodeTags Db.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -178,6 +185,7 @@ func GetAllOrganizations() (orgs map[string]map[string]string, err error) {
 		logs.Error("GetAllOrganizations Db.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -209,6 +217,7 @@ func GetNodeOrgs() (orgs map[string]map[string]string, err error) {
 		logs.Error("GetNodeOrgs Db.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -240,6 +249,7 @@ func GetAllTags() (tags map[string]map[string]string, err error) {
 		logs.Error("GetAllTags Db.Query Error : %s", err.Error())
 		return nil, err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&uniqid, &param, &value); err != nil {
@@ -265,6 +275,7 @@ func InsertTag(nkey string, key string, value string) (err error) {
 		logs.Error("InsertTag Prepare -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&nkey, &key, &value)
 	if err != nil {
@@ -287,6 +298,7 @@ func GetTagIDByName(name string) (tag string, err error) {
 		logs.Error("GetTagIDByName Db.Query Error : %s", err.Error())
 		return "", err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&value); err != nil {
@@ -310,6 +322,7 @@ func GetTagsByID(uuid string) (tag string, err error) {
 		logs.Error("GetTagsByID Db.Query Error : %s", err.Error())
 		return "", err
 	}
+	defer rows.close()
 
 	for rows.Next() {
 		if err = rows.Scan(&value); err != nil {
@@ -333,6 +346,7 @@ func GetOrgsByID(uuid string) (tag string, err error) {
 		logs.Error("GetOrgsByID Db.Query Error : %s", err.Error())
 		return "", err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&value); err != nil {
@@ -356,6 +370,7 @@ func GetOrgByID(uuid string) (tag string, err error) {
 		logs.Error("GetOrgByID Db.Query Error : %s", err.Error())
 		return "", err
 	}
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&value); err != nil {
@@ -368,34 +383,50 @@ func GetOrgByID(uuid string) (tag string, err error) {
 
 func DeleteNodeTag(uuid string) (err error) {
 	deleteNodeQuery, err := Db.Prepare("delete from nodeTags where nt_uniqueid = ?;")
-	_, err = deleteNodeQuery.Exec(&uuid)
+	if err != nil {
+		logs.Error("DeleteNodeTag Db.Query Error : %s", err.Error())
+		return err
+	}
 	defer deleteNodeQuery.Close()
+
+	_, err = deleteNodeQuery.Exec(&uuid)
 	if err != nil {
 		logs.Error("DeleteNodeTag -> ERROR on table nodeTags...")
-		return errors.New("DeleteNodeTag -> ERROR on table nodeTags...")
+		return errors.New("DeleteNodeTag -> ERROR on table nodeTags")
 	}
 	return nil
 }
 
 func DeleteNodeOrg(uuid string) (err error) {
 	deleteNodeQuery, err := Db.Prepare("delete from nodeOrgs where no_uniqueid = ?;")
-	_, err = deleteNodeQuery.Exec(&uuid)
-	defer deleteNodeQuery.Close()
 	if err != nil {
-		logs.Error("DeleteNodeOrg -> ERROR on table nodeOrgs...")
-		return errors.New("DeleteNodeOrg -> ERROR on table nodeOrgs...")
+		logs.Error("DeleteNodeOrg Db.Query Error : %s", err.Error())
+		return err
+	}
+	defer deleteNodeQuery.Close()
+
+	_, err = deleteNodeQuery.Exec(&uuid)
+	if err != nil {
+		logs.Error("DeleteNodeOrg -> ERROR on table nodeOrgs")
+		return errors.New("DeleteNodeOrg -> ERROR on table nodeOrgs")
 	}
 	return nil
 }
 
 func DeleteOrganization(uuid string) (err error) {
 	deleteNodeQuery, err := Db.Prepare("delete from organizations where org_uniqueid = ?;")
-	_, err = deleteNodeQuery.Exec(&uuid)
-	defer deleteNodeQuery.Close()
 	if err != nil {
-		logs.Error("DeleteOrganization -> ERROR on table organizations...")
-		return errors.New("DeleteOrganization -> ERROR on table organizations...")
+		logs.Error("DeleteOrganization Db.Query Error : %s", err.Error())
+		return err
 	}
+	defer deleteNodeQuery.Close()
+
+	_, err = deleteNodeQuery.Exec(&uuid)
+	if err != nil {
+		logs.Error("DeleteOrganization -> ERROR on table organizations")
+		return errors.New("DeleteOrganization -> ERROR on table organizations")
+	}
+
 	return nil
 }
 
@@ -409,6 +440,7 @@ func InsertNodeTag(nkey string, key string, value string) (err error) {
 		logs.Error("InsertNodeTag Prepare -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&nkey, &key, &value)
 	if err != nil {
@@ -428,6 +460,7 @@ func InsertNodeOrgs(nkey string, key string, value string) (err error) {
 		logs.Error("InsertNodeOrgs Prepare -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&nkey, &key, &value)
 	if err != nil {
@@ -443,9 +476,10 @@ func EditOrganization(uuid string, param string, value string) (err error) {
 		logs.Error("EditOrganization UPDATE prepare error for update-- " + err.Error())
 		return err
 	}
+	defer EditOrganization.Close()
 
 	_, err = EditOrganization.Exec(&value, &uuid, &param)
-	defer EditOrganization.Close()
+
 	if err != nil {
 		logs.Error("EditOrganization UPDATE error -- " + err.Error())
 		return err
@@ -463,6 +497,7 @@ func InsertOrganization(nkey string, key string, value string) (err error) {
 		logs.Error("InsertOrganization Prepare -> %s", err.Error())
 		return err
 	}
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&nkey, &key, &value)
 	if err != nil {
