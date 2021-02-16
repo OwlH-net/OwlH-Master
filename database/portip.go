@@ -16,7 +16,6 @@ func ObtainPortIp(uuid string) (ip string, port string, err error) {
 	var ipNode string
 	var portNode string
 	row1 := Db.QueryRow("SELECT node_value FROM nodes WHERE node_uniqueid = \"" + uuid + "\" and node_param = \"ip\";")
-	defer row1.Close()
 	err = row1.Scan(&ipNode)
 	if err != nil {
 		logs.Error("DB NODE obtainPortIp ipNode -> ndb.Db.QueryRow error: %s", err.Error())
@@ -40,7 +39,6 @@ func ObtainNodeName(uuid string) (name string, err error) {
 	}
 
 	row2 := Db.QueryRow("SELECT node_value FROM nodes WHERE node_uniqueid = \"" + uuid + "\" and node_param = \"name\";")
-	defer row2.Close()
 	err = row2.Scan(&name)
 	if err != nil {
 		logs.Error("DB NODE ObtainNodeName portNode -> row2.Scan error: %s", err.Error())
@@ -122,8 +120,6 @@ func GetTokenByUuid(uuid string) (err error) {
 	var token string
 	query := "SELECT node_value FROM nodes WHERE node_uniqueid = '" + uuid + "' and node_param = 'token';"
 	row1 := Db.QueryRow(query)
-	defer row1.Close()
-
 	err = row1.Scan(&token)
 	if err != nil {
 		logs.Warn("GetTokenByUuid error: %s", err.Error())

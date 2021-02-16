@@ -231,7 +231,6 @@ func GetRulesetPath(uuid string) (n string, err error) {
 	var path string
 	if Rdb != nil {
 		row := Rdb.QueryRow("SELECT rule_value FROM rule_files WHERE rule_uniqueid=$1 and rule_param=\"path\";", uuid)
-		defer row.Close()
 		err = row.Scan(&path)
 
 		if err == sql.ErrNoRows {
@@ -598,7 +597,6 @@ func GetRuleSelected(uuid string) (ruleset string, err error) {
 	var ruleSelected string
 	if Rdb != nil {
 		row := Rdb.QueryRow("SELECT ruleset_uniqueid FROM ruleset_node WHERE node_uniqueid = \"" + uuid + "\";")
-		defer row.Close()
 		err = row.Scan(&ruleSelected)
 		if err != nil {
 			logs.Warn("GetRuleSelected -> row.Scan error %s", err.Error())
@@ -619,7 +617,7 @@ func RulesetParamExists(uuid, param string) bool {
 		logs.Error("Rdb.Query Error : %s", err.Error())
 		return false
 	}
-	defer rows.Cloose()
+	defer rows.Close()
 
 	for rows.Next() {
 		logs.Info("field -> %v DOES exist for ruleset -> %v", param, uuid)
@@ -637,12 +635,10 @@ func GetGroupRulesets(guuid string) string {
 	sql := Rdb.QueryRow("select gr_uniqueid from grouprulesets where gr_param = 'groupid' and gr_value='" + guuid + "'")
 	gruuid := ""
 	sql.Scan(&gruuid)
-	sql.Close()
-	sql = Rdb.QueryRow("select gr_value from grouprulesets where gr_param = 'rulesetid' and gr_uniqueid='" + gruuid + "'")
 
+	sql = Rdb.QueryRow("select gr_value from grouprulesets where gr_param = 'rulesetid' and gr_uniqueid='" + gruuid + "'")
 	ruuid := ""
 	sql.Scan(&ruuid)
-	sql.Close()
 	return ruuid
 }
 
@@ -654,6 +650,6 @@ func GetDefaultRuleset() string {
 	sql := Rdb.QueryRow("select ruleset_uniqueid from ruleset where ruleset_param = 'default' and ruleset_value='true'")
 	ruuid := ""
 	sql.Scan(&ruuid)
-	sql.Close()
+
 	return ruuid
 }

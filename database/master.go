@@ -539,7 +539,7 @@ func DeleteNodeGroupById(uuid string) (err error) {
 		logs.Error("Prepare DeleteNodeGroupById -> %s", err.Error())
 		return err
 	}
-	defer stmt.close()
+	defer stmt.Close()
 
 	_, err = stmt.Exec(&uuid)
 	if err != nil {

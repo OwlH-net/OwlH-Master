@@ -322,7 +322,7 @@ func GetTagsByID(uuid string) (tag string, err error) {
 		logs.Error("GetTagsByID Db.Query Error : %s", err.Error())
 		return "", err
 	}
-	defer rows.close()
+	defer rows.Close()
 
 	for rows.Next() {
 		if err = rows.Scan(&value); err != nil {
