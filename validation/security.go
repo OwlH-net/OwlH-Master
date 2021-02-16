@@ -1,6 +1,8 @@
 package validation
 
 import (
+	ndb "owlhmaster/database"
+
 	"github.com/astaxie/beego/logs"
 
 	"strings"
