@@ -1,13 +1,13 @@
 package controllers
 
 import (
-    "owlhmaster/models"
-    "owlhmaster/validation"
-    "github.com/astaxie/beego"
+  "github.com/OwlH-net/OwlH-Master/models"
+  "github.com/OwlH-net/OwlH-Master/validation"
+  "github.com/astaxie/beego"
 )
 
 type ChangecontrolController struct {
-    beego.Controller
+  beego.Controller
 }
 
 // @Title GetChangeControl
@@ -16,24 +16,24 @@ type ChangecontrolController struct {
 // @Failure 403 body is empty
 // @router / [get]
 func (n *ChangecontrolController) GetChangeControl() {
-    errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
-    if errToken != nil {
-        n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token":"none"}
-        n.ServeJSON()
-        return
-    }    
-    permissions := []string{"GetChangeControl"}
-    hasPermission,permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)    
-    if permissionsErr != nil || hasPermission == false {
-        n.Data["json"] = map[string]string{"ack": "false","permissions":"none"}
-    }else{
-        data, err := models.GetChangeControl(n.Ctx.Input.Header("user"))
-        n.Data["json"] = data
-        if err != nil {
-
-            n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
-        }
-
-    }
+  errToken := validation.VerifyToken(n.Ctx.Input.Header("token"), n.Ctx.Input.Header("user"))
+  if errToken != nil {
+    n.Data["json"] = map[string]string{"ack": "false", "error": errToken.Error(), "token": "none"}
     n.ServeJSON()
+    return
+  }
+  permissions := []string{"GetChangeControl"}
+  hasPermission, permissionsErr := validation.VerifyPermissions(n.Ctx.Input.Header("user"), "any", permissions)
+  if permissionsErr != nil || hasPermission == false {
+    n.Data["json"] = map[string]string{"ack": "false", "permissions": "none"}
+  } else {
+    data, err := models.GetChangeControl(n.Ctx.Input.Header("user"))
+    n.Data["json"] = data
+    if err != nil {
+
+      n.Data["json"] = map[string]string{"ack": "false", "error": err.Error()}
+    }
+
+  }
+  n.ServeJSON()
 }

@@ -1,25 +1,25 @@
 package models
 
 import (
-    "owlhmaster/changeControl"
-    "owlhmaster/node"
-    "owlhmaster/ruleset"
+  changecontrol "github.com/OwlH-net/OwlH-Master/changeControl"
+  "github.com/OwlH-net/OwlH-Master/node"
+  "github.com/OwlH-net/OwlH-Master/ruleset"
 )
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/default \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/default \
 func GetRules(username string) (rules map[string]map[string]string, err error) {
-    rules, err = ruleset.ReadRuleset("")
-    changecontrol.ChangeControlInsertData(err, "GetRules", username)
-    return rules, err
+  rules, err = ruleset.ReadRuleset("")
+  changecontrol.ChangeControlInsertData(err, "GetRules", username)
+  return rules, err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/rule/:sid/:uuid  \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/rule/:sid/:uuid  \
 func GetRuleSID(ruleSidPath map[string]string, username string) (rules map[string]string, err error) {
-    rules, err = ruleset.ReadSID(ruleSidPath)
-    changecontrol.ChangeControlInsertData(err, "GetRuleSID", username)
-    return rules, err
+  rules, err = ruleset.ReadSID(ruleSidPath)
+  changecontrol.ChangeControlInsertData(err, "GetRuleSID", username)
+  return rules, err
 }
 
 // // curl -X POST \
@@ -38,50 +38,51 @@ func GetRuleSID(ruleSidPath map[string]string, username string) (rules map[strin
 // return err
 // }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/rule/:sid/:uuid  \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/rule/:sid/:uuid  \
 func GetAllRulesets(username string) (rulesets map[string]map[string]string, err error) {
-    rulesets, err = ruleset.GetAllRulesets()
-    changecontrol.ChangeControlInsertData(err, "GetAllRulesets", username)
-    return rulesets, err
+  rulesets, err = ruleset.GetAllRulesets()
+  changecontrol.ChangeControlInsertData(err, "GetAllRulesets", username)
+  return rulesets, err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/rules/:uuid  \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/rules/:uuid  \
 func GetRulesetRules(nid string, username string) (rulesets map[string]map[string]string, err error) {
-    rulesets, err = ruleset.GetRulesetRules(nid)
-    changecontrol.ChangeControlInsertData(err, "GetRulesetRules", username)
-    return rulesets, err
+  rulesets, err = ruleset.GetRulesetRules(nid)
+  changecontrol.ChangeControlInsertData(err, "GetRulesetRules", username)
+  return rulesets, err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/set \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "type": "d",
-//     "uuid": "v",
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/set \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//      "type": "d",
+//      "uuid": "v",
+//  }
+//
 // }
 func SetRuleSelected(n map[string]string, username string) (err error) {
-    err = ruleset.SetRuleSelected(n)
-    changecontrol.ChangeControlInsertData(err, "SetRuleSelected", username)
-    return err
+  err = ruleset.SetRuleSelected(n)
+  changecontrol.ChangeControlInsertData(err, "SetRuleSelected", username)
+  return err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/get/:uuid  \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/get/:uuid  \
 func GetRuleSelected(nidSelected string, username string) (rulesetBack string, err error) {
-    rulesetBack, err = ruleset.GetRuleSelected(nidSelected)
-    changecontrol.ChangeControlInsertData(err, "GetRuleSelected", username)
-    return rulesetBack, err
+  rulesetBack, err = ruleset.GetRuleSelected(nidSelected)
+  changecontrol.ChangeControlInsertData(err, "GetRuleSelected", username)
+  return rulesetBack, err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/get/name/:uuid  \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/get/name/:uuid  \
 func GetRuleName(nidRule string, username string) (rulesetBack string, err error) {
-    rulesetBack, err = ruleset.GetRuleName(nidRule)
-    changecontrol.ChangeControlInsertData(err, "GetRuleName", username)
-    return rulesetBack, err
+  rulesetBack, err = ruleset.GetRuleName(nidRule)
+  changecontrol.ChangeControlInsertData(err, "GetRuleName", username)
+  return rulesetBack, err
 }
 
 // curl -X PUT \
@@ -98,183 +99,187 @@ func GetRuleName(nidRule string, username string) (rulesetBack string, err error
 // return err
 // }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/action \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "sid": "d",
-//     "action": "d",
-//     "uuid": "v"
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/action \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//      "sid": "d",
+//      "action": "d",
+//      "uuid": "v"
+//  }
+//
 // }
 func SetRulesetAction(ruleAction map[string]string, username string) (err error) {
-    err = ruleset.SetRulesetAction(ruleAction)
-    changecontrol.ChangeControlInsertData(err, "SetRulesetAction", username)
-    return err
+  err = ruleset.SetRulesetAction(ruleAction)
+  changecontrol.ChangeControlInsertData(err, "SetRulesetAction", username)
+  return err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/note \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "sid": "d",
-//     "note": "d",
-//     "uuid": "v"
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/note \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//      "sid": "d",
+//      "note": "d",
+//      "uuid": "v"
+//  }
+//
 // }
 func SetRuleNote(ruleNote map[string]string, username string) (err error) {
-    err = ruleset.SetRuleNote(ruleNote)
-    changecontrol.ChangeControlInsertData(err, "SetRuleNote", username)
-    return err
+  err = ruleset.SetRuleNote(ruleNote)
+  changecontrol.ChangeControlInsertData(err, "SetRuleNote", username)
+  return err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/getnote/:uuid/:sid \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/getnote/:uuid/:sid \
 func GetRuleNote(ruleGetNote map[string]string, username string) (note string, err error) {
-    note, err = ruleset.GetRuleNote(ruleGetNote)
-    changecontrol.ChangeControlInsertData(err, "GetRuleNote", username)
-    return note, err
+  note, err = ruleset.GetRuleNote(ruleGetNote)
+  changecontrol.ChangeControlInsertData(err, "GetRuleNote", username)
+  return note, err
 }
 
-// curl -X DELETE \
-//   https://52.47.197.22:50002/v1/ruleset/deleteRuleset \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "name": "d",
-//     "uuid": "v"
-// }
+//  curl -X DELETE \
+//    https://52.47.197.22:50002/v1/ruleset/deleteRuleset \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//      "name": "d",
+//      "uuid": "v"
+//  }
+//
 // }
 func DeleteRuleset(rulesetMap map[string]string, username string) (err error) {
-    err = ruleset.DeleteRuleset(rulesetMap)
-    changecontrol.ChangeControlInsertData(err, "DeleteRuleset", username)
-    return err
+  err = ruleset.DeleteRuleset(rulesetMap)
+  changecontrol.ChangeControlInsertData(err, "DeleteRuleset", username)
+  return err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/synchronize \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "uuid": "v"
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/synchronize \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//      "uuid": "v"
+//  }
+//
 // }
 func SyncRulesetToAllNodes(anode map[string]string, username string) (err error) {
-    err = node.SyncRulesetToAllNodes(anode)
-    changecontrol.ChangeControlInsertData(err, "SyncRulesetToAllNodes", username)
-    return err
+  err = node.SyncRulesetToAllNodes(anode)
+  changecontrol.ChangeControlInsertData(err, "SyncRulesetToAllNodes", username)
+  return err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/syncAllRulesets \
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/syncAllRulesets \
 func SynchronizeAllRulesets(username string) (err error) {
-    err = ruleset.SynchronizeAllRulesets()
-    changecontrol.ChangeControlInsertData(err, "SynchronizeAllRulesets", username)
-    return err
+  err = ruleset.SynchronizeAllRulesets()
+  changecontrol.ChangeControlInsertData(err, "SynchronizeAllRulesets", username)
+  return err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/getAllRuleData \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/getAllRuleData \
 func GetAllRuleData(username string) (data map[string]map[string]string, err error) {
-    data, err = ruleset.GetAllRuleData()
-    changecontrol.ChangeControlInsertData(err, "GetAllRuleData", username)
-    return data, err
+  data, err = ruleset.GetAllRuleData()
+  changecontrol.ChangeControlInsertData(err, "GetAllRuleData", username)
+  return data, err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/addNewRuleset \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "uuid": {
-//          "sourceName":"aaa",
-//          "fileName":"aaa",
-//          "filePath":"aaa",
-//          "rulesetName":"aaa",
-//          "rulesetDesc":"aaa",
-//          "sourceType":"aaa",
-//      }
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/addNewRuleset \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//      "uuid": {
+//           "sourceName":"aaa",
+//           "fileName":"aaa",
+//           "filePath":"aaa",
+//           "rulesetName":"aaa",
+//           "rulesetDesc":"aaa",
+//           "sourceType":"aaa",
+//       }
+//  }
 func AddNewRuleset(data map[string]map[string]string, username string) (duplicated []byte, err error) {
-    duplicated, err = ruleset.AddNewRuleset(data)
-    changecontrol.ChangeControlInsertData(err, "AddNewRuleset", username)
-    return duplicated, err
+  duplicated, err = ruleset.AddNewRuleset(data)
+  changecontrol.ChangeControlInsertData(err, "AddNewRuleset", username)
+  return duplicated, err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/setDefaultRuleset \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//      "uuid":"uuid",
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/setDefaultRuleset \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//       "uuid":"uuid",
+//  }
 func SetDefaultRuleset(data string, username string) (err error) {
-    err = ruleset.SetDefaultRuleset(data)
-    changecontrol.ChangeControlInsertData(err, "SetDefaultRuleset", username)
-    return err
+  err = ruleset.SetDefaultRuleset(data)
+  changecontrol.ChangeControlInsertData(err, "SetDefaultRuleset", username)
+  return err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/modify \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "uuid": {
-//          "sourceName":"aaa",
-//          "fileName":"aaa",
-//          "filePath":"aaa",
-//          "rulesetName":"aaa",
-//          "rulesetDesc":"aaa",
-//          "sourceType":"aaa",
-//      }
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/modify \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//      "uuid": {
+//           "sourceName":"aaa",
+//           "fileName":"aaa",
+//           "filePath":"aaa",
+//           "rulesetName":"aaa",
+//           "rulesetDesc":"aaa",
+//           "sourceType":"aaa",
+//       }
+//  }
 func ModifyRuleset(data map[string]map[string]string, username string) (duplicated []byte, err error) {
-    duplicated, err = ruleset.ModifyRuleset(data)
-    changecontrol.ChangeControlInsertData(err, "ModifyRuleset", username)
-    return duplicated, err
+  duplicated, err = ruleset.ModifyRuleset(data)
+  changecontrol.ChangeControlInsertData(err, "ModifyRuleset", username)
+  return duplicated, err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/custom \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/custom \
 func GetAllCustomRulesets(username string) (data map[string]map[string]string, err error) {
-    data, err = ruleset.GetAllCustomRulesets()
-    changecontrol.ChangeControlInsertData(err, "GetAllCustomRulesets", username)
-    return data, err
+  data, err = ruleset.GetAllCustomRulesets()
+  changecontrol.ChangeControlInsertData(err, "GetAllCustomRulesets", username)
+  return data, err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/addRulesToCustom \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//     "uuid": {
-//          "origin":"aaa",
-//          "dest":"aaa",
-//          "ruleset":"aaa",
-//          "sids":"aaa",
-//      }
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/addRulesToCustom \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//      "uuid": {
+//           "origin":"aaa",
+//           "dest":"aaa",
+//           "ruleset":"aaa",
+//           "sids":"aaa",
+//       }
+//  }
 func AddRulesToCustomRuleset(anode map[string]string, username string) (duplicatedRules map[string]string, err error) {
-    duplicatedRules, err = ruleset.AddRulesToCustomRuleset(anode)
-    changecontrol.ChangeControlInsertData(err, "AddRulesToCustomRuleset", username)
-    return duplicatedRules, err
+  duplicatedRules, err = ruleset.AddRulesToCustomRuleset(anode)
+  changecontrol.ChangeControlInsertData(err, "AddRulesToCustomRuleset", username)
+  return duplicatedRules, err
 }
 
-// curl -X GET \
-//   https://52.47.197.22:50002/v1/ruleset/readRuleset/:uuid \
+//  curl -X GET \
+//    https://52.47.197.22:50002/v1/ruleset/readRuleset/:uuid \
 func ReadRulesetData(uuid string, username string) (content map[string]string, err error) {
-    content, err = ruleset.ReadRulesetData(uuid)
-    changecontrol.ChangeControlInsertData(err, "ReadRulesetData", username)
-    return content, err
+  content, err = ruleset.ReadRulesetData(uuid)
+  changecontrol.ChangeControlInsertData(err, "ReadRulesetData", username)
+  return content, err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/saveRuleset \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//      {
-//          "uuid":"aaa",
-//          "content":"aaa",
-//      }
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/saveRuleset \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//       {
+//           "uuid":"aaa",
+//           "content":"aaa",
+//       }
+//  }
 func SaveRulesetData(content map[string]string, username string) (err error) {
-    err = ruleset.SaveRulesetData(content)
-    changecontrol.ChangeControlInsertData(err, "SaveRulesetData", username)
-    return err
+  err = ruleset.SaveRulesetData(content)
+  changecontrol.ChangeControlInsertData(err, "SaveRulesetData", username)
+  return err
 }
 
 // // curl -X PUT \
@@ -311,29 +316,29 @@ func SaveRulesetData(content map[string]string, username string) (err error) {
 // return err
 // }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/updateRule \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//      "uuid":"aaa",
-//      "line":"aaa",
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/updateRule \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//       "uuid":"aaa",
+//       "line":"aaa",
+//  }
 func UpdateRule(anode map[string]string, username string) (err error) {
-    err = ruleset.UpdateRule(anode)
-    changecontrol.ChangeControlInsertData(err, "UpdateRule", username)
-    return err
+  err = ruleset.UpdateRule(anode)
+  changecontrol.ChangeControlInsertData(err, "UpdateRule", username)
+  return err
 }
 
-// curl -X PUT \
-//   https://52.47.197.22:50002/v1/ruleset/syncToAll \
-//   -H 'Content-Type: application/json' \
-//   -d '{
-//      "uuid":"aaa"
-// }
+//  curl -X PUT \
+//    https://52.47.197.22:50002/v1/ruleset/syncToAll \
+//    -H 'Content-Type: application/json' \
+//    -d '{
+//       "uuid":"aaa"
+//  }
 func SyncToAll(anode map[string]string, username string) (err error) {
-    err = ruleset.SyncToAll(anode)
-    changecontrol.ChangeControlInsertData(err, "SyncToAll", username)
-    return err
+  err = ruleset.SyncToAll(anode)
+  changecontrol.ChangeControlInsertData(err, "SyncToAll", username)
+  return err
 }
 
 // func SetDefaultRuleset(uuid string) (err error) {

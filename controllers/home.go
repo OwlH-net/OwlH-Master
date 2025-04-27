@@ -1,14 +1,13 @@
 package controllers
 
 import (
-    "github.com/astaxie/beego"
-    "owlhmaster/models"
+  "github.com/OwlH-net/OwlH-Master/models"
+  "github.com/astaxie/beego"
 )
 
 type HomeController struct {
-    beego.Controller
+  beego.Controller
 }
-
 
 // @Title Home
 // @Description Get master info
@@ -16,11 +15,11 @@ type HomeController struct {
 // @Success 200 {object} models.Master
 // @router / [get]
 func (n *HomeController) Home() {
-    isDefault, _ := models.CheckDefaultAdmin()
-    if isDefault{
-        n.Data["json"] = map[string]string{"ack": "true", "defaults": "true"}
-    }else{
-        n.Data["json"] = map[string]string{"ack": "true"}
-    } 
-    n.ServeJSON()
+  isDefault, _ := models.CheckDefaultAdmin()
+  if isDefault {
+    n.Data["json"] = map[string]string{"ack": "true", "defaults": "true"}
+  } else {
+    n.Data["json"] = map[string]string{"ack": "true"}
+  }
+  n.ServeJSON()
 }
